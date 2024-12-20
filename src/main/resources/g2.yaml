@@ -1,0 +1,26 @@
+---
+perf:
+  name: "perfidious"
+  slotA:
+    patch:
+      name: "patchy"
+      voice:
+        modules:
+          - name: "LFO 1"
+            module: lfoc
+            params:
+              poly: true # :mono true
+              hz: 0.61 # :secs 66, :bpm true, :clk true
+              wave: sine
+              polarity: pos
+              enable: true
+          - name: "OSC"
+            module: oscd
+            params:
+              kbt: true
+              semi: -32 # :hz 8, :khz 1.5, :mhz 1.2, :factor 5.5, :partial 64
+              cent: 0.15
+              wave: saw
+        cables:
+          - { fm: "LFOC", fc: rate, tm: "OSC", tc: pitch }
+      fx: {}
