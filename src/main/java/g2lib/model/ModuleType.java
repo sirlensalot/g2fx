@@ -1,5 +1,6 @@
 package g2lib.model;
 
+import java.util.HashSet;
 import java.util.List;
 
 import static g2lib.model.ConnColor.*;
@@ -19,7 +20,7 @@ public enum ModuleType {
      List.of()),
     M_4_Out
     (3, "4 outputs", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(1),
      List.of(Port.in("In1",Red,13,1),
              Port.in("In2",Red,15,1),
              Port.in("In3",Red,17,1),
@@ -31,7 +32,7 @@ public enum ModuleType {
      List.of()),
     M_2_Out
     (4, "2 outputs", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(0),
      List.of(Port.in("InL",Red,17,1),
              Port.in("InR",Red,19,1)),
      List.of(),
@@ -41,7 +42,7 @@ public enum ModuleType {
      List.of()),
     M_Invert
     (5, "Logic Inverter", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(1),
      List.of(Port.in("In1",Yellow_orange,7,1),
              Port.in("In2",Yellow_orange,15,1)),
      List.of(Port.out("Out1",Yellow_orange,11,1),
@@ -50,7 +51,7 @@ public enum ModuleType {
      List.of()),
     M_OscB
     (7, "Osc B", 5,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(1),
      List.of(Port.in("Pitch",Blue_red,0,3),
              Port.in("PitchVar",Blue_red,0,4),
              Port.in("Sync",Red,0,1),
@@ -71,7 +72,7 @@ public enum ModuleType {
      List.of()),
     M_OscShpB
     (8, "Osc Shape B", 4,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(6),
      List.of(Port.in("Pitch",Blue_red,0,2),
              Port.in("PitchVar",Blue_red,0,3),
              Port.in("Sync",Red,0,1),
@@ -91,7 +92,7 @@ public enum ModuleType {
      List.of(ModParam.OscWaveform_3.mk("Waveform"))),
     M_OscC
     (9, "Osc C", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(2),
      List.of(Port.in("PitchVar",Blue_red,0,2),
              Port.in("Sync",Red,12,2),
              Port.in("FmMod",Red,14,2),
@@ -108,7 +109,7 @@ public enum ModuleType {
      List.of(ModParam.OscWaveform_2.mk("Waveform"))),
     M_Reverb
     (12, "reverb", 3,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(7),
      List.of(Port.in("InL",Red,17,0),
              Port.in("InR",Red,19,0)),
      List.of(Port.out("OutL",Red,17,2),
@@ -120,7 +121,7 @@ public enum ModuleType {
      List.of(ModParam.RoomType.mk("RoomType"))),
     M_OscString
     (13, "Osc String", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(13),
      List.of(Port.in("In",Red,19,0),
              Port.in("Pitch",Blue,0,1),
              Port.in("PitchVar",Blue,0,2)),
@@ -152,7 +153,7 @@ public enum ModuleType {
      List.of()),
     M_ValSw1_2
     (17, "Value Switch 1-2", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(11),
      List.of(Port.in("Input",Blue_red,14,2),
              Port.in("Ctrl",Blue_red,0,2)),
      List.of(Port.out("OutOn",Blue_red,16,2),
@@ -162,7 +163,7 @@ public enum ModuleType {
      List.of()),
     M_X_Fade
     (18, "Cross Fader", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(13),
      List.of(Port.in("In1",Blue_red,14,2),
              Port.in("In2",Blue_red,16,2),
              Port.in("Mod",Blue_red,6,2)),
@@ -188,7 +189,7 @@ public enum ModuleType {
      List.of()),
     M_EnvADSR
     (20, "Envelop ADSR", 4,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(0),
      List.of(Port.in("In",Blue_red,19,0),
              Port.in("Gate",Yellow,0,2),
              Port.in("AM",Blue,0,3)),
@@ -205,7 +206,7 @@ public enum ModuleType {
      List.of()),
     M_Mux1_8
     (21, "Multiplexer 1-8", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(14),
      List.of(Port.in("In",Blue_red,6,1),
              Port.in("Ctrl",Blue,0,1)),
      List.of(Port.out("Out1",Blue_red,7,1),
@@ -220,14 +221,14 @@ public enum ModuleType {
      List.of()),
     M_PartQuant
     (22, "Partial Quantizer", 2,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(2),
      List.of(Port.in("In",Blue,16,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.PartialRange.mk("Range")),
      List.of()),
     M_ModADSR
     (23, "Envelope Modulation ADSR", 5,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(8),
      List.of(Port.in("Gate",Yellow,0,4),
              Port.in("AttackMod",Blue,2,4),
              Port.in("DecayMod",Blue,5,4),
@@ -250,7 +251,7 @@ public enum ModuleType {
      List.of()),
     M_LfoC
     (24, "LFO C", 2,
-     ModPage.LFO.ix(5),
+     ModPage.LFO.ix(2),
      List.of(Port.in("Rate",Blue,0,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.LfoRate_3.mk("Rate"),
@@ -261,7 +262,7 @@ public enum ModuleType {
      List.of(ModParam.LfoWaveform_1.mk("Waveform"))),
     M_LfoShpA
     (25, "LFO Shape A", 5,
-     ModPage.LFO.ix(5),
+     ModPage.LFO.ix(3),
      List.of(Port.in("Rate",Blue,1,4),
              Port.in("RateVar",Blue,2,4),
              Port.in("Rst",Blue,0,1),
@@ -285,7 +286,7 @@ public enum ModuleType {
      List.of()),
     M_LfoA
     (26, "LFO A", 3,
-     ModPage.LFO.ix(5),
+     ModPage.LFO.ix(0),
      List.of(Port.in("Rate",Blue,0,1),
              Port.in("RateVar",Blue,0,2)),
      List.of(Port.out("Out",Blue,19,2)),
@@ -300,7 +301,7 @@ public enum ModuleType {
      List.of()),
     M_OscMaster
     (27, "Osc Master", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(16),
      List.of(Port.in("Pitch",Blue_red,0,1),
              Port.in("PitchVar",Blue_red,0,2)),
      List.of(Port.out("Out",Blue_red,19,2)),
@@ -312,7 +313,7 @@ public enum ModuleType {
      List.of()),
     M_Saturate
     (28, "Saturate", 2,
-     ModPage.Shaper.ix(5),
+     ModPage.Shaper.ix(2),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,8,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -323,7 +324,7 @@ public enum ModuleType {
      List.of()),
     M_MetNoise
     (29, "Metallic Noise Oscillator", 2,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(10),
      List.of(Port.in("FreqMod",Blue_red,4,1),
              Port.in("ColorMod",Blue_red,11,1)),
      List.of(Port.out("Out",Red,19,1)),
@@ -335,7 +336,7 @@ public enum ModuleType {
      List.of()),
     M_Device
     (30, "Device", 3,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(7),
      List.of(),
      List.of(Port.out("Wheel",Blue,0,2),
              Port.out("AftTouch",Blue,3,2),
@@ -348,7 +349,7 @@ public enum ModuleType {
      List.of()),
     M_Noise
     (31, "Noise", 2,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(9),
      List.of(),
      List.of(Port.out("Out",Red,19,1)),
      List.of(ModParam.NoiseColor.mk("Color"),
@@ -356,7 +357,7 @@ public enum ModuleType {
      List.of()),
     M_Eq2Band
     (32, "Eq 2 Band", 3,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(12),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("Out",Red,19,2)),
      List.of(ModParam.EqdB.mk("LoSlope"),
@@ -368,7 +369,7 @@ public enum ModuleType {
      List.of()),
     M_Eq3Band
     (33, "Eq 3 Band", 4,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(13),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("Out",Red,19,3)),
      List.of(ModParam.EqdB.mk("LoSlope"),
@@ -382,7 +383,7 @@ public enum ModuleType {
      List.of()),
     M_ShpExp
     (34, "Shape Exp", 2,
-     ModPage.Shaper.ix(5),
+     ModPage.Shaper.ix(3),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,8,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -393,7 +394,7 @@ public enum ModuleType {
      List.of()),
     M_SwOnOffM
     (36, "Switch On/Off Momentary", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(0),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue_red,19,1),
              Port.out("Ctrl",Blue,0,1)),
@@ -401,7 +402,7 @@ public enum ModuleType {
      List.of()),
     M_Pulse
     (38, "Pulse", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(4),
      List.of(Port.in("In",Yellow_orange,15,0),
              Port.in("Time",Blue_red,4,1)),
      List.of(Port.out("Out",Yellow_orange,19,1)),
@@ -411,7 +412,7 @@ public enum ModuleType {
      List.of(ModParam.PulseMode.mk("Mode"))),
     M_Mix8_1B
     (40, "Mixer 8-1 B", 4,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(9),
      List.of(Port.in("In1",Blue_red,3,1),
              Port.in("In2",Blue_red,5,1),
              Port.in("In3",Blue_red,7,1),
@@ -435,7 +436,7 @@ public enum ModuleType {
      List.of()),
     M_EnvH
     (41, "Envelope Hold", 2,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(1),
      List.of(Port.in("Trig",Yellow,0,1),
              Port.in("AM",Blue,3,1),
              Port.in("In",Blue_red,16,1)),
@@ -456,7 +457,7 @@ public enum ModuleType {
      List.of(ModParam.LogicDelayMode.mk("Mode"))),
     M_Constant
     (43, "Constant Value", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(0),
      List.of(),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.LevBipUni.mk("Level"),
@@ -464,7 +465,7 @@ public enum ModuleType {
      List.of()),
     M_LevMult
     (44, "Level Multiplier", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(6),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,14,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -472,7 +473,7 @@ public enum ModuleType {
      List.of()),
     M_FltVoice
     (45, "Filter Voice", 4,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(9),
      List.of(Port.in("In",Red,19,0),
              Port.in("VowelMod",Blue,9,3),
              Port.in("FreqMod",Red,0,3)),
@@ -490,7 +491,7 @@ public enum ModuleType {
      List.of()),
     M_EnvAHD
     (46, "Envelope AHD", 4,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(4),
      List.of(Port.in("Trig",Yellow,0,2),
              Port.in("AM",Blue,0,3),
              Port.in("In",Blue_red,19,0)),
@@ -506,7 +507,7 @@ public enum ModuleType {
      List.of()),
     M_Pan
     (47, "Pan", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(12),
      List.of(Port.in("In",Blue_red,14,1),
              Port.in("Mod",Blue_red,6,1)),
      List.of(Port.out("OutL",Blue_red,16,1),
@@ -517,7 +518,7 @@ public enum ModuleType {
      List.of()),
     M_MixStereo
     (48, "Mixer Stereo", 5,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(11),
      List.of(Port.in("In1",Blue_red,0,2),
              Port.in("In2",Blue_red,2,2),
              Port.in("In3",Blue_red,5,2),
@@ -542,7 +543,7 @@ public enum ModuleType {
      List.of()),
     M_FltMulti
     (49, "Filter Multi-mode", 4,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(4),
      List.of(Port.in("In",Red,19,0),
              Port.in("PitchVar",Blue_red,0,2),
              Port.in("Pitch",Blue_red,0,3)),
@@ -559,7 +560,7 @@ public enum ModuleType {
      List.of()),
     M_ConstSwT
     (50, "Constant Switch Toggling", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(2),
      List.of(),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.LevBipUni.mk("Lev"),
@@ -568,7 +569,7 @@ public enum ModuleType {
      List.of()),
     M_FltNord
     (51, "Filter Nord", 5,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(2),
      List.of(Port.in("In",Red,19,0),
              Port.in("PitchVar",Blue_red,0,4),
              Port.in("Pitch",Blue_red,0,3),
@@ -588,7 +589,7 @@ public enum ModuleType {
      List.of()),
     M_EnvMulti
     (52, "Envelope Multi", 6,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(6),
      List.of(Port.in("Gate",Yellow,0,2),
              Port.in("In",Blue_red,16,0),
              Port.in("AM",Blue,2,2)),
@@ -610,7 +611,7 @@ public enum ModuleType {
      List.of()),
     M_S_and_H
     (53, "Sample & Hold", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(16),
      List.of(Port.in("In",Blue_red,15,1),
              Port.in("Ctrl",Yellow_orange,12,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -629,7 +630,7 @@ public enum ModuleType {
      List.of()),
     M_EnvD
     (55, "Envelope Decay", 2,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(2),
      List.of(Port.in("Trig",Yellow,0,1),
              Port.in("AM",Blue,3,1),
              Port.in("In",Blue_red,16,1)),
@@ -640,7 +641,7 @@ public enum ModuleType {
      List.of()),
     M_Automate
     (57, "MIDI Control Automate", 2,
-     ModPage.MIDI.ix(5),
+     ModPage.MIDI.ix(6),
      List.of(Port.in("In",Yellow,0,1)),
      List.of(Port.out("Out",Yellow,4,1)),
      List.of(ModParam.MidiData.mk("Ctrl"),
@@ -650,7 +651,7 @@ public enum ModuleType {
      List.of()),
     M_DrumSynth
     (58, "Drum Synthesizer", 8,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(12),
      List.of(Port.in("Trig",Yellow,0,2),
              Port.in("Vel",Blue,0,7),
              Port.in("Pitch",Blue,0,4)),
@@ -674,14 +675,14 @@ public enum ModuleType {
      List.of()),
     M_CompLev
     (59, "Compare to Level", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(10),
      List.of(Port.in("In",Blue_red,9,1)),
      List.of(Port.out("Out",Yellow_orange,19,1)),
      List.of(ModParam.Bipolar_127.mk("C")),
      List.of()),
     M_Mux8_1X
     (60, "Multiplexer 8-1 with variable X-Fade", 3,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(15),
      List.of(Port.in("In1",Blue_red,5,1),
              Port.in("In2",Blue_red,7,1),
              Port.in("In3",Blue_red,9,1),
@@ -696,7 +697,7 @@ public enum ModuleType {
      List.of()),
     M_Clip
     (61, "Clip", 2,
-     ModPage.Shaper.ix(5),
+     ModPage.Shaper.ix(0),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,5,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -707,7 +708,7 @@ public enum ModuleType {
      List.of()),
     M_Overdrive
     (62, "Overdrive", 2,
-     ModPage.Shaper.ix(5),
+     ModPage.Shaper.ix(1),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,8,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -719,7 +720,7 @@ public enum ModuleType {
      List.of()),
     M_Scratch
     (63, "Scratch", 3,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(6),
      List.of(Port.in("In",Red,19,0),
              Port.in("Mod",Blue,0,2)),
      List.of(Port.out("Out",Red,19,2)),
@@ -730,7 +731,7 @@ public enum ModuleType {
      List.of()),
     M_Gate
     (64, "Gate", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(0),
      List.of(Port.in("In1_1",Yellow_orange,6,0),
              Port.in("In1_2",Yellow_orange,5,1),
              Port.in("In2_1",Yellow_orange,13,0),
@@ -742,7 +743,7 @@ public enum ModuleType {
              ModParam.GateMode.mk("GateMode2"))),
     M_Mix2_1B
     (66, "Scratch", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(3),
      List.of(Port.in("In1",Blue_red,5,1),
              Port.in("In2",Blue_red,12,1),
              Port.in("Chain",Blue_red,0,1)),
@@ -755,7 +756,7 @@ public enum ModuleType {
      List.of()),
     M_ClkGen
     (68, "Clock Generator", 4,
-     ModPage.LFO.ix(5),
+     ModPage.LFO.ix(4),
      List.of(Port.in("Rst",Yellow,0,1)),
      List.of(Port.out("1/96",Yellow,19,1),
              Port.out("1/16",Yellow,19,2),
@@ -769,7 +770,7 @@ public enum ModuleType {
      List.of()),
     M_ClkDiv
     (69, "Clock Divider", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(3),
      List.of(Port.in("Clk",Yellow_orange,8,1),
              Port.in("Rst",Yellow_orange,5,1)),
      List.of(Port.out("Out",Yellow_orange,19,1)),
@@ -777,7 +778,7 @@ public enum ModuleType {
      List.of(ModParam.ClkDivMode.mk("DivMode"))),
     M_EnvFollow
     (71, "Envelope Follower", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(8),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.EnvFollowAttack.mk("Attack"),
@@ -785,14 +786,14 @@ public enum ModuleType {
      List.of()),
     M_NoteScaler
     (72, "Note Scaler", 2,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(3),
      List.of(Port.in("In",Blue,16,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.NoteRange.mk("Range")),
      List.of()),
     M_WaveWrap
     (74, "Wave Wrapper", 2,
-     ModPage.Shaper.ix(5),
+     ModPage.Shaper.ix(4),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,8,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -802,7 +803,7 @@ public enum ModuleType {
      List.of()),
     M_NoteQuant
     (75, "Note Quantizer", 2,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(0),
      List.of(Port.in("In",Blue,16,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.NoteRange.mk("Range"),
@@ -810,7 +811,7 @@ public enum ModuleType {
      List.of()),
     M_SwOnOffT
     (76, "Switch On/Off Toggle", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(1),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue_red,19,1),
              Port.out("Ctrl",Blue,0,1)),
@@ -818,7 +819,7 @@ public enum ModuleType {
      List.of()),
     M_Sw1_8
     (78, "Switch 1-8", 4,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(9),
      List.of(Port.in("In",Blue_red,3,3)),
      List.of(Port.out("Out1",Blue_red,6,2),
              Port.out("Out2",Blue_red,8,3),
@@ -834,7 +835,7 @@ public enum ModuleType {
      List.of()),
     M_Sw4_1
     (79, "Switch 4-1", 3,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(4),
      List.of(Port.in("In1",Blue_red,6,1),
              Port.in("In2",Blue_red,9,1),
              Port.in("In3",Blue_red,13,1),
@@ -854,7 +855,7 @@ public enum ModuleType {
      List.of()),
     M_Rect
     (82, "Rectifier", 2,
-     ModPage.Shaper.ix(5),
+     ModPage.Shaper.ix(6),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
      List.of(ModParam.RectMode.mk("Mode"),
@@ -870,7 +871,7 @@ public enum ModuleType {
      List.of()),
     M_EnvADR
     (84, "Envelope ADR", 3,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(3),
      List.of(Port.in("Gate",Yellow,0,2),
              Port.in("In",Blue_red,19,0),
              Port.in("AM",Blue,3,2)),
@@ -888,7 +889,7 @@ public enum ModuleType {
      List.of()),
     M_WindSw
     (85, "Window Switch", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(12),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Ctrl",Blue_red,14,1)),
      List.of(Port.out("Out",Blue_red,19,1),
@@ -898,7 +899,7 @@ public enum ModuleType {
      List.of()),
     M_8Counter
     (86, "8 Counter", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(6),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow_orange,3,1)),
      List.of(Port.out("Out1",Yellow_orange,5,1),
@@ -913,7 +914,7 @@ public enum ModuleType {
      List.of()),
     M_FltLP
     (87, "Filter Lowpass", 2,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(0),
      List.of(Port.in("In",Red,16,1),
              Port.in("Pitch",Blue_red,4,1)),
      List.of(Port.out("Out",Red,19,1)),
@@ -924,7 +925,7 @@ public enum ModuleType {
      List.of(ModParam.HpLpSlopeMode.mk("SlopeMode"))),
     M_Sw1_4
     (88, "Switch 1-4", 3,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(8),
      List.of(Port.in("In",Blue_red,3,2)),
      List.of(Port.out("Out1",Blue_red,6,2),
              Port.out("Out2",Blue_red,10,2),
@@ -936,7 +937,7 @@ public enum ModuleType {
      List.of()),
     M_Flanger
     (89, "Flanger", 3,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(2),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("Out",Red,19,2)),
      List.of(ModParam.FlangerRate.mk("Rate"),
@@ -946,7 +947,7 @@ public enum ModuleType {
      List.of()),
     M_Sw1_2
     (90, "Switch 1-2", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(7),
      List.of(Port.in("In",Blue_red,14,1)),
      List.of(Port.out("Out2",Blue_red,16,1),
              Port.out("Out1",Blue_red,19,1),
@@ -955,7 +956,7 @@ public enum ModuleType {
      List.of()),
     M_FlipFlop
     (91, "Flip Flop", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(2),
      List.of(Port.in("Clk",Yellow_orange,8,1),
              Port.in("In",Yellow_orange,11,0),
              Port.in("Rst",Yellow_orange,5,1)),
@@ -965,7 +966,7 @@ public enum ModuleType {
      List.of(ModParam.FlipFlopMode.mk("OperationMode"))),
     M_FltClassic
     (92, "Filter Classic", 4,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(3),
      List.of(Port.in("In",Red,19,0),
              Port.in("PitchVar",Blue_red,0,3),
              Port.in("Pitch",Blue_red,0,2)),
@@ -979,7 +980,7 @@ public enum ModuleType {
      List.of()),
     M_StChorus
     (94, "Stereo Chorus", 3,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(0),
      List.of(Port.in("In",Red,18,1)),
      List.of(Port.out("OutL",Red,17,2),
              Port.out("OutR",Red,19,2)),
@@ -989,7 +990,7 @@ public enum ModuleType {
      List.of()),
     M_OscD
     (96, "Osc D", 2,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(3),
      List.of(Port.in("Pitch",Blue_red,0,1)),
      List.of(Port.out("Out",Red,19,1)),
      List.of(ModParam.FreqCoarse.mk("FreqCoarse"),
@@ -1000,7 +1001,7 @@ public enum ModuleType {
      List.of(ModParam.OscWaveform_2.mk("Waveform"))),
     M_OscA
     (97, "Osc A", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(0),
      List.of(Port.in("Pitch",Blue_red,0,1),
              Port.in("PitchVar",Blue_red,0,2)),
      List.of(Port.out("Out",Red,19,2)),
@@ -1014,7 +1015,7 @@ public enum ModuleType {
      List.of()),
     M_FreqShift
     (98, "Frequency Shifter", 3,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(4),
      List.of(Port.in("In",Red,18,0),
              Port.in("Shift",Blue,1,2)),
      List.of(Port.out("Dn",Red,17,1),
@@ -1026,7 +1027,7 @@ public enum ModuleType {
      List.of()),
     M_Sw2_1
     (100, "Switch 2-1", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(3),
      List.of(Port.in("In1",Blue_red,14,0),
              Port.in("In2",Blue_red,16,0)),
      List.of(Port.out("Out",Blue_red,19,1),
@@ -1036,7 +1037,7 @@ public enum ModuleType {
      List.of()),
     M_FltPhase
     (102, "Filter Phase", 5,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(6),
      List.of(Port.in("In",Red,19,0),
              Port.in("PitchVar",Blue_red,0,4),
              Port.in("Spr",Blue,6,4),
@@ -1057,7 +1058,7 @@ public enum ModuleType {
      List.of()),
     M_EqPeak
     (103, "Eq Peak", 4,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(11),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("Out",Red,19,3)),
      List.of(ModParam.Freq_3.mk("Freq"),
@@ -1068,7 +1069,7 @@ public enum ModuleType {
      List.of()),
     M_ValSw2_1
     (105, "Value Switch 2-1", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(10),
      List.of(Port.in("In1",Blue_red,14,1),
              Port.in("In2",Blue_red,16,1),
              Port.in("Ctrl",Blue_red,0,1)),
@@ -1077,7 +1078,7 @@ public enum ModuleType {
      List.of()),
     M_OscNoise
     (106, "Oscillator Noise", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(8),
      List.of(Port.in("Pitch",Blue_red,0,1),
              Port.in("PitchVar",Blue_red,0,2),
              Port.in("Width",Blue_red,12,2)),
@@ -1093,7 +1094,7 @@ public enum ModuleType {
      List.of()),
     M_Vocoder
     (108, "Vocoder", 8,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(10),
      List.of(Port.in("Ctrl",Red,0,2),
              Port.in("In",Red,16,7)),
      List.of(Port.out("Out",Red,19,7)),
@@ -1118,7 +1119,7 @@ public enum ModuleType {
      List.of()),
     M_LevAdd
     (112, "Level Add", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(3),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
      List.of(ModParam.LevBipUni.mk("Level"),
@@ -1126,7 +1127,7 @@ public enum ModuleType {
      List.of()),
     M_Fade1_2
     (113, "Fade 1-2", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(14),
      List.of(Port.in("In",Blue_red,14,1),
              Port.in("Mod",Blue_red,6,1)),
      List.of(Port.out("Out1",Blue_red,17,1),
@@ -1136,7 +1137,7 @@ public enum ModuleType {
      List.of()),
     M_Fade2_1
     (114, "Fade 2-1", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(15),
      List.of(Port.in("In1",Blue_red,14,1),
              Port.in("In2",Blue_red,16,1),
              Port.in("Mod",Blue_red,6,1)),
@@ -1146,7 +1147,7 @@ public enum ModuleType {
      List.of()),
     M_LevScaler
     (115, "Level Scaler", 3,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(7),
      List.of(Port.in("Note",Blue,0,2),
              Port.in("In",Blue_red,19,0)),
      List.of(Port.out("Level",Blue,16,2),
@@ -1158,7 +1159,7 @@ public enum ModuleType {
      List.of()),
     M_Mix8_1A
     (116, "Mix 8-1 A", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(8),
      List.of(Port.in("In1",Blue_red,5,1),
              Port.in("In2",Blue_red,7,1),
              Port.in("In3",Blue_red,8,1),
@@ -1172,7 +1173,7 @@ public enum ModuleType {
      List.of()),
     M_LevMod
     (117, "Level Modulator", 3,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(7),
      List.of(Port.in("In",Blue_red,16,2),
              Port.in("Mod",Blue_red,16,0),
              Port.in("ModDepth",Blue_red,6,2)),
@@ -1182,7 +1183,7 @@ public enum ModuleType {
      List.of()),
     M_Digitizer
     (118, "Digitizer", 3,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(3),
      List.of(Port.in("In",Blue_red,19,0),
              Port.in("Rate",Blue_red,19,2)),
      List.of(Port.out("Out",Blue_red,1,2)),
@@ -1213,7 +1214,7 @@ public enum ModuleType {
      List.of()),
     M_SeqNote
     (121, "Sequencer Note", 9,
-     ModPage.Seq.ix(5),
+     ModPage.Seq.ix(3),
      List.of(Port.in("Clk",Yellow_orange,0,2),
              Port.in("Rst",Yellow_orange,0,4),
              Port.in("Loop",Yellow_orange,0,6),
@@ -1265,7 +1266,7 @@ public enum ModuleType {
      List.of()),
     M_Mix4_1C
     (123, "Mixer 4-1 C", 4,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(6),
      List.of(Port.in("In1",Blue_red,3,1),
              Port.in("In2",Blue_red,7,1),
              Port.in("In3",Blue_red,11,1),
@@ -1285,7 +1286,7 @@ public enum ModuleType {
      List.of()),
     M_Mux8_1
     (124, "Multiplexer 8-1", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(13),
      List.of(Port.in("In1",Blue_red,4,1),
              Port.in("In2",Blue_red,7,1),
              Port.in("In3",Blue_red,9,1),
@@ -1300,7 +1301,7 @@ public enum ModuleType {
      List.of()),
     M_WahWah
     (125, "Wah-Wah", 2,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(8),
      List.of(Port.in("In",Red,16,1),
              Port.in("Sweep",Blue,7,1)),
      List.of(Port.out("Out",Red,19,1)),
@@ -1310,14 +1311,14 @@ public enum ModuleType {
      List.of()),
     M_Name
     (126, "Name Bar", 1,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(10),
      List.of(),
      List.of(),
      List.of(),
      List.of()),
     M_Fx_In
     (127, "Fx Input", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(4),
      List.of(),
      List.of(Port.out("OutL",Red,16,1),
              Port.out("OutR",Red,19,1)),
@@ -1327,7 +1328,7 @@ public enum ModuleType {
      List.of()),
     M_MinMax
     (128, "Min/Max Compare", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(12),
      List.of(Port.in("A",Blue_red,9,1),
              Port.in("B",Blue_red,11,1)),
      List.of(Port.out("Min",Blue_red,17,1),
@@ -1336,7 +1337,7 @@ public enum ModuleType {
      List.of()),
     M_BinCounter
     (130, "Binary Counter", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(7),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow_orange,2,1)),
      List.of(Port.out("Out001",Yellow_orange,5,1),
@@ -1351,7 +1352,7 @@ public enum ModuleType {
      List.of()),
     M_ADConv
     (131, "A/D Converter", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(8),
      List.of(Port.in("In",Blue_red,0,1)),
      List.of(Port.out("D0",Yellow_orange,5,1),
              Port.out("D1",Yellow_orange,7,1),
@@ -1365,7 +1366,7 @@ public enum ModuleType {
      List.of()),
     M_DAConv
     (132, "D/A Converter", 2,
-     ModPage.Logic.ix(5),
+     ModPage.Logic.ix(9),
      List.of(Port.in("D0",Yellow_orange,5,1),
              Port.in("D1",Yellow_orange,7,1),
              Port.in("D2",Yellow_orange,9,1),
@@ -1379,7 +1380,7 @@ public enum ModuleType {
      List.of()),
     M_FltHP
     (134, "Filter Highpass", 2,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(1),
      List.of(Port.in("In",Red,16,1),
              Port.in("Pitch",Blue,4,1)),
      List.of(Port.out("Out",Red,19,1)),
@@ -1390,7 +1391,7 @@ public enum ModuleType {
      List.of(ModParam.HpLpSlopeMode.mk("SlopeMode"))),
     M_T_and_H
     (139, "Track & Hold", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(17),
      List.of(Port.in("In",Blue_red,15,1),
              Port.in("Ctrl",Yellow_orange,12,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -1398,7 +1399,7 @@ public enum ModuleType {
      List.of()),
     M_Mix4_1S
     (140, "Mixer 4-1 Stereo", 4,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(7),
      List.of(Port.in("In1L",Blue_red,0,1),
              Port.in("In1R",Blue_red,1,1),
              Port.in("In2L",Blue_red,4,1),
@@ -1423,7 +1424,7 @@ public enum ModuleType {
      List.of()),
     M_CtrlSend
     (141, "MIDI Control Send", 2,
-     ModPage.MIDI.ix(5),
+     ModPage.MIDI.ix(0),
      List.of(Port.in("Send",Yellow,1,1),
              Port.in("Value",Blue,11,1)),
      List.of(Port.out("Send",Yellow,4,1)),
@@ -1433,7 +1434,7 @@ public enum ModuleType {
      List.of()),
     M_PCSend
     (142, "MIDI Program Change Send", 2,
-     ModPage.MIDI.ix(5),
+     ModPage.MIDI.ix(1),
      List.of(Port.in("Send",Yellow,1,1),
              Port.in("Program",Blue,11,1)),
      List.of(Port.out("Send",Yellow,4,1)),
@@ -1442,7 +1443,7 @@ public enum ModuleType {
      List.of()),
     M_NoteSend
     (143, "MIDI Note Send", 2,
-     ModPage.MIDI.ix(5),
+     ModPage.MIDI.ix(2),
      List.of(Port.in("Gate",Yellow,0,1),
              Port.in("Vel",Blue,4,1),
              Port.in("Note",Blue,10,1)),
@@ -1453,7 +1454,7 @@ public enum ModuleType {
      List.of()),
     M_SeqEvent
     (144, "Seq Event", 5,
-     ModPage.Seq.ix(5),
+     ModPage.Seq.ix(0),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow,0,2),
              Port.in("Loop",Yellow,0,4),
@@ -1502,7 +1503,7 @@ public enum ModuleType {
      List.of()),
     M_SeqVal
     (145, "Sequencer Values", 8,
-     ModPage.Seq.ix(5),
+     ModPage.Seq.ix(1),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow,0,3),
              Port.in("Loop",Yellow,0,4),
@@ -1553,7 +1554,7 @@ public enum ModuleType {
      List.of()),
     M_SeqLev
     (146, "Sequencer Level", 8,
-     ModPage.Seq.ix(5),
+     ModPage.Seq.ix(2),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow_orange,0,3),
              Port.in("Loop",Yellow_orange,0,4),
@@ -1604,7 +1605,7 @@ public enum ModuleType {
      List.of()),
     M_CtrlRcv
     (147, "MIDI Control Receive", 2,
-     ModPage.MIDI.ix(5),
+     ModPage.MIDI.ix(3),
      List.of(),
      List.of(Port.out("Rcv",Yellow,16,1),
              Port.out("Val",Blue,19,1)),
@@ -1613,7 +1614,7 @@ public enum ModuleType {
      List.of()),
     M_NoteRcv
     (148, "MIDI Note Receive", 2,
-     ModPage.MIDI.ix(5),
+     ModPage.MIDI.ix(4),
      List.of(),
      List.of(Port.out("Gate",Yellow,14,1),
              Port.out("Vel",Blue,16,1),
@@ -1635,7 +1636,7 @@ public enum ModuleType {
      List.of()),
     M_Compressor
     (150, "Compressor", 5,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(8),
      List.of(Port.in("InL",Red,18,1),
              Port.in("InR",Red,19,1),
              Port.in("SideChain",Red,5,0)),
@@ -1651,7 +1652,7 @@ public enum ModuleType {
      List.of()),
     M_KeyQuant
     (152, "Key Quantizer", 2,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(1),
      List.of(Port.in("In",Blue,16,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.NoteRange.mk("Range"),
@@ -1671,7 +1672,7 @@ public enum ModuleType {
      List.of()),
     M_SeqCtr
     (154, "Sequencer Controlled", 8,
-     ModPage.Seq.ix(5),
+     ModPage.Seq.ix(4),
      List.of(Port.in("Ctrl",Blue_red,0,1),
              Port.in("Val",Blue_red,0,5),
              Port.in("Trig",Yellow_orange,0,7)),
@@ -1717,7 +1718,7 @@ public enum ModuleType {
      List.of()),
     M_NoteDet
     (156, "Note Detector", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(9),
      List.of(),
      List.of(Port.out("Gate",Yellow,13,1),
              Port.out("Vel",Blue,16,1),
@@ -1726,7 +1727,7 @@ public enum ModuleType {
      List.of()),
     M_LevConv
     (157, "Level Converter", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(4),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
      List.of(ModParam.PosNegInvBipInv.mk("OutputType"),
@@ -1734,7 +1735,7 @@ public enum ModuleType {
      List.of()),
     M_Glide
     (158, "Glide", 2,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(4),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("On",Yellow_orange,0,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -1744,7 +1745,7 @@ public enum ModuleType {
      List.of()),
     M_CompSig
     (159, "Compare to Signal", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(11),
      List.of(Port.in("A",Blue_red,9,1),
              Port.in("B",Blue_red,11,1)),
      List.of(Port.out("Out",Yellow_orange,19,1)),
@@ -1752,14 +1753,14 @@ public enum ModuleType {
      List.of()),
     M_ZeroCnt
     (160, "Zero Crossing Counter", 2,
-     ModPage.Note.ix(5),
+     ModPage.Note.ix(6),
      List.of(Port.in("In",Blue_red,16,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(),
      List.of()),
     M_MixFader
     (161, "Mixer 8-1 Fader", 9,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(10),
      List.of(Port.in("In1",Blue_red,1,1),
              Port.in("In2",Blue_red,2,1),
              Port.in("In3",Blue_red,5,1),
@@ -1792,7 +1793,7 @@ public enum ModuleType {
      List.of()),
     M_FltComb
     (162, "Filter Comb", 4,
-     ModPage.Filter.ix(5),
+     ModPage.Filter.ix(7),
      List.of(Port.in("In",Red,19,0),
              Port.in("Pitch",Blue_red,0,2),
              Port.in("PitchVar",Blue_red,0,3),
@@ -1830,7 +1831,7 @@ public enum ModuleType {
      List.of()),
     M_OscDual
     (164, "Osc Dual", 5,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(7),
      List.of(Port.in("Pitch",Blue_red,0,3),
              Port.in("PitchVar",Blue_red,0,4),
              Port.in("Sync",Red,0,1),
@@ -1854,7 +1855,7 @@ public enum ModuleType {
      List.of()),
     M_DXRouter
     (165, "DX Style Router", 6,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(15),
      List.of(Port.in("In1",Red,0,5),
              Port.in("In2",Red,2,5),
              Port.in("In3",Red,5,5),
@@ -1885,7 +1886,7 @@ public enum ModuleType {
      List.of()),
     M_ModAHD
     (169, "Envelope Modulation AHD", 5,
-     ModPage.Env.ix(5),
+     ModPage.Env.ix(7),
      List.of(Port.in("Trig",Yellow,0,2),
              Port.in("AttackMod",Blue,4,4),
              Port.in("HoldMod",Blue,8,4),
@@ -1905,7 +1906,7 @@ public enum ModuleType {
      List.of()),
     M_2_In
     (170, "2 inputs", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(2),
      List.of(),
      List.of(Port.out("OutL",Red,17,1),
              Port.out("OutR",Red,19,1)),
@@ -1915,7 +1916,7 @@ public enum ModuleType {
      List.of()),
     M_4_In
     (171, "4 inputs", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(3),
      List.of(),
      List.of(Port.out("Out1",Red,12,1),
              Port.out("Out2",Red,14,1),
@@ -1927,14 +1928,14 @@ public enum ModuleType {
      List.of()),
     M_DlySingleA
     (172, "Delay Static", 2,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(0),
      List.of(Port.in("In",Red,16,1)),
      List.of(Port.out("Out",Red,19,1)),
      List.of(ModParam.DelayTime_3.mk("Time")),
      List.of(ModParam.DelayRange_3.mk("DelayRange"))),
     M_DlySingleB
     (173, "Delay Single", 2,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(1),
      List.of(Port.in("In",Red,16,1),
              Port.in("Time",Red,7,1)),
      List.of(Port.out("Out",Red,19,1)),
@@ -1943,7 +1944,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_3.mk("DelayRange"))),
     M_DelayDual
     (174, "Delay Dual", 3,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(2),
      List.of(Port.in("In",Red,19,0),
              Port.in("Time1",Red,7,2),
              Port.in("Time2",Red,13,2)),
@@ -1956,7 +1957,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_3.mk("DelayRange"))),
     M_DelayQuad
     (175, "Delay Quad", 5,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(3),
      List.of(Port.in("In",Red,19,0),
              Port.in("Time1",Red,3,4),
              Port.in("Time2",Red,7,4),
@@ -1979,7 +1980,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_3.mk("DelayRange"))),
     M_DelayA
     (176, "Delay A", 3,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(7),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("Out",Red,19,2)),
      List.of(ModParam.DelayTime_2.mk("Time"),
@@ -1991,7 +1992,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_2.mk("DelayRange"))),
     M_DelayB
     (177, "Delay B", 4,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(8),
      List.of(Port.in("In",Red,19,0),
              Port.in("FBMod",Blue_red,9,3),
              Port.in("DryWetMod",Blue_red,15,3)),
@@ -2008,7 +2009,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_2.mk("DelayRange"))),
     M_DlyClock
     (178, "Delay Clocked", 2,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(6),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Clk",Yellow_orange,0,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -2031,7 +2032,7 @@ public enum ModuleType {
      List.of()),
     M_Operator
     (180, "FM Operator", 12,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(14),
      List.of(Port.in("Freq",Blue,0,3),
              Port.in("FM",Red,19,1),
              Port.in("Gate",Yellow,0,5),
@@ -2068,7 +2069,7 @@ public enum ModuleType {
      List.of()),
     M_DlyEight
     (181, "Delay 8 Tap", 3,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(4),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("Out1",Red,7,2),
              Port.out("Out2",Red,9,2),
@@ -2082,7 +2083,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_3.mk("DelayRange"))),
     M_DlyStereo
     (182, "Delay Stereo", 5,
-     ModPage.Delay.ix(5),
+     ModPage.Delay.ix(9),
      List.of(Port.in("In",Red,19,0)),
      List.of(Port.out("OutL",Red,17,4),
              Port.out("OutR",Red,19,4)),
@@ -2100,7 +2101,7 @@ public enum ModuleType {
      List.of(ModParam.DelayRange_1.mk("DelayRange"))),
     M_OscPM
     (183, "Osc Phase Mod", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(4),
      List.of(Port.in("PitchVar",Blue_red,0,2),
              Port.in("Sync",Red,12,2),
              Port.in("PhaseMod",Red,14,2),
@@ -2116,7 +2117,7 @@ public enum ModuleType {
      List.of(ModParam.OscWaveform_1.mk("Waveform"))),
     M_Mix1_1A
     (184, "Mixer 1-1 A", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(0),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Chain",Blue_red,0,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -2126,7 +2127,7 @@ public enum ModuleType {
      List.of()),
     M_Mix1_1S
     (185, "Mixer 1-1 Stereo", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(1),
      List.of(Port.in("InL",Blue_red,14,1),
              Port.in("InR",Blue_red,16,1),
              Port.in("LChain",Blue_red,0,1),
@@ -2139,7 +2140,7 @@ public enum ModuleType {
      List.of()),
     M_Sw1_2M
     (186, "Switch 1-2 Momentary", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(6),
      List.of(Port.in("In",Blue_red,14,1)),
      List.of(Port.out("OutOn",Blue_red,19,1),
              Port.out("OutOff",Blue_red,16,1),
@@ -2148,7 +2149,7 @@ public enum ModuleType {
      List.of()),
     M_Sw2_1M
     (187, "Switch 2-1 Momentary", 2,
-     ModPage.Switch.ix(5),
+     ModPage.Switch.ix(2),
      List.of(Port.in("InOff",Blue_red,14,1),
              Port.in("InOn",Blue_red,16,1)),
      List.of(Port.out("Out",Blue_red,19,1),
@@ -2157,7 +2158,7 @@ public enum ModuleType {
      List.of()),
     M_ConstSwM
     (188, "Constant Switch Momentary", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(1),
      List.of(),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.LevBipUni.mk("Lev"),
@@ -2166,7 +2167,7 @@ public enum ModuleType {
      List.of()),
     M_NoiseGate
     (189, "Noise Gate", 3,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(9),
      List.of(Port.in("In",Blue_red,19,0)),
      List.of(Port.out("Out",Blue_red,19,2),
              Port.out("Env",Blue,17,2)),
@@ -2177,7 +2178,7 @@ public enum ModuleType {
      List.of()),
     M_LfoB
     (190, "LFO B", 4,
-     ModPage.LFO.ix(5),
+     ModPage.LFO.ix(1),
      List.of(Port.in("Rate",Blue,1,3),
              Port.in("RateVar",Blue,3,3),
              Port.in("Rst",Blue,0,1),
@@ -2197,7 +2198,7 @@ public enum ModuleType {
      List.of()),
     M_Phaser
     (192, "Phaser", 2,
-     ModPage.FX.ix(5),
+     ModPage.FX.ix(1),
      List.of(Port.in("In",Red,16,1)),
      List.of(Port.out("Out",Red,19,1)),
      List.of(ModParam.PhaserType.mk("Type"),
@@ -2207,7 +2208,7 @@ public enum ModuleType {
      List.of()),
     M_Mix4_1A
     (193, "Mixer 4-1 A", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(4),
      List.of(Port.in("In1",Blue_red,5,1),
              Port.in("In2",Blue_red,8,1),
              Port.in("In3",Blue_red,11,1),
@@ -2217,7 +2218,7 @@ public enum ModuleType {
      List.of()),
     M_Mix2_1A
     (194, "Mixer 2-1 A", 2,
-     ModPage.Mixer.ix(5),
+     ModPage.Mixer.ix(2),
      List.of(Port.in("In1",Blue_red,9,1),
              Port.in("In2",Blue_red,16,1),
              Port.in("Chain",Blue_red,0,1)),
@@ -2230,7 +2231,7 @@ public enum ModuleType {
      List.of()),
     M_ModAmt
     (195, "Modulation Amount", 2,
-     ModPage.Level.ix(5),
+     ModPage.Level.ix(13),
      List.of(Port.in("In",Blue_red,16,1),
              Port.in("Mod",Blue_red,15,1)),
      List.of(Port.out("Out",Blue_red,19,1)),
@@ -2241,7 +2242,7 @@ public enum ModuleType {
      List.of()),
     M_OscPerc
     (196, "Osc Percussion", 3,
-     ModPage.Osc.ix(5),
+     ModPage.Osc.ix(11),
      List.of(Port.in("Pitch",Blue_red,0,1),
              Port.in("PitchVar",Blue_red,0,2),
              Port.in("Trig",Red,3,2)),
@@ -2258,7 +2259,7 @@ public enum ModuleType {
      List.of()),
     M_Status
     (197, "Status", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(8),
      List.of(),
      List.of(Port.out("PatchActive",Yellow,8,1),
              Port.out("VarActive",Yellow,13,1),
@@ -2276,7 +2277,7 @@ public enum ModuleType {
      List.of()),
     M_MonoKey
     (199, "Monophonic Keyboard", 2,
-     ModPage.InOut.ix(5),
+     ModPage.InOut.ix(6),
      List.of(),
      List.of(Port.out("Pitch",Blue,14,1),
              Port.out("Gate",Yellow,16,1),
@@ -2285,7 +2286,7 @@ public enum ModuleType {
      List.of()),
     M_RandomA
     (200, "Random A", 2,
-     ModPage.Rnd.ix(5),
+     ModPage.Rnd.ix(0),
      List.of(Port.in("Rate",Blue,0,1)),
      List.of(Port.out("Out",Blue,19,1)),
      List.of(ModParam.LfoRate_3.mk("Rate"),
@@ -2298,7 +2299,7 @@ public enum ModuleType {
      List.of()),
     M_RandomB
     (202, "Random B", 3,
-     ModPage.Rnd.ix(5),
+     ModPage.Rnd.ix(1),
      List.of(Port.in("Rate",Blue,0,1),
              Port.in("RateVar",Blue,0,2)),
      List.of(Port.out("Out",Blue,19,2)),
@@ -2314,7 +2315,7 @@ public enum ModuleType {
      List.of()),
     M_RndClkA
     (204, "Random Clock A", 2,
-     ModPage.Rnd.ix(5),
+     ModPage.Rnd.ix(2),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow_orange,4,1),
              Port.in("Seed",Blue_red,7,1)),
@@ -2327,7 +2328,7 @@ public enum ModuleType {
      List.of()),
     M_RndTrig
     (205, "Random Trig", 2,
-     ModPage.Rnd.ix(5),
+     ModPage.Rnd.ix(4),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow_orange,4,1),
              Port.in("Seed",Blue_red,7,1),
@@ -2340,7 +2341,7 @@ public enum ModuleType {
      List.of()),
     M_RndClkB
     (206, "Random Clock B", 3,
-     ModPage.Rnd.ix(5),
+     ModPage.Rnd.ix(3),
      List.of(Port.in("Clk",Yellow_orange,0,1),
              Port.in("Rst",Yellow_orange,0,2),
              Port.in("Seed",Blue_red,3,2),
@@ -2404,7 +2405,14 @@ public enum ModuleType {
         return name.substring(2).replace('_','-').replace("-and-","&");
     }
 
-    public record ModPageIx(ModPage page,Integer ix) { }
+    public record ModPageIx(ModPage page,Integer ix) implements Comparable<ModPageIx> {
+
+        @Override
+        public int compareTo(ModPageIx o) {
+            int c = page.compareTo(o.page);
+            if (c != 0) { return c; } else { return ix.compareTo(o.ix); }
+        }
+    }
 
     public enum ModPage {
         Rnd,

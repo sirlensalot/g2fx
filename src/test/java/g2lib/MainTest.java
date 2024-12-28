@@ -3,6 +3,9 @@ package g2lib;
 import g2lib.model.ModuleType;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.TreeSet;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MainTest {
@@ -32,6 +35,29 @@ class MainTest {
         assertEquals("S&H", ModuleType.M_S_and_H.shortName);
         assertEquals("T&H", ModuleType.M_T_and_H.shortName);
         assertEquals("2-In",ModuleType.M_2_In.shortName);
+
+        TreeSet<ModuleType.ModPageIx> ixs = new TreeSet<>();
+        for (ModuleType mt : ModuleType.values()) {
+            if (!ixs.add(mt.modPageIx)) {
+                fail("Bad mod page ix: " + mt);
+            }
+        }
+        int i = -1;
+        ModuleType.ModPage page = null;
+        for (ModuleType.ModPageIx ix : ixs) {
+            if (ix.page()!=page) {
+                page = ix.page();
+                i = ix.ix();
+                if (i != 0) {
+                    fail("Bad starting index: " + ix);
+                }
+                ;
+            } else {
+                if (++i != ix.ix()) {
+                    fail("Non-monotonic ix: " + ix);
+                }
+            }
+        }
     }
 
 }
