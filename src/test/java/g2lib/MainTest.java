@@ -1,5 +1,6 @@
 package g2lib;
 
+import g2lib.model.ModuleType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,6 +28,10 @@ class MainTest {
 
         assertArrayEquals(Util.asBytes(0,1,2,3,4,5),
                 Util.concat(Util.asBytes(0,1,2),Util.asBytes(3,4),Util.asBytes(5)));
+
+        assertEquals("S&H", ModuleType.M_S_and_H.shortName);
+        assertEquals("T&H", ModuleType.M_T_and_H.shortName);
+        assertEquals("2-In",ModuleType.M_2_In.shortName);
     }
 
 }
