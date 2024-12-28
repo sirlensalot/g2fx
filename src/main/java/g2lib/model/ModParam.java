@@ -193,11 +193,18 @@ public enum ModParam {
         this.def = def;
     }
 
-    public record NamedParam(ModParam param, String name, List<String> labels) { }
+    public record NamedParam(ModParam param, String name, List<String> labels) {
 
-    public NamedParam mk(String name,String... labels) {
-        return new NamedParam(this,name,List.of(labels));
+        public NamedParam label(String... labels) {
+            return new NamedParam(this.param,this.name,List.of(labels));
+        }
+
     }
+
+    public NamedParam mk(String name) {
+        return new NamedParam(this,name,List.of());
+    }
+
 
 
 }

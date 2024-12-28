@@ -22,5 +22,10 @@ perf:
               cent: 0.15
               wave: saw
         cables:
-          - { fm: "LFOC", fc: rate, tm: "OSC", tc: pitch }
+          - fmod: "LFOC"
+            fcon: rate
+            tmod: "OSC"
+            tcon: pitch
+            color: red
+            type: 1
       fx: {}
