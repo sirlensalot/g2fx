@@ -25,4 +25,12 @@ public class PatchArea {
     public void addCable(Cable cable) {
         cables.add(cable);
     }
+
+    public G2Module getModuleRequired(int ix) {
+        G2Module m = modules.get(ix);
+        if (m == null) {
+            throw new IllegalArgumentException("Bad module index: " + ix);
+        }
+        return m;
+    }
 }

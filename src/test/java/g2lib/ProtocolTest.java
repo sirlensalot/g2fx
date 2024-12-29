@@ -5,6 +5,7 @@ import g2lib.state.Patch;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +61,7 @@ class ProtocolTest {
         FieldValues mps1 = mps.removeFirst();
         assertFieldEquals(mps1, modIndex,ModuleParamSet.ModIndex);
         assertFieldEquals(mps1, paramCount, ModuleParamSet.ParamCount);
-        return assertSubfields(mps1, vc, ModuleParamSet.ModParams);
+        return new ArrayList<>(assertSubfields(mps1, vc, ModuleParamSet.ModParams));
     }
 
     private static void assertModParams(int variation, List<FieldValues> vps, Integer... expecteds) {
@@ -247,7 +248,8 @@ class ProtocolTest {
 
         assertFieldEquals(modParams,0x04,ModuleParams.SetCount);
         assertFieldEquals(modParams, vc,ModuleParams.VariationCount);
-        List<FieldValues> mps = assertSubfields(modParams, 4, ModuleParams.ParamSet);
+        List<FieldValues> mps =
+                new ArrayList<>(assertSubfields(modParams, 4, ModuleParams.ParamSet));
 
         List<FieldValues> vps;
         int v = 0;

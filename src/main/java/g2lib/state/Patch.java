@@ -2,6 +2,7 @@ package g2lib.state;
 
 import g2lib.BitBuffer;
 import g2lib.CRC16;
+import g2lib.Protocol;
 import g2lib.Util;
 import g2lib.model.*;
 import g2lib.protocol.FieldValue;
@@ -222,11 +223,28 @@ public class Patch {
         fv = getSection(Sections.SModuleList0).values();
         addModules(fv,gp.fxArea);
 
-        //fv = getSection(Sections.SModuleParams1)
-
+        fv = getSection(Sections.SModuleParams1).values();
+        setModuleParams(fv, gp.voiceArea, vc);
+        fv = getSection(Sections.SModuleParams0).values();
+        setModuleParams(fv, gp.fxArea, vc);
 
 
         return gp;
+    }
+
+    private void setModuleParams(FieldValues fv, PatchArea area, int vc) {
+        List<FieldValues> pss = ModuleParams.ParamSet.subfieldsValueRequired(fv);
+        for (FieldValues ps : pss) {
+            int mi = ModuleParamSet.ModIndex.intValueRequired(ps);
+            List<FieldValues> vps = ModuleParamSet.ModParams.subfieldsValueRequired(ps);
+            G2Module m = area.getModuleRequired(mi);
+            for (int v = 0; v < vc; v++) {
+                FieldValues vp = getVarValues(v, vps);
+                List<FieldValues> mps = VarParams.Params.subfieldsValueRequired(vp);
+                m.setParams(v,
+                        mps.stream().map(Data7.Datum::intValueRequired).toList());
+            }
+        }
     }
 
     private static void addModules(FieldValues fv, PatchArea area) {
