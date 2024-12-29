@@ -20,7 +20,7 @@ public class Morph {
         }
     }
 
-    public void setMorph(int variation,int dial,int mode) {
+    public void setVarMorph(int variation, int dial, int mode) {
         varMorphs.set(variation,new MorphSetting(dial,mode));
     }
 

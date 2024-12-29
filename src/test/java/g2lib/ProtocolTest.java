@@ -326,12 +326,12 @@ class ProtocolTest {
         sectionHeader(patchSettings, PatchParams.S6,6,4);
         sectionHeader(patchSettings, PatchParams.S7,7,2);
         List<FieldValues> morphs = assertSubfields(patchSettings, vc, PatchParams.Morphs);
-        List<FieldValues> s2 = assertSubfields(patchSettings, vc, PatchParams.Section2);
-        List<FieldValues> s3 = assertSubfields(patchSettings, vc, PatchParams.Section3);
-        List<FieldValues> s4 = assertSubfields(patchSettings, vc, PatchParams.Section4);
-        List<FieldValues> s5 = assertSubfields(patchSettings, vc, PatchParams.Section5);
-        List<FieldValues> s6 = assertSubfields(patchSettings, vc, PatchParams.Section6);
-        List<FieldValues> s7 = assertSubfields(patchSettings, vc, PatchParams.Section7);
+        List<FieldValues> s2 = assertSubfields(patchSettings, vc, PatchParams.SectionVolMuteds);
+        List<FieldValues> s3 = assertSubfields(patchSettings, vc, PatchParams.SectionGlides);
+        List<FieldValues> s4 = assertSubfields(patchSettings, vc, PatchParams.SectionBends);
+        List<FieldValues> s5 = assertSubfields(patchSettings, vc, PatchParams.SectionVibratos);
+        List<FieldValues> s6 = assertSubfields(patchSettings, vc, PatchParams.SectionArps);
+        List<FieldValues> s7 = assertSubfields(patchSettings, vc, PatchParams.SectionOctSustains);
         for (int i = 0; i < vc; i++) {
             FieldValues ms = morphs.get(i);
             assertFieldEquals(ms,i,MorphSettings.Variation);
@@ -345,15 +345,15 @@ class ProtocolTest {
                 }
                 assertFieldEquals(mmodes.get(j),0x01, Data7.Datum);
             }
-            assertFieldEquals(s2.get(i),i,Settings2.Variation);
-            assertFieldEquals(s3.get(i),i,Settings3.Variation);
+            assertFieldEquals(s2.get(i),i, VolMutedSettings.Variation);
+            assertFieldEquals(s3.get(i),i, GlideSettings.Variation);
             assertFieldEquals(s4.get(i),i,Settings4.Variation);
             assertFieldEquals(s5.get(i),i,Settings5.Variation);
             assertFieldEquals(s6.get(i),i,Settings6.Variation);
             assertFieldEquals(s7.get(i),i,Settings7.Variation);
 
-            assertFieldEquals(s3.get(i),0x00,Settings3.Glide);
-            assertFieldEquals(s3.get(i),0x1c,Settings3.GlideTime);
+            assertFieldEquals(s3.get(i),0x00, GlideSettings.Glide);
+            assertFieldEquals(s3.get(i),0x1c, GlideSettings.GlideTime);
 
             assertFieldEquals(s5.get(i),0x00,Settings5.Vibrato);
             assertFieldEquals(s5.get(i),0x32,Settings5.Cents);
@@ -365,11 +365,11 @@ class ProtocolTest {
             assertFieldEquals(s6.get(i),0x00,Settings6.Octaves);
 
             if (i == 1) {
-                assertFieldEquals(s2.get(i),0x00,Settings2.PatchVol);
+                assertFieldEquals(s2.get(i),0x00, VolMutedSettings.PatchVol);
             } else {
-                assertFieldEquals(s2.get(i),0x64,Settings2.PatchVol);
+                assertFieldEquals(s2.get(i),0x64, VolMutedSettings.PatchVol);
             }
-            assertFieldEquals(s2.get(i),0x01,Settings2.ActiveMuted);
+            assertFieldEquals(s2.get(i),0x01, VolMutedSettings.ActiveMuted);
             if (i == 0 || i == 1) {
                 assertFieldEquals(s4.get(i),0x05,Settings4.Semi);
                 assertFieldEquals(s7.get(i),0x01,Settings7.OctShift);

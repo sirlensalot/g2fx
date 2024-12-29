@@ -3,7 +3,8 @@ package g2lib;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.*;
 
 public class Util {
@@ -157,5 +158,23 @@ public class Util {
         } catch (Exception e) {
             throw new RuntimeException("error writing patch desc", e);
         }
+    }
+
+    public static record SafeLookup<E>(Map<Integer,E> m,String name) {
+        public E lookup(int i) {
+            E e = m.get(i);
+            if (e == null) {
+                throw new IllegalArgumentException(name + ": lookup failed: " + i);
+            }
+            return e;
+        }
+    }
+
+    public static <E extends Enum<E>> SafeLookup<E> makeEnumLookup(E[] values) {
+        Map<Integer, E> m = new TreeMap<>();
+        for (E e : values) {
+            m.put(e.ordinal(),e);
+        }
+        return new SafeLookup<E>(m,values[0].getDeclaringClass().getSimpleName());
     }
 }

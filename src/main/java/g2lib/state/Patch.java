@@ -3,12 +3,17 @@ package g2lib.state;
 import g2lib.BitBuffer;
 import g2lib.CRC16;
 import g2lib.Util;
+import g2lib.model.G2Module;
+import g2lib.model.G2Patch;
+import g2lib.model.ModuleType;
+import g2lib.model.PatchSettings;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Fields;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -136,6 +141,87 @@ public class Patch {
             }
         }
         return patch;
+    }
+
+    private FieldValues getVarValues(int variation,List<FieldValues> fvs) {
+        if (variation >= fvs.size()) {
+            throw new IllegalArgumentException("Invalid/missing variation: " + variation);
+        }
+        return fvs.get(variation);
+    }
+
+
+    private FieldValues getMorphValues(int morph,List<FieldValues> fvs) {
+        if (morph >= fvs.size()) {
+            throw new IllegalArgumentException("Invalid/missing morph: " + morph);
+        }
+        return fvs.get(morph);
+    }
+
+    public G2Patch toPatch() {
+        G2Patch gp = new G2Patch("Untitled");
+        FieldValues fv = getSection(Sections.SPatchDescription).values();
+        gp.voices = PatchDescription.Voices.intValueRequired(fv);
+        gp.height = PatchDescription.Height.intValueRequired(fv);
+        gp.monoPoly = PatchDescription.MonoPoly.intValueRequired(fv);
+        gp.variation = PatchDescription.Variation.intValueRequired(fv);
+        gp.category = PatchDescription.Category.intValueRequired(fv);
+        //TODO colors
+
+        fv = getSection(Sections.SPatchParams).values();
+        int vc = PatchParams.VariationCount.intValueRequired(fv);
+        List<FieldValues> morphs = PatchParams.Morphs.subfieldsValueRequired(fv);
+        List<FieldValues> volMuteds = PatchParams.SectionVolMuteds.subfieldsValueRequired(fv);
+        List<FieldValues> glides = PatchParams.SectionGlides.subfieldsValueRequired(fv);
+        List<FieldValues> bends = PatchParams.SectionBends.subfieldsValueRequired(fv);
+        List<FieldValues> vibratos = PatchParams.SectionVibratos.subfieldsValueRequired(fv);
+        List<FieldValues> arps = PatchParams.SectionArps.subfieldsValueRequired(fv);
+        List<FieldValues> octSustains = PatchParams.SectionOctSustains.subfieldsValueRequired(fv);
+
+        for (int v = 0; v < vc; v++) {
+            PatchSettings ps = new PatchSettings();
+            FieldValues morph = getVarValues(v, morphs);
+            List<FieldValues> dials = MorphSettings.Dials.subfieldsValueRequired(morph);
+            List<FieldValues> modes = MorphSettings.Modes.subfieldsValueRequired(morph);
+            for (int m = 0; m < 8; m++) {
+                gp.getMorph(m).setVarMorph(v,
+                        Data7.Datum.intValueRequired(getMorphValues(m,dials)),
+                        Data7.Datum.intValueRequired(getMorphValues(m,modes)));
+            }
+            FieldValues ss = getVarValues(v, volMuteds);
+            ps.volume = VolMutedSettings.PatchVol.intValueRequired(ss);
+            ps.active = VolMutedSettings.ActiveMuted.intValueRequired(ss) == 1;
+
+            ss = getVarValues(v,glides);
+            ps.glide = PatchSettings.Glide.LKP.lookup(GlideSettings.Glide.intValueRequired(ss));
+            ps.glideTime = GlideSettings.GlideTime.intValueRequired(ss);
+
+
+        }
+
+
+
+        fv = getSection(Sections.SModuleList1).values();
+        List<FieldValues> mods = ModuleList.Modules.subfieldsValueRequired(fv);
+        for (FieldValues mod : mods) {
+            int ix = Module_.Index.intValueRequired(mod);
+            ModuleType type = ModuleType.getById(Module_.Id.intValueRequired(mod));
+            G2Module gm = new G2Module(type,ix);
+            gm.horiz = Module_.Horiz.intValueRequired(mod);
+            gm.vert = Module_.Vert.intValueRequired(mod);
+            gm.color = Module_.Color.intValueRequired(mod);
+            gm.uprate = Module_.Uprate.intValueRequired(mod);
+            gm.leds = Module_.Leds.intValueRequired(mod) == 1;
+            List<FieldValues> modes = Module_.Modes.subfieldsValueRequired(mod);
+            for (int i = 0; i < modes.size(); i++) {
+                gm.setMode(i,ModuleModes.Data.intValueRequired(modes.get(i)));
+            }
+        }
+
+
+
+
+        return gp;
     }
 
     public void readMessageHeader(ByteBuffer buf) throws Exception {

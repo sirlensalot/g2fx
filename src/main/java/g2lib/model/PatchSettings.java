@@ -1,15 +1,21 @@
 package g2lib.model;
 
+import g2lib.Util;
+
+import java.util.Map;
+
 public class PatchSettings {
     public enum Glide {
+        Off,
         Auto,
-        Normal,
-        Off
+        Normal;
+        public static final Util.SafeLookup<Glide> LKP = Util.makeEnumLookup(values());
     }
     public enum Vibrato {
+        Off,
         Wheel,
-        AftTouch,
-        Off
+        AftTouch;
+        public static final Util.SafeLookup<Vibrato> LKP = Util.makeEnumLookup(values());
     }
     public Glide glide = Glide.Off;
     public int glideTime = 0; // TODO default?

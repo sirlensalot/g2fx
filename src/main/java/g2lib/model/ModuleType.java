@@ -1,6 +1,8 @@
 package g2lib.model;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static g2lib.model.ConnColor.*;
 
@@ -2434,6 +2436,24 @@ public enum ModuleType {
         public ModPageIx ix(int i) {
             return new ModPageIx(this,i);
         }
+    }
+
+    public static final Map<Integer,ModuleType> BY_ID = mkById();
+
+    private static Map<Integer, ModuleType> mkById() {
+        Map<Integer, ModuleType> m = new TreeMap<>();
+        for (ModuleType t : ModuleType.values()) {
+            m.put(t.ix,t);
+        }
+        return m;
+    }
+
+    public static ModuleType getById(int id) {
+        ModuleType m = BY_ID.get(id);
+        if (m == null) {
+            throw new IllegalArgumentException("Invalid module id: " + id);
+        }
+        return m;
     }
 
 }

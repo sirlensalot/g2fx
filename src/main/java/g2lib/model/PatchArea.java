@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Area {
+public class PatchArea {
     public static enum AreaName {
         FX,
         Voice
@@ -14,7 +14,7 @@ public class Area {
     private final Map<Integer,G2Module> modules = new TreeMap<>();
     private final List<Cable> cables = new ArrayList<>();
 
-    public Area(AreaName area) {
+    public PatchArea(AreaName area) {
         this.area = area;
     }
 

@@ -106,17 +106,17 @@ public class Protocol {
         S1(),
         Morphs(MorphSettings.FIELDS,VariationCount),
         S2(),
-        Section2(Settings2.FIELDS,VariationCount),
+        SectionVolMuteds(VolMutedSettings.FIELDS,VariationCount),
         S3(),
-        Section3(Settings3.FIELDS,VariationCount),
+        SectionGlides(GlideSettings.FIELDS,VariationCount),
         S4(),
-        Section4(Settings4.FIELDS,VariationCount),
+        SectionBends(Settings4.FIELDS,VariationCount),
         S5(),
-        Section5(Settings5.FIELDS,VariationCount),
+        SectionVibratos(Settings5.FIELDS,VariationCount),
         S6(),
-        Section6(Settings6.FIELDS,VariationCount),
+        SectionArps(Settings6.FIELDS,VariationCount),
         S7(),
-        Section7(Settings7.FIELDS,VariationCount);
+        SectionOctSustains(Settings7.FIELDS,VariationCount);
 
         PatchParams(int size) { f = new SizedField(this,size); }
         PatchParams(Fields fs, PatchParams p) { f = new SubfieldsField(this,fs,p); }
@@ -127,24 +127,24 @@ public class Protocol {
     }
 
 
-    public enum Settings2 implements FieldEnum {
+    public enum VolMutedSettings implements FieldEnum {
         Variation(8),
         PatchVol(7),
         ActiveMuted(7);
-        Settings2(int size) { f = new SizedField(this,size); }
+        VolMutedSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Settings2.class,values());
+        public static final Fields FIELDS = new Fields(VolMutedSettings.class,values());
     }
 
-    public enum Settings3 implements FieldEnum {
+    public enum GlideSettings implements FieldEnum {
         Variation(8),
         Glide(7),
         GlideTime(7);
-        Settings3(int size) { f = new SizedField(this,size); }
+        GlideSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Settings3.class,values());
+        public static final Fields FIELDS = new Fields(GlideSettings.class,values());
     }
 
     public enum Settings4 implements FieldEnum {

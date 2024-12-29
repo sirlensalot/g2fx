@@ -2,6 +2,7 @@ package g2lib.protocol;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface FieldEnum {
     Field field();
@@ -21,6 +22,28 @@ public interface FieldEnum {
 
     default Optional<List<FieldValues>> subfieldsValue(FieldValues values) {
         return get(values).flatMap(fv -> Optional.of(SubfieldsValue.subfieldsValue(fv)));
+    }
+
+
+    private Supplier<IllegalArgumentException> missing() {
+        return new Supplier<IllegalArgumentException>() {
+            @Override
+            public IllegalArgumentException get() {
+                return new IllegalArgumentException("required value not found: " + field());
+            }
+        };
+    }
+
+    default Integer intValueRequired(FieldValues values) {
+        return intValue(values).orElseThrow(missing());
+    }
+
+    default String stringValueRequired(FieldValues values) {
+        return stringValue(values).orElseThrow(missing());
+    }
+
+    default List<FieldValues> subfieldsValueRequired(FieldValues values) {
+        return subfieldsValue(values).orElseThrow(missing());
     }
 
     default FieldValue value(int v) {

@@ -7,13 +7,13 @@ import java.util.TreeMap;
 
 public class G2Module {
     public final int index;
-    private int horiz;
-    private int vert;
-    private int color;
-    private int uprate;
-    private int leds;
+    public int horiz;
+    public int vert;
+    public int color;
+    public int uprate;
+    public boolean leds;
 
-    private String name;
+    public String name;
     public final ModuleType moduleType;
 
     class ParamValue {
@@ -96,51 +96,4 @@ public class G2Module {
     }
 
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setHoriz(int horiz) {
-        this.horiz = horiz;
-    }
-
-    public int getHoriz() {
-        return horiz;
-    }
-
-    public void setVert(int vert) {
-        this.vert = vert;
-    }
-
-    public int getVert() {
-        return vert;
-    }
-
-    public void setColor(int color) {
-        this.color = color;
-    }
-
-    public int getColor() {
-        return color;
-    }
-
-    public void setUprate(int uprate) {
-        this.uprate = uprate;
-    }
-
-    public int getUprate() {
-        return uprate;
-    }
-
-    public void setLeds(int leds) {
-        this.leds = leds;
-    }
-
-    public int getLeds() {
-        return leds;
-    }
 }
