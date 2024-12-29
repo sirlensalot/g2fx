@@ -110,13 +110,13 @@ public class Protocol {
         S3(),
         SectionGlides(GlideSettings.FIELDS,VariationCount),
         S4(),
-        SectionBends(Settings4.FIELDS,VariationCount),
+        SectionBends(BendSettings.FIELDS,VariationCount),
         S5(),
-        SectionVibratos(Settings5.FIELDS,VariationCount),
+        SectionVibratos(VibratoSettings.FIELDS,VariationCount),
         S6(),
-        SectionArps(Settings6.FIELDS,VariationCount),
+        SectionArps(ArpSettings.FIELDS,VariationCount),
         S7(),
-        SectionOctSustains(Settings7.FIELDS,VariationCount);
+        SectionOctSustains(OctSustainSettings.FIELDS,VariationCount);
 
         PatchParams(int size) { f = new SizedField(this,size); }
         PatchParams(Fields fs, PatchParams p) { f = new SubfieldsField(this,fs,p); }
@@ -147,50 +147,50 @@ public class Protocol {
         public static final Fields FIELDS = new Fields(GlideSettings.class,values());
     }
 
-    public enum Settings4 implements FieldEnum {
+    public enum BendSettings implements FieldEnum {
         Variation(8),
         Bend(7),
         Semi(7);
-        Settings4(int size) { f = new SizedField(this,size); }
+        BendSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Settings4.class,values());
+        public static final Fields FIELDS = new Fields(BendSettings.class,values());
     }
 
 
-    public enum Settings5 implements FieldEnum {
+    public enum VibratoSettings implements FieldEnum {
         Variation(8),
         Vibrato(7),
         Cents(7),
         Rate(7);
-        Settings5(int size) { f = new SizedField(this,size); }
+        VibratoSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Settings5.class,values());
+        public static final Fields FIELDS = new Fields(VibratoSettings.class,values());
     }
 
 
-    public enum Settings6 implements FieldEnum {
+    public enum ArpSettings implements FieldEnum {
         Variation(8),
         Arpeggiator(7),
         Time(7),
         Type(7),
         Octaves(7);
-        Settings6(int size) { f = new SizedField(this,size); }
+        ArpSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Settings6.class,values());
+        public static final Fields FIELDS = new Fields(ArpSettings.class,values());
     }
 
 
-    public enum Settings7 implements FieldEnum {
+    public enum OctSustainSettings implements FieldEnum {
         Variation(8),
         OctShift(7),
         Sustain(7);
-        Settings7(int size) { f = new SizedField(this,size); }
+        OctSustainSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Settings7.class,values());
+        public static final Fields FIELDS = new Fields(OctSustainSettings.class,values());
     }
 
     public enum SectionHeader implements FieldEnum {

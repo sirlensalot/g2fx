@@ -347,22 +347,22 @@ class ProtocolTest {
             }
             assertFieldEquals(s2.get(i),i, VolMutedSettings.Variation);
             assertFieldEquals(s3.get(i),i, GlideSettings.Variation);
-            assertFieldEquals(s4.get(i),i,Settings4.Variation);
-            assertFieldEquals(s5.get(i),i,Settings5.Variation);
-            assertFieldEquals(s6.get(i),i,Settings6.Variation);
-            assertFieldEquals(s7.get(i),i,Settings7.Variation);
+            assertFieldEquals(s4.get(i),i, BendSettings.Variation);
+            assertFieldEquals(s5.get(i),i, VibratoSettings.Variation);
+            assertFieldEquals(s6.get(i),i, ArpSettings.Variation);
+            assertFieldEquals(s7.get(i),i, OctSustainSettings.Variation);
 
             assertFieldEquals(s3.get(i),0x00, GlideSettings.Glide);
             assertFieldEquals(s3.get(i),0x1c, GlideSettings.GlideTime);
 
-            assertFieldEquals(s5.get(i),0x00,Settings5.Vibrato);
-            assertFieldEquals(s5.get(i),0x32,Settings5.Cents);
-            assertFieldEquals(s5.get(i),0x40,Settings5.Rate);
+            assertFieldEquals(s5.get(i),0x00, VibratoSettings.Vibrato);
+            assertFieldEquals(s5.get(i),0x32, VibratoSettings.Cents);
+            assertFieldEquals(s5.get(i),0x40, VibratoSettings.Rate);
 
-            assertFieldEquals(s6.get(i),0x00,Settings6.Arpeggiator);
-            assertFieldEquals(s6.get(i),0x03,Settings6.Time);
-            assertFieldEquals(s6.get(i),0x00,Settings6.Type);
-            assertFieldEquals(s6.get(i),0x00,Settings6.Octaves);
+            assertFieldEquals(s6.get(i),0x00, ArpSettings.Arpeggiator);
+            assertFieldEquals(s6.get(i),0x03, ArpSettings.Time);
+            assertFieldEquals(s6.get(i),0x00, ArpSettings.Type);
+            assertFieldEquals(s6.get(i),0x00, ArpSettings.Octaves);
 
             if (i == 1) {
                 assertFieldEquals(s2.get(i),0x00, VolMutedSettings.PatchVol);
@@ -371,16 +371,16 @@ class ProtocolTest {
             }
             assertFieldEquals(s2.get(i),0x01, VolMutedSettings.ActiveMuted);
             if (i == 0 || i == 1) {
-                assertFieldEquals(s4.get(i),0x05,Settings4.Semi);
-                assertFieldEquals(s7.get(i),0x01,Settings7.OctShift);
+                assertFieldEquals(s4.get(i),0x05, BendSettings.Semi);
+                assertFieldEquals(s7.get(i),0x01, OctSustainSettings.OctShift);
             } else {
-                assertFieldEquals(s4.get(i),0x01,Settings4.Semi);
-                assertFieldEquals(s7.get(i),0x02,Settings7.OctShift);
+                assertFieldEquals(s4.get(i),0x01, BendSettings.Semi);
+                assertFieldEquals(s7.get(i),0x02, OctSustainSettings.OctShift);
             }
 
-            assertFieldEquals(s4.get(i),0x01,Settings4.Bend);
+            assertFieldEquals(s4.get(i),0x01, BendSettings.Bend);
 
-            assertFieldEquals(s7.get(i),0x01,Settings7.Sustain);
+            assertFieldEquals(s7.get(i),0x01, OctSustainSettings.Sustain);
 
         }
 
@@ -452,7 +452,7 @@ class ProtocolTest {
         List<FieldValues> modes;
 
         //Util.dumpBuffer(b2);
-        module = mods.removeFirst();
+        module = mods.get(0);
         assertFieldEquals(module,0x5c, Module_.Id); //filter classic
         assertFieldEquals(module,0x01, Module_.Index);
         assertFieldEquals(module,0x00, Module_.Horiz);
@@ -464,7 +464,7 @@ class ProtocolTest {
         assertFieldEquals(module,0x00, Module_.ModeCount);
         assertSubfields(module, 0, Module_.Modes);
 
-        module = mods.removeFirst();
+        module = mods.get(1);
         assertFieldEquals(module,0x09, Module_.Id); //osc c
         assertFieldEquals(module,0x02, Module_.Index);
         assertFieldEquals(module,0x00, Module_.Horiz);
@@ -477,7 +477,7 @@ class ProtocolTest {
         modes = assertSubfields(module, 1, Module_.Modes);
         assertFieldEquals(modes.getFirst(),0x02, ModuleModes.Data);
 
-        module = mods.removeFirst();
+        module = mods.get(2);
         assertFieldEquals(module,0x17, Module_.Id);  // ModADSR
         assertFieldEquals(module,0x03, Module_.Index);
         assertFieldEquals(module,0x00, Module_.Horiz);
@@ -490,7 +490,7 @@ class ProtocolTest {
         assertSubfields(module, 0, Module_.Modes);
 
 
-        module = mods.removeFirst();
+        module = mods.get(3);
         assertFieldEquals(module,0x04, Module_.Id); // 2-out
         assertFieldEquals(module,0x04, Module_.Index);
         assertFieldEquals(module,0x00, Module_.Horiz);
@@ -662,6 +662,8 @@ class ProtocolTest {
         testModuleNames(p);
         testMorphLabels(p);
         testModuleLabels(p);
+
+        p.toPatch();
     }
     @Test
     public void patchFromFile() throws Exception {

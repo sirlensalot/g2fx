@@ -51,4 +51,8 @@ public class G2Patch {
     public PatchSettings getSettings(int variation) {
         return settings.get(variation);
     }
+
+    public void setSettings(int variation, PatchSettings pss) {
+        settings.set(variation,pss);
+    }
 }

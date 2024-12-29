@@ -3,10 +3,7 @@ package g2lib.state;
 import g2lib.BitBuffer;
 import g2lib.CRC16;
 import g2lib.Util;
-import g2lib.model.G2Module;
-import g2lib.model.G2Patch;
-import g2lib.model.ModuleType;
-import g2lib.model.PatchSettings;
+import g2lib.model.*;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Fields;
@@ -196,12 +193,43 @@ public class Patch {
             ps.glide = PatchSettings.Glide.LKP.lookup(GlideSettings.Glide.intValueRequired(ss));
             ps.glideTime = GlideSettings.GlideTime.intValueRequired(ss);
 
+            ss = getVarValues(v,bends);
+            ps.bendEnable = BendSettings.Bend.intValueRequired(ss) == 1;
+            ps.bendSemi = BendSettings.Semi.intValueRequired(ss);
 
+            ss = getVarValues(v,vibratos);
+            ps.vibrato = PatchSettings.Vibrato.LKP.lookup(VibratoSettings.Vibrato.intValueRequired(ss));
+            ps.vibCents = VibratoSettings.Cents.intValueRequired(ss);
+            ps.vibRate = VibratoSettings.Rate.intValueRequired(ss);
+
+            ss = getVarValues(v,arps);
+            ps.arpEnable = ArpSettings.Arpeggiator.intValueRequired(ss) == 1;
+            ps.arpTime = ArpSettings.Time.intValueRequired(ss);
+            ps.arpOctaves = ArpSettings.Octaves.intValueRequired(ss);
+            ps.arpType = ArpSettings.Type.intValueRequired(ss);
+
+            ss = getVarValues(v,octSustains);
+            ps.octShift = OctSustainSettings.OctShift.intValueRequired(ss);
+            ps.sustainPedal = OctSustainSettings.Sustain.intValueRequired(ss) == 1;
+
+            gp.setSettings(v,ps);
         }
 
 
 
         fv = getSection(Sections.SModuleList1).values();
+        addModules(fv,gp.voiceArea);
+        fv = getSection(Sections.SModuleList0).values();
+        addModules(fv,gp.fxArea);
+
+        //fv = getSection(Sections.SModuleParams1)
+
+
+
+        return gp;
+    }
+
+    private static void addModules(FieldValues fv, PatchArea area) {
         List<FieldValues> mods = ModuleList.Modules.subfieldsValueRequired(fv);
         for (FieldValues mod : mods) {
             int ix = Module_.Index.intValueRequired(mod);
@@ -216,12 +244,8 @@ public class Patch {
             for (int i = 0; i < modes.size(); i++) {
                 gm.setMode(i,ModuleModes.Data.intValueRequired(modes.get(i)));
             }
+            area.addModule(gm);
         }
-
-
-
-
-        return gp;
     }
 
     public void readMessageHeader(ByteBuffer buf) throws Exception {
