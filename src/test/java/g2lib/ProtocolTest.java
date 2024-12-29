@@ -158,7 +158,7 @@ class ProtocolTest {
                 assertFieldEquals(kp,1,KnobParams.Index);
                 assertFieldEquals(kp,0,KnobParams.IsLed);
                 assertFieldEquals(kp,0,KnobParams.Param);
-                //yikes, reads slot (2) if "performance" !!!
+
             }
         }
 

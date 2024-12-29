@@ -1,6 +1,5 @@
 package g2lib.model;
 
-import java.util.HashSet;
 import java.util.List;
 
 import static g2lib.model.ConnColor.*;
@@ -2378,8 +2377,8 @@ public enum ModuleType {
     public final ModPageIx modPageIx;
     public final List<Port> inPorts;
     public final List<Port> outPorts;
-    public final List<ModParam.NamedParam> params;
-    public final List<ModParam.NamedParam> modes;
+    public final List<NamedParam> params;
+    public final List<NamedParam> modes;
     public final String shortName;
 
     ModuleType(int ix,
@@ -2387,8 +2386,8 @@ public enum ModuleType {
                ModPageIx modPageIx,
                List<Port> inPorts,
                List<Port> outPorts,
-               List<ModParam.NamedParam> params,
-               List<ModParam.NamedParam> modes) {
+               List<NamedParam> params,
+               List<NamedParam> modes) {
 
         this.ix = ix;
         this.height = height;

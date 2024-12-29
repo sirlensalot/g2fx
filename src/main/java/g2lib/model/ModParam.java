@@ -34,8 +34,8 @@ public enum ModParam {
     (0,1,0,
      "Lin", "Trk"),
     OscWaveform_3
-    (0,6,0,
-     "Sine1", "Sine2", "Sine3", "TriSaw", "DoubleSaw", "Pulse", "SymPuls"), // TODO was 7 max, check
+    (0,7,0,
+     "Sine1", "Sine2", "Sine3", "Sine4", "TriSaw", "DoubleSaw", "Pulse", "SymPulse"),
     OscWaveform_2
     (0,5,0,
      "Sine", "Tri", "Saw", "Square", "Pulse 25%", "Pulse 10%"),
@@ -427,7 +427,7 @@ public enum ModParam {
     (0,127,0),
     DelayRange_1
     (0,2,0,
-     "500 m", "1.0 s", /*"2.0 s",*/ "1.351 s"), //TODO check
+     "500 m", "1.0s", /*"2.0 s",*/ "1.35s"), //TODO check
     OscWaveform_1
     (0,1,0,
      "Sine", "Tri"),
@@ -483,14 +483,6 @@ public enum ModParam {
         if (enums.length>0 && (min != 0 || enums.length != max - min + 1)) {
             throw new IllegalArgumentException("Invalid enums: " + this);
         }
-    }
-
-    public record NamedParam(ModParam param, String name, List<String> labels) {
-
-        public NamedParam label(String... labels) {
-            return new NamedParam(this.param,this.name,List.of(labels));
-        }
-
     }
 
     public NamedParam mk(String name) {
