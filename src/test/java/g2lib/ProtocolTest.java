@@ -92,7 +92,7 @@ class ProtocolTest {
         List<FieldValues> ls = assertSubfields(mls, 8, MorphLabels.Labels);
         String[] labels = {"Wheel","Vel","Keyb1","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick", "G.Wh 2"};
         for (int i = 0; i < 8; i++) {
-            FieldValues l = ls.removeFirst();
+            FieldValues l = ls.get(i);
             assertFieldEquals(l,1,MorphLabel.Index);
             assertFieldEquals(l,8,MorphLabel.Length);
             assertFieldEquals(l,8+i,MorphLabel.Entry);
@@ -106,7 +106,8 @@ class ProtocolTest {
         FieldValues mns = p.getSection(Patch.Sections.SModuleNames1).values();
         assertFieldEquals(mns,0x00,ModuleNames.Reserved);
         assertFieldEquals(mns,0x04,ModuleNames.NameCount);
-        List<FieldValues> ns = assertSubfields(mns, 4, ModuleNames.Names);
+        List<FieldValues> ns =
+                new ArrayList<>(assertSubfields(mns, 4, ModuleNames.Names));
 
         FieldValues n = ns.removeFirst();
         assertFieldEquals(n,0x01,ModuleName.ModuleIndex);
@@ -128,7 +129,7 @@ class ProtocolTest {
 
         assertFieldEquals(mns,0x00,ModuleNames.Reserved);
         assertFieldEquals(mns,0x03,ModuleNames.NameCount);
-        ns = assertSubfields(mns, 3, ModuleNames.Names);
+        ns = new ArrayList<>(assertSubfields(mns, 3, ModuleNames.Names));
 
         n = ns.removeFirst();
         assertFieldEquals(n,0x01,ModuleName.ModuleIndex);
@@ -170,16 +171,16 @@ class ProtocolTest {
         //System.out.println(cass);
         assertFieldEquals(cass,0x02,ControlAssignments.NumControls);
         List<FieldValues> cas = assertSubfields(cass, 2, ControlAssignments.Assignments);
-        FieldValues ca = cas.removeFirst();
-        assertFieldEquals(ca,0x07,ControlAssignment.MidiCC);
-        assertFieldEquals(ca,0x02,ControlAssignment.Location);
-        assertFieldEquals(ca,0x02,ControlAssignment.Index);
-        assertFieldEquals(ca,0x00,ControlAssignment.Param);
-        ca = cas.removeFirst();
-        assertFieldEquals(ca,0x11,ControlAssignment.MidiCC);
-        assertFieldEquals(ca,0x02,ControlAssignment.Location);
-        assertFieldEquals(ca,0x07,ControlAssignment.Index);
-        assertFieldEquals(ca,0x00,ControlAssignment.Param);
+        FieldValues ca = cas.getFirst();
+        assertFieldEquals(ca,0x07,ControlAssignment.MidiCC); // volume CC (not avail as assign!)
+        assertFieldEquals(ca,0x02,ControlAssignment.Location); // patch settings
+        assertFieldEquals(ca,0x02,ControlAssignment.Index); // 0-2 = 0 -> vol/active
+        assertFieldEquals(ca,0x00,ControlAssignment.Param); // volume
+        ca = cas.get(1);
+        assertFieldEquals(ca,0x11,ControlAssignment.MidiCC); // 17 (not avail as assign!)
+        assertFieldEquals(ca,0x02,ControlAssignment.Location); // patch settings
+        assertFieldEquals(ca,0x07,ControlAssignment.Index); // 7-2 = 5 -> oct/sus
+        assertFieldEquals(ca,0x00,ControlAssignment.Param); // oct shift?? yes per manual
 
     }
     private void testMorphParams(Patch p, int vc) {
@@ -554,18 +555,19 @@ class ProtocolTest {
 
         mlss = p.getSection(Patch.Sections.SModuleLabels0).values();
         assertFieldEquals(mlss,0x01,ModuleLabels.ModuleCount);
-        FieldValues mls = assertSubfields(mlss,1,ModuleLabels.ModLabels).removeFirst();
+        List<FieldValues> ml = assertSubfields(mlss, 1, ModuleLabels.ModLabels);
+        FieldValues mls = ml.getFirst();
         assertFieldEquals(mls,0x02,ModuleLabel.ModuleIndex);
         assertFieldEquals(mls,0x14,ModuleLabel.ModLabelLen);
         List<FieldValues> ls = assertSubfields(mls, 2, ModuleLabel.Labels);
 
-        FieldValues l = ls.removeFirst();
+        FieldValues l = ls.getFirst();
         assertFieldEquals(l,0x01,ParamLabel.IsString);
         assertFieldEquals(l,0x08,ParamLabel.ParamLen);
         assertFieldEquals(l,0x01,ParamLabel.ParamIndex);
         assertFieldEquals(l,"Ch 1",ParamLabel.Label);
 
-        l = ls.removeFirst();
+        l = ls.get(1);
         assertFieldEquals(l,0x01,ParamLabel.IsString);
         assertFieldEquals(l,0x08,ParamLabel.ParamLen);
         assertFieldEquals(l,0x03,ParamLabel.ParamIndex);
@@ -586,7 +588,7 @@ class ProtocolTest {
         assertFieldEquals(cns,0x05,CurrentNote.NoteCount); //note that this stores actual count - 1
         List<FieldValues> ns = assertSubfields(cns, 6, CurrentNote.Notes);
         for (int i = 0; i < 6; i++) {
-            FieldValues n = ns.removeFirst();
+            FieldValues n = ns.get(i);
             assertFieldEquals(n,0x40,NoteData.Note);
             assertFieldEquals(n,0x00,NoteData.Attack);
             assertFieldEquals(n,0x00,NoteData.Release);

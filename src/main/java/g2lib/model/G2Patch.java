@@ -40,7 +40,11 @@ public class G2Patch {
     }
 
     public PatchArea getArea(int location) {
-        return location == 0 ? fxArea : voiceArea;
+        return switch (location) {
+            case 0 -> fxArea;
+            case 1 -> voiceArea;
+            default -> throw new IllegalArgumentException("Invalid location: " + location);
+        };
     }
 
     public Morph getMorph(int ix) {

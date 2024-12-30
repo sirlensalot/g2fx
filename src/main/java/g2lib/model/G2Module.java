@@ -16,6 +16,7 @@ public class G2Module {
     public String name;
     public final ModuleType moduleType;
 
+
     class ParamValue {
         private final NamedParam param;
         private final Map<Integer,Integer> morphs = new TreeMap<>();
@@ -36,9 +37,9 @@ public class G2Module {
 
     private final Map<Integer,Integer> midiControls = new TreeMap<>();
 
-    public record Knob(int index,boolean isLed) { }
+    private final Map<Integer,Boolean> knobs = new TreeMap<>();
 
-    private final Map<Integer,Knob> knobs = new TreeMap<>();
+    private final Map<Integer,String> customLabels = new TreeMap<>();
 
     public G2Module(ModuleType type,int index) {
         this.moduleType = type;
@@ -58,6 +59,10 @@ public class G2Module {
         }
     }
 
+    public void setParamLabel(int ix, String s) {
+        customLabels.put(ix,s);
+    }
+
     public void setMorph(int variation,int paramIndex,int morph,int range) {
         getParam(getParams(variation),paramIndex).morphs.put(morph,range);
     }
@@ -73,8 +78,8 @@ public class G2Module {
         midiControls.put(validateParam(param),cc);
     }
 
-    public void assignKnob(int ix, int param, boolean isLed) {
-        knobs.put(validateParam(param),new Knob(ix,isLed));
+    public void assignKnob(int param, boolean isLed) {
+        knobs.put(validateParam(param),isLed);
     }
 
     private ParamValue getParam(List<ParamValue> ps, int i) {

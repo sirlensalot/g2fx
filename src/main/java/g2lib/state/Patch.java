@@ -216,8 +216,6 @@ public class Patch {
             gp.setSettings(v,ps);
         }
 
-
-
         fv = getSection(Sections.SModuleList1).values();
         addModules(fv,gp.voiceArea);
         fv = getSection(Sections.SModuleList0).values();
@@ -228,8 +226,81 @@ public class Patch {
         fv = getSection(Sections.SModuleParams0).values();
         setModuleParams(fv, gp.fxArea, vc);
 
+        fv = getSection(Sections.SModuleNames1).values();
+        setModuleNames(fv, gp.voiceArea);
+        fv = getSection(Sections.SModuleNames0).values();
+        setModuleNames(fv, gp.fxArea);
+
+        fv = getSection(Sections.SModuleLabels1).values();
+        setModuleLabels(fv, gp.voiceArea);
+        fv = getSection(Sections.SModuleLabels0).values();
+        setModuleLabels(fv, gp.fxArea);
+
+        fv = getSection(Sections.SMorphParameters).values();
+        List<FieldValues> vms = MorphParameters.VarMorphs.subfieldsValueRequired(fv);
+        for (FieldValues vm : vms) {
+            int v = VarMorph.Variation.intValueRequired(vm);
+            List<FieldValues> vmps = VarMorph.VarMorphParams.subfieldsValueRequired(vm);
+            for (FieldValues vmp : vmps) {
+                PatchArea area = gp.getArea(VarMorphParam.Location.intValueRequired(vmp));
+                G2Module m = area.getModuleRequired(VarMorphParam.ModuleIndex.intValueRequired(vmp));
+                m.setMorph(v,VarMorphParam.ParamIndex.intValueRequired(vmp),
+                        VarMorphParam.Morph.intValueRequired(vmp),
+                        VarMorphParam.Range.intValueRequired(vmp));
+            }
+        }
+
+        fv = getSection(Sections.SKnobAssignments).values();
+        List<FieldValues> kas = KnobAssignments.Knobs.subfieldsValueRequired(fv);
+        for (FieldValues ka : kas) {
+            if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
+                List<FieldValues> kps = KnobAssignment.Params.subfieldsValueRequired(ka);
+                for (FieldValues kp : kps) {
+                    PatchArea area = gp.getArea(KnobParams.Location.intValueRequired(kp));
+                    G2Module m = area.getModuleRequired(KnobParams.Index.intValueRequired(kp));
+                    m.assignKnob(KnobParams.Param.intValueRequired(kp),
+                            KnobParams.IsLed.intValueRequired(kp) == 1);
+                }
+            }
+        }
+
+        fv = getSection(Sections.SControlAssignments).values();
+        List<FieldValues> cas = ControlAssignments.Assignments.subfieldsValueRequired(fv);
+        for (FieldValues ca : cas) {
+            PatchArea area = gp.getArea(ControlAssignment.Location.intValueRequired(ca));
+            G2Module m = area.getModuleRequired(ControlAssignment.Index.intValueRequired(ca));
+            m.assignMidiControl(ControlAssignment.Param.intValueRequired(ca),
+                    ControlAssignment.MidiCC.intValueRequired(ca));
+        }
+
+        fv = getSection(Sections.SMorphLabels).values();
+        List<FieldValues> ls = MorphLabels.Labels.subfieldsValueRequired(fv);
+        for (FieldValues l : ls) {
+            gp.getMorph(MorphLabel.Entry.intValueRequired(l) - 8)
+                    .setName(MorphLabel.Label.stringValueRequired(l));
+        }
 
         return gp;
+    }
+
+    private static void setModuleLabels(FieldValues fv, PatchArea area) {
+        List<FieldValues> mls = ModuleLabels.ModLabels.subfieldsValueRequired(fv);
+        for (FieldValues ml : mls) {
+            G2Module m = area.getModuleRequired(ModuleLabel.ModuleIndex.intValueRequired(ml));
+            List<FieldValues> ls = ModuleLabel.Labels.subfieldsValueRequired(ml);
+            for (FieldValues l : ls) {
+                m.setParamLabel(ParamLabel.ParamIndex.intValueRequired(l),
+                        ParamLabel.Label.stringValueRequired(l));
+            }
+        }
+    }
+
+    private static void setModuleNames(FieldValues fv, PatchArea area) {
+        List<FieldValues> mns = ModuleNames.Names.subfieldsValueRequired(fv);
+        for (FieldValues mn : mns) {
+            G2Module m = area.getModuleRequired(ModuleName.ModuleIndex.intValueRequired(mn));
+            m.name = ModuleName.Name.stringValueRequired(mn);
+        }
     }
 
     private void setModuleParams(FieldValues fv, PatchArea area, int vc) {

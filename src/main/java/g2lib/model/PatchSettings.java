@@ -5,6 +5,17 @@ import g2lib.Util;
 import java.util.Map;
 
 public class PatchSettings {
+
+    /*
+    Note for location 2 knobs/ccs:
+    index < 2 -> morphs
+      param 0-7: morph dials
+      param 8-15: morph modes
+    index 3-8: settings groups (gain,glide,bend,vib,arp,misc)
+
+    (morphs do not appear to apply to location 2)
+     */
+
     public enum Glide {
         Off,
         Auto,
