@@ -14,20 +14,42 @@ public class BaseModule implements ParamModule {
 
     private final Map<Integer,Boolean> knobs = new TreeMap<>();
 
+    private final Map<Integer,String> customLabels = new TreeMap<>();
+
     public BaseModule(int index, int paramCount) {
         this.index = index;
         this.paramCount = paramCount;
     }
 
-    public BaseModule(int index, ModParam... params) {
-        this.index = index;
-        this.paramCount = params.length;
-        List<ModParam> ps = List.of(params);
-        for (int i = 0; i < G2Patch.MAX_VARIATIONS; i++) {
-            varParams.add(ps.stream().map(p ->
-                    new ParamValue(new NamedParam(p,p.name(),List.of()))).toList());
+    public BaseModule(SettingsModules mod, ModParam... params) {
+        this.index = mod.ordinal();
+        switch (mod) {
+            case MorphDials:
+            case MorphModes:
+                paramCount = 8;
+                List<String> morphs = List.of(G2Patch.MORPH_LABELS);
+                for (int i = 0; i < G2Patch.MAX_VARIATIONS; i++) {
+                    varParams.add(morphs.stream().map(m -> new ParamValue(new NamedParam(
+                            mod == SettingsModules.MorphModes ? ModParam.MorphMode : ModParam.MorphDial,
+                            m,
+                            mod == SettingsModules.MorphModes ? List.of("Knob", m) : List.of()))).toList());
+                }
+                break;
+            default:
+                this.paramCount = params.length;
+                List<ModParam> ps = List.of(params);
+                for (int i = 0; i < G2Patch.MAX_VARIATIONS; i++) {
+                    varParams.add(ps.stream().map(p ->
+                            new ParamValue(new NamedParam(p, p.name(), List.of()))).toList());
+                }
+                break;
         }
     }
+
+    public void setParamLabel(int ix, String s) {
+        customLabels.put(ix,s);
+    }
+
 
     @Override
     public int getIndex() {
@@ -42,6 +64,17 @@ public class BaseModule implements ParamModule {
     @Override
     public void assignKnob(int param, boolean isLed) {
         knobs.put(validateParam(param),isLed);
+    }
+
+    public void setParams(int variation,List<Integer> values) {
+        List<ParamValue> ps = getParams(variation);
+        for (int i = 0; i < ps.size(); i++) {
+            getParam(ps, i).setValue(values.get(i));
+        }
+    }
+
+    protected ParamValue getParam(List<ParamValue> ps, int i) {
+        return ps.get(validateParam(i));
     }
 
     @Override

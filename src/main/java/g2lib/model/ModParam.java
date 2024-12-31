@@ -512,7 +512,12 @@ public enum ModParam {
      "-2","-1","0","1","2"),
     MiscSustain
     (1,
-     "Off","On")
+     "Off","On"),
+    MorphDial
+    (0,127,0),
+    MorphMode
+    (1,
+     "Knob","Morph")
 
 
 

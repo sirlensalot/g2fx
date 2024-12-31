@@ -2,7 +2,6 @@ package g2lib.state;
 
 import g2lib.BitBuffer;
 import g2lib.CRC16;
-import g2lib.Protocol;
 import g2lib.Util;
 import g2lib.model.*;
 import g2lib.protocol.FieldValue;
@@ -177,43 +176,48 @@ public class Patch {
         List<FieldValues> octSustains = PatchParams.SectionOctSustains.subfieldsValueRequired(fv);
 
         for (int v = 0; v < vc; v++) {
-            PatchSettings ps = new PatchSettings();
+
             FieldValues morph = getVarValues(v, morphs);
             List<FieldValues> dials = MorphSettings.Dials.subfieldsValueRequired(morph);
+            gp.getSettingsModule(SettingsModules.MorphDials).setParams
+                    (v,dials.stream().map(Data7.Datum::intValueRequired).toList());
             List<FieldValues> modes = MorphSettings.Modes.subfieldsValueRequired(morph);
-            for (int m = 0; m < 8; m++) {
-                gp.getMorph(m).setVarMorph(v,
-                        Data7.Datum.intValueRequired(getMorphValues(m,dials)),
-                        Data7.Datum.intValueRequired(getMorphValues(m,modes)));
-            }
+            gp.getSettingsModule(SettingsModules.MorphModes).setParams
+                    (v,modes.stream().map(Data7.Datum::intValueRequired).toList());
+
             FieldValues ss = getVarValues(v, volMuteds);
-            ps.volume = VolMutedSettings.PatchVol.intValueRequired(ss);
-            ps.active = VolMutedSettings.ActiveMuted.intValueRequired(ss) == 1;
+            gp.getSettingsModule(SettingsModules.Gain).setParams(v,List.of(
+                    VolMutedSettings.PatchVol.intValueRequired(ss),
+                    VolMutedSettings.ActiveMuted.intValueRequired(ss)));
 
             ss = getVarValues(v,glides);
-            ps.glide = PatchSettings.Glide.LKP.lookup(GlideSettings.Glide.intValueRequired(ss));
-            ps.glideTime = GlideSettings.GlideTime.intValueRequired(ss);
+            gp.getSettingsModule(SettingsModules.Glide).setParams(v,List.of(
+                    GlideSettings.Glide.intValueRequired(ss),
+                    GlideSettings.GlideTime.intValueRequired(ss)));
 
             ss = getVarValues(v,bends);
-            ps.bendEnable = BendSettings.Bend.intValueRequired(ss) == 1;
-            ps.bendSemi = BendSettings.Semi.intValueRequired(ss);
+            gp.getSettingsModule(SettingsModules.Bend).setParams(v,List.of(
+                    BendSettings.Bend.intValueRequired(ss),
+                    BendSettings.Semi.intValueRequired(ss)));
 
             ss = getVarValues(v,vibratos);
-            ps.vibrato = PatchSettings.Vibrato.LKP.lookup(VibratoSettings.Vibrato.intValueRequired(ss));
-            ps.vibCents = VibratoSettings.Cents.intValueRequired(ss);
-            ps.vibRate = VibratoSettings.Rate.intValueRequired(ss);
+            gp.getSettingsModule(SettingsModules.Vibrato).setParams(v,List.of(
+                    VibratoSettings.Vibrato.intValueRequired(ss),
+                    VibratoSettings.Cents.intValueRequired(ss),
+                    VibratoSettings.Rate.intValueRequired(ss)));
 
             ss = getVarValues(v,arps);
-            //ps.arpEnable = ArpSettings.Arpeggiator.intValueRequired(ss) == 1;
-            //ps.arpTime = ArpSettings.Time.intValueRequired(ss);
-            ps.arpOctaves = ArpSettings.Octaves.intValueRequired(ss);
-            //ps.arpType = ArpSettings.Type.intValueRequired(ss);
+            gp.getSettingsModule(SettingsModules.Arpeggiator).setParams(v,List.of(
+                    ArpSettings.Arpeggiator.intValueRequired(ss),
+                    ArpSettings.Time.intValueRequired(ss),
+                    ArpSettings.Octaves.intValueRequired(ss),
+                    ArpSettings.Type.intValueRequired(ss)));
 
             ss = getVarValues(v,octSustains);
-            ps.octShift = OctSustainSettings.OctShift.intValueRequired(ss);
-            ps.sustainPedal = OctSustainSettings.Sustain.intValueRequired(ss) == 1;
+            gp.getSettingsModule(SettingsModules.Misc).setParams(v,List.of(
+                    OctSustainSettings.OctShift.intValueRequired(ss),
+                    OctSustainSettings.Sustain.intValueRequired(ss)));
 
-            gp.setSettings(v,ps);
         }
 
         fv = getSection(Sections.SModuleList1).values();
@@ -256,7 +260,7 @@ public class Patch {
             if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
                 List<FieldValues> kps = KnobAssignment.Params.subfieldsValueRequired(ka);
                 for (FieldValues kp : kps) {
-                    ParamModule m = gp.getUserArea(KnobParams.Location.intValueRequired(kp))
+                    ParamModule m = gp.getArea(KnobParams.Location.intValueRequired(kp))
                             .getModuleRequired(KnobParams.Index.intValueRequired(kp));
                     m.assignKnob(KnobParams.Param.intValueRequired(kp),
                             KnobParams.IsLed.intValueRequired(kp) == 1);
@@ -276,8 +280,9 @@ public class Patch {
         fv = getSection(Sections.SMorphLabels).values();
         List<FieldValues> ls = MorphLabels.Labels.subfieldsValueRequired(fv);
         for (FieldValues l : ls) {
-            gp.getMorph(MorphLabel.Entry.intValueRequired(l) - 8)
-                    .setName(MorphLabel.Label.stringValueRequired(l));
+            gp.getSettingsModule(SettingsModules.MorphModes).setParamLabel(
+                    MorphLabel.Entry.intValueRequired(l) - 8,
+                    MorphLabel.Label.stringValueRequired(l));
         }
 
         return gp;

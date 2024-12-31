@@ -19,7 +19,7 @@ public class G2Module extends BaseModule {
 
     private final List<ParamValue> modes;
 
-    private final Map<Integer,String> customLabels = new TreeMap<>();
+
 
     public G2Module(ModuleType type,int index) {
         super(index,type.params.size());
@@ -32,17 +32,6 @@ public class G2Module extends BaseModule {
     }
 
 
-    public void setParams(int variation,List<Integer> values) {
-        List<ParamValue> ps = getParams(variation);
-        for (int i = 0; i < ps.size(); i++) {
-            getParam(ps, i).setValue(values.get(i));
-        }
-    }
-
-    public void setParamLabel(int ix, String s) {
-        customLabels.put(ix,s);
-    }
-
     public void setMorph(int variation,int paramIndex,int morph,int range) {
         getParam(getParams(variation),paramIndex).morphs.put(morph,range);
     }
@@ -52,18 +41,6 @@ public class G2Module extends BaseModule {
             throw new IllegalArgumentException("Invalid mode: " + ix);
         }
         modes.get(ix).setValue(value);
-    }
-
-
-    private ParamValue getParam(List<ParamValue> ps, int i) {
-        return ps.get(validateParam(i));
-    }
-
-    protected int validateParam(int param) {
-        if (param >= moduleType.params.size()) {
-            throw new IllegalArgumentException("Invalid param index: " + param);
-        }
-        return param;
     }
 
 

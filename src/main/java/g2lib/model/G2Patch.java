@@ -14,8 +14,6 @@ public class G2Patch {
     public final PatchArea<G2Module> fxArea = new PatchArea<>(PatchArea.AreaName.FX);
     public final PatchArea<BaseModule> settingsArea = initPatchSettings();
 
-    private final List<Morph> morphs = Arrays.stream(MORPH_LABELS).map(Morph::new).toList();
-    private final List<PatchSettings> settings = new ArrayList<>();
     private String name;
     private String textPad;
 
@@ -28,19 +26,24 @@ public class G2Patch {
 
     public G2Patch(String name) {
         this.name = name;
-        for (int i = 0; i < MAX_VARIATIONS; i++) {
-            settings.add(new PatchSettings());
-        }
     }
 
     private static PatchArea<BaseModule> initPatchSettings() {
         return new PatchArea<BaseModule>(List.of(
-                new BaseModule(0,ModParam.GainVolume, ModParam.GainActiveMuted),
-                new BaseModule(1,ModParam.Glide, ModParam.GlideSpeed),
-                new BaseModule(2,ModParam.BendEnable, ModParam.BendSemi),
-                new BaseModule(3,ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate),
-                new BaseModule(4,ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves),
-                new BaseModule(5,ModParam.MiscOctShift, ModParam.MiscSustain)
+                new BaseModule(SettingsModules.MorphDials), // morph dials
+                new BaseModule(SettingsModules.MorphModes), // morph modes
+                new BaseModule(SettingsModules.Gain,
+                        ModParam.GainVolume, ModParam.GainActiveMuted),
+                new BaseModule(SettingsModules.Glide,
+                        ModParam.Glide, ModParam.GlideSpeed),
+                new BaseModule(SettingsModules.Bend,
+                        ModParam.BendEnable, ModParam.BendSemi),
+                new BaseModule(SettingsModules.Vibrato,
+                        ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate),
+                new BaseModule(SettingsModules.Arpeggiator,
+                        ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves),
+                new BaseModule(SettingsModules.Misc,
+                        ModParam.MiscOctShift, ModParam.MiscSustain)
                 ));
     }
 
@@ -61,6 +64,10 @@ public class G2Patch {
         };
     }
 
+    public BaseModule getSettingsModule(SettingsModules m) {
+        return settingsArea.getModuleRequired(m.ordinal());
+    }
+
     public PatchArea<? extends ParamModule> getArea(int location) {
         return switch (location) {
             case 0 -> fxArea;
@@ -68,18 +75,5 @@ public class G2Patch {
             case 2 -> settingsArea;
             default -> throw new IllegalArgumentException("Invalid location: " + location);
         };
-    }
-
-    public Morph getMorph(int ix) {
-        if (ix >= 8) { throw new IllegalArgumentException("Invalid morph index: " + ix); }
-        return morphs.get(ix);
-    }
-
-    public PatchSettings getSettings(int variation) {
-        return settings.get(variation);
-    }
-
-    public void setSettings(int variation, PatchSettings pss) {
-        settings.set(variation,pss);
     }
 }
