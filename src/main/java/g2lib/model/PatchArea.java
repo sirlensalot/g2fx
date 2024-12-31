@@ -1,33 +1,36 @@
 package g2lib.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-public class PatchArea {
+public class PatchArea<M extends ParamModule> {
     public static enum AreaName {
         FX,
-        Voice
+        Voice,
+        Settings
     }
     private final AreaName area;
-    private final Map<Integer,G2Module> modules = new TreeMap<>();
+    private final Map<Integer, M> modules = new TreeMap<>();
     private final List<Cable> cables = new ArrayList<>();
 
     public PatchArea(AreaName area) {
         this.area = area;
     }
 
-    public void addModule(G2Module module) {
-        modules.put(module.index,module);
+    public PatchArea(List<M> settingsModules) {
+        this.area = AreaName.Settings;
+        settingsModules.forEach(this::addModule);
+    }
+
+    public void addModule(M module) {
+        modules.put(module.getIndex(),module);
     }
 
     public void addCable(Cable cable) {
         cables.add(cable);
     }
 
-    public G2Module getModuleRequired(int ix) {
-        G2Module m = modules.get(ix);
+    public M getModuleRequired(int ix) {
+        M m = modules.get(ix);
         if (m == null) {
             throw new IllegalArgumentException("Bad module index: " + ix);
         }

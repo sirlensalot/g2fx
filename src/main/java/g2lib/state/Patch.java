@@ -41,11 +41,11 @@ public class Patch {
 
     public static final ByteBuffer HEADER = patchHeader();
 
-    public static record Section(Sections sections, FieldValues values) {
+    public record Section(Sections sections, FieldValues values) {
 
     }
 
-    public static enum Sections {
+    public enum Sections {
 
         SPatchDescription(PatchDescription.FIELDS,0x21  ),
         SModuleList1(ModuleList.FIELDS,0x4a,1),
@@ -123,11 +123,11 @@ public class Patch {
     public static void expectWarn(ByteBuffer buf,int expected,String filePath, String msg) {
         byte b = buf.get();
         if (b != expected) {
-            log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,filePath,buf.position()-1));
+            log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,b,filePath,buf.position()-1));
         }
     }
 
-    public static Patch readFromMessage(ByteBuffer buf) throws Exception {
+    public static Patch readFromMessage(ByteBuffer buf) {
         Patch patch = new Patch();
         patch.readMessageHeader(buf);
 
@@ -204,10 +204,10 @@ public class Patch {
             ps.vibRate = VibratoSettings.Rate.intValueRequired(ss);
 
             ss = getVarValues(v,arps);
-            ps.arpEnable = ArpSettings.Arpeggiator.intValueRequired(ss) == 1;
-            ps.arpTime = ArpSettings.Time.intValueRequired(ss);
+            //ps.arpEnable = ArpSettings.Arpeggiator.intValueRequired(ss) == 1;
+            //ps.arpTime = ArpSettings.Time.intValueRequired(ss);
             ps.arpOctaves = ArpSettings.Octaves.intValueRequired(ss);
-            ps.arpType = ArpSettings.Type.intValueRequired(ss);
+            //ps.arpType = ArpSettings.Type.intValueRequired(ss);
 
             ss = getVarValues(v,octSustains);
             ps.octShift = OctSustainSettings.OctShift.intValueRequired(ss);
@@ -242,7 +242,7 @@ public class Patch {
             int v = VarMorph.Variation.intValueRequired(vm);
             List<FieldValues> vmps = VarMorph.VarMorphParams.subfieldsValueRequired(vm);
             for (FieldValues vmp : vmps) {
-                PatchArea area = gp.getArea(VarMorphParam.Location.intValueRequired(vmp));
+                PatchArea<G2Module> area = gp.getUserArea(VarMorphParam.Location.intValueRequired(vmp));
                 G2Module m = area.getModuleRequired(VarMorphParam.ModuleIndex.intValueRequired(vmp));
                 m.setMorph(v,VarMorphParam.ParamIndex.intValueRequired(vmp),
                         VarMorphParam.Morph.intValueRequired(vmp),
@@ -256,8 +256,8 @@ public class Patch {
             if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
                 List<FieldValues> kps = KnobAssignment.Params.subfieldsValueRequired(ka);
                 for (FieldValues kp : kps) {
-                    PatchArea area = gp.getArea(KnobParams.Location.intValueRequired(kp));
-                    G2Module m = area.getModuleRequired(KnobParams.Index.intValueRequired(kp));
+                    ParamModule m = gp.getUserArea(KnobParams.Location.intValueRequired(kp))
+                            .getModuleRequired(KnobParams.Index.intValueRequired(kp));
                     m.assignKnob(KnobParams.Param.intValueRequired(kp),
                             KnobParams.IsLed.intValueRequired(kp) == 1);
                 }
@@ -267,8 +267,8 @@ public class Patch {
         fv = getSection(Sections.SControlAssignments).values();
         List<FieldValues> cas = ControlAssignments.Assignments.subfieldsValueRequired(fv);
         for (FieldValues ca : cas) {
-            PatchArea area = gp.getArea(ControlAssignment.Location.intValueRequired(ca));
-            G2Module m = area.getModuleRequired(ControlAssignment.Index.intValueRequired(ca));
+            ParamModule m = gp.getArea(ControlAssignment.Location.intValueRequired(ca))
+                    .getModuleRequired(ControlAssignment.Index.intValueRequired(ca));
             m.assignMidiControl(ControlAssignment.Param.intValueRequired(ca),
                     ControlAssignment.MidiCC.intValueRequired(ca));
         }
@@ -283,7 +283,7 @@ public class Patch {
         return gp;
     }
 
-    private static void setModuleLabels(FieldValues fv, PatchArea area) {
+    private static void setModuleLabels(FieldValues fv, PatchArea<G2Module> area) {
         List<FieldValues> mls = ModuleLabels.ModLabels.subfieldsValueRequired(fv);
         for (FieldValues ml : mls) {
             G2Module m = area.getModuleRequired(ModuleLabel.ModuleIndex.intValueRequired(ml));
@@ -295,7 +295,7 @@ public class Patch {
         }
     }
 
-    private static void setModuleNames(FieldValues fv, PatchArea area) {
+    private static void setModuleNames(FieldValues fv, PatchArea<G2Module> area) {
         List<FieldValues> mns = ModuleNames.Names.subfieldsValueRequired(fv);
         for (FieldValues mn : mns) {
             G2Module m = area.getModuleRequired(ModuleName.ModuleIndex.intValueRequired(mn));
@@ -303,7 +303,7 @@ public class Patch {
         }
     }
 
-    private void setModuleParams(FieldValues fv, PatchArea area, int vc) {
+    private void setModuleParams(FieldValues fv, PatchArea<G2Module> area, int vc) {
         List<FieldValues> pss = ModuleParams.ParamSet.subfieldsValueRequired(fv);
         for (FieldValues ps : pss) {
             int mi = ModuleParamSet.ModIndex.intValueRequired(ps);
@@ -318,7 +318,7 @@ public class Patch {
         }
     }
 
-    private static void addModules(FieldValues fv, PatchArea area) {
+    private static void addModules(FieldValues fv, PatchArea<G2Module> area) {
         List<FieldValues> mods = ModuleList.Modules.subfieldsValueRequired(fv);
         for (FieldValues mod : mods) {
             int ix = Module_.Index.intValueRequired(mod);
@@ -337,7 +337,7 @@ public class Patch {
         }
     }
 
-    public void readMessageHeader(ByteBuffer buf) throws Exception {
+    public void readMessageHeader(ByteBuffer buf) {
         expectWarn(buf,0x01,"Message","Cmd");
         int slot = buf.get();
         if (this.slot == -1) {
@@ -353,7 +353,7 @@ public class Patch {
         }
     }
 
-    public void writeMessageHeader(ByteBuffer buf) throws Exception {
+    public void writeMessageHeader(ByteBuffer buf) {
         if (slot == -1 || version == -1) {
             throw new RuntimeException("writeMessageHeader: slot/version not initialized");
         }
@@ -462,7 +462,7 @@ public class Patch {
         return buf;
     }
 
-    public void readSection(ByteBuffer buf, Sections s) throws Exception {
+    public void readSection(ByteBuffer buf, Sections s) {
         BitBuffer bb = sliceSection(s.type,buf);
         //log.info(s + ": length " + bb.limit());
         if (s.location != null) {
@@ -478,7 +478,7 @@ public class Patch {
         sections.put(s,new Section(s,fvs));
     }
 
-    public void readSectionMessage(ByteBuffer buf, Sections s) throws Exception {
+    public void readSectionMessage(ByteBuffer buf, Sections s) {
         readMessageHeader(buf);
         readSection(buf,s);
     }

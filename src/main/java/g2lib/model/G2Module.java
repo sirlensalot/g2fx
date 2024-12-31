@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class G2Module {
-    public final int index;
+public class G2Module extends BaseModule {
+
     public int horiz;
     public int vert;
     public int color;
@@ -17,40 +17,20 @@ public class G2Module {
     public final ModuleType moduleType;
 
 
-    class ParamValue {
-        private final NamedParam param;
-        private final Map<Integer,Integer> morphs = new TreeMap<>();
-        private int value;
-        ParamValue(NamedParam param) {
-            this.param = param;
-            this.value = param.param().def;
-        }
-
-        public void setValue(int value) {
-            this.value = value;
-        }
-    }
-
     private final List<ParamValue> modes;
-
-    private final List<List<ParamValue>> varParams;
-
-    private final Map<Integer,Integer> midiControls = new TreeMap<>();
-
-    private final Map<Integer,Boolean> knobs = new TreeMap<>();
 
     private final Map<Integer,String> customLabels = new TreeMap<>();
 
     public G2Module(ModuleType type,int index) {
+        super(index,type.params.size());
         this.moduleType = type;
-        this.index = index;
         this.name = type.shortName;
         modes = type.modes.stream().map(ParamValue::new).toList();
-        varParams = new ArrayList<>(G2Patch.MAX_VARIATIONS);
         for (int i = 0; i < G2Patch.MAX_VARIATIONS; i++) {
             varParams.add(type.params.stream().map(ParamValue::new).toList());
         }
     }
+
 
     public void setParams(int variation,List<Integer> values) {
         List<ParamValue> ps = getParams(variation);
@@ -74,30 +54,16 @@ public class G2Module {
         modes.get(ix).setValue(value);
     }
 
-    public void assignMidiControl(int param,int cc) {
-        midiControls.put(validateParam(param),cc);
-    }
-
-    public void assignKnob(int param, boolean isLed) {
-        knobs.put(validateParam(param),isLed);
-    }
 
     private ParamValue getParam(List<ParamValue> ps, int i) {
         return ps.get(validateParam(i));
     }
 
-    private int validateParam(int param) {
+    protected int validateParam(int param) {
         if (param >= moduleType.params.size()) {
             throw new IllegalArgumentException("Invalid param index: " + param);
         }
         return param;
-    }
-
-    private List<ParamValue> getParams(int variation) {
-        if (variation >= varParams.size()) {
-            throw new IllegalArgumentException("Invalid variation: " + variation);
-        }
-        return varParams.get(variation);
     }
 
 

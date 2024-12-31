@@ -1,9 +1,9 @@
 package g2lib.model;
 
 public record Cable
-        (G2Module fromMod,
+        (ParamModule fromMod,
          Port fromPort,
-         G2Module toMod,
+         ParamModule toMod,
          Port toPort,
          LinkType linkType,
          ConnColor color
