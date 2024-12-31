@@ -6,6 +6,7 @@ public class BaseModule implements ParamModule {
 
     private final int index;
     private final int paramCount;
+    protected String name;
 
     protected final List<List<ParamValue>> varParams =
             new ArrayList<>(G2Patch.MAX_VARIATIONS);
@@ -23,6 +24,7 @@ public class BaseModule implements ParamModule {
 
     public BaseModule(SettingsModules mod, ModParam... params) {
         this.index = mod.ordinal();
+        this.name = mod.name();
         switch (mod) {
             case MorphDials:
             case MorphModes:
@@ -92,4 +94,19 @@ public class BaseModule implements ParamModule {
         return param;
     }
 
+    @Override
+    public Map<String, Object> toYamlObj() {
+        Map<String, Object> top = new LinkedHashMap<>();
+        top.put("name",name);
+        List<Map<String,Object>> vps = new ArrayList<>();
+        top.put("params",vps);
+        for (List<ParamValue> pvs : varParams) {
+            Map<String, Object> m = new TreeMap<>();
+            vps.add(m);
+            for (ParamValue pv : pvs) {
+                m.put(pv.getParam().name(),pv.getValue());
+            }
+        }
+        return top;
+    }
 }

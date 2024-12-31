@@ -667,7 +667,7 @@ class ProtocolTest {
         testMorphLabels(p);
         testModuleLabels(p);
 
-        p.toPatch();
+        p.toPatch().writeYaml("data/hello.yaml");
     }
     @Test
     public void patchFromFile() throws Exception {

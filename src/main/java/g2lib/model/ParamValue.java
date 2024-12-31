@@ -16,4 +16,12 @@ public class ParamValue {
     public void setValue(int value) {
         this.value = value;
     }
+
+    public NamedParam getParam() {
+        return param;
+    }
+
+    public int getValue() {
+        return value;
+    }
 }

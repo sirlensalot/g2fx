@@ -320,7 +320,7 @@ public class Patch {
         List<FieldValues> mns = ModuleNames.Names.subfieldsValueRequired(fv);
         for (FieldValues mn : mns) {
             G2Module m = area.getModuleRequired(ModuleName.ModuleIndex.intValueRequired(mn));
-            m.name = ModuleName.Name.stringValueRequired(mn);
+            m.setName(ModuleName.Name.stringValueRequired(mn));
         }
     }
 

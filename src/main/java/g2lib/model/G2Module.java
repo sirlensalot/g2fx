@@ -1,6 +1,8 @@
 package g2lib.model;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class G2Module extends BaseModule {
 
@@ -10,7 +12,7 @@ public class G2Module extends BaseModule {
     public int uprate;
     public boolean leds;
 
-    public String name;
+
     public final ModuleType moduleType;
 
 
@@ -58,4 +60,7 @@ public class G2Module extends BaseModule {
         throw new IllegalArgumentException("Invalid out port: " + ix + ", module=" + name);
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 }

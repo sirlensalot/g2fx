@@ -1,8 +1,9 @@
 package g2lib.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.FileWriter;
+import java.util.*;
 
 public class G2Patch {
     public static final int MAX_VARIATIONS = 10;
@@ -75,5 +76,22 @@ public class G2Patch {
             case 2 -> settingsArea;
             default -> throw new IllegalArgumentException("Invalid location: " + location);
         };
+    }
+
+    public void writeYaml(String file) throws Exception {
+        Map<String,Object> top = new LinkedHashMap<>();
+        top.put("name",name);
+        top.put("voices",voices);
+        top.put("height",height);
+        //TODO colors
+        top.put("monoPoly",monoPoly);
+        top.put("variation",variation);
+        top.put("category",category);
+        top.put("voice",voiceArea.toYamlObj());
+        top.put("fx",fxArea.toYamlObj());
+        top.put("settings",settingsArea.toYamlObj());
+        FileWriter fw = new FileWriter(file);
+        new Yaml().dump(top, fw);
+        fw.close();
     }
 }

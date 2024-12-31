@@ -3,6 +3,7 @@ package g2lib.model;
 import java.util.*;
 
 public class PatchArea<M extends ParamModule> {
+
     public static enum AreaName {
         FX,
         Voice,
@@ -36,4 +37,15 @@ public class PatchArea<M extends ParamModule> {
         }
         return m;
     }
+
+    public Map<String,Object> toYamlObj() {
+        Map<String, Object> top = new LinkedHashMap<>();
+        List<Map<String,Object>> ms = new ArrayList<>();
+        top.put("modules",ms);
+        for (ParamModule m : modules.values()) {
+            ms.add(m.toYamlObj());
+        }
+        return top;
+    }
+
 }
