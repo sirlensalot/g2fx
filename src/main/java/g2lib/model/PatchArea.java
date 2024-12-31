@@ -10,7 +10,7 @@ public class PatchArea<M extends ParamModule> {
     }
     private final AreaName area;
     private final Map<Integer, M> modules = new TreeMap<>();
-    private final List<Cable> cables = new ArrayList<>();
+    private final List<G2Cable> cables = new ArrayList<>();
 
     public PatchArea(AreaName area) {
         this.area = area;
@@ -25,7 +25,7 @@ public class PatchArea<M extends ParamModule> {
         modules.put(module.getIndex(),module);
     }
 
-    public void addCable(Cable cable) {
+    public void addCable(G2Cable cable) {
         cables.add(cable);
     }
 

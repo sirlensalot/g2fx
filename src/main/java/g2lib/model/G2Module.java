@@ -1,9 +1,6 @@
 package g2lib.model;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class G2Module extends BaseModule {
 
@@ -43,5 +40,22 @@ public class G2Module extends BaseModule {
         modes.get(ix).setValue(value);
     }
 
+    public ModuleType getModuleType() {
+        return moduleType;
+    }
+
+    public Connector getInPort(int ix) {
+        if (ix < moduleType.inPorts.size()) {
+            return moduleType.inPorts.get(ix);
+        }
+        throw new IllegalArgumentException("Invalid in port: " + ix + ", module=" + name);
+    }
+
+    public Connector getOutPort(int ix) {
+        if (ix < moduleType.outPorts.size()) {
+            return moduleType.outPorts.get(ix);
+        }
+        throw new IllegalArgumentException("Invalid out port: " + ix + ", module=" + name);
+    }
 
 }

@@ -285,6 +285,22 @@ public class Patch {
                     MorphLabel.Label.stringValueRequired(l));
         }
 
+        fv = getSection(Sections.SCableList1).values();
+        PatchArea<G2Module> area = gp.voiceArea;
+        List<FieldValues> cs = CableList.Cables.subfieldsValueRequired(fv);
+        for (FieldValues c : cs) {
+            G2Module srcMod = area.getModuleRequired(Cable.SrcModule.intValueRequired(c));
+            G2Module destMod = area.getModuleRequired(Cable.DestModule.intValueRequired(c));
+            int direction = Cable.Direction.intValueRequired(c);
+            int srci = Cable.SrcConn.intValueRequired(c);
+            Connector src = direction == 1 ? srcMod.getOutPort(srci) : srcMod.getInPort(srci);
+            Connector dest = destMod.getInPort(Cable.DestConn.intValueRequired(c));
+            G2Cable cable = new G2Cable(srcMod, src, destMod, dest,
+                    direction,
+                    Cable.Color.intValueRequired(c));
+            area.addCable(cable);
+        }
+
         return gp;
     }
 

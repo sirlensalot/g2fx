@@ -400,27 +400,27 @@ class ProtocolTest {
 
         FieldValues cable = cs.get(indexes[0]);
         assertFieldEquals(cable,0x00, Cable.Color);
-        assertFieldEquals(cable,0x03, Cable.ModuleFrom);
-        assertFieldEquals(cable,0x01, Cable.ConnectorFrom);
-        assertFieldEquals(cable,0x01, Cable.LinkType);
-        assertFieldEquals(cable,0x04, Cable.ModuleTo);
-        assertFieldEquals(cable,0x00, Cable.ConnectorTo);
+        assertFieldEquals(cable,0x03, Cable.SrcModule); //ModADSR
+        assertFieldEquals(cable,0x01, Cable.SrcConn);
+        assertFieldEquals(cable,0x01, Cable.Direction);
+        assertFieldEquals(cable,0x04, Cable.DestModule); //2-out
+        assertFieldEquals(cable,0x00, Cable.DestConn);
 
         cable = cs.get(indexes[1]);
         assertFieldEquals(cable,0x00, Cable.Color);
-        assertFieldEquals(cable,0x01, Cable.ModuleFrom);
-        assertFieldEquals(cable,0x00, Cable.ConnectorFrom);
-        assertFieldEquals(cable,0x01, Cable.LinkType);
-        assertFieldEquals(cable,0x03, Cable.ModuleTo);
-        assertFieldEquals(cable,0x05, Cable.ConnectorTo);
+        assertFieldEquals(cable,0x01, Cable.SrcModule); //FltClassic
+        assertFieldEquals(cable,0x00, Cable.SrcConn);
+        assertFieldEquals(cable,0x01, Cable.Direction);
+        assertFieldEquals(cable,0x03, Cable.DestModule); //ModADSR
+        assertFieldEquals(cable,0x05, Cable.DestConn);
 
         cable = cs.get(indexes[2]);
         assertFieldEquals(cable,0x00, Cable.Color);
-        assertFieldEquals(cable,0x02, Cable.ModuleFrom);
-        assertFieldEquals(cable,0x00, Cable.ConnectorFrom);
-        assertFieldEquals(cable,0x01, Cable.LinkType);
-        assertFieldEquals(cable,0x01, Cable.ModuleTo);
-        assertFieldEquals(cable,0x00, Cable.ConnectorTo);
+        assertFieldEquals(cable,0x02, Cable.SrcModule); //Osc C
+        assertFieldEquals(cable,0x00, Cable.SrcConn);
+        assertFieldEquals(cable,0x01, Cable.Direction);
+        assertFieldEquals(cable,0x01, Cable.DestModule); // FltClassic
+        assertFieldEquals(cable,0x00, Cable.DestConn);
 
 
         cl = p.getSection(Patch.Sections.SCableList0).values();
@@ -430,19 +430,19 @@ class ProtocolTest {
 
         cable = cs.get(indexes[3]);
         assertFieldEquals(cable,0x00, Cable.Color);
-        assertFieldEquals(cable,0x02, Cable.ModuleFrom);
-        assertFieldEquals(cable,0x00, Cable.ConnectorFrom);
-        assertFieldEquals(cable,0x01, Cable.LinkType);
-        assertFieldEquals(cable,0x03, Cable.ModuleTo);
-        assertFieldEquals(cable,0x00, Cable.ConnectorTo);
+        assertFieldEquals(cable,0x02, Cable.SrcModule);
+        assertFieldEquals(cable,0x00, Cable.SrcConn);
+        assertFieldEquals(cable,0x01, Cable.Direction);
+        assertFieldEquals(cable,0x03, Cable.DestModule);
+        assertFieldEquals(cable,0x00, Cable.DestConn);
 
         cable = cs.get(indexes[4]);
         assertFieldEquals(cable,0x00, Cable.Color);
-        assertFieldEquals(cable,0x01, Cable.ModuleFrom);
-        assertFieldEquals(cable,0x00, Cable.ConnectorFrom);
-        assertFieldEquals(cable,0x01, Cable.LinkType);
-        assertFieldEquals(cable,0x02, Cable.ModuleTo);
-        assertFieldEquals(cable,0x00, Cable.ConnectorTo);
+        assertFieldEquals(cable,0x01, Cable.SrcModule);
+        assertFieldEquals(cable,0x00, Cable.SrcConn);
+        assertFieldEquals(cable,0x01, Cable.Direction);
+        assertFieldEquals(cable,0x02, Cable.DestModule);
+        assertFieldEquals(cable,0x00, Cable.DestConn);
 
 
 

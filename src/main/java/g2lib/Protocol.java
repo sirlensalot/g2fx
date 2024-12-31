@@ -21,11 +21,11 @@ public class Protocol {
 
     public enum Cable implements FieldEnum {
         Color         (3),
-        ModuleFrom    (8),
-        ConnectorFrom (6),
-        LinkType      (1),
-        ModuleTo      (8),
-        ConnectorTo   (6);
+        SrcModule(8),
+        SrcConn(6),
+        Direction(1),
+        DestModule(8),
+        DestConn(6);
         Cable(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
