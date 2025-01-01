@@ -1,5 +1,7 @@
 package g2lib.model;
 
+import g2lib.Util;
+
 import java.util.*;
 
 public class BaseModule implements ParamModule {
@@ -98,15 +100,15 @@ public class BaseModule implements ParamModule {
     public Map<String, Object> toYamlObj() {
         Map<String, Object> top = new LinkedHashMap<>();
         top.put("name",name);
-        List<Map<String,Object>> vps = new ArrayList<>();
-        top.put("params",vps);
-        for (List<ParamValue> pvs : varParams) {
-            Map<String, Object> m = new TreeMap<>();
-            vps.add(m);
-            for (ParamValue pv : pvs) {
-                m.put(pv.getParam().name(),pv.getValue());
+        top.put("params", Util.withYamlList( vps -> {
+            for (List<ParamValue> pvs : varParams) {
+                vps.add(Util.withYamlMap(m -> {
+                    for (ParamValue pv : pvs) {
+                        m.put(pv.getParam().name(),pv.getValue());
+                    }
+                }));
             }
-        }
+        }));
         return top;
     }
 }

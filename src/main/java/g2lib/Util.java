@@ -3,8 +3,9 @@ package g2lib;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.*;
 
 public class Util {
@@ -176,5 +177,18 @@ public class Util {
             m.put(e.ordinal(),e);
         }
         return new SafeLookup<E>(m,values[0].getDeclaringClass().getSimpleName());
+    }
+
+    public static Map<String,Object> withYamlMap(
+            Consumer<Map<String,Object>> f) {
+        LinkedHashMap<String, Object> m = new LinkedHashMap<>();
+        f.accept(m);
+        return m;
+    }
+    public static List<Object> withYamlList(
+            Consumer<List<Object>> f) {
+        List<Object> m = new ArrayList<>();
+        f.accept(m);
+        return m;
     }
 }

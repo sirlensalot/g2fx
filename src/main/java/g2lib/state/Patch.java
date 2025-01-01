@@ -286,7 +286,14 @@ public class Patch {
         }
 
         fv = getSection(Sections.SCableList1).values();
-        PatchArea<G2Module> area = gp.voiceArea;
+        setCables(fv, gp.voiceArea);
+        fv = getSection(Sections.SCableList0).values();
+        setCables(fv, gp.fxArea);
+
+        return gp;
+    }
+
+    private static void setCables(FieldValues fv, PatchArea<G2Module> area) {
         List<FieldValues> cs = CableList.Cables.subfieldsValueRequired(fv);
         for (FieldValues c : cs) {
             G2Module srcMod = area.getModuleRequired(Cable.SrcModule.intValueRequired(c));
@@ -300,8 +307,6 @@ public class Patch {
                     Cable.Color.intValueRequired(c));
             area.addCable(cable);
         }
-
-        return gp;
     }
 
     private static void setModuleLabels(FieldValues fv, PatchArea<G2Module> area) {

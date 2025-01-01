@@ -1,5 +1,7 @@
 package g2lib.model;
 
+import g2lib.Util;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,5 +64,16 @@ public class G2Module extends BaseModule {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public Map<String, Object> toYamlObj() {
+        Map<String, Object> top = super.toYamlObj();
+        top.put("modes", Util.withYamlMap(m -> {
+            for (ParamValue mode : modes) {
+                m.put(mode.getParam().name(),mode.getValue());
+            }
+        }));
+        return top;
     }
 }

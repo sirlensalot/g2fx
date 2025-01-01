@@ -1,5 +1,6 @@
 package g2lib.model;
 
+import g2lib.Util;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileWriter;
@@ -79,19 +80,20 @@ public class G2Patch {
     }
 
     public void writeYaml(String file) throws Exception {
-        Map<String,Object> top = new LinkedHashMap<>();
-        top.put("name",name);
-        top.put("voices",voices);
-        top.put("height",height);
-        //TODO colors
-        top.put("monoPoly",monoPoly);
-        top.put("variation",variation);
-        top.put("category",category);
-        top.put("voice",voiceArea.toYamlObj());
-        top.put("fx",fxArea.toYamlObj());
-        top.put("settings",settingsArea.toYamlObj());
         FileWriter fw = new FileWriter(file);
-        new Yaml().dump(top, fw);
+        new Yaml().dump(Util.withYamlMap(top -> {
+                    top.put("name",name);
+                    top.put("voices",voices);
+                    top.put("height",height);
+                    //TODO colors
+                    top.put("monoPoly",monoPoly);
+                    top.put("variation",variation);
+                    top.put("category",category);
+                    top.put("voice",voiceArea.toYamlObj());
+                    top.put("fx",fxArea.toYamlObj());
+                    top.put("settings",settingsArea.toYamlObj());
+                })
+        ,fw);
         fw.close();
     }
 }

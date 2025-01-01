@@ -1,5 +1,7 @@
 package g2lib.model;
 
+import g2lib.Util;
+
 import java.util.*;
 
 public class PatchArea<M extends ParamModule> {
@@ -39,13 +41,25 @@ public class PatchArea<M extends ParamModule> {
     }
 
     public Map<String,Object> toYamlObj() {
-        Map<String, Object> top = new LinkedHashMap<>();
-        List<Map<String,Object>> ms = new ArrayList<>();
-        top.put("modules",ms);
-        for (ParamModule m : modules.values()) {
-            ms.add(m.toYamlObj());
-        }
-        return top;
+        return Util.withYamlMap(top -> {
+            top.put("modules", Util.withYamlList(ms -> {
+                for (ParamModule m : modules.values()) {
+                    ms.add(m.toYamlObj());
+                }
+            }));
+            if (area != AreaName.Settings) {
+                top.put("cables", Util.withYamlList(cs -> {
+                    for (G2Cable c : cables) {
+                        cs.add(Util.withYamlMap(m -> {
+                            m.put("source", c.fromMod().name);
+                            m.put("sourceConn", c.fromPort().name());
+                            m.put("dest", c.toMod().name);
+                            m.put("destConn", c.toPort().name());
+                        }));
+                    }
+                }));
+            }
+        });
     }
 
 }
