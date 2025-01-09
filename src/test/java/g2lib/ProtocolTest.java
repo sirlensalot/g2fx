@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static g2lib.Protocol.*;
+import static g2lib.protocol.Protocol.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProtocolTest {

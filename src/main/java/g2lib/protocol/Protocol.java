@@ -1,6 +1,6 @@
-package g2lib;
+package g2lib.protocol;
 
-import g2lib.protocol.*;
+import g2lib.BitBuffer;
 
 import java.util.Arrays;
 import java.util.List;

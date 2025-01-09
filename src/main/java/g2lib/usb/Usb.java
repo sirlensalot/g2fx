@@ -215,13 +215,84 @@ public class Usb {
                 ),Util.asBytes(cdata)));
     }
 
-    public int sendSlotCmd(int slot,int version,String msg, int... cdata) {
+    /**
+     * A slot request expects a response.
+     * @param slot 0-3
+     * @param version patch version
+     * @param msg log msg
+     * @param cdata request data
+     * @return success code
+     */
+    public int sendSlotRequest(int slot, int version, String msg, int... cdata) {
         return sendBulk(msg,Util.concat(Util.asBytes(
                 0x01,
                 0x20 + 0x08 + slot, // CMD_REQ + CMD_SLOT + slot index
                 version
                 ),Util.asBytes(cdata)));
     }
+
+    /**
+     * a slot command does not expect a response
+     * @param slot 0-3
+     * @param version patch version
+     * @param msg log msg
+     * @param cdata cmd data
+     * @return success code
+     */
+    public int sendSlotCommand(int slot, int version, String msg, int... cdata) {
+        return sendBulk(msg,Util.concat(Util.asBytes(
+                0x01,
+                0x30 + 0x08 + slot, // CMD_NO_RESP + CMD_SLOT + slot index
+                version
+        ),Util.asBytes(cdata)));
+    }
+    /*
+S_SET_PARAM :
+  begin
+    Size := 13;
+    [ 0] := 0; // size msb
+    [ 1] := Size; // size lsb
+    [ 2] := $01;
+    [ 3] := CMD_NO_RESP + CMD_SLOT + SlotIndex; // CMD_NO_RESP = 0x30, CMD_SLOT = 0x08
+    [ 4] := Slot.PatchVersion; // Current patch version!
+    [ 5] := S_SET_PARAM; // 0x40
+    [ 6] := Slot.FParamUpdBuf[i].Location;
+    [ 7] := Slot.FParamUpdBuf[i].Module;
+    [ 8] := Slot.FParamUpdBuf[i].Param;
+    [ 9] := Slot.FParamUpdBuf[i].Value;
+    [10] := Slot.FParamUpdBuf[i].Variation;
+  end;
+S_SEL_PARAM :
+  begin
+    Size := 12;
+  [ 0] := 0;
+  [ 1] := Size;
+  [ 2] := $01;
+  [ 3] := CMD_NO_RESP + CMD_SLOT + SlotIndex; // CMD_NO_RESP = 0x30, CMD_SLOT = 0x08
+  [ 4] := Slot.PatchVersion; // Current patch version!
+  [ 5] := S_SEL_PARAM; // 0x2f
+  [ 6] := 00;
+  [ 7] := Slot.FParamUpdBuf[i].Location;
+  [ 8] := Slot.FParamUpdBuf[i].Module;
+  [ 9] := Slot.FParamUpdBuf[i].Param;
+  end;
+S_SET_MORPH_RANGE :
+  begin
+    Size := 15;
+   [ 0] := 0;
+   [ 1] := Size;
+   [ 2] := $01;
+   [ 3] := CMD_NO_RESP + CMD_SLOT + SlotIndex; // CMD_NO_RESP = 0x30, CMD_SLOT = 0x08
+   [ 4] := Slot.PatchVersion; // Current patch version!
+   [ 5] := S_SET_MORPH_RANGE; // 0x43
+   [ 6] := Slot.FParamUpdBuf[i].Location;
+   [ 7] := Slot.FParamUpdBuf[i].Module;
+   [ 8] := Slot.FParamUpdBuf[i].Param;
+   [ 9] := Slot.FParamUpdBuf[i].Morph;
+   [10] := Slot.FParamUpdBuf[i].Value;
+   [11] := Slot.FParamUpdBuf[i].Negative;
+   [12] := Slot.FParamUpdBuf[i].Variation;
+     */
 
 
     /**

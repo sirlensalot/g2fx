@@ -1,8 +1,7 @@
 package g2lib.state;
 
 import g2lib.BitBuffer;
-import g2lib.Main;
-import g2lib.Protocol;
+import g2lib.protocol.Protocol;
 import g2lib.Util;
 import g2lib.protocol.FieldValues;
 import g2lib.usb.Usb;

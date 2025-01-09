@@ -90,32 +90,32 @@ public class Main {
         //embedded: 82 01 0c 40 36 01 -- slot version
         writeMsg("Slot1Version",readThread.expect("slot 1 version",m->m.head(0x82,0x01,0x0c,0x40,0x36,0x01)));
 
-        usb.sendSlotCmd(1,0,"slot 1 patch",
+        usb.sendSlotRequest(1,0,"slot 1 patch",
                 0x3c // Q_PATCH
         );
         //extended: 01 09 00 21 -- patch description, slot 1
         writeMsg("Slot1Patch",readThread.expect("slot 1 patch",m->m.head(0x01,0x09,0x00,0x21)));
 
-        usb.sendSlotCmd(0,0,"slot 0 patch",
+        usb.sendSlotRequest(0,0,"slot 0 patch",
                 0x3c // Q_PATCH
         );
         //extended: 01 09 00 21 -- patch description, slot 1
         writeMsg("Slot0Patch",readThread.expect("slot 1 patch",m->m.head(0x01,0x08,0x00,0x21)));
 
-        usb.sendSlotCmd(1,0,"slot 1 name",
+        usb.sendSlotRequest(1,0,"slot 1 name",
                 0x28 // Q_PATCH_NAME
         );
         //extended: 01 09 00 27 -- patch name, slot 1
         writeMsg("Slot1Name",readThread.expect("slot 1 name",m->m.head(0x01,0x09,0x00,0x27)));
 
-        usb.sendSlotCmd(1,0,"slot 1 note",
+        usb.sendSlotRequest(1,0,"slot 1 note",
                 0x68 // Q_CURRENT_NOTE
         );
         //extended: 01 09 00 69 -- cable list, slot 1
         writeMsg("Slot1Note",readThread.expect("slot 1 note",m->m.head(0x01,0x09,0x00,0x69)));
 
 
-        usb.sendSlotCmd(1,0,"slot 1 text",
+        usb.sendSlotRequest(1,0,"slot 1 text",
                 0x6e //Q_PATCH_TEXT
         );
         //extended: 01 09 00 6f -- textpad, slot 1

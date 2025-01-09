@@ -1,15 +1,10 @@
 package g2lib;
 
-import g2lib.protocol.FieldEnum;
-import g2lib.protocol.FieldValues;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileInputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static g2lib.Protocol.*;
 
 class BitBufferTest {
 

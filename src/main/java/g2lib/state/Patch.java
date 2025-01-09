@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import static g2lib.Protocol.*;
+import static g2lib.protocol.Protocol.*;
 
 public class Patch {
 
