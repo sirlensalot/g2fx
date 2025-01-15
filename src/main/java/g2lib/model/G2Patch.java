@@ -26,6 +26,18 @@ public class G2Patch {
     public int variation;
     public int category;
 
+    // cable visibility colors
+    public boolean cvRed = true;
+    public boolean cvBlue = true;
+    public boolean cvYellow = true;
+    public boolean cvOrange = true;
+    public boolean cvGreen = true;
+    public boolean cvPurple = true;
+    public boolean cvWhite = true;
+
+    public String textArea;
+
+
     public G2Patch(String name) {
         this.name = name;
     }
@@ -95,5 +107,9 @@ public class G2Patch {
                 })
         ,fw);
         fw.close();
+    }
+
+    public void setTextPad(String textPad) {
+        this.textPad = textPad;
     }
 }

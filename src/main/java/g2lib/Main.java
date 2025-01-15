@@ -4,6 +4,11 @@ import g2lib.state.Device;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -12,8 +17,25 @@ public class Main {
 
 
     private static final Logger log = Util.getLogger(Main.class);
+    public static final String PROP_NO_REPL = "no-repl";
 
     public static void main(String[] args) throws Exception {
+
+        final LineReader lineReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new StringsCompleter("describe", "create"))
+                .build();
+        Thread replThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    doRepl(lineReader);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        replThread.start();
 
         Usb usb;
         int retry = 0;
@@ -23,7 +45,9 @@ public class Main {
                 break;
             } catch (Exception e) {
                 if (retry++ < 10) {
-                    log.info("Failed to acquire USB device, retrying...");
+                    lineReader.printAbove(
+                            String.format("Failed to acquire USB device, retrying [%s of %s]...",
+                                    retry,10));
                     Thread.sleep(2000);
                 } else {
                     throw e;
@@ -134,9 +158,12 @@ public class Main {
         System.out.println("Received: " + readThread.recd.get());
         System.out.println("queue size: " + readThread.q.size());
 
+        replThread.join();
+
         readThread.go.set(false);
         System.out.println("joining");
         readThread.thread.join();
+
 
         usb.shutdown();
 
@@ -144,6 +171,22 @@ public class Main {
         Device.dumpEntries(false,perfs);
 
         System.out.println("Exit");
+    }
+
+    private static void doRepl(LineReader reader) throws Exception {
+        if (System.getProperty(PROP_NO_REPL) != null) {
+            log.info("Repl disabled with " + PROP_NO_REPL);
+            return;
+        }
+
+        while (true) {
+            String line = reader.readLine("> ");
+            if (line == null || line.equalsIgnoreCase("exit")) {
+                break;
+            }
+            reader.getHistory().add(line);
+            System.out.println("You said: " + line);
+        }
     }
 
     static UsbMessage writeMsg(String name,UsbMessage m) {

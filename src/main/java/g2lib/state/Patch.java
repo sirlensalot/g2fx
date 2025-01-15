@@ -157,15 +157,21 @@ public class Patch {
 
     public G2Patch toPatch() {
         G2Patch gp = new G2Patch("Untitled");
-        FieldValues fv = getSection(Sections.SPatchDescription).values();
+        FieldValues fv = getSectionValues(Sections.SPatchDescription);
         gp.voices = PatchDescription.Voices.intValueRequired(fv);
         gp.height = PatchDescription.Height.intValueRequired(fv);
         gp.monoPoly = PatchDescription.MonoPoly.intValueRequired(fv);
         gp.variation = PatchDescription.Variation.intValueRequired(fv);
         gp.category = PatchDescription.Category.intValueRequired(fv);
-        //TODO colors
+        gp.cvRed = PatchDescription.Red.intValueRequired(fv) == 1;
+        gp.cvBlue = PatchDescription.Blue.intValueRequired(fv) == 1;
+        gp.cvYellow = PatchDescription.Yellow.intValueRequired(fv) == 1;
+        gp.cvOrange = PatchDescription.Orange.intValueRequired(fv) == 1;
+        gp.cvGreen = PatchDescription.Green.intValueRequired(fv) == 1;
+        gp.cvPurple = PatchDescription.Purple.intValueRequired(fv) == 1;
+        gp.cvWhite = PatchDescription.White.intValueRequired(fv) == 1;
 
-        fv = getSection(Sections.SPatchParams).values();
+        fv = getSectionValues(Sections.SPatchParams);
         int vc = PatchParams.VariationCount.intValueRequired(fv);
         List<FieldValues> morphs = PatchParams.Morphs.subfieldsValueRequired(fv);
         List<FieldValues> volMuteds = PatchParams.SectionVolMuteds.subfieldsValueRequired(fv);
@@ -220,27 +226,27 @@ public class Patch {
 
         }
 
-        fv = getSection(Sections.SModuleList1).values();
+        fv = getSectionValues(Sections.SModuleList1);
         addModules(fv,gp.voiceArea);
-        fv = getSection(Sections.SModuleList0).values();
+        fv = getSectionValues(Sections.SModuleList0);
         addModules(fv,gp.fxArea);
 
-        fv = getSection(Sections.SModuleParams1).values();
+        fv = getSectionValues(Sections.SModuleParams1);
         setModuleParams(fv, gp.voiceArea, vc);
-        fv = getSection(Sections.SModuleParams0).values();
+        fv = getSectionValues(Sections.SModuleParams0);
         setModuleParams(fv, gp.fxArea, vc);
 
-        fv = getSection(Sections.SModuleNames1).values();
+        fv = getSectionValues(Sections.SModuleNames1);
         setModuleNames(fv, gp.voiceArea);
-        fv = getSection(Sections.SModuleNames0).values();
+        fv = getSectionValues(Sections.SModuleNames0);
         setModuleNames(fv, gp.fxArea);
 
-        fv = getSection(Sections.SModuleLabels1).values();
+        fv = getSectionValues(Sections.SModuleLabels1);
         setModuleLabels(fv, gp.voiceArea);
-        fv = getSection(Sections.SModuleLabels0).values();
+        fv = getSectionValues(Sections.SModuleLabels0);
         setModuleLabels(fv, gp.fxArea);
 
-        fv = getSection(Sections.SMorphParameters).values();
+        fv = getSectionValues(Sections.SMorphParameters);
         List<FieldValues> vms = MorphParameters.VarMorphs.subfieldsValueRequired(fv);
         for (FieldValues vm : vms) {
             int v = VarMorph.Variation.intValueRequired(vm);
@@ -254,7 +260,7 @@ public class Patch {
             }
         }
 
-        fv = getSection(Sections.SKnobAssignments).values();
+        fv = getSectionValues(Sections.SKnobAssignments);
         List<FieldValues> kas = KnobAssignments.Knobs.subfieldsValueRequired(fv);
         for (FieldValues ka : kas) {
             if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
@@ -268,7 +274,7 @@ public class Patch {
             }
         }
 
-        fv = getSection(Sections.SControlAssignments).values();
+        fv = getSectionValues(Sections.SControlAssignments);
         List<FieldValues> cas = ControlAssignments.Assignments.subfieldsValueRequired(fv);
         for (FieldValues ca : cas) {
             ParamModule m = gp.getArea(ControlAssignment.Location.intValueRequired(ca))
@@ -277,7 +283,7 @@ public class Patch {
                     ControlAssignment.MidiCC.intValueRequired(ca));
         }
 
-        fv = getSection(Sections.SMorphLabels).values();
+        fv = getSectionValues(Sections.SMorphLabels);
         List<FieldValues> ls = MorphLabels.Labels.subfieldsValueRequired(fv);
         for (FieldValues l : ls) {
             gp.getSettingsModule(SettingsModules.MorphModes).setParamLabel(
@@ -285,12 +291,25 @@ public class Patch {
                     MorphLabel.Label.stringValueRequired(l));
         }
 
-        fv = getSection(Sections.SCableList1).values();
+        fv = getSectionValues(Sections.SCableList1);
         setCables(fv, gp.voiceArea);
-        fv = getSection(Sections.SCableList0).values();
+        fv = getSectionValues(Sections.SCableList0);
         setCables(fv, gp.fxArea);
 
+        Section tps = getSection(Sections.STextPad);
+        if (tps != null) {
+            gp.setTextPad(TextPad.Text.stringValueRequired(tps.values()));
+        }
+
         return gp;
+    }
+
+    private FieldValues getSectionValues(Sections ss) {
+        Section s = getSection(ss);
+        if (s == null) {
+            throw new IllegalArgumentException("Section not found: " + ss);
+        }
+        return s.values();
     }
 
     private static void setCables(FieldValues fv, PatchArea<G2Module> area) {
