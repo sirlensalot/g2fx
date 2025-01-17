@@ -109,7 +109,7 @@ public class Usb {
         LibUsb.exit(context);
     }
 
-    public int sendBulk(String msg, byte[] data) {
+    public synchronized int sendBulk(String msg, byte[] data) {
 
 
         int size = data.length + 4;

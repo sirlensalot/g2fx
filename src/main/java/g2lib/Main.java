@@ -6,10 +6,12 @@ import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.StringsCompleter;
-import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -21,21 +23,12 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+
         final LineReader lineReader = LineReaderBuilder.builder()
                 .terminal(TerminalBuilder.terminal())
+                .parser(new DefaultParser())
                 .completer(new StringsCompleter("describe", "create"))
                 .build();
-        Thread replThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    doRepl(lineReader);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-        replThread.start();
 
         Usb usb;
         int retry = 0;
@@ -55,9 +48,24 @@ public class Main {
             }
         }
 
-        UsbReadThread readThread = new UsbReadThread(usb);
+        final Usb _usb = usb;
+
+
+
+        final UsbReadThread readThread = new UsbReadThread(usb);
         readThread.thread.start();
 
+        Thread replThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    doRepl(lineReader,_usb,readThread);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        replThread.start();
 
         // init message
         usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
@@ -148,13 +156,6 @@ public class Main {
 
         //send list message:
 
-        //patches: 32 Banks with 128 memory locations each
-        Map<Integer, Map<Integer, String>> patches = Device.readEntryList(usb, readThread, 32, true);
-
-
-        //perfs: 8 Banks with 128 memory locations each
-        Map<Integer, Map<Integer, String>> perfs = Device.readEntryList(usb, readThread, 8, false);
-
         System.out.println("Received: " + readThread.recd.get());
         System.out.println("queue size: " + readThread.q.size());
 
@@ -167,13 +168,15 @@ public class Main {
 
         usb.shutdown();
 
-        Device.dumpEntries(true,patches);
-        Device.dumpEntries(false,perfs);
 
         System.out.println("Exit");
     }
 
-    private static void doRepl(LineReader reader) throws Exception {
+    private void listPerfs() {
+
+    }
+
+    private static void doRepl(LineReader reader, Usb usb, UsbReadThread readThread) throws Exception {
         if (System.getProperty(PROP_NO_REPL) != null) {
             log.info("Repl disabled with " + PROP_NO_REPL);
             return;
@@ -184,8 +187,27 @@ public class Main {
             if (line == null || line.equalsIgnoreCase("exit")) {
                 break;
             }
-            reader.getHistory().add(line);
-            System.out.println("You said: " + line);
+            List<String> words = new ArrayList<>(reader.getParsedLine().words());
+            if (words.isEmpty()) continue;
+            String cmd = words.removeFirst();
+            if ("list".equals(cmd) && !words.isEmpty()) {
+                String type = words.removeFirst();
+                Integer bank = null;
+                if (!words.isEmpty()) {
+                    try {
+                        bank = Integer.parseUnsignedInt(words.removeFirst());
+                    } catch (Exception e) {
+                        System.out.println("Invalid bank");
+                    }
+                }
+                if ("perfs".equals(type)) {
+                    Map<Integer, Map<Integer, String>> perfs = Device.readEntryList(usb, readThread, 8, false);
+                    Device.dumpEntries(false,perfs,bank);
+                } else if ("patches".equals(type)) {
+                    Map<Integer, Map<Integer, String>> patches = Device.readEntryList(usb, readThread, 32, true);
+                    Device.dumpEntries(true,patches,bank);
+                }
+            }
         }
     }
 

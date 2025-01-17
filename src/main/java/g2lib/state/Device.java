@@ -80,13 +80,15 @@ public class Device {
          */
     }
 
-    public static void dumpEntries(boolean patchOrPerf, Map<Integer, Map<Integer, String>> entries) {
+    public static void dumpEntries(boolean patchOrPerf, Map<Integer, Map<Integer, String>> entries, Integer bank) {
         for (int b : entries.keySet()) {
-            System.out.print(patchOrPerf ? "Patch" : "Perf");
-            System.out.println(" Bank " + b + ":");
-            Map<Integer, String> es = entries.get(b);
-            for (int p : es.keySet()) {
-                System.out.format("  %02d: %s\n",p,es.get(p));
+            if (bank == null || b == bank) {
+                System.out.print(patchOrPerf ? "Patch" : "Perf");
+                System.out.println(" Bank " + b + ":");
+                Map<Integer, String> es = entries.get(b);
+                for (int p : es.keySet()) {
+                    System.out.format("  %02d: %s\n", p, es.get(p));
+                }
             }
         }
     }
