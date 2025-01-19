@@ -94,13 +94,6 @@ public class Patch {
         return f.apply(Util.sliceAhead(buf,length));
     }
 
-    public static void expectWarn(ByteBuffer buf,int expected,String filePath, String msg) {
-        byte b = buf.get();
-        if (b != expected) {
-            log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,b,filePath,buf.position()-1));
-        }
-    }
-
     public static Patch readFromMessage(ByteBuffer buf) {
         Patch patch = new Patch();
         patch.readMessageHeader(buf);
@@ -108,8 +101,8 @@ public class Patch {
         for (Sections ss : MSG_SECTIONS) {
             patch.readSection(buf,ss);
             if (ss == Sections.SPatchDescription) {
-                expectWarn(buf,0x2d,"Message","USB extra 1");
-                expectWarn(buf,0x00,"Message","USB extra 2");
+                Util.expectWarn(buf,0x2d,"Message","USB extra 1");
+                Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }
         }
         return patch;
@@ -358,7 +351,7 @@ public class Patch {
     }
 
     public void readMessageHeader(ByteBuffer buf) {
-        expectWarn(buf,0x01,"Message","Cmd");
+        Util.expectWarn(buf,0x01,"Message","Cmd");
         int slot = buf.get();
         if (this.slot == -1) {
             this.slot = slot;
@@ -393,7 +386,7 @@ public class Patch {
         int crc = CRC16.crc16(slice,0,slice.limit()-2);
 
         Patch patch = new Patch();
-        expectWarn(fileBuffer,0x17,filePath,"header");
+        Util.expectWarn(fileBuffer,0x17,filePath,"header");
         patch.version = fileBuffer.get();
 
         for (Sections ss : FILE_SECTIONS) {
@@ -408,14 +401,6 @@ public class Patch {
         return patch;
     }
 
-
-    public static BitBuffer sliceSection(int type, ByteBuffer buf) {
-        int t = buf.get();
-        if (t != type) {
-            throw new IllegalArgumentException(String.format("Section incorrect %x %x",type,t));
-        }
-        return BitBuffer.sliceAhead(buf,Util.getShort(buf));
-    }
 
     public void writeSection(ByteBuffer buf, Sections s) throws  Exception {
         Section ss = getSection(s);
@@ -483,7 +468,7 @@ public class Patch {
     }
 
     public void readSection(ByteBuffer buf, Sections s) {
-        BitBuffer bb = sliceSection(s.type,buf);
+        BitBuffer bb = Util.sliceSection(s.type,buf);
         //log.info(s + ": length " + bb.limit());
         if (s.location != null) {
             Integer loc = bb.get(2);

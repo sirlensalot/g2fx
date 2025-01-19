@@ -1,5 +1,7 @@
 package g2lib;
 
+import g2lib.state.Patch;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
@@ -11,6 +13,7 @@ import java.util.logging.*;
 public class Util {
 
     static final Logger log = getLogger(Util.class);
+
 
     static class DualConsoleHandler extends StreamHandler {
 
@@ -158,6 +161,22 @@ public class Util {
             fos.flush();
         } catch (Exception e) {
             throw new RuntimeException("error writing patch desc", e);
+        }
+    }
+
+
+    public static BitBuffer sliceSection(int type, ByteBuffer buf) {
+        int t = buf.get();
+        if (t != type) {
+            throw new IllegalArgumentException(String.format("Section incorrect %x %x",type,t));
+        }
+        return BitBuffer.sliceAhead(buf, getShort(buf));
+    }
+
+    public static void expectWarn(ByteBuffer buf, int expected, String filePath, String msg) {
+        byte b = buf.get();
+        if (b != expected) {
+            log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,b,filePath,buf.position()-1));
         }
     }
 

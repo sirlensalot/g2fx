@@ -35,14 +35,14 @@ public class Performance {
 
     public static Performance readFromMessage(byte version, ByteBuffer buf) {
         Performance perf = new Performance(version);
-        buf.get(); //0x01 TODO expectWarn
-        buf.get(); //0x0c
-        buf.get(); //perf version 00
-        buf.get(); //0x29, perf name
+        Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
+        Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
+        Util.expectWarn(buf,version,"Message","Perf version");
+        Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
         BitBuffer bb = new BitBuffer(buf.slice());
         perf.perfName = Protocol.PerformanceName.FIELDS.read(bb);
         ByteBuffer buf1 = bb.slice();
-        buf1.get(); //0x11 perf settings TODO readSection
+        Util.expectWarn(buf1,Sections.SPerformanceSettings.type, "Message","perf settings");
         bb = BitBuffer.sliceAhead(buf1,Util.getShort(buf1));
         perf.perfSettings = Protocol.PerformanceSettings.FIELDS.read(bb);
         return perf;
