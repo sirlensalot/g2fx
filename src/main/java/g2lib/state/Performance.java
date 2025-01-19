@@ -33,20 +33,21 @@ public class Performance {
         this.version = Util.b2i(version);
     }
 
-    public static Performance readFromMessage(byte version, ByteBuffer buf) {
-        Performance perf = new Performance(version);
+    public Performance readFromMessage(ByteBuffer buf) {
         Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
         Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
         Util.expectWarn(buf,version,"Message","Perf version");
         Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
         BitBuffer bb = new BitBuffer(buf.slice());
-        perf.perfName = Protocol.PerformanceName.FIELDS.read(bb);
+        perfName = Protocol.PerformanceName.FIELDS.read(bb);
         ByteBuffer buf1 = bb.slice();
         Util.expectWarn(buf1,Sections.SPerformanceSettings.type, "Message","perf settings");
         bb = BitBuffer.sliceAhead(buf1,Util.getShort(buf1));
-        perf.perfSettings = Protocol.PerformanceSettings.FIELDS.read(bb);
-        return perf;
+        perfSettings = Protocol.PerformanceSettings.FIELDS.read(bb);
+        return this;
     }
+
+
 
     public FieldValues getPerfName() {
         return perfName;

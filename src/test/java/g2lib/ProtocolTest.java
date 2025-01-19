@@ -799,7 +799,7 @@ class ProtocolTest {
     @Test
     void readPerformanceSettings() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
-        Performance perf = Performance.readFromMessage((byte) 0,buf);
+        Performance perf = new Performance((byte) 0).readFromMessage(buf);
         System.out.println("name: " + perf.getPerfName());
         System.out.println("settings: " + perf.getPerfSettings());
     }

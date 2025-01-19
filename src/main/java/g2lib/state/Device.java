@@ -125,6 +125,15 @@ public class Device {
         setSynthSettings(readThread.expect("Synth settings", m -> m.head(0x01, 0x0c, 0x00, 0x03)));
 
 
+        //perf settings
+        usb.sendSystemCmd("perf settings"
+                ,0x10 // Q_PERF_SETTINGS
+        );
+        //extended: 01 0c 00 29 -- perf settings [29 "perf name"]
+        //  then chunks in TG2FilePerformance.Read
+        perf.readFromMessage(readThread.expect("perf settings",
+                m->m.head(0x01,0x0c,0x00,0x29)).buffer().slice());
+
     }
 
 
