@@ -6,7 +6,7 @@ import g2lib.Util;
 import g2lib.model.*;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
-import g2lib.protocol.Fields;
+import g2lib.protocol.Sections;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
@@ -44,51 +44,26 @@ public class Patch {
 
     }
 
-    public enum Sections {
-
-        SPatchDescription(PatchDescription.FIELDS,0x21  ),
-        SModuleList1(ModuleList.FIELDS,0x4a,1),
-        SModuleList0(ModuleList.FIELDS,0x4a,0),
-        SCurrentNote(CurrentNote.FIELDS,0x69  ),
-        SCableList1(CableList.FIELDS,0x52,1),
-        SCableList0(CableList.FIELDS,0x52,0),
-        SPatchParams(PatchParams.FIELDS,0x4d,2),
-        SModuleParams1(ModuleParams.FIELDS,0x4d,1),
-        SModuleParams0(ModuleParams.FIELDS,0x4d,0),
-        SMorphParameters(MorphParameters.FIELDS,0x65  ),
-        SKnobAssignments(KnobAssignments.FIELDS,0x62  ),
-        SControlAssignments(ControlAssignments.FIELDS,0x60  ),
-        SMorphLabels(MorphLabels.FIELDS,0x5b,2),
-        SModuleLabels1(ModuleLabels.FIELDS,0x5b,1),
-        SModuleLabels0(ModuleLabels.FIELDS,0x5b,0),
-        SModuleNames1(ModuleNames.FIELDS,0x5a,1),
-        SModuleNames0(ModuleNames.FIELDS,0x5a,0),
-        STextPad(TextPad.FIELDS,0x6f  );
-
-        private final Fields fields;
-        public final int type;
-        public final Integer location;
-        Sections(Fields fields, int type, int location) {
-            this.fields = fields;
-            this.type = type;
-            this.location = location;
-        }
-        Sections(Fields fields, int type) {
-            this.fields = fields;
-            this.type = type;
-            this.location = null;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s[%x%s]",
-                    name(),
-                    type,
-                    location != null ? (":" + location) : "");
-        }
-    }
-
-    public static final Sections[] FILE_SECTIONS = Sections.values();
+    public static final Sections[] FILE_SECTIONS = new Sections[] {
+            Sections.SPatchDescription,
+            Sections.SModuleList1,
+            Sections.SModuleList0,
+            Sections.SCurrentNote,
+            Sections.SCableList1,
+            Sections.SCableList0,
+            Sections.SPatchParams,
+            Sections.SModuleParams1,
+            Sections.SModuleParams0,
+            Sections.SMorphParameters,
+            Sections.SKnobAssignments,
+            Sections.SControlAssignments,
+            Sections.SMorphLabels,
+            Sections.SModuleLabels1,
+            Sections.SModuleLabels0,
+            Sections.SModuleNames1,
+            Sections.SModuleNames0,
+            Sections.STextPad
+    };
 
     public static final Sections[] MSG_SECTIONS = new Sections[] {
             Sections.SPatchDescription,
@@ -261,10 +236,10 @@ public class Patch {
         }
 
         fv = getSectionValues(Sections.SKnobAssignments);
-        List<FieldValues> kas = KnobAssignments.Knobs.subfieldsValueRequired(fv);
+        List<FieldValues> kas = KnobAssignments.KnobsPatch.subfieldsValueRequired(fv);
         for (FieldValues ka : kas) {
             if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
-                List<FieldValues> kps = KnobAssignment.Params.subfieldsValueRequired(ka);
+                List<FieldValues> kps = KnobAssignment.ParamsPatch.subfieldsValueRequired(ka);
                 for (FieldValues kp : kps) {
                     ParamModule m = gp.getArea(KnobParams.Location.intValueRequired(kp))
                             .getModuleRequired(KnobParams.Index.intValueRequired(kp));
@@ -472,7 +447,7 @@ public class Patch {
         ByteBuffer buf = ByteBuffer.allocateDirect(2048);
 
         writeMessageHeader(buf);
-        for (Patch.Sections s : MSG_SECTIONS) {
+        for (Sections s : MSG_SECTIONS) {
             writeSection(buf,s);
             if (s == Sections.SPatchDescription) {
                 buf.put(Util.asBytes(0x2d,0x00));
@@ -495,7 +470,7 @@ public class Patch {
             throw new RuntimeException("writeFile: version not initialized");
         }
         buf.put(Util.asBytes(0x17,version));
-        for (Patch.Sections s : FILE_SECTIONS) {
+        for (Sections s : FILE_SECTIONS) {
             writeSection(buf,s);
         }
         buf.limit(buf.position());

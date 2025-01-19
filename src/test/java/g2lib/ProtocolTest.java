@@ -2,6 +2,7 @@ package g2lib;
 
 import g2lib.protocol.*;
 import g2lib.state.Patch;
+import g2lib.state.Performance;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -85,7 +86,7 @@ class ProtocolTest {
 
 
     private void testMorphLabels(Patch p) {
-        FieldValues mls = p.getSection(Patch.Sections.SMorphLabels).values();
+        FieldValues mls = p.getSection(Sections.SMorphLabels).values();
         assertFieldEquals(mls,0x01,MorphLabels.LabelCount);
         assertFieldEquals(mls,0x01,MorphLabels.Entry);
         assertFieldEquals(mls,80,MorphLabels.Length);
@@ -103,7 +104,7 @@ class ProtocolTest {
 
 
     private void testModuleNames(Patch p) {
-        FieldValues mns = p.getSection(Patch.Sections.SModuleNames1).values();
+        FieldValues mns = p.getSection(Sections.SModuleNames1).values();
         assertFieldEquals(mns,0x00,ModuleNames.Reserved);
         assertFieldEquals(mns,0x04,ModuleNames.NameCount);
         List<FieldValues> ns =
@@ -125,7 +126,7 @@ class ProtocolTest {
         assertFieldEquals(n,0x04,ModuleName.ModuleIndex);
         assertFieldEquals(n,"2-Out1",ModuleName.Name);
 
-        mns = p.getSection(Patch.Sections.SModuleNames0).values();
+        mns = p.getSection(Sections.SModuleNames0).values();
 
         assertFieldEquals(mns,0x00,ModuleNames.Reserved);
         assertFieldEquals(mns,0x03,ModuleNames.NameCount);
@@ -146,14 +147,14 @@ class ProtocolTest {
     }
 
     private void testKnobAssignments(Patch p) {
-        FieldValues knobs = p.getSection(Patch.Sections.SKnobAssignments).values();
+        FieldValues knobs = p.getSection(Sections.SKnobAssignments).values();
         int kc = assertFieldEquals(knobs,0x78,KnobAssignments.KnobCount);
-        List<FieldValues> kas = assertSubfields(knobs, kc, KnobAssignments.Knobs);
+        List<FieldValues> kas = assertSubfields(knobs, kc, KnobAssignments.KnobsPatch);
         for (int i = 0; i < kc; i++) {
             FieldValues ka = kas.get(i);
             int a = i == 0 ? 1 : 0;
             assertFieldEquals(ka,a,KnobAssignment.Assigned);
-            List<FieldValues> kps = assertSubfields(ka, a, KnobAssignment.Params);
+            List<FieldValues> kps = assertSubfields(ka, a, KnobAssignment.ParamsPatch);
             if (i == 0) {
                 FieldValues kp = kps.getFirst();
                 assertFieldEquals(kp,1,KnobParams.Location);
@@ -167,7 +168,7 @@ class ProtocolTest {
     }
 
     private void testControlAssignments(Patch p) {
-        FieldValues cass = p.getSection(Patch.Sections.SControlAssignments).values();
+        FieldValues cass = p.getSection(Sections.SControlAssignments).values();
         //System.out.println(cass);
         assertFieldEquals(cass,0x02,ControlAssignments.NumControls);
         List<FieldValues> cas = assertSubfields(cass, 2, ControlAssignments.Assignments);
@@ -184,7 +185,7 @@ class ProtocolTest {
 
     }
     private void testMorphParams(Patch p, int vc) {
-        FieldValues morphParams = p.getSection(Patch.Sections.SMorphParameters).values();
+        FieldValues morphParams = p.getSection(Sections.SMorphParameters).values();
 
         assertFieldEquals(morphParams, vc,MorphParameters.VariationCount);
         assertFieldEquals(morphParams,8 ,MorphParameters.MorphCount);
@@ -214,7 +215,7 @@ class ProtocolTest {
 
     private void testModParams0(Patch p, int vc) {
 
-        FieldValues modParams = p.getSection(Patch.Sections.SModuleParams0).values();
+        FieldValues modParams = p.getSection(Sections.SModuleParams0).values();
 
         assertFieldEquals(modParams,3,ModuleParams.SetCount);
         assertFieldEquals(modParams, vc,ModuleParams.VariationCount);
@@ -245,7 +246,7 @@ class ProtocolTest {
 
     private void testModParams1(Patch p, int vc) {
 
-        FieldValues modParams = p.getSection(Patch.Sections.SModuleParams1).values();
+        FieldValues modParams = p.getSection(Sections.SModuleParams1).values();
 
         assertFieldEquals(modParams,0x04,ModuleParams.SetCount);
         assertFieldEquals(modParams, vc,ModuleParams.VariationCount);
@@ -315,8 +316,8 @@ class ProtocolTest {
     }
 
     private int testPatchSettings(Patch p, int vce) {
-        Patch.Section s = p.getSection(Patch.Sections.SPatchParams);
-        assertEquals(2, Patch.Sections.SPatchParams.location,"location"); //patch parameters
+        Patch.Section s = p.getSection(Sections.SPatchParams);
+        assertEquals(2, Sections.SPatchParams.location,"location"); //patch parameters
 
         FieldValues patchSettings = s.values();
         int vc = assertFieldEquals(patchSettings,vce, PatchParams.VariationCount);
@@ -391,7 +392,7 @@ class ProtocolTest {
     }
     private void testCableLists(Patch p,int... indexes) {
 
-        FieldValues cl = p.getSection(Patch.Sections.SCableList1).values();
+        FieldValues cl = p.getSection(Sections.SCableList1).values();
         //dumpFieldValues(cl);
         assertFieldEquals(cl,0,CableList.Reserved);
         assertFieldEquals(cl,3,CableList.CableCount);
@@ -423,7 +424,7 @@ class ProtocolTest {
         assertFieldEquals(cable,0x00, Cable.DestConn);
 
 
-        cl = p.getSection(Patch.Sections.SCableList0).values();
+        cl = p.getSection(Sections.SCableList0).values();
         assertFieldEquals(cl,0,CableList.Reserved);
         assertFieldEquals(cl,2,CableList.CableCount);
         cs = assertSubfields(cl, 2, CableList.Cables);
@@ -448,7 +449,7 @@ class ProtocolTest {
 
     }
     private void testModules(Patch p, int... indexes) {
-        FieldValues modl = p.getSection(Patch.Sections.SModuleList1).values();
+        FieldValues modl = p.getSection(Sections.SModuleList1).values();
         List<FieldValues> mods = assertSubfields(modl, 4, ModuleList.Modules);
 
         FieldValues module;
@@ -505,7 +506,7 @@ class ProtocolTest {
         assertFieldEquals(module,0x00, Module_.ModeCount);
         assertSubfields(module, 0, Module_.Modes);
 
-        modl = p.getSection(Patch.Sections.SModuleList0).values();
+        modl = p.getSection(Sections.SModuleList0).values();
         mods = assertSubfields(modl, 3, ModuleList.Modules);
 
 
@@ -550,10 +551,10 @@ class ProtocolTest {
     }
 
     private void testModuleLabels(Patch p) {
-        FieldValues mlss = p.getSection(Patch.Sections.SModuleLabels1).values();
+        FieldValues mlss = p.getSection(Sections.SModuleLabels1).values();
         assertFieldEquals(mlss,0x00,ModuleLabels.ModuleCount);
 
-        mlss = p.getSection(Patch.Sections.SModuleLabels0).values();
+        mlss = p.getSection(Sections.SModuleLabels0).values();
         assertFieldEquals(mlss,0x01,ModuleLabels.ModuleCount);
         List<FieldValues> ml = assertSubfields(mlss, 1, ModuleLabels.ModLabels);
         FieldValues mls = ml.getFirst();
@@ -576,12 +577,12 @@ class ProtocolTest {
 
 
     private void testTextPad(Patch p) {
-        FieldValues tp = p.getSection(Patch.Sections.STextPad).values();
+        FieldValues tp = p.getSection(Sections.STextPad).values();
         assertFieldEquals(tp,"Writing notes ...",TextPad.Text);
     }
 
     private void testCurrentNote(Patch p) {
-        FieldValues cns = p.getSection(Patch.Sections.SCurrentNote).values();
+        FieldValues cns = p.getSection(Sections.SCurrentNote).values();
         assertFieldEquals(cns,0x40,CurrentNote.Note);
         assertFieldEquals(cns,0x00,CurrentNote.Attack);
         assertFieldEquals(cns,0x00,CurrentNote.Release);
@@ -603,7 +604,7 @@ class ProtocolTest {
         assertEquals(0x09,buf.get()); // slot 0
         assertEquals(0x00,buf.get()); // patch version
         Patch p = new Patch();
-        p.readSection(buf, Patch.Sections.STextPad);
+        p.readSection(buf, Sections.STextPad);
         testTextPad(p);
 
     }
@@ -615,7 +616,7 @@ class ProtocolTest {
         assertEquals(0x09,buf.get()); // slot 0
         assertEquals(0x00,buf.get()); // patch version
         Patch p = new Patch();
-        p.readSection(buf, Patch.Sections.SCurrentNote);
+        p.readSection(buf, Sections.SCurrentNote);
         testCurrentNote(p);
     }
 
@@ -654,7 +655,7 @@ class ProtocolTest {
                 PatchDescription.Category.value(0x00),
                 PatchDescription.Reserved3.value(0x00)
         );
-        assertEquals(pd,p.getSection(Patch.Sections.SPatchDescription).values());
+        assertEquals(pd,p.getSection(Sections.SPatchDescription).values());
         testModules(p,0,1,2);
         testCableLists(p,0,1,2,0,1);
         int vc = testPatchSettings(p,10);
@@ -690,7 +691,7 @@ class ProtocolTest {
                 PatchDescription.Category.value(0x00),
                 PatchDescription.Reserved3.value(0x00)
         );
-        assertEquals(pd,p.getSection(Patch.Sections.SPatchDescription).values(),"PatchDescription");
+        assertEquals(pd,p.getSection(Sections.SPatchDescription).values(),"PatchDescription");
 
         testModules(p,0,2,1);
 
@@ -713,12 +714,12 @@ class ProtocolTest {
     void roundtripMsgFile() throws Exception {
         ByteBuffer msgfile = Util.readFile(PATCHMSG_1);
         Patch p = Patch.readFromMessage(msgfile);
-        p.readSectionMessage(Util.readFile(CURRENT_NOTE_MSG), Patch.Sections.SCurrentNote);
-        p.readSectionMessage(Util.readFile(TEXTPAD_MSG), Patch.Sections.STextPad);
+        p.readSectionMessage(Util.readFile(CURRENT_NOTE_MSG), Sections.SCurrentNote);
+        p.readSectionMessage(Util.readFile(TEXTPAD_MSG), Sections.STextPad);
         ByteBuffer msgbuf = p.writeMessage();
         assertEquals(msgfile.rewind(),msgbuf.rewind());
 
-        Patch.Section pd = p.getSection(Patch.Sections.SPatchDescription);
+        Patch.Section pd = p.getSection(Sections.SPatchDescription);
         pd.values().update(PatchDescription.Reserved.value(Data8.asSubfield(0, 0, 0, 0, 0, 0, 0)));
         pd.values().update(PatchDescription.Reserved2.value(0x00));
         //this file is made by g2lib as a manual test, so this is a regression
@@ -793,6 +794,14 @@ class ProtocolTest {
         BitBuffer bb = new BitBuffer(buf.slice());
         FieldValues fvs = BankEntries.FIELDS.read(bb);
         System.out.println(fvs);
+    }
+
+    @Test
+    void readPerformanceSettings() throws Exception {
+        ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
+        Performance perf = Performance.readFromMessage((byte) 0,buf);
+        System.out.println("name: " + perf.getPerfName());
+        System.out.println("settings: " + perf.getPerfSettings());
     }
 
 }

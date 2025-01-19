@@ -309,33 +309,47 @@ public class Protocol {
 
     public enum KnobAssignments implements FieldEnum {
         KnobCount(16),
-        Knobs(KnobAssignments.KnobCount);
+        KnobsPatch(KnobAssignments.KnobCount,KnobAssignment.FIELDS_PATCH),
+        KnobsPerf(KnobAssignments.KnobCount,KnobAssignment.FIELDS_PERF);
         KnobAssignments(int size) { f = new SizedField(this,size); }
-        KnobAssignments(KnobAssignments ix) { f = new SubfieldsField(this,KnobAssignment.FIELDS,ix); }
+        KnobAssignments(KnobAssignments ix, Fields fs) { f = new SubfieldsField(this,fs,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(KnobAssignments.class,values());
+        public static final Fields FIELDS_PATCH = new Fields(KnobAssignments.class,
+                new KnobAssignments[] {KnobCount,KnobsPatch});
+        public static final Fields FIELDS_PERF = new Fields(KnobAssignments.class,
+                new KnobAssignments[] {KnobCount,KnobsPerf});
     }
 
     public enum KnobAssignment implements FieldEnum {
         Assigned(1),
-        Params(KnobAssignment.Assigned);
+        ParamsPatch(KnobAssignment.Assigned,KnobParams.FIELDS_PATCH),
+        ParamsPerf(KnobAssignment.Assigned,KnobParams.FIELDS_PERF);
+
         KnobAssignment(int size) { f = new SizedField(this,size); }
-        KnobAssignment(KnobAssignment ix) { f = new SubfieldsField(this,KnobParams.FIELDS,ix); }
+        KnobAssignment(KnobAssignment ix,Fields fields) {
+            f = new SubfieldsField(this,fields,ix);
+        }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(KnobAssignment.class,values());
+        public static final Fields FIELDS_PATCH = new Fields(KnobAssignment.class,
+                new KnobAssignment[] {Assigned,ParamsPatch});
+        public static final Fields FIELDS_PERF = new Fields(KnobAssignment.class,
+                new KnobAssignment[] {Assigned,ParamsPerf});
     }
 
     public enum KnobParams implements FieldEnum {
         Location(2),
         Index(8),
         IsLed(7),
-        Param(4);
+        Param(4),
+        Slot(2); // only used in performance knobs
         KnobParams(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(KnobParams.class,values());
+        public static final Fields FIELDS_PATCH = new Fields(KnobParams.class,
+                new KnobParams[] { Location, Index, IsLed, Param });
+        public static final Fields FIELDS_PERF = new Fields(KnobParams.class,values());
     }
 
     public enum ControlAssignments implements FieldEnum {
@@ -586,6 +600,49 @@ public class Protocol {
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(BankEntry.class,values());
+    }
+
+    public enum PerformanceName implements FieldEnum {
+        Name;
+        PerformanceName() { f = new StringField(this); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(PerformanceName.class,values());
+    }
+
+    public enum PerformanceSettings implements FieldEnum {
+        Unknown1(12),
+        SelectedSlot(2),
+        Unknown2(2),
+        KeyboardRangeEnabled(8),
+        MasterClock(8),
+        Unknown3(8),
+        MasterClockRun(8),
+        Unknown4(16),
+        Slots(PerfSlot.FIELDS);
+        PerformanceSettings(int size) { f = new SizedField(this,size); }
+        PerformanceSettings(Fields fields) { f = new SubfieldsField(this,fields,4); }
+        PerformanceSettings() { f = new StringField(this); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(PerformanceSettings.class,values());
+    }
+
+    public enum PerfSlot implements FieldEnum {
+        PatchName,
+        Enabled(8),
+        Keyboard(8),
+        Hold(8),
+        BankIndex(8),
+        PatchIndex(8),
+        KeyboardRangeFrom(8),
+        KeyboardRangeTo(8),
+        Unknown(24);
+        PerfSlot(int size) { f = new SizedField(this,size); }
+        PerfSlot() { f = new StringField(this); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(PerfSlot.class,values());
     }
 
 
