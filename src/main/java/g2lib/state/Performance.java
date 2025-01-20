@@ -36,6 +36,7 @@ public class Performance {
     }
 
     public Performance readFromMessage(ByteBuffer buf) {
+        //String s = Util.dumpBufferString(buf);
         Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
         Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
         Util.expectWarn(buf,version,"Message","Perf version");

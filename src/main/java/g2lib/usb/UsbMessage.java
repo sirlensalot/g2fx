@@ -33,7 +33,7 @@ public record UsbMessage(int size, boolean extended, int crc, ByteBuffer buffer)
         if (buffer.limit() > index + values.length) {
             for (int i = 0; i < values.length; i++) {
                 int b = Util.b2i(buffer.get(index + i));
-                String s = Util.dumpBufferString(buffer);
+                //String s = Util.dumpBufferString(buffer);
                 if (b != values[i]) {
                     return false;
                 }

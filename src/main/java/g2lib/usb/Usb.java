@@ -155,7 +155,7 @@ public class Usb {
         } else {
             int type = buffer.get(0) & 0xf;
             boolean extended = type == 1;
-            String s = Util.dumpBufferString(buffer);
+            //String s = Util.dumpBufferString(buffer);
             boolean embedded = type == 2;
             int crc = 0;
             if (embedded) {

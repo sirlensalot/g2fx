@@ -100,10 +100,11 @@ public class Device {
         usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
         // init message
         readThread.expectBlocking("Init response", msg -> msg.head(0x80));
+        //TODO! read synth name
 
         // perf version
         Future<UsbMessage> future = readThread.expect("perf version",
-                msg -> msg.head(0x82, 0x01, 0x0c, 0x40, 0x36, 0x04));
+                msg -> msg.headx(0x01, 0x0c, 0x40, 0x36, 0x04));
         usb.sendSystemCmd("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
@@ -111,7 +112,7 @@ public class Device {
         perf = new Performance(future.get().buffer().get());
 
 
-        future = readThread.expect("Stop Comm", m -> m.head(0x62,0x01));
+        future = readThread.expect("Stop Comm", m -> m.headx(0x01));
         usb.sendSystemCmd("Stop Comm"
                 ,0x7d // S_START_STOP_COM
                 ,0x01 // stop
@@ -142,11 +143,11 @@ public class Device {
         usb.sendSystemCmd("perf settings"
                 ,0x10 // Q_PERF_SETTINGS
         );
-        perf.readFromMessage(future.get().buffer().slice());
+        perf.readFromMessage(future.get().buffer().rewind().slice());
 
         //unknown 2
         //embedded: 72 01 0c 00 1e -- "unknown 2" [1e]
-        future = readThread.expect("reserved 2", m->m.head(0x72));
+        future = readThread.expect("reserved 2", m->m.headx(0x01,0x0c,0x00,0x1e));
         usb.sendSystemCmd("unknown 2"
                 ,0x59 // M_UNKNOWN_2
         );
@@ -167,7 +168,7 @@ public class Device {
         final int slot8 = slot + 8;
         //embedded: 82 01 0c 40 36 01 -- slot version
         Future<UsbMessage> future = readThread.expect("slot version " + slot,
-                m -> m.head(0x82, 0x01, 0x0c, 0x40, 0x36, slot));
+                m -> m.headx(0x01, 0x0c, 0x40, 0x36, slot));
         usb.sendSystemCmd("slot version " + slot
                 ,0x35 // Q_VERSION_CNT
                 , slot // slot index
