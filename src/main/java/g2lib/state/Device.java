@@ -10,6 +10,7 @@ import g2lib.usb.UsbReadThread;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 public class Device {
@@ -40,7 +41,7 @@ public class Device {
                     , bank // bank
                     , item // item
             );
-            UsbMessage beMsg = readThread.expect("patch list message: " + i, m ->
+            UsbMessage beMsg = readThread.expectBlocking("patch list message: " + i, m ->
                             (!m.extended()) || m.head(0x01,0x0c,0x00,0x13));
             if (!beMsg.extended()) { log.info("Entry list empty: " + i); continue; }
             ByteBuffer buf = beMsg.buffer();
@@ -95,44 +96,120 @@ public class Device {
 
 
     public void initialize() throws Exception {
-        readThread.start();
 
-        // init message
         usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
-        readThread.expect("Init response", msg -> msg.head(0x80));
-
+        // init message
+        readThread.expectBlocking("Init response", msg -> msg.head(0x80));
 
         // perf version
+        Future<UsbMessage> future = readThread.expect("perf version",
+                msg -> msg.head(0x82, 0x01, 0x0c, 0x40, 0x36, 0x04));
         usb.sendSystemCmd("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
         );
-        UsbMessage perfInitMsg = readThread.expect("perf version",
-                msg -> msg.head(0x82, 0x01, 0x0c, 0x40, 0x36, 0x04));
-        perf = new Performance(perfInitMsg.buffer().get());
+        perf = new Performance(future.get().buffer().get());
 
+
+        future = readThread.expect("Stop Comm", m -> m.head(0x62,0x01));
         usb.sendSystemCmd("Stop Comm"
                 ,0x7d // S_START_STOP_COM
                 ,0x01 // stop
         );
-        readThread.expect("Stop Comm",m -> m.head(0x62,0x01));
+        future.get();
 
         //synth settings
+        //extended: 01 0c 00 03 -- synth settings [03]
+        future = readThread.expect("Synth settings",
+                m -> m.head(0x01, 0x0c, 0x00, 0x03));
         usb.sendSystemCmd("Synth settings"
                 ,0x02 // Q_SYNTH_SETTINGS
         );
-        //extended: 01 0c 00 03 -- synth settings [03]
-        setSynthSettings(readThread.expect("Synth settings", m -> m.head(0x01, 0x0c, 0x00, 0x03)));
+        setSynthSettings(future.get());
 
+        //unknown 1/slot init
+        future = readThread.expect("slot init", m -> m.head(0x01,0x0c,0x00,0x80));
+        usb.sendSystemCmd("unknown 1"
+                ,0x81 // M_UNKNOWN_1
+        );
+        future.get();
 
         //perf settings
+        //extended: 01 0c 00 29 -- perf settings [29 "perf name"]
+        //  then chunks in TG2FilePerformance.Read
+        future = readThread.expect("perf settings",
+                m -> m.head(0x01, 0x0c, 0x00, 0x29));
         usb.sendSystemCmd("perf settings"
                 ,0x10 // Q_PERF_SETTINGS
         );
-        //extended: 01 0c 00 29 -- perf settings [29 "perf name"]
-        //  then chunks in TG2FilePerformance.Read
-        perf.readFromMessage(readThread.expect("perf settings",
-                m->m.head(0x01,0x0c,0x00,0x29)).buffer().slice());
+        perf.readFromMessage(future.get().buffer().slice());
+
+        //unknown 2
+        //embedded: 72 01 0c 00 1e -- "unknown 2" [1e]
+        future = readThread.expect("reserved 2", m->m.head(0x72));
+        usb.sendSystemCmd("unknown 2"
+                ,0x59 // M_UNKNOWN_2
+        );
+        future.get();
+
+
+
+        for (int slot = 0; slot < 4; slot++) {
+            readSlot(slot);
+
+
+        }
+
+
+    }
+
+    private void readSlot(final int slot) throws Exception {
+        final int slot8 = slot + 8;
+        //embedded: 82 01 0c 40 36 01 -- slot version
+        Future<UsbMessage> future = readThread.expect("slot version " + slot,
+                m -> m.head(0x82, 0x01, 0x0c, 0x40, 0x36, slot));
+        usb.sendSystemCmd("slot version " + slot
+                ,0x35 // Q_VERSION_CNT
+                , slot // slot index
+        );
+        byte fv = future.get().buffer().get();
+
+        //extended: 01 09 00 21 -- patch description
+        future = readThread.expect("slot patch " + slot,
+                m -> m.head(0x01, slot8, 0x00, 0x21));
+        usb.sendSlotRequest(slot,0,"slot patch" + slot,
+                0x3c // Q_PATCH
+        );
+        Patch patch = Patch.readFromMessage(future.get().buffer().rewind());
+
+        //extended: 01 09 00 27 -- patch name, slot 1
+        future = readThread.expect("slot name " + slot,
+                m -> m.headx(0x01, slot8, 0x00, 0x27));
+        usb.sendSlotRequest(slot,0,"slot name" + slot,
+                0x28 // Q_PATCH_NAME
+        );
+        future.get();
+
+        //extended: 01 09 00 69 -- cable list, slot 1
+        future = readThread.expect("slot note " + slot,
+                m -> m.head(0x01, slot8, 0x00, 0x69));
+        usb.sendSlotRequest(slot,0,"slot note" + slot,
+                0x68 // Q_CURRENT_NOTE
+        );
+        future.get();
+
+
+        //extended: 01 09 00 6f -- textpad, slot 1
+        future = readThread.expect("slot text " + slot,
+                m -> m.head(0x01, 0x09, 0x00, 0x6f));
+        usb.sendSlotRequest(1,0,"slot 1 text",
+                0x6e //Q_PATCH_TEXT
+        );
+        future.get();
+
+
+
+        perf.setPatch(slot,patch);
 
     }
 

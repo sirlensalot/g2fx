@@ -9,6 +9,8 @@ import g2lib.protocol.Sections;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class Performance {
     private final int version;
@@ -27,7 +29,7 @@ public class Performance {
     private FieldValues perfName;
     private FieldValues perfSettings;
     private FieldValues globalKnobAssignments;
-    private List<Patch> slots = new ArrayList<>(4);
+    private Map<Integer,Patch> slots = new TreeMap<>();
 
     public Performance(byte version) {
         this.version = Util.b2i(version);
@@ -55,5 +57,9 @@ public class Performance {
 
     public FieldValues getPerfSettings() {
         return perfSettings;
+    }
+
+    public void setPatch(int slot, Patch patch) {
+        slots.put(slot,patch);
     }
 }

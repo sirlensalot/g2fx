@@ -22,11 +22,19 @@ public record UsbMessage(int size, boolean extended, int crc, ByteBuffer buffer)
         return test;
     }
 
+    public boolean headx(int... values) {
+        int off = extended ? 0 : 1;
+        boolean test = test(off, values);
+        buffer.position(values.length + off); // side-effect for easier parsing
+        return test;
+    }
+
     public boolean test(int index,int... values) {
         if (buffer.limit() > index + values.length) {
             for (int i = 0; i < values.length; i++) {
-                byte b = buffer.get(index + i);
-                if (b != (byte) values[i]) {
+                int b = Util.b2i(buffer.get(index + i));
+                String s = Util.dumpBufferString(buffer);
+                if (b != values[i]) {
                     return false;
                 }
             }
