@@ -602,12 +602,12 @@ public class Protocol {
         public static final Fields FIELDS = new Fields(BankEntry.class,values());
     }
 
-    public enum PerformanceName implements FieldEnum {
+    public enum EntryName implements FieldEnum {
         Name;
-        PerformanceName() { f = new StringField(this); }
+        EntryName() { f = new StringField(this); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(PerformanceName.class,values());
+        public static final Fields FIELDS = new Fields(EntryName.class,values());
     }
 
     public enum PerformanceSettings implements FieldEnum {

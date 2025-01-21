@@ -4,6 +4,7 @@ import g2lib.BitBuffer;
 import g2lib.protocol.Protocol;
 import g2lib.Util;
 import g2lib.protocol.FieldValues;
+import g2lib.protocol.Sections;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
@@ -99,8 +100,8 @@ public class Device {
 
         usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
         // init message
-        readThread.expectBlocking("Init response", msg -> msg.head(0x80));
-        //TODO! read synth name
+        readThread.expectBlocking("Init response", msg ->
+                msg.head(0x80,0x0a,0x03,0x00,0x00,0x1a,0x00,0x8c,0x00,0x12));
 
         // perf version
         Future<UsbMessage> future = readThread.expect("perf version",
@@ -157,8 +158,6 @@ public class Device {
 
         for (int slot = 0; slot < 4; slot++) {
             readSlot(slot);
-
-
         }
 
 
@@ -183,31 +182,31 @@ public class Device {
         );
         Patch patch = Patch.readFromMessage(future.get().buffer().rewind());
 
-        //extended: 01 09 00 27 -- patch name, slot 1
+        //extended or embedded: 01 09 00 27 -- patch name, slot 1
         future = readThread.expect("slot name " + slot,
                 m -> m.headx(0x01, slot8, 0x00, 0x27));
         usb.sendSlotRequest(slot,0,"slot name" + slot,
                 0x28 // Q_PATCH_NAME
         );
-        future.get();
+        patch.readSectionSlice(new BitBuffer(future.get().buffer()),
+                Sections.SPatchName);
 
-        //extended: 01 09 00 69 -- cable list, slot 1
+        //extended: 01 09 00 69
         future = readThread.expect("slot note " + slot,
                 m -> m.head(0x01, slot8, 0x00, 0x69));
         usb.sendSlotRequest(slot,0,"slot note" + slot,
                 0x68 // Q_CURRENT_NOTE
         );
-        future.get();
+        patch.readSectionMessage(future.get(), Sections.SCurrentNote);
 
 
         //extended: 01 09 00 6f -- textpad, slot 1
         future = readThread.expect("slot text " + slot,
-                m -> m.head(0x01, 0x09, 0x00, 0x6f));
-        usb.sendSlotRequest(1,0,"slot 1 text",
+                m -> m.headx(0x01, slot8, 0x00, 0x6f));
+        usb.sendSlotRequest(slot,0,"slot text " + slot,
                 0x6e //Q_PATCH_TEXT
         );
-        future.get();
-
+        patch.readSectionMessage(future.get(), Sections.STextPad);
 
 
         perf.setPatch(slot,patch);

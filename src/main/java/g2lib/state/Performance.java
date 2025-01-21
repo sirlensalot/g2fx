@@ -7,8 +7,6 @@ import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -42,7 +40,7 @@ public class Performance {
         Util.expectWarn(buf,version,"Message","Perf version");
         Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
         BitBuffer bb = new BitBuffer(buf.slice());
-        perfName = Protocol.PerformanceName.FIELDS.read(bb);
+        perfName = Protocol.EntryName.FIELDS.read(bb);
         ByteBuffer buf1 = bb.slice();
         Util.expectWarn(buf1,Sections.SPerformanceSettings.type, "Message","perf settings");
         bb = BitBuffer.sliceAhead(buf1,Util.getShort(buf1));

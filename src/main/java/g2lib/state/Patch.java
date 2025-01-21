@@ -7,6 +7,7 @@ import g2lib.model.*;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Sections;
+import g2lib.usb.UsbMessage;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
@@ -467,13 +468,18 @@ public class Patch {
         return buf;
     }
 
+
     public void readSection(ByteBuffer buf, Sections s) {
         BitBuffer bb = Util.sliceSection(s.type,buf);
         //log.info(s + ": length " + bb.limit());
+        readSectionSlice(bb, s);
+    }
+
+    public void readSectionSlice(BitBuffer bb, Sections s) {
         if (s.location != null) {
             Integer loc = bb.get(2);
             if (!loc.equals(s.location)) {
-                throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc,s));
+                throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc, s));
             }
         }
         FieldValues fvs = s.fields.read(bb);
@@ -486,6 +492,10 @@ public class Patch {
     public void readSectionMessage(ByteBuffer buf, Sections s) {
         readMessageHeader(buf);
         readSection(buf,s);
+    }
+    
+    public void readSectionMessage(UsbMessage msg, Sections s) {
+        readSectionMessage(msg.buffer().position(msg.extended() ? 0 : 1),s);
     }
 
     public Section getSection(Sections key) {

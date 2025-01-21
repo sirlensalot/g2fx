@@ -2,7 +2,7 @@ package g2lib.protocol;
 
 public enum Sections {
     // Perf sections
-    SPerformanceName(Protocol.PerformanceName.FIELDS,0x29), // no length
+    SPerformanceName(Protocol.EntryName.FIELDS,0x29), // no length
     SPerformanceSettings(Protocol.PerformanceSettings.FIELDS,0x11),
     SGlobalKnobAssignments(Protocol.KnobAssignment.FIELDS_PERF,0x5f),
 
@@ -24,7 +24,8 @@ public enum Sections {
     SModuleLabels0(Protocol.ModuleLabels.FIELDS, 0x5b, 0),
     SModuleNames1(Protocol.ModuleNames.FIELDS, 0x5a, 1),
     SModuleNames0(Protocol.ModuleNames.FIELDS, 0x5a, 0),
-    STextPad(Protocol.TextPad.FIELDS, 0x6f);
+    STextPad(Protocol.TextPad.FIELDS, 0x6f),
+    SPatchName(Protocol.EntryName.FIELDS,0x27);
 
     public final Fields fields;
     public final int type;
