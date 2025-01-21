@@ -95,23 +95,32 @@ public class Device {
         }
     }
 
+    private Future<UsbMessage> sendSubscribe(String name, Runnable cmd, UsbReadThread.MsgP filter) {
+        Future<UsbMessage> f = readThread.expect(name, filter);
+        cmd.run();
+        return f;
+    }
+
 
     public void initialize() throws Exception {
 
-        usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
-        // init message
-        readThread.expectBlocking("Init response", msg ->
-                msg.head(0x80,0x0a,0x03,0x00,0x00,0x1a,0x00,0x8c,0x00,0x12));
+        // usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
+        // // init message
+        // readThread.expectBlocking("Init response", msg -> msg.head(0x80));
+
+        sendSubscribe("Init",
+                () -> usb.sendBulk("Init", Util.asBytes(0x80)),
+                msg -> msg.head(0x80)
+        ).get();
 
         // perf version
-        Future<UsbMessage> future = readThread.expect("perf version",
+        Future <UsbMessage> future = readThread.expect("perf version",
                 msg -> msg.headx(0x01, 0x0c, 0x40, 0x36, 0x04));
         usb.sendSystemCmd("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
         );
         perf = new Performance(future.get().buffer().get());
-
 
         future = readThread.expect("Stop Comm", m -> m.headx(0x01));
         usb.sendSystemCmd("Stop Comm"
