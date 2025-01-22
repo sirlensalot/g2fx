@@ -91,6 +91,8 @@ public class Patch {
     public int slot = -1;
     public int version = -1;
 
+    private PatchSettings patchSettings;
+
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
     }
@@ -127,18 +129,7 @@ public class Patch {
     public G2Patch toPatch() {
         G2Patch gp = new G2Patch("Untitled");
         FieldValues fv = getSectionValues(Sections.SPatchDescription);
-        gp.voices = PatchDescription.Voices.intValueRequired(fv);
-        gp.height = PatchDescription.Height.intValueRequired(fv);
-        gp.monoPoly = PatchDescription.MonoPoly.intValueRequired(fv);
-        gp.variation = PatchDescription.Variation.intValueRequired(fv);
-        gp.category = PatchDescription.Category.intValueRequired(fv);
-        gp.cvRed = PatchDescription.Red.intValueRequired(fv) == 1;
-        gp.cvBlue = PatchDescription.Blue.intValueRequired(fv) == 1;
-        gp.cvYellow = PatchDescription.Yellow.intValueRequired(fv) == 1;
-        gp.cvOrange = PatchDescription.Orange.intValueRequired(fv) == 1;
-        gp.cvGreen = PatchDescription.Green.intValueRequired(fv) == 1;
-        gp.cvPurple = PatchDescription.Purple.intValueRequired(fv) == 1;
-        gp.cvWhite = PatchDescription.White.intValueRequired(fv) == 1;
+        patchSettings = new PatchSettings(fv); //TODO maybe do this at read time
 
         fv = getSectionValues(Sections.SPatchParams);
         int vc = PatchParams.VariationCount.intValueRequired(fv);
@@ -493,13 +484,17 @@ public class Patch {
         readMessageHeader(buf);
         readSection(buf,s);
     }
-    
+
     public void readSectionMessage(UsbMessage msg, Sections s) {
         readSectionMessage(msg.buffer().position(msg.extended() ? 0 : 1),s);
     }
 
     public Section getSection(Sections key) {
         return sections.get(key);
+    }
+
+    public PatchSettings getPatchSettings() {
+        return patchSettings;
     }
 
 

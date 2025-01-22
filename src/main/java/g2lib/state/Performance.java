@@ -25,7 +25,7 @@ public class Performance {
     };
 
     private FieldValues perfName;
-    private FieldValues perfSettings;
+    private PerformanceSettings perfSettings;
     private FieldValues globalKnobAssignments;
     private Map<Integer,Patch> slots = new TreeMap<>();
 
@@ -44,17 +44,22 @@ public class Performance {
         ByteBuffer buf1 = bb.slice();
         Util.expectWarn(buf1,Sections.SPerformanceSettings.type, "Message","perf settings");
         bb = BitBuffer.sliceAhead(buf1,Util.getShort(buf1));
-        perfSettings = Protocol.PerformanceSettings.FIELDS.read(bb);
+        perfSettings = new PerformanceSettings(
+                Protocol.PerformanceSettings.FIELDS.read(bb));
         return this;
     }
 
 
 
-    public FieldValues getPerfName() {
-        return perfName;
+    public String getName() {
+        return Protocol.EntryName.Name.stringValueRequired(perfName);
     }
 
-    public FieldValues getPerfSettings() {
+    public void setName(String name) {
+        perfName.update(Protocol.EntryName.Name.value(name));
+    }
+
+    public PerformanceSettings getPerfSettings() {
         return perfSettings;
     }
 

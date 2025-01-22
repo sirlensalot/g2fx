@@ -23,7 +23,7 @@ public class Device {
     private final UsbReadThread readThread;
 
     private Performance perf;
-    private FieldValues synthSettings;
+    private SynthSettings synthSettings;
 
     public Device(Usb usb, UsbReadThread readThread) {
         this.usb = usb;
@@ -225,6 +225,10 @@ public class Device {
 
     private void setSynthSettings(UsbMessage msg) {
         BitBuffer bb = new BitBuffer(msg.buffer().slice());
-        synthSettings = Protocol.SynthSettings.FIELDS.read(bb);
+        synthSettings = new SynthSettings(Protocol.SynthSettings.FIELDS.read(bb));
+    }
+
+    public SynthSettings getSynthSettings() {
+        return synthSettings;
     }
 }

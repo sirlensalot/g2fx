@@ -38,6 +38,10 @@ public interface FieldEnum {
         return intValue(values).orElseThrow(missing());
     }
 
+    default boolean booleanIntValue(FieldValues values) {
+        return intValueRequired(values) == 1;
+    }
+
     default String stringValueRequired(FieldValues values) {
         return stringValue(values).orElseThrow(missing());
     }
@@ -50,6 +54,10 @@ public interface FieldEnum {
         return new IntValue((SizedField) field().guardType(Field.Type.IntType),v);
     }
 
+    default FieldValue value(boolean v) {
+        return new IntValue((SizedField) field().guardType(Field.Type.IntType),
+                v ? 1 : 0);
+    }
     default FieldValue value(String v) {
         return new StringValue((StringField) field().guardType(Field.Type.StringType),v);
     }
