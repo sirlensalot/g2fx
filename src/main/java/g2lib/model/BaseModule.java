@@ -44,7 +44,7 @@ public class BaseModule implements ParamModule {
                 List<ModParam> ps = List.of(params);
                 for (int i = 0; i < G2Patch.MAX_VARIATIONS; i++) {
                     varParams.add(ps.stream().map(p ->
-                            new ParamValue(new NamedParam(p, p.name(), List.of()))).toList());
+                            new ParamValue(new NamedParam(p))).toList());
                 }
                 break;
         }

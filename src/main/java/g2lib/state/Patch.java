@@ -10,8 +10,10 @@ import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
 
 import java.nio.ByteBuffer;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -92,6 +94,11 @@ public class Patch {
     public int version = -1;
 
     private PatchSettings patchSettings;
+    private FieldValues textPad;
+    private FieldValues currentNote;
+    private PatchArea voiceArea = new PatchArea(AreaId.Voice);
+    private PatchArea fxArea = new PatchArea(AreaId.Fx);
+    private PatchArea settingsArea = new PatchArea(AreaId.Settings);
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
@@ -124,6 +131,15 @@ public class Patch {
             throw new IllegalArgumentException("Invalid/missing morph: " + morph);
         }
         return fvs.get(morph);
+    }
+
+    public PatchArea getArea(int index) {
+        return switch (index) {
+            case 0 -> fxArea;
+            case 1 -> voiceArea;
+            case 2 -> settingsArea;
+            default -> throw new IllegalArgumentException("Invalid area index: " + index);
+        };
     }
 
     public G2Patch toPatch() {
@@ -212,7 +228,7 @@ public class Patch {
             int v = VarMorph.Variation.intValueRequired(vm);
             List<FieldValues> vmps = VarMorph.VarMorphParams.subfieldsValueRequired(vm);
             for (FieldValues vmp : vmps) {
-                PatchArea<G2Module> area = gp.getUserArea(VarMorphParam.Location.intValueRequired(vmp));
+                G2PatchArea<G2Module> area = gp.getUserArea(VarMorphParam.Location.intValueRequired(vmp));
                 G2Module m = area.getModuleRequired(VarMorphParam.ModuleIndex.intValueRequired(vmp));
                 m.setMorph(v,VarMorphParam.ParamIndex.intValueRequired(vmp),
                         VarMorphParam.Morph.intValueRequired(vmp),
@@ -272,7 +288,7 @@ public class Patch {
         return s.values();
     }
 
-    private static void setCables(FieldValues fv, PatchArea<G2Module> area) {
+    private static void setCables(FieldValues fv, G2PatchArea<G2Module> area) {
         List<FieldValues> cs = CableList.Cables.subfieldsValueRequired(fv);
         for (FieldValues c : cs) {
             G2Module srcMod = area.getModuleRequired(Cable.SrcModule.intValueRequired(c));
@@ -288,7 +304,7 @@ public class Patch {
         }
     }
 
-    private static void setModuleLabels(FieldValues fv, PatchArea<G2Module> area) {
+    private static void setModuleLabels(FieldValues fv, G2PatchArea<G2Module> area) {
         List<FieldValues> mls = ModuleLabels.ModLabels.subfieldsValueRequired(fv);
         for (FieldValues ml : mls) {
             G2Module m = area.getModuleRequired(ModuleLabel.ModuleIndex.intValueRequired(ml));
@@ -300,7 +316,7 @@ public class Patch {
         }
     }
 
-    private static void setModuleNames(FieldValues fv, PatchArea<G2Module> area) {
+    private static void setModuleNames(FieldValues fv, G2PatchArea<G2Module> area) {
         List<FieldValues> mns = ModuleNames.Names.subfieldsValueRequired(fv);
         for (FieldValues mn : mns) {
             G2Module m = area.getModuleRequired(ModuleName.ModuleIndex.intValueRequired(mn));
@@ -308,7 +324,7 @@ public class Patch {
         }
     }
 
-    private void setModuleParams(FieldValues fv, PatchArea<G2Module> area, int vc) {
+    private void setModuleParams(FieldValues fv, G2PatchArea<G2Module> area, int vc) {
         List<FieldValues> pss = ModuleParams.ParamSet.subfieldsValueRequired(fv);
         for (FieldValues ps : pss) {
             int mi = ModuleParamSet.ModIndex.intValueRequired(ps);
@@ -323,18 +339,18 @@ public class Patch {
         }
     }
 
-    private static void addModules(FieldValues fv, PatchArea<G2Module> area) {
+    private static void addModules(FieldValues fv, G2PatchArea<G2Module> area) {
         List<FieldValues> mods = ModuleList.Modules.subfieldsValueRequired(fv);
         for (FieldValues mod : mods) {
-            int ix = Module_.Index.intValueRequired(mod);
-            ModuleType type = ModuleType.getById(Module_.Id.intValueRequired(mod));
+            int ix = UserModule.Index.intValueRequired(mod);
+            ModuleType type = ModuleType.getById(UserModule.Id.intValueRequired(mod));
             G2Module gm = new G2Module(type,ix);
-            gm.horiz = Module_.Horiz.intValueRequired(mod);
-            gm.vert = Module_.Vert.intValueRequired(mod);
-            gm.color = Module_.Color.intValueRequired(mod);
-            gm.uprate = Module_.Uprate.intValueRequired(mod);
-            gm.leds = Module_.Leds.intValueRequired(mod) == 1;
-            List<FieldValues> modes = Module_.Modes.subfieldsValueRequired(mod);
+            gm.horiz = UserModule.Horiz.intValueRequired(mod);
+            gm.vert = UserModule.Vert.intValueRequired(mod);
+            gm.color = UserModule.Color.intValueRequired(mod);
+            gm.uprate = UserModule.Uprate.intValueRequired(mod);
+            gm.leds = UserModule.Leds.intValueRequired(mod) == 1;
+            List<FieldValues> modes = UserModule.Modes.subfieldsValueRequired(mod);
             for (int i = 0; i < modes.size(); i++) {
                 gm.setMode(i,ModuleModes.Data.intValueRequired(modes.get(i)));
             }
@@ -477,7 +493,21 @@ public class Patch {
 //        log.info(String.format("Read: %s, len=%x, crc=%x: %s\n",s,bb.limit(),CRC16.crc16(bb.toBuffer()),
 //                Util.dumpBufferString(bb.toBuffer())));
 
-        sections.put(s,new Section(s,fvs));
+        updateSection(s, new Section(s, fvs));
+    }
+
+    private void updateSection(Sections s, Section section) {
+        sections.put(s, section);
+        switch (s) {
+            case SPatchDescription ->
+                this.patchSettings = new PatchSettings(section.values);
+            case STextPad -> this.textPad = section.values;
+            case SCurrentNote -> this.currentNote = section.values;
+            case SModuleList0 -> fxArea.addModules(section.values());
+            case SModuleList1 -> voiceArea.addModules(section.values());
+            case SCableList0 -> fxArea.addCables(section.values);
+            case SCableList1 -> voiceArea.addCables(section.values);
+        }
     }
 
     public void readSectionMessage(ByteBuffer buf, Sections s) {

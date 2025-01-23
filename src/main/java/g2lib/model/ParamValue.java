@@ -8,9 +8,13 @@ public class ParamValue {
     public final Map<Integer, Integer> morphs = new TreeMap<>();
     private int value;
 
-    ParamValue(NamedParam param) {
+    public ParamValue(NamedParam param) {
         this.param = param;
         this.value = param.param().def;
+    }
+
+    public ParamValue(ModParam param) {
+        this(new NamedParam(param));
     }
 
     public void setValue(int value) {

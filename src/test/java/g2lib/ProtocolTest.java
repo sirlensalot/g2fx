@@ -457,97 +457,97 @@ class ProtocolTest {
 
         //Util.dumpBuffer(b2);
         module = mods.get(0);
-        assertFieldEquals(module,0x5c, Module_.Id); //filter classic
-        assertFieldEquals(module,0x01, Module_.Index);
-        assertFieldEquals(module,0x00, Module_.Horiz);
-        assertFieldEquals(module,0x09, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x00, Module_.Uprate);
-        assertFieldEquals(module,0x00, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x00, Module_.ModeCount);
-        assertSubfields(module, 0, Module_.Modes);
+        assertFieldEquals(module,0x5c, UserModule.Id); //filter classic
+        assertFieldEquals(module,0x01, UserModule.Index);
+        assertFieldEquals(module,0x00, UserModule.Horiz);
+        assertFieldEquals(module,0x09, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x00, UserModule.Uprate);
+        assertFieldEquals(module,0x00, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x00, UserModule.ModeCount);
+        assertSubfields(module, 0, UserModule.Modes);
 
         module = mods.get(1);
-        assertFieldEquals(module,0x09, Module_.Id); //osc c
-        assertFieldEquals(module,0x02, Module_.Index);
-        assertFieldEquals(module,0x00, Module_.Horiz);
-        assertFieldEquals(module,0x06, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x00, Module_.Uprate);
-        assertFieldEquals(module,0x00, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x01, Module_.ModeCount);
-        modes = assertSubfields(module, 1, Module_.Modes);
+        assertFieldEquals(module,0x09, UserModule.Id); //osc c
+        assertFieldEquals(module,0x02, UserModule.Index);
+        assertFieldEquals(module,0x00, UserModule.Horiz);
+        assertFieldEquals(module,0x06, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x00, UserModule.Uprate);
+        assertFieldEquals(module,0x00, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x01, UserModule.ModeCount);
+        modes = assertSubfields(module, 1, UserModule.Modes);
         assertFieldEquals(modes.getFirst(),0x02, ModuleModes.Data);
 
         module = mods.get(2);
-        assertFieldEquals(module,0x17, Module_.Id);  // ModADSR
-        assertFieldEquals(module,0x03, Module_.Index);
-        assertFieldEquals(module,0x00, Module_.Horiz);
-        assertFieldEquals(module,0x0d, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x01, Module_.Uprate);
-        assertFieldEquals(module,0x00, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x00, Module_.ModeCount);
-        assertSubfields(module, 0, Module_.Modes);
+        assertFieldEquals(module,0x17, UserModule.Id);  // ModADSR
+        assertFieldEquals(module,0x03, UserModule.Index);
+        assertFieldEquals(module,0x00, UserModule.Horiz);
+        assertFieldEquals(module,0x0d, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x01, UserModule.Uprate);
+        assertFieldEquals(module,0x00, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x00, UserModule.ModeCount);
+        assertSubfields(module, 0, UserModule.Modes);
 
 
         module = mods.get(3);
-        assertFieldEquals(module,0x04, Module_.Id); // 2-out
-        assertFieldEquals(module,0x04, Module_.Index);
-        assertFieldEquals(module,0x00, Module_.Horiz);
-        assertFieldEquals(module,0x12, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x00, Module_.Uprate);
-        assertFieldEquals(module,0x01, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x00, Module_.ModeCount);
-        assertSubfields(module, 0, Module_.Modes);
+        assertFieldEquals(module,0x04, UserModule.Id); // 2-out
+        assertFieldEquals(module,0x04, UserModule.Index);
+        assertFieldEquals(module,0x00, UserModule.Horiz);
+        assertFieldEquals(module,0x12, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x00, UserModule.Uprate);
+        assertFieldEquals(module,0x01, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x00, UserModule.ModeCount);
+        assertSubfields(module, 0, UserModule.Modes);
 
         modl = p.getSection(Sections.SModuleList0).values();
         mods = assertSubfields(modl, 3, ModuleList.Modules);
 
 
         module = mods.get(indexes[0]);
-        assertFieldEquals(module,0x7f, Module_.Id); // FX Input
-        assertFieldEquals(module,0x01, Module_.Index);
-        assertFieldEquals(module,0x01, Module_.Horiz);
-        assertFieldEquals(module,0x02, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x00, Module_.Uprate);
-        assertFieldEquals(module,0x01, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x00, Module_.ModeCount);
-        assertSubfields(module, 0, Module_.Modes);
+        assertFieldEquals(module,0x7f, UserModule.Id); // FX Input
+        assertFieldEquals(module,0x01, UserModule.Index);
+        assertFieldEquals(module,0x01, UserModule.Horiz);
+        assertFieldEquals(module,0x02, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x00, UserModule.Uprate);
+        assertFieldEquals(module,0x01, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x00, UserModule.ModeCount);
+        assertSubfields(module, 0, UserModule.Modes);
 
 
         module = mods.get(indexes[1]);
         //dumpFieldValues(module);
-        assertFieldEquals(module,0xc2, Module_.Id);//Mixer 2-1A
-        assertFieldEquals(module,0x02, Module_.Index);
-        assertFieldEquals(module,0x01, Module_.Horiz);
-        assertFieldEquals(module,0x04, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x01, Module_.Uprate);
-        assertFieldEquals(module,0x00, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x00, Module_.ModeCount);
-        assertSubfields(module, 0, Module_.Modes);
+        assertFieldEquals(module,0xc2, UserModule.Id);//Mixer 2-1A
+        assertFieldEquals(module,0x02, UserModule.Index);
+        assertFieldEquals(module,0x01, UserModule.Horiz);
+        assertFieldEquals(module,0x04, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x01, UserModule.Uprate);
+        assertFieldEquals(module,0x00, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x00, UserModule.ModeCount);
+        assertSubfields(module, 0, UserModule.Modes);
 
 
         module = mods.get(indexes[2]);
-        assertFieldEquals(module,0x04, Module_.Id); //2-out
-        assertFieldEquals(module,0x03, Module_.Index);
-        assertFieldEquals(module,0x01, Module_.Horiz);
-        assertFieldEquals(module,0x09, Module_.Vert);
-        assertFieldEquals(module,0x00, Module_.Color);
-        assertFieldEquals(module,0x00, Module_.Uprate);
-        assertFieldEquals(module,0x01, Module_.Leds);
-        assertFieldEquals(module,0x00, Module_.Reserved);
-        assertFieldEquals(module,0x00, Module_.ModeCount);
-        assertSubfields(module, 0, Module_.Modes);
+        assertFieldEquals(module,0x04, UserModule.Id); //2-out
+        assertFieldEquals(module,0x03, UserModule.Index);
+        assertFieldEquals(module,0x01, UserModule.Horiz);
+        assertFieldEquals(module,0x09, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Color);
+        assertFieldEquals(module,0x00, UserModule.Uprate);
+        assertFieldEquals(module,0x01, UserModule.Leds);
+        assertFieldEquals(module,0x00, UserModule.Reserved);
+        assertFieldEquals(module,0x00, UserModule.ModeCount);
+        assertSubfields(module, 0, UserModule.Modes);
     }
 
     private void testModuleLabels(Patch p) {

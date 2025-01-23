@@ -4,7 +4,7 @@ import g2lib.Util;
 
 import java.util.*;
 
-public class PatchArea<M extends ParamModule> {
+public class G2PatchArea<M extends ParamModule> {
 
     public static enum AreaName {
         FX,
@@ -15,11 +15,11 @@ public class PatchArea<M extends ParamModule> {
     private final Map<Integer, M> modules = new TreeMap<>();
     private final List<G2Cable> cables = new ArrayList<>();
 
-    public PatchArea(AreaName area) {
+    public G2PatchArea(AreaName area) {
         this.area = area;
     }
 
-    public PatchArea(List<M> settingsModules) {
+    public G2PatchArea(List<M> settingsModules) {
         this.area = AreaName.Settings;
         settingsModules.forEach(this::addModule);
     }

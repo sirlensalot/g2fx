@@ -12,9 +12,9 @@ public class G2Patch {
     public static final String[] MORPH_LABELS =
             {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
 
-    public final PatchArea<G2Module> voiceArea = new PatchArea<>(PatchArea.AreaName.Voice);
-    public final PatchArea<G2Module> fxArea = new PatchArea<>(PatchArea.AreaName.FX);
-    public final PatchArea<BaseModule> settingsArea = initPatchSettings();
+    public final G2PatchArea<G2Module> voiceArea = new G2PatchArea<>(G2PatchArea.AreaName.Voice);
+    public final G2PatchArea<G2Module> fxArea = new G2PatchArea<>(G2PatchArea.AreaName.FX);
+    public final G2PatchArea<BaseModule> settingsArea = initPatchSettings();
 
     private String name;
     private String textPad;
@@ -42,8 +42,8 @@ public class G2Patch {
         this.name = name;
     }
 
-    private static PatchArea<BaseModule> initPatchSettings() {
-        return new PatchArea<BaseModule>(List.of(
+    private static G2PatchArea<BaseModule> initPatchSettings() {
+        return new G2PatchArea<BaseModule>(List.of(
                 new BaseModule(SettingsModules.MorphDials), // morph dials
                 new BaseModule(SettingsModules.MorphModes), // morph modes
                 new BaseModule(SettingsModules.Gain,
@@ -70,7 +70,7 @@ public class G2Patch {
         return name;
     }
 
-    public PatchArea<G2Module> getUserArea(int location) {
+    public G2PatchArea<G2Module> getUserArea(int location) {
         return switch (location) {
             case 0 -> fxArea;
             case 1 -> voiceArea;
@@ -82,7 +82,7 @@ public class G2Patch {
         return settingsArea.getModuleRequired(m.ordinal());
     }
 
-    public PatchArea<? extends ParamModule> getArea(int location) {
+    public G2PatchArea<? extends ParamModule> getArea(int location) {
         return switch (location) {
             case 0 -> fxArea;
             case 1 -> voiceArea;

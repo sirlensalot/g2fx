@@ -2,7 +2,6 @@ package g2lib.model;
 
 import g2lib.Util;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,12 +22,12 @@ public class G2Module extends BaseModule {
 
 
     public G2Module(ModuleType type,int index) {
-        super(index,type.params.size());
+        super(index, type.getParams().size());
         this.moduleType = type;
         this.name = type.shortName;
         modes = type.modes.stream().map(ParamValue::new).toList();
         for (int i = 0; i < G2Patch.MAX_VARIATIONS; i++) {
-            varParams.add(type.params.stream().map(ParamValue::new).toList());
+            varParams.add(type.getParams().stream().map(ParamValue::new).toList());
         }
     }
 

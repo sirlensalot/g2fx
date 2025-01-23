@@ -43,7 +43,7 @@ public class Protocol {
     public enum ModuleList implements FieldEnum {
         //Location(2),
         ModuleCount(8),
-        Modules(Module_.FIELDS,ModuleList.ModuleCount);
+        Modules(UserModule.FIELDS,ModuleList.ModuleCount);
         ModuleList(int size) { f = new SizedField(this,size); }
         ModuleList(Fields fs,FieldEnum e) { f = new SubfieldsField(this,fs,e);}
         private final Field f;
@@ -52,7 +52,7 @@ public class Protocol {
 
     }
 
-    public enum Module_ implements FieldEnum {
+    public enum UserModule implements FieldEnum {
 
         Id        (8),
         Index     (8),
@@ -65,11 +65,11 @@ public class Protocol {
         ModeCount (4),
         Modes     (ModuleModes.FIELDS,ModeCount);
 
-        Module_(int size) { f = new SizedField(this,size); }
-        Module_(Fields fs, Module_ ixField) { f = new SubfieldsField(this,fs,ixField); }
+        UserModule(int size) { f = new SizedField(this,size); }
+        UserModule(Fields fs, UserModule ixField) { f = new SubfieldsField(this,fs,ixField); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Module_.class,values());
+        public static final Fields FIELDS = new Fields(UserModule.class,values());
 
     }
 

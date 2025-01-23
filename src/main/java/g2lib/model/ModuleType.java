@@ -2380,7 +2380,7 @@ public enum ModuleType {
     public final ModPageIx modPageIx;
     public final List<Connector> inPorts;
     public final List<Connector> outPorts;
-    public final List<NamedParam> params;
+    private final List<NamedParam> params;
     public final List<NamedParam> modes;
     public final String shortName;
 
@@ -2405,6 +2405,10 @@ public enum ModuleType {
 
     private static String mkShortName(String name) {
         return name.substring(2).replace('_','-').replace("-and-","&");
+    }
+
+    public List<NamedParam> getParams() {
+        return params;
     }
 
     public record ModPageIx(ModPage page,Integer ix) implements Comparable<ModPageIx> {
