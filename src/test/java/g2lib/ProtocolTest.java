@@ -330,12 +330,12 @@ class ProtocolTest {
         sectionHeader(patchSettings, PatchParams.S6,6,4);
         sectionHeader(patchSettings, PatchParams.S7,7,2);
         List<FieldValues> morphs = assertSubfields(patchSettings, vc, PatchParams.Morphs);
-        List<FieldValues> s2 = assertSubfields(patchSettings, vc, PatchParams.SectionVolMuteds);
+        List<FieldValues> s2 = assertSubfields(patchSettings, vc, PatchParams.SectionGain);
         List<FieldValues> s3 = assertSubfields(patchSettings, vc, PatchParams.SectionGlides);
         List<FieldValues> s4 = assertSubfields(patchSettings, vc, PatchParams.SectionBends);
         List<FieldValues> s5 = assertSubfields(patchSettings, vc, PatchParams.SectionVibratos);
         List<FieldValues> s6 = assertSubfields(patchSettings, vc, PatchParams.SectionArps);
-        List<FieldValues> s7 = assertSubfields(patchSettings, vc, PatchParams.SectionOctSustains);
+        List<FieldValues> s7 = assertSubfields(patchSettings, vc, PatchParams.SectionMisc);
         for (int i = 0; i < vc; i++) {
             FieldValues ms = morphs.get(i);
             assertFieldEquals(ms,i,MorphSettings.Variation);
@@ -349,7 +349,7 @@ class ProtocolTest {
                 }
                 assertFieldEquals(mmodes.get(j),0x01, Data7.Datum);
             }
-            assertFieldEquals(s2.get(i),i, VolMutedSettings.Variation);
+            assertFieldEquals(s2.get(i),i, GainSettings.Variation);
             assertFieldEquals(s3.get(i),i, GlideSettings.Variation);
             assertFieldEquals(s4.get(i),i, BendSettings.Variation);
             assertFieldEquals(s5.get(i),i, VibratoSettings.Variation);
@@ -369,11 +369,11 @@ class ProtocolTest {
             assertFieldEquals(s6.get(i),0x00, ArpSettings.Octaves);
 
             if (i == 1) {
-                assertFieldEquals(s2.get(i),0x00, VolMutedSettings.PatchVol);
+                assertFieldEquals(s2.get(i),0x00, GainSettings.PatchVol);
             } else {
-                assertFieldEquals(s2.get(i),0x64, VolMutedSettings.PatchVol);
+                assertFieldEquals(s2.get(i),0x64, GainSettings.PatchVol);
             }
-            assertFieldEquals(s2.get(i),0x01, VolMutedSettings.ActiveMuted);
+            assertFieldEquals(s2.get(i),0x01, GainSettings.ActiveMuted);
             if (i == 0 || i == 1) {
                 assertFieldEquals(s4.get(i),0x05, BendSettings.Semi);
                 assertFieldEquals(s7.get(i),0x01, OctSustainSettings.OctShift);

@@ -106,7 +106,7 @@ public class Protocol {
         S1(),
         Morphs(MorphSettings.FIELDS,VariationCount),
         S2(),
-        SectionVolMuteds(VolMutedSettings.FIELDS,VariationCount),
+        SectionGain(GainSettings.FIELDS,VariationCount),
         S3(),
         SectionGlides(GlideSettings.FIELDS,VariationCount),
         S4(),
@@ -116,7 +116,7 @@ public class Protocol {
         S6(),
         SectionArps(ArpSettings.FIELDS,VariationCount),
         S7(),
-        SectionOctSustains(OctSustainSettings.FIELDS,VariationCount);
+        SectionMisc(OctSustainSettings.FIELDS,VariationCount);
 
         PatchParams(int size) { f = new SizedField(this,size); }
         PatchParams(Fields fs, PatchParams p) { f = new SubfieldsField(this,fs,p); }
@@ -127,14 +127,14 @@ public class Protocol {
     }
 
 
-    public enum VolMutedSettings implements FieldEnum {
+    public enum GainSettings implements FieldEnum {
         Variation(8),
         PatchVol(7),
         ActiveMuted(7);
-        VolMutedSettings(int size) { f = new SizedField(this,size); }
+        GainSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(VolMutedSettings.class,values());
+        public static final Fields FIELDS = new Fields(GainSettings.class,values());
     }
 
     public enum GlideSettings implements FieldEnum {

@@ -5,9 +5,7 @@ import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 
 public class PatchModule {
 
@@ -35,28 +33,7 @@ public class PatchModule {
         this.index = settingsModule.ordinal();
         this.settingsModuleType = settingsModule;
         this.userModuleData = null;
-        this.params = mkParams(settingsModule);
-    }
-
-    private List<NamedParam> mkParams(SettingsModules settingsModule) {
-        return switch (settingsModule) {
-            case MorphDials -> mkMorphParams(ModParam.MorphDial, m -> List.of());
-            case MorphModes -> mkMorphParams(ModParam.MorphMode, m -> List.of("Knob", m));
-            case Gain -> mkParams(ModParam.GainVolume, ModParam.GainActiveMuted);
-            case Glide -> mkParams(ModParam.Glide, ModParam.GlideSpeed);
-            case Bend -> mkParams(ModParam.BendEnable, ModParam.BendSemi);
-            case Vibrato -> mkParams(ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate);
-            case Arpeggiator -> mkParams(ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves);
-            case Misc -> mkParams(ModParam.MiscOctShift, ModParam.MiscSustain);
-        };
-    }
-
-    private List<NamedParam> mkMorphParams(ModParam modParam, Function<String,List<String>> labelF) {
-        return Arrays.stream(MORPH_LABELS).map(m -> new NamedParam(modParam, m, labelF.apply(m))).toList();
-    }
-
-    private List<NamedParam> mkParams(ModParam... params) {
-        return Arrays.stream(params).map(NamedParam::new).toList();
+        this.params = settingsModule.mkParams();
     }
 
     public void setUserParamValues(FieldValues moduleParams) {
@@ -65,16 +42,38 @@ public class PatchModule {
     }
 
     public void setSettingParamValues(FieldValues patchParams) {
-        Protocol.PatchParams f = switch (settingsModuleType) {
-            case MorphDials,MorphModes -> Protocol.PatchParams.Morphs;
-            case Gain -> Protocol.PatchParams.SectionVolMuteds;
-            case Glide -> Protocol.PatchParams.SectionGlides;
-            case Bend -> Protocol.PatchParams.SectionBends;
-            case Vibrato -> Protocol.PatchParams.SectionVibratos;
-            case Arpeggiator -> Protocol.PatchParams.SectionArps;
-            case Misc -> Protocol.PatchParams.SectionOctSustains;
-        };
-        values = f.subfieldsValueRequired(patchParams);
+        values = settingsModuleType.getParamValues(patchParams);
+    }
+
+    public List<Integer> getVarValues(int variation) {
+        if (settingsModuleType != null) {
+            return getSettingsVarValues(variation);
+        } else {
+            return getUserVarValues(variation);
+        }
+    }
+
+    private List<Integer> getUserVarValues(int variation) {
+        return Protocol.VarParams.Params.subfieldsValueRequired(getRequiredVarValues(variation))
+                .stream().map(Protocol.Data7.Datum::intValueRequired).toList();
+
+    }
+
+    private List<Integer> getSettingsVarValues(int variation) {
+        return settingsModuleType.getVarValues(getRequiredVarValues(variation));
+    }
+
+    private List<Integer> getMorphVarValues(Protocol.MorphSettings ms, FieldValues morph) {
+        List<FieldValues> dials = ms.subfieldsValueRequired(morph);
+        return dials.stream().map(Protocol.Data7.Datum::intValueRequired).toList();
+    }
+
+
+    private FieldValues getRequiredVarValues(int variation) {
+        if (variation >= values.size()) {
+            throw new IllegalArgumentException("Invalid/missing variation: " + variation);
+        }
+        return values.get(variation);
     }
 
     public int getIndex() {

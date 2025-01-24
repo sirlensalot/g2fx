@@ -10,10 +10,8 @@ import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
 
 import java.nio.ByteBuffer;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -150,12 +148,12 @@ public class Patch {
         fv = getSectionValues(Sections.SPatchParams);
         int vc = PatchParams.VariationCount.intValueRequired(fv);
         List<FieldValues> morphs = PatchParams.Morphs.subfieldsValueRequired(fv);
-        List<FieldValues> volMuteds = PatchParams.SectionVolMuteds.subfieldsValueRequired(fv);
+        List<FieldValues> volMuteds = PatchParams.SectionGain.subfieldsValueRequired(fv);
         List<FieldValues> glides = PatchParams.SectionGlides.subfieldsValueRequired(fv);
         List<FieldValues> bends = PatchParams.SectionBends.subfieldsValueRequired(fv);
         List<FieldValues> vibratos = PatchParams.SectionVibratos.subfieldsValueRequired(fv);
         List<FieldValues> arps = PatchParams.SectionArps.subfieldsValueRequired(fv);
-        List<FieldValues> octSustains = PatchParams.SectionOctSustains.subfieldsValueRequired(fv);
+        List<FieldValues> octSustains = PatchParams.SectionMisc.subfieldsValueRequired(fv);
 
         for (int v = 0; v < vc; v++) {
 
@@ -169,8 +167,8 @@ public class Patch {
 
             FieldValues ss = getVarValues(v, volMuteds);
             gp.getSettingsModule(SettingsModules.Gain).setParams(v,List.of(
-                    VolMutedSettings.PatchVol.intValueRequired(ss),
-                    VolMutedSettings.ActiveMuted.intValueRequired(ss)));
+                    GainSettings.PatchVol.intValueRequired(ss),
+                    GainSettings.ActiveMuted.intValueRequired(ss)));
 
             ss = getVarValues(v,glides);
             gp.getSettingsModule(SettingsModules.Glide).setParams(v,List.of(
