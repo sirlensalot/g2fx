@@ -96,9 +96,9 @@ public class Patch {
     private PatchSettings patchSettings;
     private FieldValues textPad;
     private FieldValues currentNote;
-    private PatchArea voiceArea = new PatchArea(AreaId.Voice);
-    private PatchArea fxArea = new PatchArea(AreaId.Fx);
-    private PatchArea settingsArea = new PatchArea(AreaId.Settings);
+    private final PatchArea voiceArea = new PatchArea(AreaId.Voice);
+    private final PatchArea fxArea = new PatchArea(AreaId.Fx);
+    private final PatchArea settingsArea = new PatchArea();
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
@@ -501,10 +501,13 @@ public class Patch {
         switch (s) {
             case SPatchDescription ->
                 this.patchSettings = new PatchSettings(section.values);
+            case SPatchParams -> settingsArea.setSettingsModuleParams(section.values);
             case STextPad -> this.textPad = section.values;
             case SCurrentNote -> this.currentNote = section.values;
-            case SModuleList0 -> fxArea.addModules(section.values());
-            case SModuleList1 -> voiceArea.addModules(section.values());
+            case SModuleList0 -> fxArea.addModules(section.values);
+            case SModuleList1 -> voiceArea.addModules(section.values);
+            case SModuleParams0 -> fxArea.setUserModuleParams(section.values);
+            case SModuleParams1 -> voiceArea.setUserModuleParams(section.values);
             case SCableList0 -> fxArea.addCables(section.values);
             case SCableList1 -> voiceArea.addCables(section.values);
         }

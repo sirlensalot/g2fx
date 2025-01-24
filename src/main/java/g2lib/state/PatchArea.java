@@ -17,13 +17,13 @@ public class PatchArea {
         this.id = id;
     }
 
-    public void addModules(FieldValues modListFvs) {
-        Protocol.ModuleList.Modules.subfieldsValueRequired(modListFvs).forEach(this::addModule);
-    }
-
     public PatchArea() {
         this.id = AreaId.Settings;
         Arrays.stream(SettingsModules.values()).forEach(PatchModule::new);
+    }
+
+    public void addModules(FieldValues modListFvs) {
+        Protocol.ModuleList.Modules.subfieldsValueRequired(modListFvs).forEach(this::addModule);
     }
 
     public void addModule(FieldValues fvs) {
@@ -33,6 +33,23 @@ public class PatchArea {
 
     public PatchModule getModule(int index) {
         return modules.get(index);
+    }
+
+    public PatchModule getModuleRequired(int index) {
+        PatchModule m = getModule(index);
+        if (m != null) return m;
+        throw new IllegalArgumentException("No such module: " + index);
+    }
+
+    public void setUserModuleParams(FieldValues moduleParams) {
+        Protocol.ModuleParams.ParamSet.subfieldsValueRequired(moduleParams)
+                .forEach(fvs -> getModuleRequired(
+                        Protocol.ModuleParamSet.ModIndex.intValueRequired(fvs))
+                        .setUserParamValues(fvs));
+    }
+
+    public void setSettingsModuleParams(FieldValues patchParams) {
+        modules.values().forEach(m -> m.setSettingParamValues(patchParams));
     }
 
     public void addCable(FieldValues fvs) {

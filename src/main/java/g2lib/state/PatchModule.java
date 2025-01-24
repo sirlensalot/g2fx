@@ -18,6 +18,7 @@ public class PatchModule {
     private final UserModuleData userModuleData;
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
+    private List<FieldValues> values;
 
     private final int index;
 
@@ -56,6 +57,24 @@ public class PatchModule {
 
     private List<NamedParam> mkParams(ModParam... params) {
         return Arrays.stream(params).map(NamedParam::new).toList();
+    }
+
+    public void setUserParamValues(FieldValues moduleParams) {
+        values = new ArrayList<>(Protocol.ModuleParamSet.ModParams
+                .subfieldsValueRequired(moduleParams));
+    }
+
+    public void setSettingParamValues(FieldValues patchParams) {
+        Protocol.PatchParams f = switch (settingsModuleType) {
+            case MorphDials,MorphModes -> Protocol.PatchParams.Morphs;
+            case Gain -> Protocol.PatchParams.SectionVolMuteds;
+            case Glide -> Protocol.PatchParams.SectionGlides;
+            case Bend -> Protocol.PatchParams.SectionBends;
+            case Vibrato -> Protocol.PatchParams.SectionVibratos;
+            case Arpeggiator -> Protocol.PatchParams.SectionArps;
+            case Misc -> Protocol.PatchParams.SectionOctSustains;
+        };
+        values = f.subfieldsValueRequired(patchParams);
     }
 
     public int getIndex() {
