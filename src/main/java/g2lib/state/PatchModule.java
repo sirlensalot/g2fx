@@ -17,8 +17,11 @@ public class PatchModule {
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
     private List<FieldValues> values;
+    private List<FieldValues> userLabels;
+    private FieldValues name;
 
     private final int index;
+    private FieldValues morphLabels;
 
     // constructor for user modules
     public PatchModule(FieldValues userModuleFvs) {
@@ -88,5 +91,52 @@ public class PatchModule {
     public UserModuleData getUserModuleData() {
         if (userModuleData != null) return userModuleData;
         throw new NullPointerException("User module data not available for settings module");
+    }
+
+    public void setUserLabels(List<FieldValues> ls) {
+        this.userLabels = ls;
+    }
+
+    public void setModuleName(FieldValues mn) {
+        this.name = mn;
+    }
+
+    public String getName() {
+        return Protocol.ModuleName.Name.stringValueRequired(name);
+    }
+
+    public void setMorphLabels(FieldValues values) {
+        this.morphLabels = values;
+    }
+
+    public String getMorphLabel(int paramIndex) {
+        if (paramIndex < 0 || paramIndex > 7) {
+            throw new IllegalArgumentException("Invalid param index: " + paramIndex);
+        }
+        if (morphLabels != null) {
+            for (FieldValues f : Protocol.MorphLabels.Labels.subfieldsValueRequired(morphLabels)) {
+                if (paramIndex + 8 == Protocol.MorphLabel.Entry.intValueRequired(f)) {
+                    return Protocol.MorphLabel.Label.stringValueRequired(f);
+                }
+            }
+        }
+        return MORPH_LABELS[paramIndex];
+    }
+
+    public String getModuleLabel(int paramIndex) {
+        if (params == null) { throw new UnsupportedOperationException("getModuleLabel: no params"); }
+        if (paramIndex < 0 || paramIndex >= params.size()) {
+            throw new IllegalArgumentException("Invalid param index: " + paramIndex);
+        }
+        if (userLabels != null) {
+            for (FieldValues f : userLabels) {
+                if (paramIndex == Protocol.ParamLabel.ParamIndex.intValueRequired(f)) {
+                    return Protocol.ParamLabel.Label.stringValueRequired(f);
+                }
+            }
+        }
+        //TODO!!! what about ModuleType.M_Sw8_1 and other multi-label params???
+        NamedParam p = params.get(paramIndex);
+        return (!p.labels().isEmpty() ? p.labels().getFirst() : null);
     }
 }

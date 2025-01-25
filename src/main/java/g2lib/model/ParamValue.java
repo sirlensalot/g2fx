@@ -13,10 +13,6 @@ public class ParamValue {
         this.value = param.param().def;
     }
 
-    public ParamValue(ModParam param) {
-        this(new NamedParam(param));
-    }
-
     public void setValue(int value) {
         this.value = value;
     }

@@ -19,7 +19,10 @@ public class PatchArea {
 
     public PatchArea() {
         this.id = AreaId.Settings;
-        Arrays.stream(SettingsModules.values()).forEach(PatchModule::new);
+        Arrays.stream(SettingsModules.values()).forEach(sm -> {
+            PatchModule m = new PatchModule(sm);
+            modules.put(m.getIndex(),m);
+        });
     }
 
     public void addModules(FieldValues modListFvs) {
@@ -39,6 +42,10 @@ public class PatchArea {
         PatchModule m = getModule(index);
         if (m != null) return m;
         throw new IllegalArgumentException("No such module: " + index);
+    }
+
+    public PatchModule getSettingsModule(SettingsModules m) {
+        return getModuleRequired(m.ordinal());
     }
 
     public void setUserModuleParams(FieldValues moduleParams) {
@@ -62,5 +69,23 @@ public class PatchArea {
 
     public List<PatchCable> getCables() {
         return cables;
+    }
+
+    public void setModuleLabels(FieldValues fv) {
+        Protocol.ModuleLabels.ModLabels.subfieldsValueRequired(fv).forEach(ml -> {
+            getModuleRequired(Protocol.ModuleLabel.ModuleIndex.intValueRequired(ml))
+                    .setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValueRequired(ml));
+        });
+    }
+
+    public void setModuleNames(FieldValues fv) {
+        Protocol.ModuleNames.Names.subfieldsValueRequired(fv).forEach(mn -> {
+            getModuleRequired(Protocol.ModuleName.ModuleIndex.intValueRequired(mn))
+                            .setModuleName(mn);
+        });
+    }
+
+    public void setMorphLabels(FieldValues values) {
+        getSettingsModule(SettingsModules.MorphModes).setMorphLabels(values);
     }
 }

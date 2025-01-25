@@ -6,6 +6,7 @@ import g2lib.Util;
 import g2lib.model.*;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
+import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
 
@@ -97,6 +98,9 @@ public class Patch {
     private final PatchArea voiceArea = new PatchArea(AreaId.Voice);
     private final PatchArea fxArea = new PatchArea(AreaId.Fx);
     private final PatchArea settingsArea = new PatchArea();
+    private KnobAssignments knobs;
+    private ControlAssignments controls;
+    private MorphParameters morphParams;
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
@@ -221,7 +225,7 @@ public class Patch {
         setModuleLabels(fv, gp.fxArea);
 
         fv = getSectionValues(Sections.SMorphParameters);
-        List<FieldValues> vms = MorphParameters.VarMorphs.subfieldsValueRequired(fv);
+        List<FieldValues> vms = Protocol.MorphParameters.VarMorphs.subfieldsValueRequired(fv);
         for (FieldValues vm : vms) {
             int v = VarMorph.Variation.intValueRequired(vm);
             List<FieldValues> vmps = VarMorph.VarMorphParams.subfieldsValueRequired(vm);
@@ -235,7 +239,7 @@ public class Patch {
         }
 
         fv = getSectionValues(Sections.SKnobAssignments);
-        List<FieldValues> kas = KnobAssignments.KnobsPatch.subfieldsValueRequired(fv);
+        List<FieldValues> kas = Protocol.KnobAssignments.KnobsPatch.subfieldsValueRequired(fv);
         for (FieldValues ka : kas) {
             if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
                 List<FieldValues> kps = KnobAssignment.ParamsPatch.subfieldsValueRequired(ka);
@@ -249,7 +253,7 @@ public class Patch {
         }
 
         fv = getSectionValues(Sections.SControlAssignments);
-        List<FieldValues> cas = ControlAssignments.Assignments.subfieldsValueRequired(fv);
+        List<FieldValues> cas = Protocol.ControlAssignments.Assignments.subfieldsValueRequired(fv);
         for (FieldValues ca : cas) {
             ParamModule m = gp.getArea(ControlAssignment.Location.intValueRequired(ca))
                     .getModuleRequired(ControlAssignment.Index.intValueRequired(ca));
@@ -506,10 +510,19 @@ public class Patch {
             case SModuleList1 -> voiceArea.addModules(section.values);
             case SModuleParams0 -> fxArea.setUserModuleParams(section.values);
             case SModuleParams1 -> voiceArea.setUserModuleParams(section.values);
+            case SModuleLabels0 -> fxArea.setModuleLabels(section.values);
+            case SModuleLabels1 -> voiceArea.setModuleLabels(section.values);
+            case SModuleNames0 -> fxArea.setModuleNames(section.values);
+            case SModuleNames1 -> voiceArea.setModuleNames(section.values);
             case SCableList0 -> fxArea.addCables(section.values);
             case SCableList1 -> voiceArea.addCables(section.values);
+            case SMorphLabels -> settingsArea.setMorphLabels(section.values);
+            case SKnobAssignments -> this.knobs = new KnobAssignments(section.values);
+            case SControlAssignments -> this.controls = new ControlAssignments(section.values);
+            case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
         }
     }
+
 
     public void readSectionMessage(ByteBuffer buf, Sections s) {
         readMessageHeader(buf);

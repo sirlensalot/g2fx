@@ -456,7 +456,7 @@ class ProtocolTest {
         List<FieldValues> modes;
 
         //Util.dumpBuffer(b2);
-        module = mods.get(0);
+        module = mods.getFirst();
         assertFieldEquals(module,0x5c, UserModule.Id); //filter classic
         assertFieldEquals(module,0x01, UserModule.Index);
         assertFieldEquals(module,0x00, UserModule.Horiz);
@@ -800,7 +800,7 @@ class ProtocolTest {
     void readPerformanceSettings() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
         Performance perf = new Performance((byte) 0).readFromMessage(buf);
-        System.out.println("name: " + perf.getPerfName());
+        System.out.println("name: " + perf.getName());
         System.out.println("settings: " + perf.getPerfSettings());
     }
 
