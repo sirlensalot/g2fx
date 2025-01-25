@@ -3,20 +3,15 @@ package g2lib.state;
 import g2lib.BitBuffer;
 import g2lib.CRC16;
 import g2lib.Util;
-import g2lib.model.*;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
-import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
-
-import static g2lib.protocol.Protocol.*;
 
 public class Patch {
 
@@ -87,7 +82,6 @@ public class Patch {
     };
 
     public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
-    public String text;
     public String name;
     public int slot = -1;
     public int version = -1;
@@ -120,20 +114,6 @@ public class Patch {
         return patch;
     }
 
-    private FieldValues getVarValues(int variation,List<FieldValues> fvs) {
-        if (variation >= fvs.size()) {
-            throw new IllegalArgumentException("Invalid/missing variation: " + variation);
-        }
-        return fvs.get(variation);
-    }
-
-
-    private FieldValues getMorphValues(int morph,List<FieldValues> fvs) {
-        if (morph >= fvs.size()) {
-            throw new IllegalArgumentException("Invalid/missing morph: " + morph);
-        }
-        return fvs.get(morph);
-    }
 
     public PatchArea getArea(int index) {
         return switch (index) {
@@ -144,220 +124,12 @@ public class Patch {
         };
     }
 
-    public G2Patch toPatch() {
-        G2Patch gp = new G2Patch("Untitled");
-        FieldValues fv = getSectionValues(Sections.SPatchDescription);
-        patchSettings = new PatchSettings(fv); //TODO maybe do this at read time
-
-        fv = getSectionValues(Sections.SPatchParams);
-        int vc = PatchParams.VariationCount.intValueRequired(fv);
-        List<FieldValues> morphs = PatchParams.Morphs.subfieldsValueRequired(fv);
-        List<FieldValues> volMuteds = PatchParams.SectionGain.subfieldsValueRequired(fv);
-        List<FieldValues> glides = PatchParams.SectionGlides.subfieldsValueRequired(fv);
-        List<FieldValues> bends = PatchParams.SectionBends.subfieldsValueRequired(fv);
-        List<FieldValues> vibratos = PatchParams.SectionVibratos.subfieldsValueRequired(fv);
-        List<FieldValues> arps = PatchParams.SectionArps.subfieldsValueRequired(fv);
-        List<FieldValues> octSustains = PatchParams.SectionMisc.subfieldsValueRequired(fv);
-
-        for (int v = 0; v < vc; v++) {
-
-            FieldValues morph = getVarValues(v, morphs);
-            List<FieldValues> dials = MorphSettings.Dials.subfieldsValueRequired(morph);
-            gp.getSettingsModule(SettingsModules.MorphDials).setParams
-                    (v,dials.stream().map(Data7.Datum::intValueRequired).toList());
-            List<FieldValues> modes = MorphSettings.Modes.subfieldsValueRequired(morph);
-            gp.getSettingsModule(SettingsModules.MorphModes).setParams
-                    (v,modes.stream().map(Data7.Datum::intValueRequired).toList());
-
-            FieldValues ss = getVarValues(v, volMuteds);
-            gp.getSettingsModule(SettingsModules.Gain).setParams(v,List.of(
-                    GainSettings.PatchVol.intValueRequired(ss),
-                    GainSettings.ActiveMuted.intValueRequired(ss)));
-
-            ss = getVarValues(v,glides);
-            gp.getSettingsModule(SettingsModules.Glide).setParams(v,List.of(
-                    GlideSettings.Glide.intValueRequired(ss),
-                    GlideSettings.GlideTime.intValueRequired(ss)));
-
-            ss = getVarValues(v,bends);
-            gp.getSettingsModule(SettingsModules.Bend).setParams(v,List.of(
-                    BendSettings.Bend.intValueRequired(ss),
-                    BendSettings.Semi.intValueRequired(ss)));
-
-            ss = getVarValues(v,vibratos);
-            gp.getSettingsModule(SettingsModules.Vibrato).setParams(v,List.of(
-                    VibratoSettings.Vibrato.intValueRequired(ss),
-                    VibratoSettings.Cents.intValueRequired(ss),
-                    VibratoSettings.Rate.intValueRequired(ss)));
-
-            ss = getVarValues(v,arps);
-            gp.getSettingsModule(SettingsModules.Arpeggiator).setParams(v,List.of(
-                    ArpSettings.Arpeggiator.intValueRequired(ss),
-                    ArpSettings.Time.intValueRequired(ss),
-                    ArpSettings.Octaves.intValueRequired(ss),
-                    ArpSettings.Type.intValueRequired(ss)));
-
-            ss = getVarValues(v,octSustains);
-            gp.getSettingsModule(SettingsModules.Misc).setParams(v,List.of(
-                    OctSustainSettings.OctShift.intValueRequired(ss),
-                    OctSustainSettings.Sustain.intValueRequired(ss)));
-
-        }
-
-        fv = getSectionValues(Sections.SModuleList1);
-        addModules(fv,gp.voiceArea);
-        fv = getSectionValues(Sections.SModuleList0);
-        addModules(fv,gp.fxArea);
-
-        fv = getSectionValues(Sections.SModuleParams1);
-        setModuleParams(fv, gp.voiceArea, vc);
-        fv = getSectionValues(Sections.SModuleParams0);
-        setModuleParams(fv, gp.fxArea, vc);
-
-        fv = getSectionValues(Sections.SModuleNames1);
-        setModuleNames(fv, gp.voiceArea);
-        fv = getSectionValues(Sections.SModuleNames0);
-        setModuleNames(fv, gp.fxArea);
-
-        fv = getSectionValues(Sections.SModuleLabels1);
-        setModuleLabels(fv, gp.voiceArea);
-        fv = getSectionValues(Sections.SModuleLabels0);
-        setModuleLabels(fv, gp.fxArea);
-
-        fv = getSectionValues(Sections.SMorphParameters);
-        List<FieldValues> vms = Protocol.MorphParameters.VarMorphs.subfieldsValueRequired(fv);
-        for (FieldValues vm : vms) {
-            int v = VarMorph.Variation.intValueRequired(vm);
-            List<FieldValues> vmps = VarMorph.VarMorphParams.subfieldsValueRequired(vm);
-            for (FieldValues vmp : vmps) {
-                G2PatchArea<G2Module> area = gp.getUserArea(VarMorphParam.Location.intValueRequired(vmp));
-                G2Module m = area.getModuleRequired(VarMorphParam.ModuleIndex.intValueRequired(vmp));
-                m.setMorph(v,VarMorphParam.ParamIndex.intValueRequired(vmp),
-                        VarMorphParam.Morph.intValueRequired(vmp),
-                        VarMorphParam.Range.intValueRequired(vmp));
-            }
-        }
-
-        fv = getSectionValues(Sections.SKnobAssignments);
-        List<FieldValues> kas = Protocol.KnobAssignments.KnobsPatch.subfieldsValueRequired(fv);
-        for (FieldValues ka : kas) {
-            if (KnobAssignment.Assigned.intValueRequired(ka) == 1) {
-                List<FieldValues> kps = KnobAssignment.ParamsPatch.subfieldsValueRequired(ka);
-                for (FieldValues kp : kps) {
-                    ParamModule m = gp.getArea(KnobParams.Location.intValueRequired(kp))
-                            .getModuleRequired(KnobParams.Index.intValueRequired(kp));
-                    m.assignKnob(KnobParams.Param.intValueRequired(kp),
-                            KnobParams.IsLed.intValueRequired(kp) == 1);
-                }
-            }
-        }
-
-        fv = getSectionValues(Sections.SControlAssignments);
-        List<FieldValues> cas = Protocol.ControlAssignments.Assignments.subfieldsValueRequired(fv);
-        for (FieldValues ca : cas) {
-            ParamModule m = gp.getArea(ControlAssignment.Location.intValueRequired(ca))
-                    .getModuleRequired(ControlAssignment.Index.intValueRequired(ca));
-            m.assignMidiControl(ControlAssignment.Param.intValueRequired(ca),
-                    ControlAssignment.MidiCC.intValueRequired(ca));
-        }
-
-        fv = getSectionValues(Sections.SMorphLabels);
-        List<FieldValues> ls = MorphLabels.Labels.subfieldsValueRequired(fv);
-        for (FieldValues l : ls) {
-            gp.getSettingsModule(SettingsModules.MorphModes).setParamLabel(
-                    MorphLabel.Entry.intValueRequired(l) - 8,
-                    MorphLabel.Label.stringValueRequired(l));
-        }
-
-        fv = getSectionValues(Sections.SCableList1);
-        setCables(fv, gp.voiceArea);
-        fv = getSectionValues(Sections.SCableList0);
-        setCables(fv, gp.fxArea);
-
-        Section tps = getSection(Sections.STextPad);
-        if (tps != null) {
-            gp.setTextPad(TextPad.Text.stringValueRequired(tps.values()));
-        }
-
-        return gp;
-    }
-
     private FieldValues getSectionValues(Sections ss) {
         Section s = getSection(ss);
         if (s == null) {
             throw new IllegalArgumentException("Section not found: " + ss);
         }
         return s.values();
-    }
-
-    private static void setCables(FieldValues fv, G2PatchArea<G2Module> area) {
-        List<FieldValues> cs = CableList.Cables.subfieldsValueRequired(fv);
-        for (FieldValues c : cs) {
-            G2Module srcMod = area.getModuleRequired(Cable.SrcModule.intValueRequired(c));
-            G2Module destMod = area.getModuleRequired(Cable.DestModule.intValueRequired(c));
-            int direction = Cable.Direction.intValueRequired(c);
-            int srci = Cable.SrcConn.intValueRequired(c);
-            Connector src = direction == 1 ? srcMod.getOutPort(srci) : srcMod.getInPort(srci);
-            Connector dest = destMod.getInPort(Cable.DestConn.intValueRequired(c));
-            G2Cable cable = new G2Cable(srcMod, src, destMod, dest,
-                    direction,
-                    Cable.Color.intValueRequired(c));
-            area.addCable(cable);
-        }
-    }
-
-    private static void setModuleLabels(FieldValues fv, G2PatchArea<G2Module> area) {
-        List<FieldValues> mls = ModuleLabels.ModLabels.subfieldsValueRequired(fv);
-        for (FieldValues ml : mls) {
-            G2Module m = area.getModuleRequired(ModuleLabel.ModuleIndex.intValueRequired(ml));
-            List<FieldValues> ls = ModuleLabel.Labels.subfieldsValueRequired(ml);
-            for (FieldValues l : ls) {
-                m.setParamLabel(ParamLabel.ParamIndex.intValueRequired(l),
-                        ParamLabel.Label.stringValueRequired(l));
-            }
-        }
-    }
-
-    private static void setModuleNames(FieldValues fv, G2PatchArea<G2Module> area) {
-        List<FieldValues> mns = ModuleNames.Names.subfieldsValueRequired(fv);
-        for (FieldValues mn : mns) {
-            G2Module m = area.getModuleRequired(ModuleName.ModuleIndex.intValueRequired(mn));
-            m.setName(ModuleName.Name.stringValueRequired(mn));
-        }
-    }
-
-    private void setModuleParams(FieldValues fv, G2PatchArea<G2Module> area, int vc) {
-        List<FieldValues> pss = ModuleParams.ParamSet.subfieldsValueRequired(fv);
-        for (FieldValues ps : pss) {
-            int mi = ModuleParamSet.ModIndex.intValueRequired(ps);
-            List<FieldValues> vps = ModuleParamSet.ModParams.subfieldsValueRequired(ps);
-            G2Module m = area.getModuleRequired(mi);
-            for (int v = 0; v < vc; v++) {
-                FieldValues vp = getVarValues(v, vps);
-                List<FieldValues> mps = VarParams.Params.subfieldsValueRequired(vp);
-                m.setParams(v,
-                        mps.stream().map(Data7.Datum::intValueRequired).toList());
-            }
-        }
-    }
-
-    private static void addModules(FieldValues fv, G2PatchArea<G2Module> area) {
-        List<FieldValues> mods = ModuleList.Modules.subfieldsValueRequired(fv);
-        for (FieldValues mod : mods) {
-            int ix = UserModule.Index.intValueRequired(mod);
-            ModuleType type = ModuleType.getById(UserModule.Id.intValueRequired(mod));
-            G2Module gm = new G2Module(type,ix);
-            gm.horiz = UserModule.Horiz.intValueRequired(mod);
-            gm.vert = UserModule.Vert.intValueRequired(mod);
-            gm.color = UserModule.Color.intValueRequired(mod);
-            gm.uprate = UserModule.Uprate.intValueRequired(mod);
-            gm.leds = UserModule.Leds.intValueRequired(mod) == 1;
-            List<FieldValues> modes = UserModule.Modes.subfieldsValueRequired(mod);
-            for (int i = 0; i < modes.size(); i++) {
-                gm.setMode(i,ModuleModes.Data.intValueRequired(modes.get(i)));
-            }
-            area.addModule(gm);
-        }
     }
 
     public void readMessageHeader(ByteBuffer buf) {
