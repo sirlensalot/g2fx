@@ -792,15 +792,15 @@ class ProtocolTest {
         assertEquals(0x13, buf.get()); //entry list
         BitBuffer bb = new BitBuffer(buf.slice());
         FieldValues fvs = BankEntries.FIELDS.read(bb);
-        System.out.println(fvs);
+        //System.out.println(fvs);
     }
 
     @Test
     void readPerformanceSettingsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
         Performance perf = new Performance((byte) 0).readFromMessage(buf);
-        System.out.println("name: " + perf.getName());
-        System.out.println("settings: " + perf.getPerfSettings());
+        //System.out.println("name: " + perf.getName());
+        //System.out.println("settings: " + perf.getPerfSettings());
     }
 
     @Test

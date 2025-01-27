@@ -26,6 +26,10 @@ public class UsbReadThread implements Runnable {
     public final AtomicInteger recd = new AtomicInteger(0);
     public final LinkedBlockingQueue<UsbMessage> q = new LinkedBlockingQueue<>();
 
+    public void stop() {
+        go.set(false);
+    }
+
     public interface MsgP extends Predicate<UsbMessage> {
 
     }

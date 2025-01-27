@@ -2,6 +2,7 @@ package g2lib;
 
 import g2lib.protocol.Sections;
 import g2lib.state.Patch;
+import g2lib.usb.UsbMessage;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -72,6 +73,13 @@ public class Util {
         }
         buffer.position(pos);
         return output.toString();
+    }
+
+
+    public static UsbMessage writeMsg(String name, UsbMessage m) {
+        if (m == null) { return null; }
+        Util.writeBuffer(m.buffer().rewind(), String.format("msg_%s_%x.msg",name,m.crc()));
+        return m;
     }
 
     public static int b2i(byte b) {

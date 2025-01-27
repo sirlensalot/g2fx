@@ -25,17 +25,6 @@ public class Performance {
 
     private final int version;
 
-    public static final Sections[] FILE_SECTIONS = new Sections[] {
-            Sections.SPerformanceSettings,
-            // patch descriptions TODO
-            Sections.SGlobalKnobAssignments
-    };
-
-    public static final Sections[] MSG_SECTIONS = new Sections[] {
-            Sections.SPerformanceName, // or special-case in readMsg since no length
-            Sections.SPerformanceSettings
-    };
-
     private FieldValues perfName;
     private PerformanceSettings perfSettings;
     private FieldValues globalKnobAssignments;

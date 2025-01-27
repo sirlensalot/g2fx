@@ -231,4 +231,8 @@ public class Device {
     public SynthSettings getSynthSettings() {
         return synthSettings;
     }
+
+    public void shutdown() {
+        readThread.stop();
+    }
 }
