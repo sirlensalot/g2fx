@@ -64,6 +64,7 @@ public class Performance {
             }
             perf.slots.put(s,patch);
         }
+        perf.globalKnobAssignments = readSection(fileBuffer,Sections.SGlobalKnobAssignments);
 
         return perf;
     }

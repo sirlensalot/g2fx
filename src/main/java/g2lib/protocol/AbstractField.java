@@ -13,7 +13,7 @@ public abstract class AbstractField implements Field {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof SizedField && ((SizedField) obj).enum_ == enum_;
+        return obj instanceof AbstractField && ((AbstractField) obj).enum_ == enum_;
     }
 
     @Override

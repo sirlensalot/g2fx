@@ -32,9 +32,10 @@ public interface Field {
         if (f.getFieldEnumClass() != getFieldEnumClass()) {
             throw new IllegalArgumentException(String.format("Field enum class mismatch: %s: %s", f, this));
         }
-        if (ordinal() + 1 != f.ordinal()) {
-            throw new IllegalArgumentException(String.format("Out of order: %s: %s", f, this));
-        }
+        // TODO ordinality is not universal so need different check in FieldValues.add
+//        if (ordinal() + 1 != f.ordinal()) {
+//            throw new IllegalArgumentException(String.format("Out of order: %s: %s", f, this));
+//        }
         return this;
     }
 

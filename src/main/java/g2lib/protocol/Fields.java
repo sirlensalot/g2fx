@@ -36,7 +36,7 @@ public class Fields {
     }
 
     public FieldValues init() {
-        return new FieldValues(fields.size());
+        return new FieldValues(fields.size(),this);
     }
 
     public FieldValues values(FieldValue... vs) {

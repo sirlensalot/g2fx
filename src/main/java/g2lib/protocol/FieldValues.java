@@ -1,15 +1,16 @@
 package g2lib.protocol;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 public class FieldValues {
     public final List<FieldValue> values;
+    private final Fields fields;
 
-    public FieldValues(int count) {
+    public FieldValues(int count, Fields fields) {
         this.values = new ArrayList<>(count);
+        this.fields = fields;
     }
 
     public FieldValues add(FieldValue v) {
@@ -61,5 +62,9 @@ public class FieldValues {
     @Override
     public int hashCode() {
         return values.hashCode();
+    }
+
+    public Fields getFields() {
+        return fields;
     }
 }
