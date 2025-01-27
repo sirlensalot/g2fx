@@ -1,6 +1,7 @@
 package g2lib.state;
 
 import g2lib.BitBuffer;
+import g2lib.CRC16;
 import g2lib.Util;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
@@ -10,7 +11,18 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static g2lib.state.Patch.fileHeader;
+import static g2lib.state.Patch.verifyFileHeader;
+
 public class Performance {
+
+    public static final ByteBuffer HEADER = fileHeader(86, new String[]{
+            "Version=Nord Modular G2 File Format 1",
+            "Type=Performance",
+            "Version=23",
+            "Info=BUILD 320"
+    });
+
     private final int version;
 
     public static final Sections[] FILE_SECTIONS = new Sections[] {
@@ -33,6 +45,29 @@ public class Performance {
         this.version = Util.b2i(version);
     }
 
+    public static Performance readFromFile(String filePath) throws Exception {
+        ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
+
+        ByteBuffer slice = fileBuffer.slice();
+        int crc = CRC16.crc16(slice,0,slice.limit()-2);
+
+        Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
+        Performance perf = new Performance(fileBuffer.get());
+        perf.perfSettings = new PerformanceSettings(
+                readSection(fileBuffer,Sections.SPerformanceSettings));
+        for (int s = 0; s < 4; s++) {
+            Patch patch = new Patch();
+            patch.version = 0; //TODO source?
+
+            for (Sections ss : Patch.FILE_SECTIONS) {
+                patch.readSection(fileBuffer,ss);
+            }
+            perf.slots.put(s,patch);
+        }
+
+        return perf;
+    }
+
     public Performance readFromMessage(ByteBuffer buf) {
         //String s = Util.dumpBufferString(buf);
         Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
@@ -41,14 +76,14 @@ public class Performance {
         Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
         BitBuffer bb = new BitBuffer(buf.slice());
         perfName = Protocol.EntryName.FIELDS.read(bb);
-        ByteBuffer buf1 = bb.slice();
-        Util.expectWarn(buf1,Sections.SPerformanceSettings.type, "Message","perf settings");
-        bb = BitBuffer.sliceAhead(buf1,Util.getShort(buf1));
         perfSettings = new PerformanceSettings(
-                Protocol.PerformanceSettings.FIELDS.read(bb));
+                readSection(bb.slice(),Sections.SPerformanceSettings));
         return this;
     }
 
+    private static FieldValues readSection(ByteBuffer buf, Sections s) {
+        return s.fields.read(Util.sliceSection(s,buf));
+    }
 
 
     public String getName() {

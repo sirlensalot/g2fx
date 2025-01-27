@@ -635,6 +635,7 @@ class ProtocolTest {
         ByteBuffer buf = Util.readFile(PATCHMSG_1);
         Patch p = Patch.readFromMessage(buf);
         assertEquals(9,p.slot);
+        assertEquals(0,p.version);
 
 
         FieldValues pd = PatchDescription.FIELDS.values(
@@ -795,11 +796,16 @@ class ProtocolTest {
     }
 
     @Test
-    void readPerformanceSettings() throws Exception {
+    void readPerformanceSettingsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
         Performance perf = new Performance((byte) 0).readFromMessage(buf);
         System.out.println("name: " + perf.getName());
         System.out.println("settings: " + perf.getPerfSettings());
+    }
+
+    @Test
+    void readPerformanceFile() throws Exception {
+        Performance perf = Performance.readFromFile("data/BassMonoStackDu.prf2");
     }
 
 }

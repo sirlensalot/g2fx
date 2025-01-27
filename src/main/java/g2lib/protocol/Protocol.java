@@ -341,8 +341,8 @@ public class Protocol {
     public enum KnobParams implements FieldEnum {
         Location(2),
         Index(8),
-        IsLed(7),
-        Param(4),
+        IsLed(2),
+        Param(7),
         Slot(2); // only used in performance knobs
         KnobParams(int size) { f = new SizedField(this,size); }
         private final Field f;

@@ -1,5 +1,6 @@
 package g2lib;
 
+import g2lib.protocol.Sections;
 import g2lib.state.Patch;
 
 import java.io.FileInputStream;
@@ -165,10 +166,10 @@ public class Util {
     }
 
 
-    public static BitBuffer sliceSection(int type, ByteBuffer buf) {
+    public static BitBuffer sliceSection(Sections s, ByteBuffer buf) {
         int t = buf.get();
-        if (t != type) {
-            throw new IllegalArgumentException(String.format("Section incorrect %x %x",type,t));
+        if (t != s.type) {
+            throw new IllegalArgumentException(String.format("Section incorrect %s %x %x",s,s.type,t));
         }
         return BitBuffer.sliceAhead(buf, getShort(buf));
     }

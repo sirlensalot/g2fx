@@ -17,14 +17,9 @@ public class Patch {
 
     private static final Logger log = Util.getLogger(Patch.class);
 
-    public static ByteBuffer patchHeader() {
-        ByteBuffer header = ByteBuffer.allocate(80);
-        for (String s : new String[]{
-                "Version=Nord Modular G2 File Format 1",
-                "Type=Patch",
-                "Version=23",
-                "Info=BUILD 320"
-        }) {
+    public static ByteBuffer fileHeader(int bufSize, String[] headerMsg) {
+        ByteBuffer header = ByteBuffer.allocate(bufSize);
+        for (String s : headerMsg) {
             for (char c : s.toCharArray()) {
                 header.put((byte) c);
             }
@@ -35,7 +30,12 @@ public class Patch {
         return header.asReadOnlyBuffer();
     }
 
-    public static final ByteBuffer HEADER = patchHeader();
+    public static final ByteBuffer HEADER = fileHeader(80, new String[]{
+            "Version=Nord Modular G2 File Format 1",
+            "Type=Patch",
+            "Version=23",
+            "Info=BUILD 320"
+    });
 
     public record Section(Sections sections, FieldValues values) {
 
@@ -156,19 +156,13 @@ public class Patch {
     }
 
     public static Patch readFromFile(String filePath) throws Exception {
-        ByteBuffer fileBuffer = Util.readFile(filePath);
-        withSliceAhead(fileBuffer,HEADER.limit(),buf -> {
-            if (!HEADER.rewind().equals(buf.rewind())) {
-                throw new RuntimeException("Unexpected file header: " + Util.dumpBufferString(buf));
-            }
-            return true;
-        });
+        ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
         ByteBuffer slice = fileBuffer.slice();
         int crc = CRC16.crc16(slice,0,slice.limit()-2);
 
+        Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
         Patch patch = new Patch();
-        Util.expectWarn(fileBuffer,0x17,filePath,"header");
         patch.version = fileBuffer.get();
 
         for (Sections ss : FILE_SECTIONS) {
@@ -181,6 +175,17 @@ public class Patch {
         }
 
         return patch;
+    }
+
+    public static ByteBuffer verifyFileHeader(String filePath, ByteBuffer header) throws Exception {
+        ByteBuffer fileBuffer = Util.readFile(filePath);
+        withSliceAhead(fileBuffer, header.limit(), buf -> {
+            if (!header.rewind().equals(buf.rewind())) {
+                throw new RuntimeException("Unexpected file header: " + Util.dumpBufferString(buf));
+            }
+            return true;
+        });
+        return fileBuffer;
     }
 
 
@@ -251,7 +256,7 @@ public class Patch {
 
 
     public void readSection(ByteBuffer buf, Sections s) {
-        BitBuffer bb = Util.sliceSection(s.type,buf);
+        BitBuffer bb = Util.sliceSection(s,buf);
         //log.info(s + ": length " + bb.limit());
         readSectionSlice(bb, s);
     }
@@ -263,11 +268,7 @@ public class Patch {
                 throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc, s));
             }
         }
-        FieldValues fvs = s.fields.read(bb);
-//        log.info(String.format("Read: %s, len=%x, crc=%x: %s\n",s,bb.limit(),CRC16.crc16(bb.toBuffer()),
-//                Util.dumpBufferString(bb.toBuffer())));
-
-        updateSection(s, new Section(s, fvs));
+        updateSection(s, new Section(s, s.fields.read(bb)));
     }
 
     private void updateSection(Sections s, Section section) {
