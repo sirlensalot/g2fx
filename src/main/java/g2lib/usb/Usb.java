@@ -192,6 +192,17 @@ public class Usb {
                 version
         ),Util.asBytes(cdata)));
     }
+
+    public void shutdown() {
+
+        log.info("Releasing handle");
+        UsbService.retcode(LibUsb.releaseInterface(device.handle(),
+                UsbService.IFACE), "Unable to release interface");
+
+        log.info("Closing handle");
+        LibUsb.close(device.handle());
+
+    }
     /*
 S_SET_PARAM :
   begin

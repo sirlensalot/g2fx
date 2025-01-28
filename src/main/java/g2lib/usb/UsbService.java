@@ -1,7 +1,6 @@
 package g2lib.usb;
 
 
-import g2lib.Main;
 import g2lib.Util;
 import org.usb4java.*;
 
@@ -70,8 +69,9 @@ public class UsbService implements Runnable, HotplugCallback {
 
     public void start() { thread.start(); }
 
-    public void stop() {
+    public void stop() throws Exception {
         running = false;
+        thread.join();
     }
     @Override
     public void run() {

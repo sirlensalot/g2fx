@@ -30,7 +30,7 @@ public class Device {
         this.readThread = readThread;
     }
 
-    public static Map<Integer, Map<Integer, String>> readEntryList(Usb usb, UsbReadThread readThread, int entryCount, boolean patchOrPerf) throws InterruptedException {
+    public Map<Integer, Map<Integer, String>> readEntryList(int entryCount, boolean patchOrPerf) throws InterruptedException {
         Map<Integer, Map<Integer,String>> entries = new TreeMap<>();
         int bank = 0;
         int item = 0;
@@ -234,5 +234,9 @@ public class Device {
 
     public void shutdown() {
         readThread.stop();
+        try {
+            readThread.thread.join();
+        } catch (Exception ignored) {}
+        usb.shutdown();
     }
 }
