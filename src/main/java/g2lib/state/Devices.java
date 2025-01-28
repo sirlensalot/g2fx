@@ -49,10 +49,8 @@ public class Devices implements UsbService.UsbConnectionListener {
             return;
         }
         devices.put(ud.address(), d);
-        if (current == null) {
-            log.info("Setting current device to " + ud.address());
-            current = d;
-        }
+        log.info("Setting current device to " + ud.address());
+        current = d;
         listeners.forEach(l -> {
             try {
                 l.onDeviceInitialized(d);

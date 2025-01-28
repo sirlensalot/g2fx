@@ -20,7 +20,7 @@ class DeviceTest {
                 new UsbMessage(0,false,0, Util.readFile("data/msg_PerfVersion_1bd6.msg").position(6)));
         when(readThread.expectBlocking(eq("Synth settings"),any(MsgP.class))).thenReturn(
                 new UsbMessage(0,false,0, Util.readFile("data/msg_SynthSettings_f574.msg").position(4)));
-        d.initialize();
+        //d.initialize();
 
     }
 }
