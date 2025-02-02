@@ -2,6 +2,7 @@ package g2lib.state;
 
 import g2lib.Main;
 import g2lib.Util;
+import g2lib.repl.Repl;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbReadThread;
 import g2lib.usb.UsbService;
@@ -18,6 +19,7 @@ import java.util.logging.Logger;
 public class Devices implements UsbService.UsbConnectionListener {
 
     private static final Logger log = Util.getLogger(Devices.class);
+
 
     public interface DeviceListener {
         public void onDeviceInitialized(Device d) throws Exception;
@@ -90,5 +92,20 @@ public class Devices implements UsbService.UsbConnectionListener {
             latch.countDown();
         });
         latch.await();
+    }
+
+
+    public void loadFile(String path) {
+        if (current == null) {
+            log.info("Initializing offline device");
+            current = new Device();
+        }
+        try {
+            if (path.endsWith("prf2")) {
+                current.loadPerfFile(path);
+            }
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"File load failed",e);
+        }
     }
 }

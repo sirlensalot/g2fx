@@ -9,6 +9,7 @@ import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -28,6 +29,27 @@ public class Device {
     public Device(Usb usb, UsbReadThread readThread) {
         this.usb = usb;
         this.readThread = readThread;
+    }
+
+    public Device() {
+        this.usb = null;
+        this.readThread = null;
+    }
+
+    public void loadPerfFile(String filePath) throws Exception {
+        perf = Performance.readFromFile(filePath);
+        log.info("Loaded perf " + new File(filePath).getName());
+        if (online()) {
+            sendPerf();
+        }
+    }
+
+    private void sendPerf() throws Exception {
+        //TODO
+    }
+
+    public boolean online() {
+        return readThread != null && usb != null;
     }
 
     public Map<Integer, Map<Integer, String>> readEntryList(int entryCount, boolean patchOrPerf) throws InterruptedException {
@@ -233,10 +255,13 @@ public class Device {
     }
 
     public void shutdown() {
+        if (!online()) { return; }
         readThread.stop();
+
         try {
             readThread.thread.join();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         usb.shutdown();
     }
 }

@@ -4,6 +4,7 @@ import g2lib.Main;
 import g2lib.Util;
 import g2lib.state.Device;
 import g2lib.state.Devices;
+import org.jline.builtins.Completers;
 import org.jline.console.*;
 import org.jline.console.impl.ConsoleEngineImpl;
 import org.jline.console.impl.JlineCommandRegistry;
@@ -18,11 +19,12 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.widget.TailTipWidgets;
 
+import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,23 +32,48 @@ public class Repl implements Runnable {
 
     private static final Logger log = Util.getLogger(Repl.class);
 
-    private final ExecutorService executorService;
+    public static final Object QUIT_SENTINEL = new Object();
+
     private final CommandRegistry commandRegistry;
+
+    private final ExecutorService executorService;
     private final Devices devices;
     private final LineReader reader;
     private final Thread thread;
     private volatile boolean running = true;
 
+    public record Command(String cmd, CommandMethods methods, CmdDesc desc) { }
+
+    public static class InvalidCommandException extends RuntimeException {
+        private final CmdDesc desc;
+        public InvalidCommandException(CmdDesc desc,String msg) {
+            super(msg);
+            this.desc = desc;
+        }
+        public CmdDesc getDesc() { return desc; }
+    }
+
+    public static Command mkCmd(String cmd, BiFunction<CmdDesc, CommandInput, Object> method,
+                                final Completer completer, CmdDesc desc) {
+        return new Command(cmd, new CommandMethods(
+                i -> { return method.apply(desc,i); },
+                c -> List.of(completer)),desc);
+    }
+
+    public static CmdDesc cmdDesc(String desc,ArgDesc... args) {
+        return new CmdDesc(List.of(new AttributedString(desc)),List.of(args),Map.of());
+    }
+
+    public static ArgDesc argDesc(String argName, String... lines) {
+        return new ArgDesc(argName, Arrays.stream(lines).map(AttributedString::new).toList());
+    }
 
     public Repl(ExecutorService executorService,
                 Devices devices) throws Exception {
         this.executorService = executorService;
         this.devices = devices;
 
-        JlineCommandRegistry commandRegistry = new JlineCommandRegistry() {
-            //LOL an abstract class with no abstract methods!!!
-        };
-        final Completer completer = new Completer() {
+        final Completer listCompleter = new Completer() {
             private final Completer arg1 = new StringsCompleter("perf","patch");
             @Override
             public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
@@ -55,68 +82,78 @@ public class Repl implements Runnable {
                 }
             }
         };
-        commandRegistry.registerCommands(Map.of(
-                "list",new CommandMethods(this::list,c -> List.of(completer)),
-                "exit",new CommandMethods(this::exit,commandRegistry::defaultCompleter)
-                ));
-        this.commandRegistry = commandRegistry;
-
-
+        final List<Command> cmds = List.of(
+                mkCmd("exit",(c,i) -> QUIT_SENTINEL,NullCompleter.INSTANCE,
+                        cmdDesc("Exit program")),
+                mkCmd("list",Repl.this::list,listCompleter,
+                        cmdDesc("List bank or patch entries",
+                                argDesc("perfOrPatch","perf or patch"),
+                                argDesc("index","bank index"))),
+                mkCmd("file-load",Repl.this::fileLoad,new Completers.FileNameCompleter(),
+                        cmdDesc("Load perf or patch file",argDesc("file")))
+        );
+        commandRegistry = new JlineCommandRegistry(){{
+            Map<String, CommandMethods> methods = new HashMap<>();
+            cmds.forEach(c -> methods.put(c.cmd(),c.methods()));
+            registerCommands(methods);
+        }};
         reader = LineReaderBuilder.builder()
                 .terminal(TerminalBuilder.terminal())
                 .parser(new DefaultParser())
                 .completer(CommandRegistry.compileCompleters(commandRegistry))
                 .build();
         thread = new Thread(this);
-
-        TailTipWidgets tailTipWidgets =
-                new TailTipWidgets(reader,Map.of("list",new CmdDesc(
-                        List.of(new AttributedString("list perf or patch bank entries")),
-                        List.of(
-                                new ArgDesc("perfOrPatch",List.of(new AttributedString("perf or patch"))),
-                                new ArgDesc("index",List.of(new AttributedString("bank index")))),
-                        Map.of())));
-        tailTipWidgets.enable();
+        Map<String, CmdDesc> descs = new HashMap<>();
+        cmds.forEach(c -> descs.put(c.cmd(),c.desc()));
+        new TailTipWidgets(reader, descs).enable();
 
 
     }
 
-    private Object list(CommandInput input) {
-        List<String> words = new ArrayList<>(List.of(input.args()));
-        System.out.println(words);
-        if (words.size() != 2) {
-            input.terminal().writer().println("usage TODO");
-            return null;
+    private List<String> getArgs(CmdDesc desc, CommandInput input) {
+        List<String> args = new ArrayList<>(Arrays.stream(input.args()).filter(s -> !s.isEmpty()).toList());
+        if (args.size() != desc.getArgsDesc().size()) {
+            throw new InvalidCommandException(desc,"expected " + desc.getArgsDesc().size() + " arguments");
         }
+        return args;
+    }
+
+
+    private Object fileLoad(CmdDesc desc, CommandInput input) {
+        String path = getArgs(desc, input).getFirst();
+        if (!new File(path).isFile()) {
+            throw new InvalidCommandException(desc,"not a file");
+        }
+        executorService.execute(() -> {
+            devices.loadFile(path);
+        });
+        return 0;
+    }
+
+    private Object list(CmdDesc desc, CommandInput input) {
+        List<String> words = getArgs(desc,input);
         String type = words.removeFirst();
         try {
             final int bank = Integer.parseUnsignedInt(words.removeFirst());
             executorService.execute(() -> {
                 try {
                     if ("perf".equals(type)) {
-                        System.out.println("perf");
                         Map<Integer, Map<Integer, String>> perfs =
                                 devices.getCurrent().readEntryList(8, false);
                         Device.dumpEntries(false, perfs, bank);
                     } else if ("patch".equals(type)) {
-                        System.out.println("patch");
                         Map<Integer, Map<Integer, String>> patches =
                                 devices.getCurrent().readEntryList(32, true);
                         Device.dumpEntries(true, patches, bank);
                     }
                 } catch (Exception ignore) {
                 }
-
             });
         } catch (Exception e) {
-            System.out.println("Invalid bank");
+            throw new InvalidCommandException(desc,"Invalid entry index");
         }
 
         return "Success";
-    }
-
-    private Object exit(CommandInput commandInput) {
-        return this;
     }
 
     public PrintWriter getWriter() {
@@ -151,7 +188,7 @@ public class Repl implements Runnable {
             if (ws.isEmpty()) continue;
             String cmd = ws.removeFirst();
             if (!commandRegistry.hasCommand(cmd)) {
-                reader.getTerminal().writer().println("Invalid command");
+                reader.getTerminal().writer().println("Invalid command: " + cmd);
                 continue;
             }
             try {
@@ -159,7 +196,7 @@ public class Repl implements Runnable {
                         new CommandRegistry.CommandSession(reader.getTerminal()),
                         cmd,
                         ws.toArray());
-                if (result == this) { // this is sentinel for exit
+                if (result == QUIT_SENTINEL) {
                     reader.getTerminal().writer().println("Exiting");
                     return;
                 }
