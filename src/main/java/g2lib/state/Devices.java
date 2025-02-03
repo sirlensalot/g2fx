@@ -31,8 +31,8 @@ public class Devices implements UsbService.UsbConnectionListener {
     private final Map<Integer, Device> devices = new HashMap<>();
     private Device current;
 
-    public Devices(ExecutorService executorService) {
-        this.executorService = executorService;
+    public Devices() {
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     public void addListener(DeviceListener listener) {
