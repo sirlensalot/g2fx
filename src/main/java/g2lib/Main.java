@@ -5,6 +5,7 @@ import g2lib.state.Device;
 import g2lib.state.Devices;
 import g2lib.usb.UsbService;
 
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -64,7 +65,7 @@ public class Main {
             devices.addListener(d -> {
                 // on devices thread, so can directly fire off stuff
                 Map<Integer, Map<Integer, String>> perfs = d.readEntryList(8, false);
-                Device.dumpEntries(false,perfs,0);
+                Device.dumpEntries(new PrintWriter(System.out),false,perfs,0);
                 deviceInitialized.countDown();
             });
         }
