@@ -43,10 +43,10 @@ public class PerformanceSettings {
         fvs.update(Protocol.PerformanceSettings.MasterClockRun.value(value));
     }
 
-    public SlotSettings getSlotSettings(int slot) {
+    public SlotSettings getSlotSettings(Performance.Slot slot) {
         return new SlotSettings(
                 Protocol.PerformanceSettings.Slots.subfieldsValueRequired(fvs)
-                        .get(slot));
+                        .get(slot.ordinal()));
     }
     
 

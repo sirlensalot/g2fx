@@ -5,6 +5,7 @@ import g2lib.Util;
 import g2lib.state.AreaId;
 import g2lib.state.Device;
 import g2lib.state.Devices;
+import g2lib.state.Performance;
 import org.jline.builtins.Completers;
 import org.jline.console.*;
 import org.jline.console.impl.JlineCommandRegistry;
@@ -19,9 +20,6 @@ import org.jline.widget.TailTipWidgets;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,8 +31,6 @@ public class Repl implements Runnable {
     public static final Object QUIT_SENTINEL = new Object();
 
     private final CommandRegistry commandRegistry;
-
-    private final ExecutorService executorService;
     private final Devices devices;
     private final LineReader reader;
     private final Thread thread;
@@ -43,8 +39,9 @@ public class Repl implements Runnable {
     public record Command(String cmd, CommandMethods methods, CmdDesc desc) { }
 
     public record NamedIndex(int index, String name) { }
-    public record Path(String device, String perf, NamedIndex slot, Integer variation, AreaId area, NamedIndex module, NamedIndex param) {
-    }
+    public record SlotPatch(Performance.Slot slot,String name) { }
+    public record Path(String device, String perf, SlotPatch slot, Integer variation,
+                       AreaId area, NamedIndex module, NamedIndex param) { }
 
     private Path path = null;
 
@@ -72,9 +69,7 @@ public class Repl implements Runnable {
         return new ArgDesc(argName, Arrays.stream(lines).map(AttributedString::new).toList());
     }
 
-    public Repl(ExecutorService executorService,
-                Devices devices) throws Exception {
-        this.executorService = executorService;
+    public Repl(Devices devices) throws Exception {
         this.devices = devices;
 
         final Completer listCompleter = new Completer() {
@@ -95,7 +90,15 @@ public class Repl implements Runnable {
                                 argDesc("index","bank index: 1-8 for perfs, 1-32 for patches"))),
                 mkCmd("file-load",Repl.this::fileLoad,new Completers.FileNameCompleter(),
                         cmdDesc("Load perf or patch file",
-                                argDesc("file","File ending in .pch2 or .prf2")))
+                                argDesc("file","File ending in .pch2 or .prf2"))),
+                mkCmd("voice",(c,i) -> area(c,i,AreaId.Voice),NullCompleter.INSTANCE,
+                        cmdDesc("Switch to voice area")),
+                mkCmd("fx",(c,i) -> area(c,i,AreaId.Fx),NullCompleter.INSTANCE,
+                        cmdDesc("Switch to FX area")),
+                mkCmd("slot",Repl.this::slot,new StringsCompleter(
+                        Arrays.stream(Performance.Slot.values()).map(s -> s.toString().toLowerCase()).toList()),
+                        cmdDesc("Set current slot",argDesc("slot","a-d")))
+
         );
         commandRegistry = new JlineCommandRegistry(){{
             Map<String, CommandMethods> methods = new HashMap<>();
@@ -112,8 +115,21 @@ public class Repl implements Runnable {
         Map<String, CmdDesc> descs = new HashMap<>();
         cmds.forEach(c -> descs.put(c.cmd(),c.desc()));
         new TailTipWidgets(reader, descs).enable();
+    }
 
+    private Object slot(CmdDesc desc, CommandInput input) {
+        Performance.Slot s = Performance.Slot.fromAlpha(getArgs(desc,input).getFirst());
+        if (path == null || path.perf() == null) { throw new InvalidCommandException(desc,"No current performance"); }
+        SlotPatch sp = devices.invoke(() -> devices.getSlotPatch(s));
+        path = new Path(path.device(), path.perf(),
+                sp, path.variation(), path.area(), path.module(), path.param());
+        return 1;
+    }
 
+    private Object area(CmdDesc c, CommandInput i, AreaId areaId) {
+        if (path == null || path.slot() == null) { throw new InvalidCommandException(c,"No current patch"); }
+        path = new Path(path.device(), path.perf(), path.slot(), path.variation(), areaId, path.module(), path.param());
+        return 1;
     }
 
     private List<String> getArgs(CmdDesc desc, CommandInput input) {
@@ -133,19 +149,7 @@ public class Repl implements Runnable {
         if (!(path.endsWith("prf2") || path.endsWith("pch2"))) {
             throw new InvalidCommandException(desc,"Not a G2 file");
         }
-        CountDownLatch l = new CountDownLatch(1);
-        AtomicReference<Path> p = new AtomicReference<>(null);
-        executorService.execute(() -> {
-            try {
-                p.set(devices.loadFile(path));
-            } finally {
-                l.countDown();
-            }
-        });
-        try {
-            l.await();
-        } catch (InterruptedException ignore) {}
-        this.path = p.get();
+        this.path = devices.invoke(() -> devices.loadFile(path));
         return 0;
     }
 
@@ -153,23 +157,20 @@ public class Repl implements Runnable {
         List<String> words = getArgs(desc,input);
         String type = words.removeFirst();
         try {
-            final int bank = Integer.parseUnsignedInt(words.removeFirst());
-            executorService.execute(() -> {
+            int bank = Integer.parseUnsignedInt(words.removeFirst());
+            devices.execute(() -> {
                 if (!devices.online()) {
                     input.terminal().writer().println("Not online!");
                     return;
                 }
-                try {
-                    if ("perf".equals(type)) {
-                        Map<Integer, Map<Integer, String>> perfs =
-                                devices.getCurrent().readEntryList(8, false);
-                        Device.dumpEntries(false, perfs, bank);
-                    } else if ("patch".equals(type)) {
-                        Map<Integer, Map<Integer, String>> patches =
-                                devices.getCurrent().readEntryList(32, true);
-                        Device.dumpEntries(true, patches, bank);
-                    }
-                } catch (Exception ignore) {
+                if ("perf".equals(type)) {
+                    Map<Integer, Map<Integer, String>> perfs =
+                            devices.getCurrent().readEntryList(8, false);
+                    Device.dumpEntries(false, perfs, bank);
+                } else if ("patch".equals(type)) {
+                    Map<Integer, Map<Integer, String>> patches =
+                            devices.getCurrent().readEntryList(32, true);
+                    Device.dumpEntries(true, patches, bank);
                 }
             });
         } catch (Exception e) {
@@ -205,14 +206,11 @@ public class Repl implements Runnable {
     }
 
     private void updatePath() {
-        AtomicReference<Path> p = new AtomicReference<>(null);
-        CountDownLatch l = new CountDownLatch(1);
-        executorService.execute(() -> { p.set(devices.getCurrentPath()); l.countDown(); });
-        try {
-            l.await();
-        } catch (InterruptedException ignore) {}
-        Path pp = p.get();
-        if (this.path == null || this.path.device() == null || this.path.perf() == null) { this.path = pp; return; }
+        Path pp = devices.invoke(devices::getCurrentPath);
+        if (this.path == null || this.path.device() == null || this.path.perf() == null) {
+            System.out.println("overwrite");
+            this.path = pp;
+        }
     }
     private String getPrompt() {
         updatePath();
@@ -221,7 +219,7 @@ public class Repl implements Runnable {
         if (path.perf() != null) {
             s += ":" + path.perf();
             if (path.slot() != null) {
-                s += ":" + path.slot().name();
+                s += ":" + path.slot().name() + "[" + path.slot.slot() + "]";
                 if (path.variation() != null) {
                     s += ":v" + (path.variation() + 1);
                 }

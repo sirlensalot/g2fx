@@ -57,7 +57,7 @@ public class Main {
         CountDownLatch deviceInitialized = new CountDownLatch(1);
 
 
-        Repl repl = new Repl(executorService,devices);
+        Repl repl = new Repl(devices);
         repl.start();
 
         if (!repl.replEnabled()) {

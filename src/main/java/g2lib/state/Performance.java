@@ -23,13 +23,30 @@ public class Performance {
             "Info=BUILD 320"
     });
 
+    public enum Slot {
+        A,B,C,D;
+        private static final Map<Integer,Slot> LOOKUP = Map.of(0,A,1,B,2,C,3,D);
+        private static final Map<String,Slot> ALPHA = Map.of("A",A,"B",B,"C",C,"D",D);
+        public static Slot fromIndex(int i) {
+            Slot s = LOOKUP.get(i);
+            if (s != null) { return s; }
+            throw new IllegalArgumentException("Invalid slot: " + i);
+        }
+        public static Slot fromAlpha(String n) {
+            Slot s = ALPHA.get(n.toUpperCase());
+            if (s != null) { return s; }
+            throw new IllegalArgumentException("Invalid slot: " + s);
+        }
+
+    }
+
     private final int version;
 
     private FieldValues perfName;
     private String fileName;
     private PerformanceSettings perfSettings;
     private FieldValues globalKnobAssignments;
-    private Map<Integer,Patch> slots = new TreeMap<>();
+    private Map<Slot,Patch> slots = new TreeMap<>();
 
     public Performance(byte version) {
         this.version = Util.b2i(version);
@@ -45,7 +62,7 @@ public class Performance {
         Performance perf = new Performance(fileBuffer.get());
         perf.perfSettings = new PerformanceSettings(
                 readSection(fileBuffer,Sections.SPerformanceSettings));
-        for (int s = 0; s < 4; s++) {
+        for (Slot s : Slot.values()) {
             Patch patch = new Patch();
             patch.version = 0; //TODO source?
 
@@ -93,11 +110,20 @@ public class Performance {
         return perfSettings;
     }
 
-    public void setPatch(int slot, Patch patch) {
+    public void setPatch(Slot slot, Patch patch) {
         slots.put(slot,patch);
     }
 
-    public Patch getSlot(int slot) {
+    public Patch getSlot(Slot slot) {
         return slots.get(slot);
+    }
+
+    public Patch getSelectedPatch() {
+        if (perfSettings == null) { throw new IllegalStateException("Perf settings not initialized"); }
+        return getSlot(getSelectedSlot());
+    }
+
+    public Slot getSelectedSlot() {
+        return Slot.fromIndex(perfSettings.getSelectedSlot());
     }
 }

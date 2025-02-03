@@ -1,19 +1,15 @@
 package g2lib.state;
 
-import g2lib.Main;
 import g2lib.Util;
 import g2lib.repl.Repl;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbReadThread;
 import g2lib.usb.UsbService;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,10 +17,12 @@ public class Devices implements UsbService.UsbConnectionListener {
 
     private static final Logger log = Util.getLogger(Devices.class);
 
-
+    public interface ThrowingRunnable {
+        void run() throws Exception;
+    }
 
     public interface DeviceListener {
-        public void onDeviceInitialized(Device d) throws Exception;
+        void onDeviceInitialized(Device d) throws Exception;
     }
 
     public List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
@@ -104,6 +102,10 @@ public class Devices implements UsbService.UsbConnectionListener {
         return current.getPath();
     }
 
+    public Repl.SlotPatch getSlotPatch(Performance.Slot slot) {
+        return current != null ? current.getSlotPatch(slot) : null;
+    }
+
 
     public Repl.Path loadFile(String path) {
         if (current == null) {
@@ -121,5 +123,40 @@ public class Devices implements UsbService.UsbConnectionListener {
             log.log(Level.SEVERE,"File load failed",e);
         }
         return null;
+    }
+
+
+    private record FailableResult<R>(RuntimeException failure,R result) {
+        static <R> FailableResult<R> failed(RuntimeException e) { return new FailableResult<>(e,null); }
+        static <R> FailableResult<R> success(R r) { return new FailableResult<>(null,r); }
+        public R get() {
+            if (failure != null) { throw failure; }
+            return result;
+        }
+    }
+    public <V> V invoke(Callable<V> c) {
+        Future<FailableResult<V>> f = executorService.submit(() -> {
+            try {
+                return FailableResult.success(c.call());
+            } catch (RuntimeException e) {
+                return FailableResult.failed(e);
+            } catch (Exception e) {
+                return FailableResult.failed(new RuntimeException(e));
+            }
+        });
+        try {
+            return f.get().get();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to invoke callable",e);
+        }
+
+    }
+
+
+    public void execute(ThrowingRunnable r) {
+        invoke(() -> {
+            r.run();
+            return 1;
+        });
     }
 }

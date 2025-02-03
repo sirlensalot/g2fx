@@ -10,7 +10,6 @@ import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
 
-import javax.naming.Name;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -49,15 +48,6 @@ public class Device {
         return getPath();
     }
 
-    private Repl.NamedIndex getSlotIndex() {
-        int s = perf.getPerfSettings().getSelectedSlot();
-        String slot = switch (s) { case 0 -> "A"; case 1 -> "B"; case 2 -> "C";default -> "D"; };
-        return new Repl.NamedIndex(s,slot + "[" + perf.getPerfSettings().getSlotSettings(s).getPatchName() + "]");
-    }
-
-    private int getVariation() {
-        return perf.getSlot(perf.getPerfSettings().getSelectedSlot()).getPatchSettings().getVariation();
-    }
 
     private void sendPerf() throws Exception {
         //TODO
@@ -202,28 +192,28 @@ public class Device {
 
 
 
-        for (int slot = 0; slot < 4; slot++) {
+        for (Performance.Slot slot : Performance.Slot.values()) {
             readSlot(slot);
         }
 
 
     }
 
-    private void readSlot(final int slot) throws Exception {
-        final int slot8 = slot + 8;
+    private void readSlot(final Performance.Slot slot) throws Exception {
+        final int slot8 = slot.ordinal() + 8;
         //embedded: 82 01 0c 40 36 01 -- slot version
         Future<UsbMessage> future = readThread.expect("slot version " + slot,
-                m -> m.headx(0x01, 0x0c, 0x40, 0x36, slot));
+                m -> m.headx(0x01, 0x0c, 0x40, 0x36, slot.ordinal()));
         usb.sendSystemCmd("slot version " + slot
                 ,0x35 // Q_VERSION_CNT
-                , slot // slot index
+                , slot.ordinal() // slot index
         );
         byte fv = future.get().buffer().get();
 
         //extended: 01 09 00 21 -- patch description
         future = readThread.expect("slot patch " + slot,
                 m -> m.head(0x01, slot8, 0x00, 0x21));
-        usb.sendSlotRequest(slot,0,"slot patch" + slot,
+        usb.sendSlotRequest(slot.ordinal(),0,"slot patch" + slot,
                 0x3c // Q_PATCH
         );
         Patch patch = Patch.readFromMessage(future.get().buffer().rewind());
@@ -231,7 +221,7 @@ public class Device {
         //extended or embedded: 01 09 00 27 -- patch name, slot 1
         future = readThread.expect("slot name " + slot,
                 m -> m.headx(0x01, slot8, 0x00, 0x27));
-        usb.sendSlotRequest(slot,0,"slot name" + slot,
+        usb.sendSlotRequest(slot.ordinal(),0,"slot name" + slot,
                 0x28 // Q_PATCH_NAME
         );
         patch.readSectionSlice(new BitBuffer(future.get().buffer()),
@@ -240,7 +230,7 @@ public class Device {
         //extended: 01 09 00 69
         future = readThread.expect("slot note " + slot,
                 m -> m.head(0x01, slot8, 0x00, 0x69));
-        usb.sendSlotRequest(slot,0,"slot note" + slot,
+        usb.sendSlotRequest(slot.ordinal(),0,"slot note" + slot,
                 0x68 // Q_CURRENT_NOTE
         );
         patch.readSectionMessage(future.get(), Sections.SCurrentNote);
@@ -249,7 +239,7 @@ public class Device {
         //extended: 01 09 00 6f -- textpad, slot 1
         future = readThread.expect("slot text " + slot,
                 m -> m.headx(0x01, slot8, 0x00, 0x6f));
-        usb.sendSlotRequest(slot,0,"slot text " + slot,
+        usb.sendSlotRequest(slot.ordinal(),0,"slot text " + slot,
                 0x6e //Q_PATCH_TEXT
         );
         patch.readSectionMessage(future.get(), Sections.STextPad);
@@ -280,8 +270,22 @@ public class Device {
         usb.shutdown();
     }
 
+
+    public Repl.SlotPatch getSlotPatch (Performance.Slot s) {
+        return new Repl.SlotPatch(s,perf.getPerfSettings().getSlotSettings(s).getPatchName());
+    }
+
+    private int getVariation() {
+        return perf.getSelectedPatch().getPatchSettings().getVariation();
+    }
+
+    private Performance assertPerf() {
+        if (perf == null) { throw new IllegalStateException("No current performance"); }
+        return perf;
+    }
+
     public Repl.Path getPath() {
         return new Repl.Path(online() ? "online" : "offline",
-                perf.getName(),getSlotIndex(),getVariation(),AreaId.Voice,null,null);
+            assertPerf().getName(), getSlotPatch(assertPerf().getSelectedSlot()),getVariation(),AreaId.Voice,null,null);
     }
 }
