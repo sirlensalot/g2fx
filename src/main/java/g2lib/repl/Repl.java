@@ -2,6 +2,7 @@ package g2lib.repl;
 
 import g2lib.Main;
 import g2lib.Util;
+import g2lib.state.AreaId;
 import g2lib.state.Device;
 import g2lib.state.Devices;
 import org.jline.builtins.Completers;
@@ -18,7 +19,9 @@ import org.jline.widget.TailTipWidgets;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +41,12 @@ public class Repl implements Runnable {
     private volatile boolean running = true;
 
     public record Command(String cmd, CommandMethods methods, CmdDesc desc) { }
+
+    public record NamedIndex(int index, String name) { }
+    public record Path(String device, String perf, NamedIndex slot, Integer variation, AreaId area, NamedIndex module, NamedIndex param) {
+    }
+
+    private Path path = null;
 
     public static class InvalidCommandException extends RuntimeException {
         private final CmdDesc desc;
@@ -97,6 +106,7 @@ public class Repl implements Runnable {
                 .terminal(TerminalBuilder.terminal())
                 .parser(new DefaultParser())
                 .completer(CommandRegistry.compileCompleters(commandRegistry))
+                .variable(LineReader.HISTORY_FILE, ".g2lib-history")
                 .build();
         thread = new Thread(this);
         Map<String, CmdDesc> descs = new HashMap<>();
@@ -116,16 +126,26 @@ public class Repl implements Runnable {
 
 
     private Object fileLoad(CmdDesc desc, CommandInput input) {
-        String path = getArgs(desc, input).getFirst();
+        final String path = getArgs(desc, input).getFirst();
         if (!new File(path).isFile()) {
             throw new InvalidCommandException(desc,"not a file");
         }
         if (!(path.endsWith("prf2") || path.endsWith("pch2"))) {
             throw new InvalidCommandException(desc,"Not a G2 file");
         }
+        CountDownLatch l = new CountDownLatch(1);
+        AtomicReference<Path> p = new AtomicReference<>(null);
         executorService.execute(() -> {
-            devices.loadFile(path);
+            try {
+                p.set(devices.loadFile(path));
+            } finally {
+                l.countDown();
+            }
         });
+        try {
+            l.await();
+        } catch (InterruptedException ignore) {}
+        this.path = p.get();
         return 0;
     }
 
@@ -184,10 +204,40 @@ public class Repl implements Runnable {
         if (replEnabled()) thread.join();
     }
 
+    private void updatePath() {
+        AtomicReference<Path> p = new AtomicReference<>(null);
+        CountDownLatch l = new CountDownLatch(1);
+        executorService.execute(() -> { p.set(devices.getCurrentPath()); l.countDown(); });
+        try {
+            l.await();
+        } catch (InterruptedException ignore) {}
+        Path pp = p.get();
+        if (this.path == null || this.path.device() == null || this.path.perf() == null) { this.path = pp; return; }
+    }
+    private String getPrompt() {
+        updatePath();
+        if (path == null || path.device() == null) { return "offline> "; }
+        String s = path.device();
+        if (path.perf() != null) {
+            s += ":" + path.perf();
+            if (path.slot() != null) {
+                s += ":" + path.slot().name();
+                if (path.variation() != null) {
+                    s += ":v" + (path.variation() + 1);
+                }
+                if (path.area() != null) {
+                    s += ":" + path.area().name().toLowerCase();
+                    //TODO module, param
+                }
+            }
+        }
+        return s + "> ";
+    }
+
     public void run() {
         while (running) {
             try {
-                if (reader.readLine("> ").isEmpty()) continue;
+                if (reader.readLine(getPrompt()).isEmpty()) continue;
             } catch (EndOfFileException | UserInterruptException e) {
                 return;
             } catch (Exception e) {

@@ -26,6 +26,7 @@ public class Performance {
     private final int version;
 
     private FieldValues perfName;
+    private String fileName;
     private PerformanceSettings perfSettings;
     private FieldValues globalKnobAssignments;
     private Map<Integer,Patch> slots = new TreeMap<>();
@@ -77,11 +78,15 @@ public class Performance {
 
 
     public String getName() {
-        return Protocol.EntryName.Name.stringValueRequired(perfName);
+        return perfName == null ? fileName : Protocol.EntryName.Name.stringValueRequired(perfName);
     }
 
     public void setName(String name) {
         perfName.update(Protocol.EntryName.Name.value(name));
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public PerformanceSettings getPerfSettings() {
@@ -90,5 +95,9 @@ public class Performance {
 
     public void setPatch(int slot, Patch patch) {
         slots.put(slot,patch);
+    }
+
+    public Patch getSlot(int slot) {
+        return slots.get(slot);
     }
 }

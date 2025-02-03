@@ -7,6 +7,7 @@ import g2lib.usb.Usb;
 import g2lib.usb.UsbReadThread;
 import g2lib.usb.UsbService;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.logging.Logger;
 public class Devices implements UsbService.UsbConnectionListener {
 
     private static final Logger log = Util.getLogger(Devices.class);
+
 
 
     public interface DeviceListener {
@@ -97,14 +99,20 @@ public class Devices implements UsbService.UsbConnectionListener {
     }
 
 
-    public void loadFile(String path) {
+    public Repl.Path getCurrentPath() {
+        if (current == null) { return null; }
+        return current.getPath();
+    }
+
+
+    public Repl.Path loadFile(String path) {
         if (current == null) {
             log.info("Initializing offline device");
             current = new Device();
         }
         try {
             if (path.endsWith("prf2")) {
-                current.loadPerfFile(path);
+                return current.loadPerfFile(path);
             }
             if (path.endsWith("pch2")) {
                 throw new UnsupportedOperationException("Patch load TODO"); //TODO
@@ -112,5 +120,6 @@ public class Devices implements UsbService.UsbConnectionListener {
         } catch (Exception e) {
             log.log(Level.SEVERE,"File load failed",e);
         }
+        return null;
     }
 }

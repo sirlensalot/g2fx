@@ -5,10 +5,12 @@ import g2lib.protocol.Protocol;
 import g2lib.Util;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Sections;
+import g2lib.repl.Repl;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
 
+import javax.naming.Name;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -36,12 +38,25 @@ public class Device {
         this.readThread = null;
     }
 
-    public void loadPerfFile(String filePath) throws Exception {
+    public Repl.Path loadPerfFile(String filePath) throws Exception {
         perf = Performance.readFromFile(filePath);
-        log.info("Loaded perf " + new File(filePath).getName());
         if (online()) {
             sendPerf();
         }
+        String name = new File(filePath).getName();
+        String pn = name.substring(0, name.length() - 5);
+        perf.setFileName(pn);
+        return getPath();
+    }
+
+    private Repl.NamedIndex getSlotIndex() {
+        int s = perf.getPerfSettings().getSelectedSlot();
+        String slot = switch (s) { case 0 -> "A"; case 1 -> "B"; case 2 -> "C";default -> "D"; };
+        return new Repl.NamedIndex(s,slot + "[" + perf.getPerfSettings().getSlotSettings(s).getPatchName() + "]");
+    }
+
+    private int getVariation() {
+        return perf.getSlot(perf.getPerfSettings().getSelectedSlot()).getPatchSettings().getVariation();
     }
 
     private void sendPerf() throws Exception {
@@ -263,5 +278,10 @@ public class Device {
         } catch (Exception ignored) {
         }
         usb.shutdown();
+    }
+
+    public Repl.Path getPath() {
+        return new Repl.Path(online() ? "online" : "offline",
+                perf.getName(),getSlotIndex(),getVariation(),AreaId.Voice,null,null);
     }
 }

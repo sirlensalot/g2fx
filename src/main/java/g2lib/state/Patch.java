@@ -5,6 +5,7 @@ import g2lib.CRC16;
 import g2lib.Util;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
+import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
 
@@ -82,7 +83,7 @@ public class Patch {
     };
 
     public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
-    public String name;
+    private String name;
     public int slot = -1;
     public int version = -1;
 
@@ -293,6 +294,7 @@ public class Patch {
             case SKnobAssignments -> this.knobs = new KnobAssignments(section.values);
             case SControlAssignments -> this.controls = new ControlAssignments(section.values);
             case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
+            case SPatchName -> this.name = Protocol.EntryName.Name.stringValueRequired(section.values);
         }
     }
 
@@ -314,5 +316,7 @@ public class Patch {
         return patchSettings;
     }
 
-
+    public String getName() {
+        return name;
+    }
 }
