@@ -51,7 +51,7 @@ public class Devices implements UsbService.UsbConnectionListener {
             return;
         }
         devices.put(ud.address(), d);
-        log.info("Setting current device to " + ud.address());
+        log.fine("Setting current device to " + ud.address());
         current = d;
         listeners.forEach(l -> {
             try {
@@ -109,7 +109,7 @@ public class Devices implements UsbService.UsbConnectionListener {
 
     public Repl.Path loadFile(String path) {
         if (current == null) {
-            log.info("Initializing offline device");
+            log.fine("Initializing offline device");
             current = new Device();
         }
         try {

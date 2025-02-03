@@ -115,6 +115,15 @@ public class Repl implements Runnable {
         Map<String, CmdDesc> descs = new HashMap<>();
         cmds.forEach(c -> descs.put(c.cmd(),c.desc()));
         new TailTipWidgets(reader, descs).enable();
+        reader.getTerminal().writer().println("""
+                Welcome to the g2lib interactive repl!
+                     ___ _                \s
+                 ___|_  | |_ ___ ___ _____\s
+                | . |  _|  _| -_|  _|     |
+                |_  |___|_| |___|_| |_|_|_|
+                |___|                     \s
+                """);
+
     }
 
     private Object slot(CmdDesc desc, CommandInput input) {
@@ -127,6 +136,7 @@ public class Repl implements Runnable {
     }
 
     private Object area(CmdDesc c, CommandInput i, AreaId areaId) {
+        getArgs(c,i); //validate no args
         if (path == null || path.slot() == null) { throw new InvalidCommandException(c,"No current patch"); }
         path = new Path(path.device(), path.perf(), path.slot(), path.variation(), areaId, path.module(), path.param());
         return 1;
@@ -160,17 +170,17 @@ public class Repl implements Runnable {
             int bank = Integer.parseUnsignedInt(words.removeFirst());
             devices.execute(() -> {
                 if (!devices.online()) {
-                    input.terminal().writer().println("Not online!");
+                    getWriter().println("Not online!");
                     return;
                 }
                 if ("perf".equals(type)) {
                     Map<Integer, Map<Integer, String>> perfs =
                             devices.getCurrent().readEntryList(8, false);
-                    Device.dumpEntries(false, perfs, bank);
+                    Device.dumpEntries(getWriter(),false, perfs, bank);
                 } else if ("patch".equals(type)) {
                     Map<Integer, Map<Integer, String>> patches =
                             devices.getCurrent().readEntryList(32, true);
-                    Device.dumpEntries(true, patches, bank);
+                    Device.dumpEntries(getWriter(),true, patches, bank);
                 }
             });
         } catch (Exception e) {
@@ -208,7 +218,7 @@ public class Repl implements Runnable {
     private void updatePath() {
         Path pp = devices.invoke(devices::getCurrentPath);
         if (this.path == null || this.path.device() == null || this.path.perf() == null) {
-            System.out.println("overwrite");
+            log.fine("overwriting path");
             this.path = pp;
         }
     }

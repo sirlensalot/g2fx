@@ -11,6 +11,7 @@ import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -109,14 +110,14 @@ public class Device {
          */
     }
 
-    public static void dumpEntries(boolean patchOrPerf, Map<Integer, Map<Integer, String>> entries, Integer bank) {
+    public static void dumpEntries(PrintWriter writer, boolean patchOrPerf, Map<Integer, Map<Integer, String>> entries, Integer bank) {
         for (int b : entries.keySet()) {
             if (bank == null || b == bank) {
-                System.out.print(patchOrPerf ? "Patch" : "Perf");
-                System.out.println(" Bank " + b + ":");
+                writer.print(patchOrPerf ? "Patch" : "Perf");
+                writer.println(" Bank " + b + ":");
                 Map<Integer, String> es = entries.get(b);
                 for (int p : es.keySet()) {
-                    System.out.format("  %02d: %s\n", p, es.get(p));
+                    writer.format("  %02d: %s\n", p, es.get(p));
                 }
             }
         }

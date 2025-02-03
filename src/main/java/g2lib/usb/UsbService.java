@@ -83,7 +83,6 @@ public class UsbService implements Runnable, HotplugCallback {
     }
 
     public void addListener(UsbConnectionListener listener) {
-        log.info("addListener");
         listeners.add(listener);
     }
 
@@ -115,7 +114,7 @@ public class UsbService implements Runnable, HotplugCallback {
                             Object userData) {
         int address = LibUsb.getDeviceAddress(device);
         if (event == LibUsb.HOTPLUG_EVENT_DEVICE_ARRIVED) {
-            log.info("Device connected: " + address);
+            log.fine("Device connected: " + address);
             DeviceHandle handle = new DeviceHandle();
             retcode(LibUsb.open(device, handle), "Unable to acquire handle");
             retcode(LibUsb.claimInterface(handle, IFACE), "Unable to claim interface");
@@ -123,7 +122,7 @@ public class UsbService implements Runnable, HotplugCallback {
             devices.put(address, ud);
             listeners.forEach(l -> l.onConnectionEvent(ud,true));
         } else {
-            log.info("Device disconnected: " + address);
+            log.fine("Device disconnected: " + address);
             UsbDevice ud = devices.get(address);
             if (ud != null) {
                 listeners.forEach(l -> l.onConnectionEvent(ud, false));
