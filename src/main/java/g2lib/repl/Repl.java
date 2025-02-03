@@ -6,15 +6,11 @@ import g2lib.state.Device;
 import g2lib.state.Devices;
 import org.jline.builtins.Completers;
 import org.jline.console.*;
-import org.jline.console.impl.ConsoleEngineImpl;
 import org.jline.console.impl.JlineCommandRegistry;
 import org.jline.reader.*;
 import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
-import org.jline.reader.impl.completer.SystemCompleter;
-import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.widget.TailTipWidgets;
@@ -24,7 +20,6 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,10 +82,11 @@ public class Repl implements Runnable {
                         cmdDesc("Exit program")),
                 mkCmd("list",Repl.this::list,listCompleter,
                         cmdDesc("List bank or patch entries",
-                                argDesc("perfOrPatch","perf or patch"),
-                                argDesc("index","bank index"))),
+                                argDesc("perfOrPatch","'perf' or 'patch'"),
+                                argDesc("index","bank index: 1-8 for perfs, 1-32 for patches"))),
                 mkCmd("file-load",Repl.this::fileLoad,new Completers.FileNameCompleter(),
-                        cmdDesc("Load perf or patch file",argDesc("file")))
+                        cmdDesc("Load perf or patch file",
+                                argDesc("file","File ending in .pch2 or .prf2")))
         );
         commandRegistry = new JlineCommandRegistry(){{
             Map<String, CommandMethods> methods = new HashMap<>();
@@ -124,6 +120,9 @@ public class Repl implements Runnable {
         if (!new File(path).isFile()) {
             throw new InvalidCommandException(desc,"not a file");
         }
+        if (!(path.endsWith("prf2") || path.endsWith("pch2"))) {
+            throw new InvalidCommandException(desc,"Not a G2 file");
+        }
         executorService.execute(() -> {
             devices.loadFile(path);
         });
@@ -136,6 +135,10 @@ public class Repl implements Runnable {
         try {
             final int bank = Integer.parseUnsignedInt(words.removeFirst());
             executorService.execute(() -> {
+                if (!devices.online()) {
+                    input.terminal().writer().println("Not online!");
+                    return;
+                }
                 try {
                     if ("perf".equals(type)) {
                         Map<Integer, Map<Integer, String>> perfs =
@@ -183,7 +186,14 @@ public class Repl implements Runnable {
 
     public void run() {
         while (running) {
-            if (reader.readLine("> ").isEmpty()) continue;
+            try {
+                if (reader.readLine("> ").isEmpty()) continue;
+            } catch (EndOfFileException | UserInterruptException e) {
+                return;
+            } catch (Exception e) {
+                log.log(Level.SEVERE,"Error reading line",e);
+                continue;
+            }
             List<String> ws = new ArrayList<>(reader.getParsedLine().words());
             if (ws.isEmpty()) continue;
             String cmd = ws.removeFirst();
@@ -200,10 +210,30 @@ public class Repl implements Runnable {
                     reader.getTerminal().writer().println("Exiting");
                     return;
                 }
+            } catch (InvalidCommandException e) {
+                reader.getTerminal().writer().format("Invalid command: %s\nUsage: %s\n",
+                        e.getMessage(),
+                        usage(e.getDesc(),cmd)
+                        );
             } catch (Exception e) {
                 log.log(Level.SEVERE,"failure",e);
             }
 
         }
+    }
+
+    public static String usage(CmdDesc desc,String cmd) {
+        final StringBuilder s = new StringBuilder(cmd);
+        desc.getArgsDesc().forEach(d -> s.append(" ").append(d.getName()));
+        desc.getArgsDesc().forEach(d -> {
+            List<AttributedString> ad = d.getDescription();
+            if (!ad.isEmpty()) {
+                s.append(String.format("\n  %-16s %s", d.getName(), ad.getFirst().toAnsi()));
+                for (int i = 1; i < ad.size(); i++) {
+                    s.append(String.format("\n  %-16s %s"," ",ad.get(i).toAnsi()));
+                }
+            }
+        });
+        return s.toString();
     }
 }

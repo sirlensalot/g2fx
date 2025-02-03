@@ -73,6 +73,8 @@ public class Devices implements UsbService.UsbConnectionListener {
         return current;
     }
 
+    public boolean online() { return current != null && current.online(); }
+
     @Override
     public void onConnectionEvent(UsbService.UsbDevice device, boolean connected) {
         executorService.execute(() -> {
@@ -103,6 +105,9 @@ public class Devices implements UsbService.UsbConnectionListener {
         try {
             if (path.endsWith("prf2")) {
                 current.loadPerfFile(path);
+            }
+            if (path.endsWith("pch2")) {
+                throw new UnsupportedOperationException("Patch load TODO"); //TODO
             }
         } catch (Exception e) {
             log.log(Level.SEVERE,"File load failed",e);
