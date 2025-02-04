@@ -15,7 +15,7 @@ class DeviceTest {
     public void initialize() throws Exception {
         Usb usb = mock(Usb.class);
         UsbReadThread readThread = mock(UsbReadThread.class);
-        Device d = new Device(usb,readThread);
+        Device d = new Device(usb);
         when(readThread.expectBlocking(eq("perf version"),any(MsgP.class))).thenReturn(
                 new UsbMessage(0,false,0, Util.readFile("data/msg_PerfVersion_1bd6.msg").position(6)));
         when(readThread.expectBlocking(eq("Synth settings"),any(MsgP.class))).thenReturn(

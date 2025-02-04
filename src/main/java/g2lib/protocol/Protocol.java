@@ -639,7 +639,7 @@ public class Protocol {
         KeyboardRangeTo(8),
         Unknown(24);
         PerfSlot(int size) { f = new SizedField(this,size); }
-        PerfSlot() { f = new StringField(this); }
+        PerfSlot() { f = new StringField(this,15,true); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(PerfSlot.class,values());

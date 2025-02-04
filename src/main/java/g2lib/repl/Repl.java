@@ -239,6 +239,7 @@ public class Repl implements Runnable {
                 }
             }
         }
+        //System.out.println(Arrays.toString(s.chars().toArray()));
         return s + "> ";
     }
 

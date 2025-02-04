@@ -15,7 +15,7 @@ public class UsbReadThread implements Runnable {
 
     private final Usb usb;
     private final Logger log = Util.getLogger(UsbReadThread.class);
-    public final Thread thread;
+    private final Thread thread;
 
     public UsbReadThread(Usb usb) {
         this.usb = usb;
@@ -26,8 +26,13 @@ public class UsbReadThread implements Runnable {
     public final AtomicInteger recd = new AtomicInteger(0);
     public final LinkedBlockingQueue<UsbMessage> q = new LinkedBlockingQueue<>();
 
-    public void stop() {
+    public void shutdown() {
+        log.fine("Shutdown");
         go.set(false);
+        try {
+            log.fine("Joining read thread");
+            thread.join();
+        } catch (Exception ignored) {}
     }
 
     public interface MsgP extends Predicate<UsbMessage> {
@@ -45,7 +50,6 @@ public class UsbReadThread implements Runnable {
 
     @Override
     public void run() {
-        log.info("Go");
         while (go.get()) {
             UsbMessage r = usb.readInterrupt(500);
             if (!r.success()) {
@@ -61,7 +65,7 @@ public class UsbReadThread implements Runnable {
                 receiveMsg(r, "embedded");
             }
         }
-        log.info("Done");
+        log.fine("Exit");
     }
 
     private void receiveMsg(UsbMessage r, String x) {

@@ -8,9 +8,6 @@ import g2lib.usb.UsbService;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
 public class Main {
 

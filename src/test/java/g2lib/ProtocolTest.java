@@ -3,6 +3,8 @@ package g2lib;
 import g2lib.protocol.*;
 import g2lib.state.Patch;
 import g2lib.state.Performance;
+import g2lib.state.PerformanceSettings;
+import g2lib.state.SlotSettings;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -799,8 +801,69 @@ class ProtocolTest {
     void readPerformanceSettingsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
         Performance perf = new Performance((byte) 0).readFromMessage(buf);
-        //System.out.println("name: " + perf.getName());
-        //System.out.println("settings: " + perf.getPerfSettings());
+        assertEquals("eff new6",perf.getName());
+        PerformanceSettings ps = perf.getPerfSettings();
+        assertEquals(1,ps.getSelectedSlot());
+        assertEquals(0,ps.getKeyboardRangeEnabled());
+        assertEquals(0x78,ps.getMasterClock());
+        assertEquals(0,ps.getMasterClockRun());
+
+        {
+            SlotSettings ss = ps.getSlotSettings(Performance.Slot.A);
+            assertEquals("No name", ss.getPatchName());
+            assertEquals(1, ss.getEnabled());
+            assertEquals(1, ss.getKeyboard());
+            assertEquals(0, ss.getHold());
+            assertEquals(0, ss.getBankIndex());
+            assertEquals(0, ss.getPatchIndex());
+            assertEquals(0, ss.getKeyboardRangeFrom());
+            assertEquals(0x7f, ss.getKeyboardRangeTo());
+        }
+
+        {
+            SlotSettings ss = ps.getSlotSettings(Performance.Slot.B);
+            assertEquals("simple synth 001", ss.getPatchName());
+            assertEquals(1, ss.getEnabled());
+            assertEquals(1, ss.getKeyboard());
+            assertEquals(0, ss.getHold());
+            assertEquals(0, ss.getBankIndex());
+            assertEquals(0, ss.getPatchIndex());
+            assertEquals(0, ss.getKeyboardRangeFrom());
+            assertEquals(0x7f, ss.getKeyboardRangeTo());
+        }
+
+        {
+            SlotSettings ss = ps.getSlotSettings(Performance.Slot.C);
+            assertEquals("No name", ss.getPatchName());
+            assertEquals(1, ss.getEnabled());
+            assertEquals(0, ss.getKeyboard());
+            assertEquals(0, ss.getHold());
+            assertEquals(0, ss.getBankIndex());
+            assertEquals(0, ss.getPatchIndex());
+            assertEquals(0, ss.getKeyboardRangeFrom());
+            assertEquals(0x7f, ss.getKeyboardRangeTo());
+        }
+
+        {
+            SlotSettings ss = ps.getSlotSettings(Performance.Slot.C);
+            assertEquals("No name", ss.getPatchName());
+            assertEquals(1, ss.getEnabled());
+            assertEquals(0, ss.getKeyboard());
+            assertEquals(0, ss.getHold());
+            assertEquals(0, ss.getBankIndex());
+            assertEquals(0, ss.getPatchIndex());
+            assertEquals(0, ss.getKeyboardRangeFrom());
+            assertEquals(0x7f, ss.getKeyboardRangeTo());
+        }
+        /*
+        01 0c 00 29 65 66 66 20 6e 65 77 36 00 11 00 58   . . . ) e f f . n e w 6 . . . X
+        00 04 00 78 00 00 00 00 4e 6f 20 6e 61 6d 65 00   . . . x . . . . N o . n a m e .
+        01 01 00 00 00 00 7f 00 00 00 73 69 6d 70 6c 65   . . . . . . . . . . s i m p l e
+        20 73 79 6e 74 68 20 30 30 31 01 01 00 00 00 00   . s y n t h . 0 0 1 . . . . . .
+        7f 01 00 00 4e 6f 20 6e 61 6d 65 00 01 00 00 00   . . . . N o . n a m e . . . . .
+        00 00 7f 02 00 00 4e 6f 20 6e 61 6d 65 00 01 00   . . . . . . N o . n a m e . . .
+        00 00 00 00 7f 03 00 00 a6 9a                     . . . . . . . . . .
+         */
     }
 
     @Test

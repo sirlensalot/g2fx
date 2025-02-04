@@ -23,19 +23,15 @@ public class Device {
 
     private final Usb usb;
 
-    private final UsbReadThread readThread;
-
     private Performance perf;
     private SynthSettings synthSettings;
 
-    public Device(Usb usb, UsbReadThread readThread) {
+    public Device(Usb usb) {
         this.usb = usb;
-        this.readThread = readThread;
     }
 
     public Device() {
         this.usb = null;
-        this.readThread = null;
     }
 
     public Repl.Path loadPerfFile(String filePath) throws Exception {
@@ -55,7 +51,7 @@ public class Device {
     }
 
     public boolean online() {
-        return readThread != null && usb != null;
+        return usb != null;
     }
 
     public Map<Integer, Map<Integer, String>> readEntryList(int entryCount, boolean patchOrPerf) throws InterruptedException {
@@ -70,7 +66,7 @@ public class Device {
                     , bank // bank
                     , item // item
             );
-            UsbMessage beMsg = readThread.expectBlocking("patch list message: " + i, m ->
+            UsbMessage beMsg = usb.expectBlocking("patch list message: " + i, m ->
                             (!m.extended()) || m.head(0x01,0x0c,0x00,0x13));
             if (!beMsg.extended()) { log.info("Entry list empty: " + i); continue; }
             ByteBuffer buf = beMsg.buffer();
@@ -124,7 +120,7 @@ public class Device {
     }
 
     private Future<UsbMessage> sendSubscribe(String name, Runnable cmd, UsbReadThread.MsgP filter) {
-        Future<UsbMessage> f = readThread.expect(name, filter);
+        Future<UsbMessage> f = usb.expect(name, filter);
         cmd.run();
         return f;
     }
@@ -134,7 +130,7 @@ public class Device {
 
         // usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
         // // init message
-        // readThread.expectBlocking("Init response", msg -> msg.head(0x80));
+        // usb.expectBlocking("Init response", msg -> msg.head(0x80));
 
         sendSubscribe("Init",
                 () -> usb.sendBulk("Init", Util.asBytes(0x80)),
@@ -142,7 +138,7 @@ public class Device {
         ).get();
 
         // perf version
-        Future <UsbMessage> future = readThread.expect("perf version",
+        Future <UsbMessage> future = usb.expect("perf version",
                 msg -> msg.headx(0x01, 0x0c, 0x40, 0x36, 0x04));
         usb.sendSystemCmd("perf version"
                 ,0x35 // Q_VERSION_CNT
@@ -150,7 +146,7 @@ public class Device {
         );
         perf = new Performance(future.get().buffer().get());
 
-        future = readThread.expect("Stop Comm", m -> m.headx(0x01));
+        future = usb.expect("Stop Comm", m -> m.headx(0x01));
         usb.sendSystemCmd("Stop Comm"
                 ,0x7d // S_START_STOP_COM
                 ,0x01 // stop
@@ -159,7 +155,7 @@ public class Device {
 
         //synth settings
         //extended: 01 0c 00 03 -- synth settings [03]
-        future = readThread.expect("Synth settings",
+        future = usb.expect("Synth settings",
                 m -> m.head(0x01, 0x0c, 0x00, 0x03));
         usb.sendSystemCmd("Synth settings"
                 ,0x02 // Q_SYNTH_SETTINGS
@@ -167,7 +163,7 @@ public class Device {
         setSynthSettings(future.get());
 
         //unknown 1/slot init
-        future = readThread.expect("slot init", m -> m.head(0x01,0x0c,0x00,0x80));
+        future = usb.expect("slot init", m -> m.head(0x01,0x0c,0x00,0x80));
         usb.sendSystemCmd("unknown 1"
                 ,0x81 // M_UNKNOWN_1
         );
@@ -176,7 +172,7 @@ public class Device {
         //perf settings
         //extended: 01 0c 00 29 -- perf settings [29 "perf name"]
         //  then chunks in TG2FilePerformance.Read
-        future = readThread.expect("perf settings",
+        future = usb.expect("perf settings",
                 m -> m.head(0x01, 0x0c, 0x00, 0x29));
         usb.sendSystemCmd("perf settings"
                 ,0x10 // Q_PERF_SETTINGS
@@ -185,7 +181,7 @@ public class Device {
 
         //unknown 2
         //embedded: 72 01 0c 00 1e -- "unknown 2" [1e]
-        future = readThread.expect("reserved 2", m->m.headx(0x01,0x0c,0x00,0x1e));
+        future = usb.expect("reserved 2", m->m.headx(0x01,0x0c,0x00,0x1e));
         usb.sendSystemCmd("unknown 2"
                 ,0x59 // M_UNKNOWN_2
         );
@@ -203,7 +199,7 @@ public class Device {
     private void readSlot(final Performance.Slot slot) throws Exception {
         final int slot8 = slot.ordinal() + 8;
         //embedded: 82 01 0c 40 36 01 -- slot version
-        Future<UsbMessage> future = readThread.expect("slot version " + slot,
+        Future<UsbMessage> future = usb.expect("slot version " + slot,
                 m -> m.headx(0x01, 0x0c, 0x40, 0x36, slot.ordinal()));
         usb.sendSystemCmd("slot version " + slot
                 ,0x35 // Q_VERSION_CNT
@@ -212,7 +208,7 @@ public class Device {
         byte fv = future.get().buffer().get();
 
         //extended: 01 09 00 21 -- patch description
-        future = readThread.expect("slot patch " + slot,
+        future = usb.expect("slot patch " + slot,
                 m -> m.head(0x01, slot8, 0x00, 0x21));
         usb.sendSlotRequest(slot.ordinal(),0,"slot patch" + slot,
                 0x3c // Q_PATCH
@@ -220,7 +216,7 @@ public class Device {
         Patch patch = Patch.readFromMessage(future.get().buffer().rewind());
 
         //extended or embedded: 01 09 00 27 -- patch name, slot 1
-        future = readThread.expect("slot name " + slot,
+        future = usb.expect("slot name " + slot,
                 m -> m.headx(0x01, slot8, 0x00, 0x27));
         usb.sendSlotRequest(slot.ordinal(),0,"slot name" + slot,
                 0x28 // Q_PATCH_NAME
@@ -229,7 +225,7 @@ public class Device {
                 Sections.SPatchName);
 
         //extended: 01 09 00 69
-        future = readThread.expect("slot note " + slot,
+        future = usb.expect("slot note " + slot,
                 m -> m.head(0x01, slot8, 0x00, 0x69));
         usb.sendSlotRequest(slot.ordinal(),0,"slot note" + slot,
                 0x68 // Q_CURRENT_NOTE
@@ -238,7 +234,7 @@ public class Device {
 
 
         //extended: 01 09 00 6f -- textpad, slot 1
-        future = readThread.expect("slot text " + slot,
+        future = usb.expect("slot text " + slot,
                 m -> m.headx(0x01, slot8, 0x00, 0x6f));
         usb.sendSlotRequest(slot.ordinal(),0,"slot text " + slot,
                 0x6e //Q_PATCH_TEXT
@@ -262,12 +258,6 @@ public class Device {
 
     public void shutdown() {
         if (!online()) { return; }
-        readThread.stop();
-
-        try {
-            readThread.thread.join();
-        } catch (Exception ignored) {
-        }
         usb.shutdown();
     }
 

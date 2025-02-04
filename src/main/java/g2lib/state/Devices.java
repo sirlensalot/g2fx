@@ -41,9 +41,8 @@ public class Devices implements UsbService.UsbConnectionListener {
 
     protected void connected(UsbService.UsbDevice ud) {
         Usb usb = new Usb(ud);
-        UsbReadThread rt = new UsbReadThread(usb);
-        final Device d = new Device(usb, rt);
-        rt.start();
+        final Device d = new Device(usb);
+        usb.start();
         try {
             d.initialize();
         } catch (Exception e) {
