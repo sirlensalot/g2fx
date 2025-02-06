@@ -8,12 +8,15 @@ import g2lib.usb.UsbService;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
 
 public class Main {
 
     public static final String PROP_REPL = "repl";
 
     public static void main(String[] args) throws Exception {
+
+        Util.configureLogging(Level.INFO);
 
         UsbService usb = new UsbService();
 

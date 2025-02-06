@@ -197,7 +197,7 @@ public class Repl implements Runnable {
 
     public void start() {
         if (!replEnabled()) {
-            log.info("Repl disabled");
+            log.fine("Repl disabled");
             return;
         }
         thread.start();

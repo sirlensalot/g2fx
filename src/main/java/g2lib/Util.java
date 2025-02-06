@@ -1,7 +1,6 @@
 package g2lib;
 
 import g2lib.protocol.Sections;
-import g2lib.state.Patch;
 import g2lib.usb.UsbMessage;
 
 import java.io.FileInputStream;
@@ -10,25 +9,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.*;
 
 public class Util {
 
-    static {
-        String p = System.getProperty("g2lib.loglevel");
-        final String ll = p != null ? p : "FINE";
-        try {
-            LogManager.getLogManager().updateConfiguration(
-                    (key) -> (oldVal, newVal) -> {
-                        return key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
-                                ? ll : newVal; }
-            );
-        } catch (IOException ignore) {}
-    }
-
     static final Logger log = getLogger(Util.class);
-
 
     static class DualConsoleHandler extends StreamHandler {
 
@@ -49,6 +34,18 @@ public class Util {
                 stderrHandler.flush();
             }
         }
+    }
+
+    public static void configureLogging(Level defaultLevel) {
+        String p = System.getProperty("g2lib.loglevel");
+        final String ll = p != null ? p : defaultLevel.toString();
+        try {
+            LogManager.getLogManager().updateConfiguration(
+                    (key) -> (oldVal, newVal) -> {
+                        return key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
+                                ? ll : newVal; }
+            );
+        } catch (IOException ignore) {}
     }
 
     public static Logger getLogger(Class<?> c) {

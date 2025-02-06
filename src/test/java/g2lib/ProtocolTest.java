@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static g2lib.protocol.Protocol.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProtocolTest {
 
@@ -673,7 +674,10 @@ class ProtocolTest {
     }
     @Test
     public void patchFromFile() throws Exception {
-        Patch p = Patch.readFromFile(PATCH_FILE);
+        testFilePatch(Patch.readFromFile(PATCH_FILE),new int[]{0,2,1},new int[]{2,1,0,1,0});
+    }
+
+    private void testFilePatch(Patch p, int[] fxModuleIndexes, int[] cableIndexes) {
         FieldValues pd = PatchDescription.FIELDS.values(
                 PatchDescription.Reserved.value(Data8.asSubfield(0, 0, 0, 0, 0, 0, 0)), //File
                 PatchDescription.Reserved2.value(0x00), //File
@@ -692,13 +696,13 @@ class ProtocolTest {
                 PatchDescription.Category.value(0x00),
                 PatchDescription.Reserved3.value(0x00)
         );
-        assertEquals(pd,p.getSection(Sections.SPatchDescription).values(),"PatchDescription");
+        assertEquals(pd, p.getSection(Sections.SPatchDescription).values(),"PatchDescription");
 
-        testModules(p,0,2,1);
+        testModules(p,fxModuleIndexes);
 
         testCurrentNote(p);
 
-        testCableLists(p,2,1,0,1,0); //LOL reversed in patch!!!
+        testCableLists(p,cableIndexes); //LOL reversed in patch!!!
         int vc = testPatchSettings(p,9);
         testModParams1(p,vc);
         testModParams0(p,vc);
@@ -802,11 +806,23 @@ class ProtocolTest {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
         Performance perf = new Performance((byte) 0).readFromMessage(buf);
         assertEquals("eff new6",perf.getName());
-        PerformanceSettings ps = perf.getPerfSettings();
-        assertEquals(1,ps.getSelectedSlot());
-        assertEquals(0,ps.getKeyboardRangeEnabled());
-        assertEquals(0x78,ps.getMasterClock());
-        assertEquals(0,ps.getMasterClockRun());
+        testPerformanceSettings(perf.getPerfSettings());
+        /*
+        01 0c 00 29 65 66 66 20 6e 65 77 36 00 11 00 58   . . . ) e f f . n e w 6 . . . X
+        00 04 00 78 00 00 00 00 4e 6f 20 6e 61 6d 65 00   . . . x . . . . N o . n a m e .
+        01 01 00 00 00 00 7f 00 00 00 73 69 6d 70 6c 65   . . . . . . . . . . s i m p l e
+        20 73 79 6e 74 68 20 30 30 31 01 01 00 00 00 00   . s y n t h . 0 0 1 . . . . . .
+        7f 01 00 00 4e 6f 20 6e 61 6d 65 00 01 00 00 00   . . . . N o . n a m e . . . . .
+        00 00 7f 02 00 00 4e 6f 20 6e 61 6d 65 00 01 00   . . . . . . N o . n a m e . . .
+        00 00 00 00 7f 03 00 00 a6 9a                     . . . . . . . . . .
+         */
+    }
+
+    private static void testPerformanceSettings(PerformanceSettings ps) {
+        assertEquals(1, ps.getSelectedSlot());
+        assertEquals(0, ps.getKeyboardRangeEnabled());
+        assertEquals(0x78, ps.getMasterClock());
+        assertEquals(0, ps.getMasterClockRun());
 
         {
             SlotSettings ss = ps.getSlotSettings(Performance.Slot.A);
@@ -855,20 +871,14 @@ class ProtocolTest {
             assertEquals(0, ss.getKeyboardRangeFrom());
             assertEquals(0x7f, ss.getKeyboardRangeTo());
         }
-        /*
-        01 0c 00 29 65 66 66 20 6e 65 77 36 00 11 00 58   . . . ) e f f . n e w 6 . . . X
-        00 04 00 78 00 00 00 00 4e 6f 20 6e 61 6d 65 00   . . . x . . . . N o . n a m e .
-        01 01 00 00 00 00 7f 00 00 00 73 69 6d 70 6c 65   . . . . . . . . . . s i m p l e
-        20 73 79 6e 74 68 20 30 30 31 01 01 00 00 00 00   . s y n t h . 0 0 1 . . . . . .
-        7f 01 00 00 4e 6f 20 6e 61 6d 65 00 01 00 00 00   . . . . N o . n a m e . . . . .
-        00 00 7f 02 00 00 4e 6f 20 6e 61 6d 65 00 01 00   . . . . . . N o . n a m e . . .
-        00 00 00 00 7f 03 00 00 a6 9a                     . . . . . . . . . .
-         */
     }
 
     @Test
     void readPerformanceFile() throws Exception {
-        Performance perf = Performance.readFromFile("data/BassMonoStackDu.prf2");
+        Performance perf = Performance.readFromFile("data/perf-20240802.prf2");
+        testPerformanceSettings(perf.getPerfSettings());
+        testFilePatch(perf.getSlot(Performance.Slot.B),new int[]{0,1,2},new int[]{0,1,2,0,1});
+
     }
 
 }
