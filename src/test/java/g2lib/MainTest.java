@@ -1,9 +1,10 @@
 package g2lib;
 
 import g2lib.model.ModuleType;
+import g2lib.util.CRC16;
+import g2lib.util.Util;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,7 +15,7 @@ class MainTest {
     void crcClavia() {
 
 
-        assertEquals(0x9188,CRC16.crc16(new byte[] {(byte) 0x80},0,1));
+        assertEquals(0x9188, CRC16.crc16(new byte[] {(byte) 0x80},0,1));
 //        assertEquals(0x68e8,CRC16.crc16(new byte[]
 //                {(byte) 0x01, (byte) (0x20 + 0x0c), (byte) 0x41, (byte) 0x35, (byte) 0x04},0,5));
         byte[] msg = Util.asBytes(

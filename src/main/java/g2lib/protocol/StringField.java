@@ -1,7 +1,7 @@
 package g2lib.protocol;
 
-import g2lib.BitBuffer;
-import g2lib.Util;
+import g2lib.util.BitBuffer;
+import g2lib.util.Util;
 
 import java.util.List;
 import java.util.logging.Logger;

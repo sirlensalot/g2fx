@@ -1,4 +1,4 @@
-package g2lib;
+package g2lib.util;
 
 import java.nio.ByteBuffer;
 

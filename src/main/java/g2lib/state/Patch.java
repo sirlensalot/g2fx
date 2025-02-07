@@ -1,13 +1,13 @@
 package g2lib.state;
 
-import g2lib.BitBuffer;
-import g2lib.CRC16;
-import g2lib.Util;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
+import g2lib.util.BitBuffer;
+import g2lib.util.CRC16;
+import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
@@ -93,12 +93,16 @@ public class Patch {
     private final PatchArea voiceArea = new PatchArea(AreaId.Voice);
     private final PatchArea fxArea = new PatchArea(AreaId.Fx);
     private final PatchArea settingsArea = new PatchArea();
-    private KnobAssignments knobs;
+    private KnobAssignments knobAssignments;
     private ControlAssignments controls;
     private MorphParameters morphParams;
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
+    }
+
+    public KnobAssignments getKnobAssignments() {
+        return knobAssignments;
     }
 
     public static Patch readFromMessage(ByteBuffer buf) {
@@ -257,7 +261,7 @@ public class Patch {
 
 
     public void readSection(ByteBuffer buf, Sections s) {
-        BitBuffer bb = Util.sliceSection(s,buf);
+        BitBuffer bb = Sections.sliceSection(s,buf);
         //log.info(s + ": length " + bb.limit());
         readSectionSlice(bb, s);
     }
@@ -291,7 +295,7 @@ public class Patch {
             case SCableList0 -> fxArea.addCables(section.values);
             case SCableList1 -> voiceArea.addCables(section.values);
             case SMorphLabels -> settingsArea.setMorphLabels(section.values);
-            case SKnobAssignments -> this.knobs = new KnobAssignments(section.values);
+            case SKnobAssignments -> this.knobAssignments = new KnobAssignments(section.values);
             case SControlAssignments -> this.controls = new ControlAssignments(section.values);
             case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
             case SPatchName -> this.name = Protocol.EntryName.Name.stringValueRequired(section.values);

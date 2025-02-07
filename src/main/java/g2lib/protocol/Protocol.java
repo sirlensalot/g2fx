@@ -1,6 +1,6 @@
 package g2lib.protocol;
 
-import g2lib.BitBuffer;
+import g2lib.util.BitBuffer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -309,47 +309,71 @@ public class Protocol {
 
     public enum KnobAssignments implements FieldEnum {
         KnobCount(16),
-        KnobsPatch(KnobAssignments.KnobCount,KnobAssignment.FIELDS_PATCH),
-        KnobsPerf(KnobAssignments.KnobCount,KnobAssignment.FIELDS_PERF);
+        Knobs(KnobAssignments.KnobCount,KnobAssignment.FIELDS);
         KnobAssignments(int size) { f = new SizedField(this,size); }
         KnobAssignments(KnobAssignments ix, Fields fs) { f = new SubfieldsField(this,fs,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS_PATCH = new Fields(KnobAssignments.class,
-                new KnobAssignments[] {KnobCount,KnobsPatch});
-        public static final Fields FIELDS_PERF = new Fields(KnobAssignments.class,
-                new KnobAssignments[] {KnobCount,KnobsPerf});
+        public static final Fields FIELDS = new Fields(KnobAssignments.class,values());
     }
 
     public enum KnobAssignment implements FieldEnum {
         Assigned(1),
-        ParamsPatch(KnobAssignment.Assigned,KnobParams.FIELDS_PATCH),
-        ParamsPerf(KnobAssignment.Assigned,KnobParams.FIELDS_PERF);
-
+        Params(KnobAssignment.Assigned,KnobParams.FIELDS);
         KnobAssignment(int size) { f = new SizedField(this,size); }
         KnobAssignment(KnobAssignment ix,Fields fields) {
             f = new SubfieldsField(this,fields,ix);
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS_PATCH = new Fields(KnobAssignment.class,
-                new KnobAssignment[] {Assigned,ParamsPatch});
-        public static final Fields FIELDS_PERF = new Fields(KnobAssignment.class,
-                new KnobAssignment[] {Assigned,ParamsPerf});
+        public static final Fields FIELDS = new Fields(KnobAssignment.class,values());
     }
 
     public enum KnobParams implements FieldEnum {
         Location(2),
         Index(8),
         IsLed(2),
-        Param(7),
-        Slot(2); // only used in performance knobs
+        Param(7);
         KnobParams(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS_PATCH = new Fields(KnobParams.class,
-                new KnobParams[] { Location, Index, IsLed, Param });
-        public static final Fields FIELDS_PERF = new Fields(KnobParams.class,values());
+        public static final Fields FIELDS = new Fields(KnobParams.class,values());
+    }
+
+
+    public enum GlobalKnobAssignments implements FieldEnum {
+        KnobCount(16),
+        Knobs(GlobalKnobAssignments.KnobCount,GlobalKnobAssignment.FIELDS);
+        GlobalKnobAssignments(int size) { f = new SizedField(this,size); }
+        GlobalKnobAssignments(GlobalKnobAssignments ix, Fields fs) { f = new SubfieldsField(this,fs,ix); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(GlobalKnobAssignments.class,values());
+    }
+
+    public enum GlobalKnobAssignment implements FieldEnum {
+        Assigned(1),
+        Params(GlobalKnobAssignment.Assigned,GlobalKnobParams.FIELDS);
+
+        GlobalKnobAssignment(int size) { f = new SizedField(this,size); }
+        GlobalKnobAssignment(GlobalKnobAssignment ix,Fields fields) {
+            f = new SubfieldsField(this,fields,ix);
+        }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(GlobalKnobAssignment.class,values());
+    }
+
+    public enum GlobalKnobParams implements FieldEnum {
+        Location(2),
+        Index(8),
+        IsLed(2),
+        Param(7),
+        Slot(2);
+        GlobalKnobParams(int size) { f = new SizedField(this,size); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(GlobalKnobParams.class,values());
     }
 
     public enum ControlAssignments implements FieldEnum {
@@ -398,9 +422,9 @@ public class Protocol {
         LabelCount(8),
         Entry(8),
         Length(8),
-        Labels(MorphLabel.FIELDS,MorphLabels.LabelCount);
+        Labels(MorphLabel.FIELDS);
         MorphLabels(int size) { f = new SizedField(this,size); }
-        MorphLabels(Fields fs,MorphLabels ix) { f = new SubfieldsField(this,fs,8); }
+        MorphLabels(Fields fs) { f = new SubfieldsField(this,fs,8); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(MorphLabels.class,values());
@@ -429,12 +453,7 @@ public class Protocol {
         CurrentNote(int size) { f = new SizedField(this,size); }
         CurrentNote(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount c = new SubfieldsField.FieldCount(e);
-            f = new SubfieldsField(this, fs, new SubfieldsField.SubfieldCount() {
-                @Override
-                public int getCount(List<FieldValues> values) {
-                    return c.getCount(values) + 1;
-                }
-            });
+            f = new SubfieldsField(this, fs, values -> c.getCount(values) + 1);
         }
         private final Field f;
         public Field field() { return f; }
@@ -468,12 +487,7 @@ public class Protocol {
         ModuleLabel(int size) { f = new SizedField(this,size); }
         ModuleLabel(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount fc = new SubfieldsField.FieldCount(e);
-            f = new SubfieldsField(this, fs, new SubfieldsField.SubfieldCount() {
-                @Override
-                public int getCount(List<FieldValues> values) {
-                    return fc.getCount(values)/7;
-                }
-            });
+            f = new SubfieldsField(this, fs, values -> fc.getCount(values)/7);
         }
         private final Field f;
         public Field field() { return f; }
@@ -562,7 +576,7 @@ public class Protocol {
                 @Override
                 protected void readSubfields(BitBuffer bb, List<FieldValues> values,
                                              int count, List<FieldValues> result) {
-                    int b = 0;
+                    int b;
                     while ((b = bb.peek(8)) != 0x05 && b != 0x04) {
                         result.add(subfields.read(bb, values));
                     }
@@ -622,7 +636,6 @@ public class Protocol {
         Slots(PerfSlot.FIELDS);
         PerformanceSettings(int size) { f = new SizedField(this,size); }
         PerformanceSettings(Fields fields) { f = new SubfieldsField(this,fields,4); }
-        PerformanceSettings() { f = new StringField(this); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(PerformanceSettings.class,values());
@@ -647,4 +660,3 @@ public class Protocol {
 
 
 }
-

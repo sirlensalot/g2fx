@@ -1,17 +1,12 @@
 package g2lib.usb;
 
-import g2lib.CRC16;
-import g2lib.Main;
-import g2lib.Util;
-import org.usb4java.*;
+import g2lib.util.CRC16;
+import g2lib.util.Util;
+import org.usb4java.BufferUtils;
+import org.usb4java.LibUsb;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
@@ -161,12 +156,20 @@ public class Usb {
         }
     }
 
-    public int sendSystemCmd(String msg, int... cdata) {
+    public int sendSystemRequest(String msg, int... cdata) {
         return sendBulk(msg,Util.concat(Util.asBytes(
                 0x01,
                 0x20 + 0x0c,// CMD_REQ + CMD_SYS
                 0x41
                 ),Util.asBytes(cdata)));
+    }
+
+    public int sendPerfRequest(int perfVersion, String msg, int... cdata) {
+        return sendBulk(msg,Util.concat(Util.asBytes(
+                0x01,
+                0x20 + 0x0c,// CMD_REQ + CMD_SYS
+                perfVersion
+        ),Util.asBytes(cdata)));
     }
 
     /**

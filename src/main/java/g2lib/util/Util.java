@@ -1,13 +1,15 @@
-package g2lib;
+package g2lib.util;
 
-import g2lib.protocol.Sections;
 import g2lib.usb.UsbMessage;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.*;
 
@@ -185,37 +187,11 @@ public class Util {
     }
 
 
-    public static BitBuffer sliceSection(Sections s, ByteBuffer buf) {
-        int t = buf.get();
-        if (t != s.type) {
-            throw new IllegalArgumentException(String.format("Section incorrect %s %x %x",s,s.type,t));
-        }
-        return BitBuffer.sliceAhead(buf, getShort(buf));
-    }
-
     public static void expectWarn(ByteBuffer buf, int expected, String filePath, String msg) {
         byte b = buf.get();
         if (b != expected) {
             log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,b,filePath,buf.position()-1));
         }
-    }
-
-    public static record SafeLookup<E>(Map<Integer,E> m,String name) {
-        public E lookup(int i) {
-            E e = m.get(i);
-            if (e == null) {
-                throw new IllegalArgumentException(name + ": lookup failed: " + i);
-            }
-            return e;
-        }
-    }
-
-    public static <E extends Enum<E>> SafeLookup<E> makeEnumLookup(E[] values) {
-        Map<Integer, E> m = new TreeMap<>();
-        for (E e : values) {
-            m.put(e.ordinal(),e);
-        }
-        return new SafeLookup<E>(m,values[0].getDeclaringClass().getSimpleName());
     }
 
     public static Map<String,Object> withYamlMap(

@@ -1,10 +1,15 @@
 package g2lib.protocol;
 
+import g2lib.util.BitBuffer;
+import g2lib.util.Util;
+
+import java.nio.ByteBuffer;
+
 public enum Sections {
     // Perf sections
     SPerformanceName(Protocol.EntryName.FIELDS,0x29), // no length
     SPerformanceSettings(Protocol.PerformanceSettings.FIELDS,0x11),
-    SGlobalKnobAssignments(Protocol.KnobAssignment.FIELDS_PERF,0x5f),
+    SGlobalKnobAssignments(Protocol.GlobalKnobAssignments.FIELDS,0x5f),
 
     // Patch Sections
     SPatchDescription(Protocol.PatchDescription.FIELDS, 0x21),
@@ -17,7 +22,7 @@ public enum Sections {
     SModuleParams1(Protocol.ModuleParams.FIELDS, 0x4d, 1),
     SModuleParams0(Protocol.ModuleParams.FIELDS, 0x4d, 0),
     SMorphParameters(Protocol.MorphParameters.FIELDS, 0x65),
-    SKnobAssignments(Protocol.KnobAssignments.FIELDS_PATCH, 0x62),
+    SKnobAssignments(Protocol.KnobAssignments.FIELDS, 0x62),
     SControlAssignments(Protocol.ControlAssignments.FIELDS, 0x60),
     SMorphLabels(Protocol.MorphLabels.FIELDS, 0x5b, 2),
     SModuleLabels1(Protocol.ModuleLabels.FIELDS, 0x5b, 1),
@@ -41,6 +46,14 @@ public enum Sections {
         this.fields = fields;
         this.type = type;
         this.location = null;
+    }
+
+    public static BitBuffer sliceSection(Sections s, ByteBuffer buf) {
+        int t = buf.get();
+        if (t != s.type) {
+            throw new IllegalArgumentException(String.format("Section incorrect %s %x %x",s,s.type,t));
+        }
+        return BitBuffer.sliceAhead(buf, Util.getShort(buf));
     }
 
     @Override

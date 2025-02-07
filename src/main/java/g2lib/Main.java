@@ -4,25 +4,31 @@ import g2lib.repl.Repl;
 import g2lib.state.Device;
 import g2lib.state.Devices;
 import g2lib.usb.UsbService;
+import g2lib.util.Util;
 
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
 
     public static final String PROP_REPL = "repl";
 
+    public static Logger log;
+
     public static void main(String[] args) throws Exception {
 
         Util.configureLogging(Level.INFO);
+        log = Util.getLogger(Main.class);
 
         UsbService usb = new UsbService();
 
         Devices devices = new Devices();
 
-        CountDownLatch deviceInitialized = new CountDownLatch(1);
+        final CountDownLatch deviceInitialized = new CountDownLatch(1);
 
         Repl repl = new Repl(devices);
         repl.start();
@@ -44,7 +50,8 @@ public class Main {
         repl.join();
 
         if (!repl.replEnabled()) {
-            deviceInitialized.await();
+            log.info("awaiting init");
+            log.info("init success: " + deviceInitialized.await(5, TimeUnit.SECONDS));
         }
 
         repl.stop();

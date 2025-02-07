@@ -1,11 +1,11 @@
 package g2lib.repl;
 
 import g2lib.Main;
-import g2lib.Util;
 import g2lib.state.AreaId;
 import g2lib.state.Device;
 import g2lib.state.Devices;
-import g2lib.state.Performance;
+import g2lib.state.Slot;
+import g2lib.util.Util;
 import org.jline.builtins.Completers;
 import org.jline.console.*;
 import org.jline.console.impl.JlineCommandRegistry;
@@ -39,7 +39,7 @@ public class Repl implements Runnable {
     public record Command(String cmd, CommandMethods methods, CmdDesc desc) { }
 
     public record NamedIndex(int index, String name) { }
-    public record SlotPatch(Performance.Slot slot,String name) { }
+    public record SlotPatch(Slot slot, String name) { }
     public record Path(String device, String perf, SlotPatch slot, Integer variation,
                        AreaId area, NamedIndex module, NamedIndex param) { }
 
@@ -96,7 +96,7 @@ public class Repl implements Runnable {
                 mkCmd("fx",(c,i) -> area(c,i,AreaId.Fx),NullCompleter.INSTANCE,
                         cmdDesc("Switch to FX area")),
                 mkCmd("slot",Repl.this::slot,new StringsCompleter(
-                        Arrays.stream(Performance.Slot.values()).map(s -> s.toString().toLowerCase()).toList()),
+                        Arrays.stream(Slot.values()).map(s -> s.toString().toLowerCase()).toList()),
                         cmdDesc("Set current slot",argDesc("slot","a-d")))
 
         );
@@ -127,7 +127,7 @@ public class Repl implements Runnable {
     }
 
     private Object slot(CmdDesc desc, CommandInput input) {
-        Performance.Slot s = Performance.Slot.fromAlpha(getArgs(desc,input).getFirst());
+        Slot s = Slot.fromAlpha(getArgs(desc,input).getFirst());
         if (path == null || path.perf() == null) { throw new InvalidCommandException(desc,"No current performance"); }
         SlotPatch sp = devices.invoke(() -> devices.getSlotPatch(s));
         path = new Path(path.device(), path.perf(),

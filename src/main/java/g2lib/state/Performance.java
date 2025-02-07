@@ -1,11 +1,11 @@
 package g2lib.state;
 
-import g2lib.BitBuffer;
-import g2lib.CRC16;
-import g2lib.Util;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
+import g2lib.util.BitBuffer;
+import g2lib.util.CRC16;
+import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -23,33 +23,20 @@ public class Performance {
             "Info=BUILD 320"
     });
 
-    public enum Slot {
-        A,B,C,D;
-        private static final Map<Integer,Slot> LOOKUP = Map.of(0,A,1,B,2,C,3,D);
-        private static final Map<String,Slot> ALPHA = Map.of("A",A,"B",B,"C",C,"D",D);
-        public static Slot fromIndex(int i) {
-            Slot s = LOOKUP.get(i);
-            if (s != null) { return s; }
-            throw new IllegalArgumentException("Invalid slot: " + i);
-        }
-        public static Slot fromAlpha(String n) {
-            Slot s = ALPHA.get(n.toUpperCase());
-            if (s != null) { return s; }
-            throw new IllegalArgumentException("Invalid slot: " + s);
-        }
-
-    }
-
     private final int version;
 
     private FieldValues perfName;
     private String fileName;
     private PerformanceSettings perfSettings;
-    private FieldValues globalKnobAssignments;
+    private GlobalKnobAssignments globalKnobAssignments;
     private Map<Slot,Patch> slots = new TreeMap<>();
 
     public Performance(byte version) {
         this.version = Util.b2i(version);
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     public static Performance readFromFile(String filePath) throws Exception {
@@ -61,7 +48,7 @@ public class Performance {
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
         Performance perf = new Performance(fileBuffer.get());
         perf.perfSettings = new PerformanceSettings(
-                readSection(fileBuffer,Sections.SPerformanceSettings));
+                readSectionSlice(fileBuffer,Sections.SPerformanceSettings));
         for (Slot s : Slot.values()) {
             Patch patch = new Patch();
             patch.version = 0; //TODO source?
@@ -71,28 +58,44 @@ public class Performance {
             }
             perf.slots.put(s,patch);
         }
-        perf.globalKnobAssignments = readSection(fileBuffer,Sections.SGlobalKnobAssignments);
+        perf.globalKnobAssignments = new GlobalKnobAssignments(
+                readSectionSlice(fileBuffer,Sections.SGlobalKnobAssignments));
 
         return perf;
     }
 
     public Performance readFromMessage(ByteBuffer buf) {
-        //String s = Util.dumpBufferString(buf);
-        Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
-        Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
-        Util.expectWarn(buf,version,"Message","Perf version");
+        readPerfMsgHeader(buf);
         Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
         BitBuffer bb = new BitBuffer(buf.slice());
         perfName = Protocol.EntryName.FIELDS.read(bb);
         perfSettings = new PerformanceSettings(
-                readSection(bb.slice(),Sections.SPerformanceSettings));
+                readSectionSlice(bb.slice(),Sections.SPerformanceSettings));
         return this;
     }
 
-    private static FieldValues readSection(ByteBuffer buf, Sections s) {
-        return s.fields.read(Util.sliceSection(s,buf));
+    private static FieldValues readSectionSlice(ByteBuffer buf, Sections s) {
+        return s.fields.read(Sections.sliceSection(s,buf));
     }
 
+    private void readPerfMsgHeader(ByteBuffer buf) {
+        buf.rewind();
+        Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
+        Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
+        Util.expectWarn(buf,version,"Message","Perf version");
+    }
+
+    public void readSectionMessage(ByteBuffer buf, Sections s) {
+        readPerfMsgHeader(buf);
+        FieldValues fvs = readSectionSlice(buf, s);
+        switch (s) {
+            case SGlobalKnobAssignments -> this.globalKnobAssignments = new GlobalKnobAssignments(fvs);
+        }
+    }
+
+    public GlobalKnobAssignments getGlobalKnobAssignments() {
+        return globalKnobAssignments;
+    }
 
     public String getName() {
         return perfName == null ? fileName : Protocol.EntryName.Name.stringValueRequired(perfName);

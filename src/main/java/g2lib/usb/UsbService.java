@@ -1,7 +1,7 @@
 package g2lib.usb;
 
 
-import g2lib.Util;
+import g2lib.util.Util;
 import org.usb4java.*;
 
 import java.util.HashMap;

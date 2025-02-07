@@ -1,6 +1,6 @@
 package g2lib.protocol;
 
-import g2lib.BitBuffer;
+import g2lib.util.BitBuffer;
 
 public record IntValue(SizedField field, int value) implements FieldValue {
 

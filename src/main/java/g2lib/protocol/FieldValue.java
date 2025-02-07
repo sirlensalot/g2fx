@@ -1,6 +1,6 @@
 package g2lib.protocol;
 
-import g2lib.BitBuffer;
+import g2lib.util.BitBuffer;
 
 public interface FieldValue {
     Field field();

@@ -1,10 +1,10 @@
 package g2lib;
 
 import g2lib.protocol.*;
-import g2lib.state.Patch;
-import g2lib.state.Performance;
 import g2lib.state.PerformanceSettings;
-import g2lib.state.SlotSettings;
+import g2lib.state.*;
+import g2lib.util.BitBuffer;
+import g2lib.util.Util;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -151,30 +151,29 @@ class ProtocolTest {
 
     private void testKnobAssignments(Patch p) {
         FieldValues knobs = p.getSection(Sections.SKnobAssignments).values();
-        int kc = assertFieldEquals(knobs,0x78,KnobAssignments.KnobCount);
-        List<FieldValues> kas = assertSubfields(knobs, kc, KnobAssignments.KnobsPatch);
+        int kc = assertFieldEquals(knobs,0x78, Protocol.KnobAssignments.KnobCount);
+        List<FieldValues> kas = assertSubfields(knobs, kc, Protocol.KnobAssignments.Knobs);
         for (int i = 0; i < kc; i++) {
             FieldValues ka = kas.get(i);
             int a = i == 0 ? 1 : 0;
             assertFieldEquals(ka,a,KnobAssignment.Assigned);
-            List<FieldValues> kps = assertSubfields(ka, a, KnobAssignment.ParamsPatch);
-            if (i == 0) {
-                FieldValues kp = kps.getFirst();
-                assertFieldEquals(kp,1,KnobParams.Location);
-                assertFieldEquals(kp,1,KnobParams.Index);
-                assertFieldEquals(kp,0,KnobParams.IsLed);
-                assertFieldEquals(kp,0,KnobParams.Param);
-
-            }
         }
+
+        List<FieldValues> akas = p.getKnobAssignments().getActiveAssignments();
+        assertEquals(1,akas.size());
+        FieldValues kp = akas.getFirst();
+        assertFieldEquals(kp,1,KnobParams.Location);
+        assertFieldEquals(kp,1,KnobParams.Index);
+        assertFieldEquals(kp,0,KnobParams.IsLed);
+        assertFieldEquals(kp,0,KnobParams.Param);
 
     }
 
     private void testControlAssignments(Patch p) {
         FieldValues cass = p.getSection(Sections.SControlAssignments).values();
         //System.out.println(cass);
-        assertFieldEquals(cass,0x02,ControlAssignments.NumControls);
-        List<FieldValues> cas = assertSubfields(cass, 2, ControlAssignments.Assignments);
+        assertFieldEquals(cass,0x02,Protocol.ControlAssignments.NumControls);
+        List<FieldValues> cas = assertSubfields(cass, 2, Protocol.ControlAssignments.Assignments);
         FieldValues ca = cas.getFirst();
         assertFieldEquals(ca,0x07,ControlAssignment.MidiCC); // volume CC (not avail as assign!)
         assertFieldEquals(ca,0x02,ControlAssignment.Location); // patch settings
@@ -190,10 +189,10 @@ class ProtocolTest {
     private void testMorphParams(Patch p, int vc) {
         FieldValues morphParams = p.getSection(Sections.SMorphParameters).values();
 
-        assertFieldEquals(morphParams, vc,MorphParameters.VariationCount);
-        assertFieldEquals(morphParams,8 ,MorphParameters.MorphCount);
-        assertFieldEquals(morphParams,0 ,MorphParameters.Reserved);
-        List<FieldValues> vms = assertSubfields(morphParams, vc, MorphParameters.VarMorphs);
+        assertFieldEquals(morphParams, vc,Protocol.MorphParameters.VariationCount);
+        assertFieldEquals(morphParams,8 ,Protocol.MorphParameters.MorphCount);
+        assertFieldEquals(morphParams,0 ,Protocol.MorphParameters.Reserved);
+        List<FieldValues> vms = assertSubfields(morphParams, vc, Protocol.MorphParameters.VarMorphs);
         for (int i = 0; i < vc; i++) {
             FieldValues vm = vms.get(i);
             assertFieldEquals(vm,i,VarMorph.Variation);
@@ -749,43 +748,43 @@ class ProtocolTest {
         assertEquals(0x00,buf.get()); //perf version
         assertEquals(0x03,buf.get()); //synth settings
         BitBuffer bb = new BitBuffer(buf.slice());
-        FieldValues ss = SynthSettings.FIELDS.read(bb);
-        FieldValues ex = SynthSettings.FIELDS.values(
-                SynthSettings.DeviceName.value("ModularG2R"),
-                SynthSettings.PerfMode.value(1),
-                SynthSettings.Reserved0.value(0),
-                SynthSettings.Reserved1.value(0),
-                SynthSettings.PerfBank.value(0),
-                SynthSettings.PerfLocation.value(0),
-                SynthSettings.MemoryProtect.value(0),
-                SynthSettings.Reserved2.value(0),
-                SynthSettings.MidiChannelA.value(0),
-                SynthSettings.MidiChannelB.value(1),
-                SynthSettings.MidiChannelC.value(2),
-                SynthSettings.MidiChannelD.value(3),
-                SynthSettings.MidiChannelGlobal.value(0),
-                SynthSettings.SysExId.value(16),
-                SynthSettings.LocalOn.value(1),
-                SynthSettings.Reserved3.value(0),
-                SynthSettings.Reserved4.value(0),
-                SynthSettings.ProgramChangeReceive.value(1),
-                SynthSettings.ProgramChangeSend.value(0),
-                SynthSettings.Reserved5.value(0),
-                SynthSettings.ControllersReceive.value(1),
-                SynthSettings.ControllersSend.value(0),
-                SynthSettings.Reserved6.value(0),
-                SynthSettings.SendClock.value(0),
-                SynthSettings.IgnoreExternalClock.value(0),
-                SynthSettings.Reserved7.value(0),
-                SynthSettings.TuneCent.value(0),
-                SynthSettings.GlobalOctaveShiftActive.value(0),
-                SynthSettings.Reserved8.value(0),
-                SynthSettings.GlobalOctaveShift.value(0),
-                SynthSettings.TuneSemi.value(0),
-                SynthSettings.Reserved9.value(0),
-                SynthSettings.PedalPolarity.value(0),
-                SynthSettings.ReservedA.value(64),
-                SynthSettings.ControlPedalGain.value(0));
+        FieldValues ss = Protocol.SynthSettings.FIELDS.read(bb);
+        FieldValues ex = Protocol.SynthSettings.FIELDS.values(
+                Protocol.SynthSettings.DeviceName.value("ModularG2R"),
+                Protocol.SynthSettings.PerfMode.value(1),
+                Protocol.SynthSettings.Reserved0.value(0),
+                Protocol.SynthSettings.Reserved1.value(0),
+                Protocol.SynthSettings.PerfBank.value(0),
+                Protocol.SynthSettings.PerfLocation.value(0),
+                Protocol.SynthSettings.MemoryProtect.value(0),
+                Protocol.SynthSettings.Reserved2.value(0),
+                Protocol.SynthSettings.MidiChannelA.value(0),
+                Protocol.SynthSettings.MidiChannelB.value(1),
+                Protocol.SynthSettings.MidiChannelC.value(2),
+                Protocol.SynthSettings.MidiChannelD.value(3),
+                Protocol.SynthSettings.MidiChannelGlobal.value(0),
+                Protocol.SynthSettings.SysExId.value(16),
+                Protocol.SynthSettings.LocalOn.value(1),
+                Protocol.SynthSettings.Reserved3.value(0),
+                Protocol.SynthSettings.Reserved4.value(0),
+                Protocol.SynthSettings.ProgramChangeReceive.value(1),
+                Protocol.SynthSettings.ProgramChangeSend.value(0),
+                Protocol.SynthSettings.Reserved5.value(0),
+                Protocol.SynthSettings.ControllersReceive.value(1),
+                Protocol.SynthSettings.ControllersSend.value(0),
+                Protocol.SynthSettings.Reserved6.value(0),
+                Protocol.SynthSettings.SendClock.value(0),
+                Protocol.SynthSettings.IgnoreExternalClock.value(0),
+                Protocol.SynthSettings.Reserved7.value(0),
+                Protocol.SynthSettings.TuneCent.value(0),
+                Protocol.SynthSettings.GlobalOctaveShiftActive.value(0),
+                Protocol.SynthSettings.Reserved8.value(0),
+                Protocol.SynthSettings.GlobalOctaveShift.value(0),
+                Protocol.SynthSettings.TuneSemi.value(0),
+                Protocol.SynthSettings.Reserved9.value(0),
+                Protocol.SynthSettings.PedalPolarity.value(0),
+                Protocol.SynthSettings.ReservedA.value(64),
+                Protocol.SynthSettings.ControlPedalGain.value(0));
         assertEquals(ex,ss,"SynthSettings");
     }
 
@@ -818,6 +817,14 @@ class ProtocolTest {
          */
     }
 
+    @Test
+    void readGlobalKnobsMsg() throws Exception {
+        ByteBuffer buf = Util.readFile("data/msg_GlobalKnobs_850a.msg");
+        Performance perf = new Performance((byte) 0);
+        perf.readSectionMessage(buf,Sections.SGlobalKnobAssignments);
+        assertEquals(0,perf.getGlobalKnobAssignments().getActiveAssignments().size());
+    }
+
     private static void testPerformanceSettings(PerformanceSettings ps) {
         assertEquals(1, ps.getSelectedSlot());
         assertEquals(0, ps.getKeyboardRangeEnabled());
@@ -825,7 +832,7 @@ class ProtocolTest {
         assertEquals(0, ps.getMasterClockRun());
 
         {
-            SlotSettings ss = ps.getSlotSettings(Performance.Slot.A);
+            SlotSettings ss = ps.getSlotSettings(Slot.A);
             assertEquals("No name", ss.getPatchName());
             assertEquals(1, ss.getEnabled());
             assertEquals(1, ss.getKeyboard());
@@ -837,7 +844,7 @@ class ProtocolTest {
         }
 
         {
-            SlotSettings ss = ps.getSlotSettings(Performance.Slot.B);
+            SlotSettings ss = ps.getSlotSettings(Slot.B);
             assertEquals("simple synth 001", ss.getPatchName());
             assertEquals(1, ss.getEnabled());
             assertEquals(1, ss.getKeyboard());
@@ -849,7 +856,7 @@ class ProtocolTest {
         }
 
         {
-            SlotSettings ss = ps.getSlotSettings(Performance.Slot.C);
+            SlotSettings ss = ps.getSlotSettings(Slot.C);
             assertEquals("No name", ss.getPatchName());
             assertEquals(1, ss.getEnabled());
             assertEquals(0, ss.getKeyboard());
@@ -861,7 +868,7 @@ class ProtocolTest {
         }
 
         {
-            SlotSettings ss = ps.getSlotSettings(Performance.Slot.C);
+            SlotSettings ss = ps.getSlotSettings(Slot.C);
             assertEquals("No name", ss.getPatchName());
             assertEquals(1, ss.getEnabled());
             assertEquals(0, ss.getKeyboard());
@@ -877,7 +884,7 @@ class ProtocolTest {
     void readPerformanceFile() throws Exception {
         Performance perf = Performance.readFromFile("data/perf-20240802.prf2");
         testPerformanceSettings(perf.getPerfSettings());
-        testFilePatch(perf.getSlot(Performance.Slot.B),new int[]{0,1,2},new int[]{0,1,2,0,1});
+        testFilePatch(perf.getSlot(Slot.B),new int[]{0,1,2},new int[]{0,1,2,0,1});
 
     }
 

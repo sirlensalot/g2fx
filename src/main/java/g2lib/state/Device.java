@@ -1,14 +1,14 @@
 package g2lib.state;
 
-import g2lib.BitBuffer;
-import g2lib.protocol.Protocol;
-import g2lib.Util;
 import g2lib.protocol.FieldValues;
+import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
 import g2lib.repl.Repl;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
+import g2lib.util.BitBuffer;
+import g2lib.util.Util;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -60,7 +60,7 @@ public class Device {
         int item = 0;
         entries.put(bank,new TreeMap<>());
         for (int i = 0; i < entryCount; i++) {
-            usb.sendSystemCmd("patch list message: " + i
+            usb.sendSystemRequest("patch list message: " + i
                     , 0x14 // Q_LIST_NAMES
                     , patchOrPerf ? 0 : 1 // pftPatch
                     , bank // bank
@@ -140,14 +140,14 @@ public class Device {
         // perf version
         Future <UsbMessage> future = usb.expect("perf version",
                 msg -> msg.headx(0x01, 0x0c, 0x40, 0x36, 0x04));
-        usb.sendSystemCmd("perf version"
+        usb.sendSystemRequest("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
         );
         perf = new Performance(future.get().buffer().get());
 
         future = usb.expect("Stop Comm", m -> m.headx(0x01));
-        usb.sendSystemCmd("Stop Comm"
+        usb.sendSystemRequest("Stop Comm"
                 ,0x7d // S_START_STOP_COM
                 ,0x01 // stop
         );
@@ -157,14 +157,14 @@ public class Device {
         //extended: 01 0c 00 03 -- synth settings [03]
         future = usb.expect("Synth settings",
                 m -> m.head(0x01, 0x0c, 0x00, 0x03));
-        usb.sendSystemCmd("Synth settings"
+        usb.sendSystemRequest("Synth settings"
                 ,0x02 // Q_SYNTH_SETTINGS
         );
         setSynthSettings(future.get());
 
         //unknown 1/slot init
         future = usb.expect("slot init", m -> m.head(0x01,0x0c,0x00,0x80));
-        usb.sendSystemCmd("unknown 1"
+        usb.sendSystemRequest("unknown 1"
                 ,0x81 // M_UNKNOWN_1
         );
         future.get();
@@ -174,7 +174,7 @@ public class Device {
         //  then chunks in TG2FilePerformance.Read
         future = usb.expect("perf settings",
                 m -> m.head(0x01, 0x0c, 0x00, 0x29));
-        usb.sendSystemCmd("perf settings"
+        usb.sendPerfRequest(perf.getVersion(),"perf settings"
                 ,0x10 // Q_PERF_SETTINGS
         );
         perf.readFromMessage(future.get().buffer().rewind().slice());
@@ -182,26 +182,36 @@ public class Device {
         //unknown 2
         //embedded: 72 01 0c 00 1e -- "unknown 2" [1e]
         future = usb.expect("reserved 2", m->m.headx(0x01,0x0c,0x00,0x1e));
-        usb.sendSystemCmd("unknown 2"
+        usb.sendPerfRequest(perf.getVersion(),"unknown 2"
                 ,0x59 // M_UNKNOWN_2
         );
         future.get();
 
+        //TODO
+        //6 : (G2 as TG2USB).SendGetAssignedVoicesMessage;
+        //   7 : (G2 as TG2USB).SendGetMasterClockMessage;
+        // SendGetGlobalKnobsMessage
+        //01 0c 00 5f 00 11 00 78 00 00 00 00 00 00 00 00   . . . _ . . . x . . . . . . . .
+        //00 00 00 00 00 00 00 85 0a                        . . . . . . . . .
+        future = usb.expect("global knobs", m->m.headx(0x01,0x0c,0x00,0x5f));
+        usb.sendPerfRequest(perf.getVersion(),"global knobs"
+                ,0x5e //Q_GLOBAL_KNOBS
+        );
+        perf.readSectionMessage(future.get().buffer(),Sections.SGlobalKnobAssignments);
 
-
-        for (Performance.Slot slot : Performance.Slot.values()) {
+        for (Slot slot : Slot.values()) {
             readSlot(slot);
         }
 
 
     }
 
-    private void readSlot(final Performance.Slot slot) throws Exception {
+    private void readSlot(final Slot slot) throws Exception {
         final int slot8 = slot.ordinal() + 8;
         //embedded: 82 01 0c 40 36 01 -- slot version
         Future<UsbMessage> future = usb.expect("slot version " + slot,
                 m -> m.headx(0x01, 0x0c, 0x40, 0x36, slot.ordinal()));
-        usb.sendSystemCmd("slot version " + slot
+        usb.sendSystemRequest("slot version " + slot
                 ,0x35 // Q_VERSION_CNT
                 , slot.ordinal() // slot index
         );
@@ -241,6 +251,11 @@ public class Device {
         );
         patch.readSectionMessage(future.get(), Sections.STextPad);
 
+        //TODO
+        //SendResourceTableMessage( LOCATION_VA);
+        //   6 : SendResourceTableMessage( LOCATION_FX);
+        //   7 : SendUnknown6Message;
+        //SendGetSelectedParameterMessage
 
         perf.setPatch(slot,patch);
 
@@ -262,7 +277,7 @@ public class Device {
     }
 
 
-    public Repl.SlotPatch getSlotPatch (Performance.Slot s) {
+    public Repl.SlotPatch getSlotPatch (Slot s) {
         return new Repl.SlotPatch(s,perf.getPerfSettings().getSlotSettings(s).getPatchName());
     }
 

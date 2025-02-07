@@ -1,13 +1,13 @@
 package g2lib.state;
 
-import g2lib.Util;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
 import g2lib.usb.UsbReadThread;
+import g2lib.util.Util;
 import org.junit.jupiter.api.Test;
 
+import static g2lib.usb.UsbReadThread.MsgP;
 import static org.mockito.Mockito.*;
-import static g2lib.usb.UsbReadThread.*;
 
 class DeviceTest {
 

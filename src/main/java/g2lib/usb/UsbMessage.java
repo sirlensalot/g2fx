@@ -1,6 +1,6 @@
 package g2lib.usb;
 
-import g2lib.Util;
+import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 
@@ -58,4 +58,3 @@ public record UsbMessage(int size, boolean extended, int crc, ByteBuffer buffer)
     extended: 01 09 00 6f -- textpad, slot 1
      */
 }
-

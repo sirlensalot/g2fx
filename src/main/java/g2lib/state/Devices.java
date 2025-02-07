@@ -1,10 +1,9 @@
 package g2lib.state;
 
-import g2lib.Util;
 import g2lib.repl.Repl;
 import g2lib.usb.Usb;
-import g2lib.usb.UsbReadThread;
 import g2lib.usb.UsbService;
+import g2lib.util.Util;
 
 import java.util.HashMap;
 import java.util.List;
@@ -101,7 +100,7 @@ public class Devices implements UsbService.UsbConnectionListener {
         return current.getPath();
     }
 
-    public Repl.SlotPatch getSlotPatch(Performance.Slot slot) {
+    public Repl.SlotPatch getSlotPatch(Slot slot) {
         return current != null ? current.getSlotPatch(slot) : null;
     }
 

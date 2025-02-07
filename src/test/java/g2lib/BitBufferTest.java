@@ -1,10 +1,13 @@
 package g2lib;
 
+import g2lib.util.BitBuffer;
+import g2lib.util.Util;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BitBufferTest {
 
