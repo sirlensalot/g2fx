@@ -57,4 +57,8 @@ public record UsbMessage(int size, boolean extended, int crc, ByteBuffer buffer)
     extended: 01 09 00 69 -- cable list, slot 1
     extended: 01 09 00 6f -- textpad, slot 1
      */
+
+    public ByteBuffer getBufferx() {
+        return buffer.position(extended ? 0 : 1);
+    }
 }

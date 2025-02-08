@@ -12,6 +12,7 @@ public class PatchArea {
 
     private final Map<Integer,PatchModule> modules = new TreeMap<>();
     private final List<PatchCable> cables = new ArrayList<>();
+    private PatchLoadData patchLoadData;
 
     public PatchArea(AreaId id) {
         this.id = id;
@@ -87,5 +88,14 @@ public class PatchArea {
 
     public void setMorphLabels(FieldValues values) {
         getSettingsModule(SettingsModules.MorphModes).setMorphLabels(values);
+    }
+
+    public void setPatchLoadData(FieldValues fvs) {
+        this.patchLoadData = new PatchLoadData(fvs);
+        System.out.println(this.id + " mem=" + patchLoadData.getMem() + ", cyc=" + patchLoadData.getCycles());
+    }
+
+    public PatchLoadData getPatchLoadData() {
+        return patchLoadData;
     }
 }

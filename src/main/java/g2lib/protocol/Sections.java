@@ -30,7 +30,9 @@ public enum Sections {
     SModuleNames1(Protocol.ModuleNames.FIELDS, 0x5a, 1),
     SModuleNames0(Protocol.ModuleNames.FIELDS, 0x5a, 0),
     STextPad(Protocol.TextPad.FIELDS, 0x6f),
-    SPatchName(Protocol.EntryName.FIELDS,0x27);
+    SPatchName(Protocol.EntryName.FIELDS,0x27),
+
+    SPatchLoadData(Protocol.PatchLoadData.FIELDS,0x72);
 
     public final Fields fields;
     public final int type;

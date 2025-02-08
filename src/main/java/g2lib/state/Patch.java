@@ -302,14 +302,23 @@ public class Patch {
         }
     }
 
+    public void readPatchLoadDataMsg(UsbMessage msg) {
+        ByteBuffer buf = msg.getBufferx();
+        readMessageHeader(buf);
+        String s = Util.dumpBufferString(buf.slice());
+        Util.expectWarn(buf,Sections.SPatchLoadData.type,"msg","PatchLoad");
+        FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
+        getArea(Protocol.PatchLoadData.Location.intValueRequired(fvs)).setPatchLoadData(fvs);
+    }
+
 
     public void readSectionMessage(ByteBuffer buf, Sections s) {
         readMessageHeader(buf);
         readSection(buf,s);
     }
 
-    public void readSectionMessage(UsbMessage msg, Sections s) {
-        readSectionMessage(msg.buffer().position(msg.extended() ? 0 : 1),s);
+    public void readSectionMessage(Sections s, UsbMessage msg) {
+        readSectionMessage(msg.getBufferx(),s);
     }
 
     public Section getSection(Sections key) {

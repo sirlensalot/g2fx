@@ -96,7 +96,7 @@ public class UsbReadThread implements Runnable {
     public UsbMessage expectBlocking(String msg, MsgP filter) throws InterruptedException {
         UsbMessage m = q.take();
         if (filter.test(m)) {
-            log.fine("expect: received " + msg + ": " + m.dump());
+            log.fine(() -> "expect: received " + msg + ": " + m.dump());
             return m;
         } else {
             log.warning("expect: " + msg + ": did not receive: " + m.dump());

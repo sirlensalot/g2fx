@@ -215,20 +215,20 @@ public class Device {
                 ,0x35 // Q_VERSION_CNT
                 , slot.ordinal() // slot index
         );
-        byte fv = future.get().buffer().get();
+        int pv = future.get().buffer().get();
 
         //extended: 01 09 00 21 -- patch description
         future = usb.expect("slot patch " + slot,
-                m -> m.head(0x01, slot8, 0x00, 0x21));
-        usb.sendSlotRequest(slot.ordinal(),0,"slot patch" + slot,
+                m -> m.head(0x01, slot8, pv, 0x21));
+        usb.sendSlotRequest(slot,pv,"slot patch" + slot,
                 0x3c // Q_PATCH
         );
         Patch patch = Patch.readFromMessage(future.get().buffer().rewind());
 
         //extended or embedded: 01 09 00 27 -- patch name, slot 1
         future = usb.expect("slot name " + slot,
-                m -> m.headx(0x01, slot8, 0x00, 0x27));
-        usb.sendSlotRequest(slot.ordinal(),0,"slot name" + slot,
+                m -> m.headx(0x01, slot8, pv, 0x27));
+        usb.sendSlotRequest(slot,pv,"slot name" + slot,
                 0x28 // Q_PATCH_NAME
         );
         patch.readSectionSlice(new BitBuffer(future.get().buffer()),
@@ -236,29 +236,44 @@ public class Device {
 
         //extended: 01 09 00 69
         future = usb.expect("slot note " + slot,
-                m -> m.head(0x01, slot8, 0x00, 0x69));
-        usb.sendSlotRequest(slot.ordinal(),0,"slot note" + slot,
+                m -> m.head(0x01, slot8, pv, 0x69));
+        usb.sendSlotRequest(slot,pv,"slot note" + slot,
                 0x68 // Q_CURRENT_NOTE
         );
-        patch.readSectionMessage(future.get(), Sections.SCurrentNote);
+        patch.readSectionMessage(Sections.SCurrentNote, future.get());
 
 
         //extended: 01 09 00 6f -- textpad, slot 1
         future = usb.expect("slot text " + slot,
-                m -> m.headx(0x01, slot8, 0x00, 0x6f));
-        usb.sendSlotRequest(slot.ordinal(),0,"slot text " + slot,
+                m -> m.headx(0x01, slot8, pv, 0x6f));
+        usb.sendSlotRequest(slot,pv,"slot text " + slot,
                 0x6e //Q_PATCH_TEXT
         );
-        patch.readSectionMessage(future.get(), Sections.STextPad);
+        patch.readSectionMessage(Sections.STextPad, future.get());
 
+        patch.readPatchLoadDataMsg(expectSlotMsg(slot, pv, "patch load VA",
+                0x72, // R_RESOURCES_USED
+                0x71, // Q_RESOURCES_USED
+                AreaId.Voice.ordinal() // LOCATION_VA
+        ).get());
+
+        patch.readPatchLoadDataMsg(expectSlotMsg(slot, pv, "patch load FX",
+                0x72, // R_RESOURCES_USED
+                0x71, // Q_RESOURCES_USED
+                AreaId.Fx.ordinal() // LOCATION_VA
+        ).get());
         //TODO
-        //SendResourceTableMessage( LOCATION_VA);
-        //   6 : SendResourceTableMessage( LOCATION_FX);
         //   7 : SendUnknown6Message;
-        //SendGetSelectedParameterMessage
+        //  SendGetSelectedParameterMessage
 
         perf.setPatch(slot,patch);
 
+    }
+
+    private Future<UsbMessage> expectSlotMsg(Slot slot, int pv, String msg, int type, int... cdata) {
+        Future<UsbMessage> f = usb.expect(msg, m -> m.headx(0x01,slot.ordinal()+8,pv,type));
+        usb.sendSlotRequest(slot,pv,msg,cdata);
+        return f;
     }
 
 

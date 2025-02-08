@@ -1,5 +1,6 @@
 package g2lib.usb;
 
+import g2lib.state.Slot;
 import g2lib.util.CRC16;
 import g2lib.util.Util;
 import org.usb4java.BufferUtils;
@@ -108,14 +109,15 @@ public class Usb {
             int crc = 0;
             if (embedded) {
                 int dil = (buffer.get(0) & 0xf0) >> 4;
-                crc = CRC16.crc16(buffer, 1, dil - 2);
-                log.fine(String.format("--------------- Read Interrupt embedded, crc: %x %x", crc, buffer.position(dil - 1).getShort()) +
+                final int fcrc = crc = CRC16.crc16(buffer, 1, dil - 2);
+                log.fine(() -> String.format("--------------- Read Interrupt embedded, crc: %x %x",
+                        fcrc, buffer.position(dil - 1).getShort()) +
                         Util.dumpBufferString(buffer));
 
             }
             int size = buffer.position(1).getShort();
             if (extended) {
-                log.fine(String.format("--------------- Read Interrupt extended, size: %x", size) +
+                log.fine(() -> String.format("--------------- Read Interrupt extended, size: %x", size) +
                         Util.dumpBufferString(buffer));
             }
             return new UsbMessage(size,extended,crc,buffer);
@@ -147,7 +149,7 @@ public class Usb {
                 int len = buffer.limit();
                 //dumpBytes(recd);
                 int ecrc = CRC16.crc16(buffer, 0, len - 2);
-                log.fine(String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, ecrc, buffer.position(len - 2).getShort()) +
+                log.fine(() -> String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, ecrc, buffer.position(len - 2).getShort()) +
                     Util.dumpBufferString(buffer));
                 return new UsbMessage(size,true,ecrc,buffer);
             } else {
@@ -180,10 +182,10 @@ public class Usb {
      * @param cdata request data
      * @return success code
      */
-    public int sendSlotRequest(int slot, int version, String msg, int... cdata) {
+    public int sendSlotRequest(Slot slot, int version, String msg, int... cdata) {
         return sendBulk(msg,Util.concat(Util.asBytes(
                 0x01,
-                0x20 + 0x08 + slot, // CMD_REQ + CMD_SLOT + slot index
+                0x20 + 0x08 + slot.ordinal(), // CMD_REQ + CMD_SLOT + slot index
                 version
                 ),Util.asBytes(cdata)));
     }
