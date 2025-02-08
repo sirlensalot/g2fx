@@ -13,6 +13,8 @@ public class PatchLoadData {
 
     public int getMem() {
         //mem: fmax(fmax( 100 * InternalMem / 128, 100 * RAM / 260000), 100*Resource4 / 4315);
+        //TODO: MemResource4 is read aPatchLoadData[8] + aPatchLoadData[7] * 128 (not 256 ...)
+        //TODO: MemRAM is 32 bit unsigned, int is signed
         return Math.max(Math.max(
                         100 * Protocol.PatchLoadData.MemInternalMem.intValueRequired(fvs) / 128,
                         100 * Protocol.PatchLoadData.MemRAM.intValueRequired(fvs) / 260000),
