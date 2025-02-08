@@ -6,16 +6,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.*;
 
 public class Util {
 
-    static final Logger log = getLogger(Util.class);
+    private static final Set<String> logNames = new HashSet<>();
+
+    private static final Logger log = getLogger(Util.class);
 
     static class DualConsoleHandler extends StreamHandler {
 
@@ -40,10 +39,12 @@ public class Util {
 
     public static void configureLogging(Level defaultLevel) {
         String p = System.getProperty("g2lib.loglevel");
+        System.setProperty("java.util.logging.SimpleFormatter.format","%1$tF %1$tT %3$s %4$s: %5$s%6$s%n");
         final String ll = p != null ? p : defaultLevel.toString();
         try {
             LogManager.getLogManager().updateConfiguration(
                     (key) -> (oldVal, newVal) -> {
+                        System.out.println("key: " + key);
                         return key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
                                 ? ll : newVal; }
             );
@@ -56,8 +57,10 @@ public class Util {
 
     public static Logger getLogger(String name) {
         Logger l = Logger.getLogger(name);
-        l.setUseParentHandlers(false);
-        l.addHandler(new DualConsoleHandler());
+        if (logNames.add(name)) {
+            l.setUseParentHandlers(false);
+            l.addHandler(new DualConsoleHandler());
+        }
         return l;
     }
 

@@ -17,14 +17,17 @@ public class PatchArea {
     private final List<PatchCable> cables = new ArrayList<>();
     private PatchLoadData patchLoadData;
 
+    public record SelectedParam(int module,int param) { }
+    private SelectedParam selectedParam;
+
     public PatchArea(AreaId id) {
         this.id = id;
-        this.log = Util.getLogger(getClass().getName() + "_" + id);
+        this.log = Util.getLogger(getClass().getName() + "." + id);
     }
 
     public PatchArea() {
         this.id = AreaId.Settings;
-        this.log = Util.getLogger(getClass().getName() + "_" + id);
+        this.log = Util.getLogger(getClass().getName() + "." + id);
         Arrays.stream(SettingsModules.values()).forEach(sm -> {
             PatchModule m = new PatchModule(sm);
             modules.put(m.getIndex(),m);
@@ -102,5 +105,11 @@ public class PatchArea {
 
     public PatchLoadData getPatchLoadData() {
         return patchLoadData;
+    }
+
+    public void setSelectedParam(FieldValues fvs) {
+        this.selectedParam = new SelectedParam(Protocol.SelectedParam.Module.intValueRequired(fvs),
+                Protocol.SelectedParam.Param.intValueRequired(fvs));
+        log.fine("Selected param: " + selectedParam);
     }
 }

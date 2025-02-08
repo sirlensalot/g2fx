@@ -38,6 +38,7 @@ public class Patch {
             "Info=BUILD 320"
     });
 
+
     public record Section(Sections sections, FieldValues values) {
 
     }
@@ -312,10 +313,18 @@ public class Patch {
     public void readPatchLoadDataMsg(UsbMessage msg) {
         ByteBuffer buf = msg.getBufferx();
         readMessageHeader(buf);
-        String s = Util.dumpBufferString(buf.slice());
         Util.expectWarn(buf,Sections.SPatchLoadData.type,"msg","PatchLoad");
         FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.PatchLoadData.Location.intValueRequired(fvs)).setPatchLoadData(fvs);
+    }
+
+
+    public void readSelectedParam(UsbMessage msg) {
+        ByteBuffer buf = msg.getBufferx();
+        readMessageHeader(buf);
+        Util.expectWarn(buf,0x2f,"msg","Selected Param");
+        FieldValues fvs = Protocol.SelectedParam.FIELDS.read(new BitBuffer(buf.slice()));
+        getArea(Protocol.SelectedParam.Location.intValueRequired(fvs)).setSelectedParam(fvs);
     }
 
 

@@ -263,8 +263,17 @@ public class Device {
                 AreaId.Fx.ordinal() // LOCATION_VA
         ).get());
         //TODO
-        //   7 : SendUnknown6Message;
-        //  SendGetSelectedParameterMessage
+
+        expectSlotMsg(slot, pv, "unknown 6",
+                0x7f, // R_OK
+                0x70 // M_UNKNOWN_6
+        ).get();
+
+
+        patch.readSelectedParam(expectSlotMsg(slot, pv, "selected param",
+                0x2f, // S_SEL_PARAM
+                0x2e // Q_SELECTED_PARAM
+        ).get());
 
         perf.setPatch(slot,patch);
 

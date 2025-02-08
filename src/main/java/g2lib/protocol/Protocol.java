@@ -682,4 +682,18 @@ public class Protocol {
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(PatchLoadData.class,values());
     }
+
+
+    public enum SelectedParam implements FieldEnum {
+        Unknown,
+        Location,
+        Module,
+        Param;
+
+        private final Field f;
+        SelectedParam() { f = new SizedField(this,8); }
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(SelectedParam.class,values());
+    }
+
 }
