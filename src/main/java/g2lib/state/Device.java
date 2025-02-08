@@ -73,7 +73,7 @@ public class Device {
             buf.position(4);
             BitBuffer bb = new BitBuffer(buf.slice());
             FieldValues fvs = Protocol.BankEntries.FIELDS.read(bb);
-            log.info(fvs.toString());
+            //log.info(fvs.toString());
             Map<Integer, String> m = entries.get(bank);
             List<FieldValues> es = Protocol.BankEntries.Entries.subfieldsValue(fvs).orElse(new ArrayList<>());
             for (FieldValues e : es) {
@@ -81,7 +81,6 @@ public class Device {
                 int bc = Protocol.BankEntry.BankChange.intValue(e).orElse(0);
                 if (bc != 0) {
                     bank = (bc & 0xff00) >> 8;
-                    item = bc & 0xff;
                     entries.put(bank, m = new TreeMap<>());
                     item = 0;
                 }
@@ -125,6 +124,11 @@ public class Device {
         return f;
     }
 
+    private Future<UsbMessage> expectSystemMsg(int pvOr40, String msg, int type, int... cdata) {
+        Future<UsbMessage> f = usb.expect(msg, m -> m.headx(0x01, 0x0c,pvOr40,type));
+        usb.sendSystemRequest(msg,cdata);
+        return f;
+    }
 
     public void initialize() throws Exception {
 
@@ -163,7 +167,7 @@ public class Device {
         setSynthSettings(future.get());
 
         //unknown 1/slot init
-        future = usb.expect("slot init", m -> m.head(0x01,0x0c,0x00,0x80));
+        future = usb.expect("unknown 1", m -> m.head(0x01,0x0c,0x00,0x80));
         usb.sendSystemRequest("unknown 1"
                 ,0x81 // M_UNKNOWN_1
         );
@@ -187,9 +191,18 @@ public class Device {
         );
         future.get();
 
-        //TODO
-        //6 : (G2 as TG2USB).SendGetAssignedVoicesMessage;
-        //   7 : (G2 as TG2USB).SendGetMasterClockMessage;
+
+
+        // master clock
+        //  TODO master clock can be R_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
+        // really need to move past blocking and start streaming
+        // ext master clock:
+        // 92 01 0c 00 5d 01 00 78 37 90 00 00 00 00 00 00
+        expectSystemMsg(perf.getVersion(),"master clock",
+                0x5d, //R_EXT_MASTER_CLOCK
+                0x3b //Q_MASTER_CLOCK
+        ).get();
+
         // SendGetGlobalKnobsMessage
         //01 0c 00 5f 00 11 00 78 00 00 00 00 00 00 00 00   . . . _ . . . x . . . . . . . .
         //00 00 00 00 00 00 00 85 0a                        . . . . . . . . .
@@ -204,6 +217,21 @@ public class Device {
         }
 
 
+        //assigned voices
+        //a2 01 0c 00 05 01 06 01 01 d1 eb 00 00 00 00 00   . . . . . . . . . . . . . . . .
+        perf.readAssignedVoices(expectSystemMsg(perf.getVersion(),"assigned voices",
+                0x05, //R_ASSIGNED_VOICES
+                0x04 //Q_ASSIGNED_VOICES
+        ).get());
+
+
+    }
+
+
+    private Future<UsbMessage> expectPerfMsg(int pv, String msg, int type, int... cdata) {
+        Future<UsbMessage> f = usb.expect(msg, m -> m.headx(0x01, 0x0c,pv,type));
+        usb.sendPerfRequest(pv,msg,cdata);
+        return f;
     }
 
     private void readSlot(final Slot slot) throws Exception {
@@ -262,7 +290,6 @@ public class Device {
                 0x71, // Q_RESOURCES_USED
                 AreaId.Fx.ordinal() // LOCATION_VA
         ).get());
-        //TODO
 
         expectSlotMsg(slot, pv, "unknown 6",
                 0x7f, // R_OK

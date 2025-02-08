@@ -39,6 +39,7 @@ public class Patch {
     });
 
 
+
     public record Section(Sections sections, FieldValues values) {
 
     }
@@ -88,6 +89,7 @@ public class Patch {
     public int slot = -1;
     public int version = -1;
 
+
     private PatchSettings patchSettings;
     private FieldValues textPad;
     private FieldValues currentNote;
@@ -97,6 +99,8 @@ public class Patch {
     private KnobAssignments knobAssignments;
     private ControlAssignments controls;
     private MorphParameters morphParams;
+    private int assignedVoices;
+
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
@@ -335,6 +339,15 @@ public class Patch {
 
     public void readSectionMessage(Sections s, UsbMessage msg) {
         readSectionMessage(msg.getBufferx(),s);
+    }
+
+    public void setAssignedVoices(int i) {
+        log.fine(() -> "setAssignedVoices: " + i);
+        this.assignedVoices = i;
+    }
+
+    public int getAssignedVoices() {
+        return assignedVoices;
     }
 
     public Section getSection(Sections key) {

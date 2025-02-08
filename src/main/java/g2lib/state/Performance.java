@@ -3,6 +3,7 @@ package g2lib.state;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
 import g2lib.protocol.Sections;
+import g2lib.usb.UsbMessage;
 import g2lib.util.BitBuffer;
 import g2lib.util.CRC16;
 import g2lib.util.Util;
@@ -65,7 +66,7 @@ public class Performance {
     }
 
     public Performance readFromMessage(ByteBuffer buf) {
-        readPerfMsgHeader(buf);
+        readPerfMsgHeader(buf.rewind());
         Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
         BitBuffer bb = new BitBuffer(buf.slice());
         perfName = Protocol.EntryName.FIELDS.read(bb);
@@ -79,14 +80,13 @@ public class Performance {
     }
 
     private void readPerfMsgHeader(ByteBuffer buf) {
-        buf.rewind();
         Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
         Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
         Util.expectWarn(buf,version,"Message","Perf version");
     }
 
     public void readSectionMessage(ByteBuffer buf, Sections s) {
-        readPerfMsgHeader(buf);
+        readPerfMsgHeader(buf.rewind());
         FieldValues fvs = readSectionSlice(buf, s);
         switch (s) {
             case SGlobalKnobAssignments -> this.globalKnobAssignments = new GlobalKnobAssignments(fvs);
@@ -129,4 +129,15 @@ public class Performance {
     public Slot getSelectedSlot() {
         return Slot.fromIndex(perfSettings.getSelectedSlot());
     }
+
+
+    public void readAssignedVoices(UsbMessage msg) {
+        ByteBuffer buf = msg.getBufferx();
+        readPerfMsgHeader(buf);
+        Util.expectWarn(buf,0x05,"msg","Assigned Voices type");
+        for (Slot s : Slot.values()) {
+            getSlot(s).setAssignedVoices(Util.b2i(buf.get()));
+        }
+    }
+
 }
