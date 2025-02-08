@@ -3,12 +3,15 @@ package g2lib.state;
 import g2lib.model.SettingsModules;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
+import g2lib.util.Util;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class PatchArea {
 
     public final AreaId id;
+    private final Logger log;
 
     private final Map<Integer,PatchModule> modules = new TreeMap<>();
     private final List<PatchCable> cables = new ArrayList<>();
@@ -16,10 +19,12 @@ public class PatchArea {
 
     public PatchArea(AreaId id) {
         this.id = id;
+        this.log = Util.getLogger(getClass().getName() + "_" + id);
     }
 
     public PatchArea() {
         this.id = AreaId.Settings;
+        this.log = Util.getLogger(getClass().getName() + "_" + id);
         Arrays.stream(SettingsModules.values()).forEach(sm -> {
             PatchModule m = new PatchModule(sm);
             modules.put(m.getIndex(),m);
@@ -92,7 +97,7 @@ public class PatchArea {
 
     public void setPatchLoadData(FieldValues fvs) {
         this.patchLoadData = new PatchLoadData(fvs);
-        System.out.println(this.id + " mem=" + patchLoadData.getMem() + ", cyc=" + patchLoadData.getCycles());
+        log.fine(() -> "setPatchLoadData: mem=" + patchLoadData.getMem() + ", cyc=" + patchLoadData.getCycles());
     }
 
     public PatchLoadData getPatchLoadData() {

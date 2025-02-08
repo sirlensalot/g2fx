@@ -119,6 +119,13 @@ public class Patch {
         return patch;
     }
 
+    public PatchArea getArea(AreaId areaId) {
+        return switch (areaId) {
+            case Fx -> fxArea;
+            case Voice -> voiceArea;
+            case Settings -> settingsArea;
+        };
+    }
 
     public PatchArea getArea(int index) {
         return switch (index) {

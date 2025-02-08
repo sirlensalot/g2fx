@@ -1,8 +1,10 @@
 package g2lib;
 
 import g2lib.protocol.*;
+import g2lib.state.PatchLoadData;
 import g2lib.state.PerformanceSettings;
 import g2lib.state.*;
+import g2lib.usb.UsbMessage;
 import g2lib.util.BitBuffer;
 import g2lib.util.Util;
 import org.junit.jupiter.api.Test;
@@ -886,6 +888,22 @@ class ProtocolTest {
         testPerformanceSettings(perf.getPerfSettings());
         testFilePatch(perf.getSlot(Slot.B),new int[]{0,1,2},new int[]{0,1,2,0,1});
 
+    }
+
+    @Test
+    void readPatchLoad() throws Exception {
+        ByteBuffer buf = Util.readFile("data/msg_PatchLoadVA_b852.msg");
+        Patch patch = new Patch();
+        patch.version = 0;
+        patch.readPatchLoadDataMsg(new UsbMessage(0,true,0,buf));
+        PatchLoadData plVoice = patch.getArea(AreaId.Voice).getPatchLoadData();
+        assertEquals(13, plVoice.getCycles());
+        assertEquals(11, plVoice.getMem());
+        ByteBuffer buf2 = Util.readFile("data/msg_PatchLoadFX_df05.msg");
+        patch.readPatchLoadDataMsg(new UsbMessage(0,true,0,buf2));
+        PatchLoadData plFx = patch.getArea(AreaId.Fx).getPatchLoadData();
+        assertEquals(84, plFx.getCycles());
+        assertEquals(87, plFx.getMem());
     }
 
 }

@@ -51,7 +51,11 @@ public class Util {
     }
 
     public static Logger getLogger(Class<?> c) {
-        Logger l = Logger.getLogger(c.getName());
+        return getLogger(c.getName());
+    }
+
+    public static Logger getLogger(String name) {
+        Logger l = Logger.getLogger(name);
         l.setUseParentHandlers(false);
         l.addHandler(new DualConsoleHandler());
         return l;

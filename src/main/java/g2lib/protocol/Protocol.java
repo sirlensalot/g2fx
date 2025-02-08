@@ -660,22 +660,23 @@ public class Protocol {
 
     public enum PatchLoadData implements FieldEnum {
         Location(8),
-        CycCyclesRed1(16),//1,0
-        CycCyclesBlue1(16),//3,2
-        MemInternalMem(8),//4
+        CyclesRed1Msb(8),//0, msb*128
+        CyclesRed1Lsb(8),//1
+        CyclesBlue1Msb(8),//2, msb*128
+        CyclesBlue1Lsb(8),//3
+        InternalMem(8),//4
         Unknown1(16),//6,5
-        MemResource4(16), //8,7 -- msb*128 + lsb (rest are std 256)
-        CycResource5(16), //10,9
-        CycCyclesRed2(16), //12,11 -- msb*128 again
+        Resource4Msb(8), //7, msb*128
+        Resource4Lsb(8), //8
+        Resource5(16), //10,9
+        CyclesRed2(16), //12,11 -- msb*128, but unused
         Unknown3(16),//14,13
         Resource8(16),//16,15
-        CycCyclesBlue2(16),//18,17 -- msb*128
+        CyclesBlue2(16),//18,17 -- msb*128, but unused
         Unknown4(16),//20,19
-        MemRAM(32),//24,23,22,21
+        RAM(32),//24,23,22,21 -- unsigned int
         Unknown5(16);//26,25
 
-        //mem: fmax(fmax( 100 * InternalMem / 128, 100 * RAM / 260000), 100*Resource4 / 4315);
-        //cyc: fmax( 100 * CyclesRed1 / 1372 + 100 * CyclesBlue1 / 5000, 0);
         private final Field f;
         PatchLoadData(int sz) { f = new SizedField(this,sz); }
         public Field field() { return f; }
