@@ -13,6 +13,7 @@ import java.util.logging.*;
 public class Util {
 
     private static final Set<String> logNames = new HashSet<>();
+    private static volatile Level DEFAULT_LEVEL = Level.FINE;
 
     private static final Logger log = getLogger(Util.class);
 
@@ -22,7 +23,7 @@ public class Util {
 
         public DualConsoleHandler() {
             super(System.out, new SimpleFormatter());
-            setLevel(Level.FINE);
+            setLevel(DEFAULT_LEVEL);
         }
 
         @Override
@@ -39,14 +40,22 @@ public class Util {
 
     public static void configureLogging(Level defaultLevel) {
         String p = System.getProperty("g2lib.loglevel");
-        System.setProperty("java.util.logging.SimpleFormatter.format","%1$tF %1$tT %3$s %4$s: %5$s%6$s%n");
-        final String ll = p != null ? p : defaultLevel.toString();
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                "%1$tF %1$tT %4$s %3$s: %5$s%6$s%n");
+        String ll = p != null ? p : defaultLevel.toString();
+        try {
+            DEFAULT_LEVEL = Level.parse(ll);
+        } catch (Exception ignore) {
+            DEFAULT_LEVEL = defaultLevel;
+            ll = defaultLevel.toString();
+        }
+        final String fll = ll;
         try {
             LogManager.getLogManager().updateConfiguration(
                     (key) -> (oldVal, newVal) -> {
-                        System.out.println("key: " + key);
+                        //System.out.println("key: " + key);
                         return key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
-                                ? ll : newVal; }
+                                ? fll : newVal; }
             );
         } catch (IOException ignore) {}
     }
