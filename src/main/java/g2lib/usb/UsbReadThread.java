@@ -85,23 +85,10 @@ public class UsbReadThread implements Runnable {
         }
     }
 
-
-
     public Future<UsbMessage> expect(String id, MsgP filter) {
         CompletableFuture<UsbMessage> f = new CompletableFuture<>();
         futures.add(new MsgFuture(id,filter,f));
         return f;
-    }
-
-    public UsbMessage expectBlocking(String msg, MsgP filter) throws InterruptedException {
-        UsbMessage m = q.take();
-        if (filter.test(m)) {
-            log.fine(() -> "expect: received " + msg + ": " + m.dump());
-            return m;
-        } else {
-            log.warning("expect: " + msg + ": did not receive: " + m.dump());
-            return null;
-        }
     }
 
 

@@ -6,7 +6,6 @@ import g2lib.protocol.Sections;
 import g2lib.repl.Repl;
 import g2lib.usb.Usb;
 import g2lib.usb.UsbMessage;
-import g2lib.usb.UsbReadThread;
 import g2lib.util.BitBuffer;
 import g2lib.util.Util;
 
@@ -54,20 +53,20 @@ public class Device {
         return usb != null;
     }
 
-    public Map<Integer, Map<Integer, String>> readEntryList(int entryCount, boolean patchOrPerf) throws InterruptedException {
+    public Map<Integer, Map<Integer, String>> readEntryList(int entryCount, boolean patchOrPerf) throws Exception {
         Map<Integer, Map<Integer,String>> entries = new TreeMap<>();
         int bank = 0;
         int item = 0;
         entries.put(bank,new TreeMap<>());
         for (int i = 0; i < entryCount; i++) {
-            usb.sendSystemRequest("patch list message: " + i
+
+            UsbMessage beMsg = expectSystemMsg(0,"entry list",
+                    0x13  // R_LIST_NAMES
                     , 0x14 // Q_LIST_NAMES
                     , patchOrPerf ? 0 : 1 // pftPatch
                     , bank // bank
                     , item // item
-            );
-            UsbMessage beMsg = usb.expectBlocking("patch list message: " + i, m ->
-                            (!m.extended()) || m.head(0x01,0x0c,0x00,0x13));
+            ).get();
             if (!beMsg.extended()) { log.info("Entry list empty: " + i); continue; }
             ByteBuffer buf = beMsg.buffer();
             buf.position(4);
@@ -95,14 +94,7 @@ public class Device {
         }
         //dumpEntries(patchOrPerf, entries);
         return entries;
-        /*
-        01 0c 00 13 74 01 16 01 00 03 0a 00 49 6e 70 75   . . . . t . . . . . . . I n p u
-74 49 6e 74 65 72 70 72 65 74 65 72 00 64 72 75   t I n t e r p r e t e r . d r u
-6d 65 66 66 65 63 74 73 00 00 45 66 66 65 63 74   m e f f e c t s . . E f f e c t
-7a 00 00 45 66 66 65 63 74 7a 4c 46 53 52 00 00   z . . E f f e c t z L F S R . .
-03 0b 00 50 65 64 61 6c 45 66 66 65 63 74 73 00   . . . P e d a l E f f e c t s .
-00 04 61 5a
-         */
+
     }
 
     public static void dumpEntries(PrintWriter writer, boolean patchOrPerf, Map<Integer, Map<Integer, String>> entries, Integer bank) {
@@ -118,12 +110,6 @@ public class Device {
         }
     }
 
-    private Future<UsbMessage> sendSubscribe(String name, Runnable cmd, UsbReadThread.MsgP filter) {
-        Future<UsbMessage> f = usb.expect(name, filter);
-        cmd.run();
-        return f;
-    }
-
     private Future<UsbMessage> expectSystemMsg(int pvOr40, String msg, int type, int... cdata) {
         Future<UsbMessage> f = usb.expect(msg, m -> m.headx(0x01, 0x0c,pvOr40,type));
         usb.sendSystemRequest(msg,cdata);
@@ -132,14 +118,9 @@ public class Device {
 
     public void initialize() throws Exception {
 
-        // usb.sendBulk("Init", Util.asBytes(0x80)); // CMD_INIT
-        // // init message
-        // usb.expectBlocking("Init response", msg -> msg.head(0x80));
-
-        sendSubscribe("Init",
-                () -> usb.sendBulk("Init", Util.asBytes(0x80)),
-                msg -> msg.head(0x80)
-        ).get();
+        Future<UsbMessage> f = usb.expect("Init", msg1 -> msg1.head(0x80));
+        usb.sendBulk("Init", Util.asBytes(0x80));
+        f.get();
 
         // perf version
         Future <UsbMessage> future = usb.expect("perf version",

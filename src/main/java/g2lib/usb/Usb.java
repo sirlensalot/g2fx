@@ -272,8 +272,4 @@ S_SET_MORPH_RANGE :
         return readThread.expect(id,filter);
     }
 
-    public UsbMessage expectBlocking(String msg, UsbReadThread.MsgP filter) throws InterruptedException {
-        return readThread.expectBlocking(msg,filter);
-    }
-
 }
