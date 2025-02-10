@@ -33,6 +33,8 @@ public class Main {
         Repl repl = new Repl(devices);
         repl.start();
 
+        long is = System.currentTimeMillis();
+
         if (!repl.replEnabled()) {
             devices.addListener(d -> {
                 // on devices thread, so can directly fire off stuff
@@ -51,7 +53,8 @@ public class Main {
 
         if (!repl.replEnabled()) {
             log.info("awaiting init");
-            log.info("init success: " + deviceInitialized.await(5, TimeUnit.SECONDS));
+            log.info("init success: " + deviceInitialized.await(15, TimeUnit.SECONDS));
+            log.info("init took " + (System.currentTimeMillis() - is) + "ms");
         }
 
         repl.stop();

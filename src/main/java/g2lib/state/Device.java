@@ -136,8 +136,11 @@ public class Device {
     private int dispatch() throws Exception {
         int recd = 0;
         while (true) {
+            long s = System.currentTimeMillis();
             UsbMessage m = usb.poll(500);
+            long t = System.currentTimeMillis() - s;
             if (m == null) { return recd; }
+            log.fine(() -> "dispatch: poll took " + t + " ms");
             if (dispatch(m)) {
                 recd++;
             } else {
@@ -194,7 +197,7 @@ public class Device {
             case R_INIT -> dispatchSuccess(() -> "Perf Init");
             case T_PERFORMANCE_NAME -> perf.readPerformanceNameAndSettings(buf);
             case T_RESERVED_1E -> dispatchSuccess(() -> "reserved 1e");
-            case T_EXT_MASTER_CLOCK -> dispatchSuccess(() -> "EXT_MASTER_CLOCK"); //TODO
+            case T_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
             case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments,sliceAhead(buf));
             case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
             default -> dispatchFailure("dispatchPerfCmd: unrecognized type: " + t);
@@ -253,7 +256,6 @@ public class Device {
         dispatch1();
 
         // perf version
-        Future <UsbMessage> future;
         usb.sendSystemRequest("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
@@ -402,11 +404,17 @@ public class Device {
     }
 
 
+    private boolean readExtMasterClock(ByteBuffer buf) {
+        buf.get();
+        int v = Util.getShort(buf);
+        return dispatchSuccess(() -> "readExtMasterClock: " + v);
+    }
+
+
     private boolean setSynthSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf);
         synthSettings = new SynthSettings(Protocol.SynthSettings.FIELDS.read(bb));
-        log.fine(() -> "setSynthSettings");
-        return true;
+        return dispatchSuccess(() -> "setSynthSettings");
     }
 
     public SynthSettings getSynthSettings() {

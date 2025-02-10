@@ -41,7 +41,7 @@ public class Util {
     public static void configureLogging(Level defaultLevel) {
         String p = System.getProperty("g2lib.loglevel");
         System.setProperty("java.util.logging.SimpleFormatter.format",
-                "%1$tF %1$tT %4$s %3$s: %5$s%6$s%n");
+                "%1$tF %1$tT.%1$tL %4$s %3$s: %5$s%6$s%n");
         String ll = p != null ? p : defaultLevel.toString();
         try {
             DEFAULT_LEVEL = Level.parse(ll);
