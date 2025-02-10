@@ -272,4 +272,8 @@ S_SET_MORPH_RANGE :
         return readThread.expect(id,filter);
     }
 
+    public UsbMessage poll(int timeoutMs) throws InterruptedException {
+        return readThread.poll(timeoutMs);
+    }
+
 }

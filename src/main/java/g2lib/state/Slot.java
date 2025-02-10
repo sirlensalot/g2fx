@@ -14,4 +14,8 @@ public enum Slot {
     public static Slot fromAlpha(String n) {
         return ALPHA.get(n);
     }
+
+    public boolean testSlotId(int slot) {
+        return slot == ordinal() || slot == ordinal() + 8;
+    }
 }

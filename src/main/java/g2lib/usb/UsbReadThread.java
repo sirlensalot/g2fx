@@ -4,10 +4,7 @@ import g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -24,9 +21,9 @@ public class UsbReadThread implements Runnable {
         thread = new Thread(this);
     }
 
-    public final AtomicBoolean go = new AtomicBoolean(true);
-    public final AtomicInteger recd = new AtomicInteger(0);
-    public final LinkedBlockingQueue<UsbMessage> q = new LinkedBlockingQueue<>();
+    private final AtomicBoolean go = new AtomicBoolean(true);
+    private final AtomicInteger recd = new AtomicInteger(0);
+    private final LinkedBlockingQueue<UsbMessage> q = new LinkedBlockingQueue<>();
 
     public void shutdown() {
         log.fine("Shutdown");
@@ -35,6 +32,10 @@ public class UsbReadThread implements Runnable {
             log.fine("Joining read thread");
             thread.join();
         } catch (Exception ignored) {}
+    }
+
+    public UsbMessage poll(int timeoutMs) throws InterruptedException {
+        return q.poll(timeoutMs, TimeUnit.MILLISECONDS);
     }
 
     public interface MsgP extends Predicate<UsbMessage> {

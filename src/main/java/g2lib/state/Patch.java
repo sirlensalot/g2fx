@@ -86,8 +86,8 @@ public class Patch {
 
     public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
     private String name;
-    public int slot = -1;
-    public int version = -1;
+    private final Slot slot;
+    public int version;
 
 
     private PatchSettings patchSettings;
@@ -101,6 +101,14 @@ public class Patch {
     private MorphParameters morphParams;
     private int assignedVoices;
 
+    public Patch(Slot slot) {
+        this.slot = slot;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+        log.fine(() -> "setVersion: " + version);
+    }
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
         return f.apply(Util.sliceAhead(buf,length));
@@ -110,17 +118,20 @@ public class Patch {
         return knobAssignments;
     }
 
-    public static Patch readFromMessage(ByteBuffer buf) {
-        Patch patch = new Patch();
-        patch.readMessageHeader(buf);
 
+    public void readPatchDescription(ByteBuffer buf) {
         for (Sections ss : MSG_SECTIONS) {
-            patch.readSection(buf,ss);
+            readSection(buf,ss);
             if (ss == Sections.SPatchDescription) {
                 Util.expectWarn(buf,0x2d,"Message","USB extra 1");
                 Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }
         }
+    }
+    public static Patch readFromMessage(Slot slot, ByteBuffer buf) {
+        Patch patch = new Patch(slot);
+        patch.readMessageHeader(buf);
+        patch.readPatchDescription(buf);
         return patch;
     }
 
@@ -152,34 +163,27 @@ public class Patch {
     public void readMessageHeader(ByteBuffer buf) {
         Util.expectWarn(buf,0x01,"Message","Cmd");
         int slot = buf.get();
-        if (this.slot == -1) {
-            this.slot = slot;
-        } else if (this.slot != slot) {
-            throw new IllegalArgumentException(String.format("Slot mismatch: %d, %d",this.slot,slot));
+        if (!this.slot.testSlotId(slot)) {
+            throw new IllegalArgumentException(String.format("Slot mismatch: %s, %d",this.slot,slot));
         }
         int version = buf.get();
-        if (this.version == -1) {
-            this.version = version;
-        } else if (this.version != version) {
-            throw new IllegalArgumentException(String.format("Slot mismatch: %d, %d",this.slot,version));
+        if (this.version != version) {
+            throw new IllegalArgumentException(String.format("Slot mismatch: %s, %d",this.slot,version));
         }
     }
 
     public void writeMessageHeader(ByteBuffer buf) {
-        if (slot == -1 || version == -1) {
-            throw new RuntimeException("writeMessageHeader: slot/version not initialized");
-        }
-        buf.put(Util.asBytes(0x01,slot,version));
+        buf.put(Util.asBytes(0x01,slot.ordinal(),version));
     }
 
-    public static Patch readFromFile(String filePath) throws Exception {
+    public static Patch readFromFile(Slot slot, String filePath) throws Exception {
         ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
         ByteBuffer slice = fileBuffer.slice();
         int crc = CRC16.crc16(slice,0,slice.limit()-2);
 
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
-        Patch patch = new Patch();
+        Patch patch = new Patch(slot);
         patch.version = fileBuffer.get();
 
         for (Sections ss : FILE_SECTIONS) {
@@ -278,7 +282,7 @@ public class Patch {
         readSectionSlice(bb, s);
     }
 
-    public void readSectionSlice(BitBuffer bb, Sections s) {
+    public boolean readSectionSlice(BitBuffer bb, Sections s) {
         if (s.location != null) {
             Integer loc = bb.get(2);
             if (!loc.equals(s.location)) {
@@ -286,6 +290,7 @@ public class Patch {
             }
         }
         updateSection(s, new Section(s, s.fields.read(bb)));
+        return true;
     }
 
     private void updateSection(Sections s, Section section) {
@@ -318,8 +323,13 @@ public class Patch {
         ByteBuffer buf = msg.getBufferx();
         readMessageHeader(buf);
         Util.expectWarn(buf,Sections.SPatchLoadData.type,"msg","PatchLoad");
+        readPatchLoadData(buf);
+    }
+
+    public boolean readPatchLoadData(ByteBuffer buf) {
         FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.PatchLoadData.Location.intValueRequired(fvs)).setPatchLoadData(fvs);
+        return true;
     }
 
 
@@ -327,8 +337,13 @@ public class Patch {
         ByteBuffer buf = msg.getBufferx();
         readMessageHeader(buf);
         Util.expectWarn(buf,0x2f,"msg","Selected Param");
+        readSelectedParam(buf);
+    }
+
+    public boolean readSelectedParam(ByteBuffer buf) {
         FieldValues fvs = Protocol.SelectedParam.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.SelectedParam.Location.intValueRequired(fvs)).setSelectedParam(fvs);
+        return true;
     }
 
 
@@ -336,6 +351,8 @@ public class Patch {
         readMessageHeader(buf);
         readSection(buf,s);
     }
+
+
 
     public void readSectionMessage(Sections s, UsbMessage msg) {
         readSectionMessage(msg.getBufferx(),s);
