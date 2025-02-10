@@ -38,6 +38,9 @@ public class Patch {
             "Info=BUILD 320"
     });
 
+    public int getVersion() {
+        return version;
+    }
 
 
     public record Section(Sections sections, FieldValues values) {

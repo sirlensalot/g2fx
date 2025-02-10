@@ -167,18 +167,22 @@ public class Device {
     }
 
     private boolean dispatchCmd(ByteBuffer buf) {
-        Util.expectWarn(buf,0x0c,"usb","Cmd lsb");
-        int v = Util.b2i(buf.get());
-        if (v == V_VERSION) { // version
-            return dispatchVersion(buf);
-        } else if (v == perf.getVersion()) { // is this ever != 0?
-            return dispatchPerfCmd(buf);
-        } else if (v >= 8 && v < 12) {
-            return dispatchSlotCmd(Slot.fromIndex(v - 8),buf);
-        } else if (v >=0 && v < 4) { // 0 is caught by perf version above usually??
-            return dispatchSlotCmd(Slot.fromIndex(v),buf);
+        int h = Util.b2i(buf.get());
+        if (h == 0x0c) {
+            int v = Util.b2i(buf.get());
+            if (v == V_VERSION) { // version
+                return dispatchVersion(buf);
+            } else if (v == perf.getVersion()) { // is this ever != 0?
+                return dispatchPerfCmd(buf);
+            } else {
+                return dispatchFailure("dispatchCmd: unrecognized perf or sys version: " + v);
+            }
+        } else if (h >= 8 && h < 12) {
+            return dispatchSlotCmd(Slot.fromIndex(h - 8),buf);
+        } else if (h >=0 && h < 4) {
+            return dispatchSlotCmd(Slot.fromIndex(h),buf);
         } else {
-            return dispatchFailure("dispatchCmd: unrecognized version: " + v);
+            return dispatchFailure("dispatchCmd: unrecognized header: " + h);
         }
     }
 
@@ -203,11 +207,13 @@ public class Device {
 
     private boolean dispatchSlotCmd(Slot slot, ByteBuffer buf) {
         Patch patch = perf.getSlot(slot);
+        Util.expectWarn(buf,patch.getVersion(),"usb","patch version");
         int t = Util.b2i(buf.get());
         return switch (t) {
             case T_PATCH_DESCRIPTION -> {
                 buf.position(buf.position()- 0x01);
                 patch.readPatchDescription(buf);
+                log.fine(() -> "patch description");
                 yield true;
             }
             case T_PATCH_NAME -> patch.readSectionSlice(sliceAhead(buf), Sections.SPatchName);
@@ -235,124 +241,106 @@ public class Device {
         }
     }
 
+    private void dispatch1() throws Exception {
+        int r = dispatch();
+        if (r == 1) { return; }
+        log.warning("dispatch1: receive count="+r);
+    }
+
     public void initialize() throws Exception {
 
-        Future<UsbMessage> f = usb.expect("Init", msg1 -> msg1.head(R_INIT));
         usb.sendBulk("Init", Util.asBytes(R_INIT));
-        f.get();
+        dispatch1();
 
         // perf version
-        Future <UsbMessage> future = usb.expect("perf version",
-                msg -> msg.headx(0x01, 0x0c, V_VERSION, 0x36, 0x04));
+        Future <UsbMessage> future;
         usb.sendSystemRequest("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
         );
         perf = new Performance();
-        perf.setVersion(future.get().buffer().get());
+        dispatch1();
 
-        future = usb.expect("Stop Comm", m -> m.headx(0x01)); // 01 0c 00 7f
         usb.sendSystemRequest("Stop Comm"
                 ,0x7d // S_START_STOP_COM
                 , 0x01 // stop
         );
-        future.get();
+        dispatch1();
 
         //synth settings
-        //extended: 01 0c 00 03 -- synth settings [03]
-        future = usb.expect("Synth settings",
-                m -> m.head(0x01, 0x0c, 0x00, T_SYNTH_SETTINGS));
         usb.sendSystemRequest("Synth settings"
                 ,0x02 // Q_SYNTH_SETTINGS
         );
-        setSynthSettings(future.get().buffer().slice());
+        dispatch1();
 
-        //unknown 1/slot init
-        future = usb.expect("unknown 1", m -> m.head(0x01,0x0c,0x00, R_INIT));
         usb.sendSystemRequest("unknown 1"
                 ,0x81 // M_UNKNOWN_1
         );
-        future.get();
+        dispatch1();
 
-        //perf settings
-        //extended: 01 0c 00 29 -- perf settings [29 "perf name"]
-        //  then chunks in TG2FilePerformance.Read
-        future = usb.expect("perf settings",
-                m -> m.head(0x01, 0x0c, 0x00, T_PERFORMANCE_NAME));
         usb.sendPerfRequest(perf.getVersion(),"perf settings"
                 ,0x10 // Q_PERF_SETTINGS
         );
-        perf.readFromMessage(future.get().buffer().rewind().slice());
+        dispatch1();
 
-        //unknown 2
-        //embedded: 72 01 0c 00 1e -- "unknown 2" [1e]
-        future = usb.expect("reserved 2", m->m.headx(0x01,0x0c,0x00, T_RESERVED_1E));
         usb.sendPerfRequest(perf.getVersion(),"unknown 2"
                 ,0x59 // M_UNKNOWN_2
         );
-        future.get();
+        dispatch1();
 
 
 
         // master clock
         //  TODO master clock can be R_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
-        // really need to move past blocking and start streaming
         // ext master clock:
         // 92 01 0c 00 5d 01 00 78 37 90 00 00 00 00 00 00
-        expectSystemMsg(perf.getVersion(),"master clock",
-                T_EXT_MASTER_CLOCK, //R_EXT_MASTER_CLOCK
+        usb.sendSystemRequest("master clock",
                 0x3b //Q_MASTER_CLOCK
-        ).get();
+        );
+        dispatch1();
 
-        // SendGetGlobalKnobsMessage
-        //01 0c 00 5f 00 11 00 78 00 00 00 00 00 00 00 00   . . . _ . . . x . . . . . . . .
-        //00 00 00 00 00 00 00 85 0a                        . . . . . . . . .
-        future = usb.expect("global knobs", m->m.headx(0x01,0x0c,0x00, T_GLOBAL_KNOB_ASSIGMENTS));
         usb.sendPerfRequest(perf.getVersion(),"global knobs"
                 ,0x5e //Q_GLOBAL_KNOBS
         );
-        perf.readSectionMessage(future.get().buffer(),Sections.SGlobalKnobAssignments);
+        dispatch1();
 
         for (Slot slot : Slot.values()) {
             readSlot(slot);
         }
 
 
-        //assigned voices
-        //a2 01 0c 00 05 01 06 01 01 d1 eb 00 00 00 00 00   . . . . . . . . . . . . . . . .
-        perf.readAssignedVoicesMsg(expectSystemMsg(perf.getVersion(),"assigned voices",
-                T_ASSIGNED_VOICES, //R_ASSIGNED_VOICES
+        usb.sendSystemRequest("assigned voices",
                 0x04 //Q_ASSIGNED_VOICES
-        ).get().getBufferx());
+                );
+        dispatch1();
 
 
     }
 
 
-    private Future<UsbMessage> expectPerfMsg(int pv, String msg, int type, int... cdata) {
-        Future<UsbMessage> f = usb.expect(msg, m -> m.headx(0x01, 0x0c,pv,type));
-        usb.sendPerfRequest(pv,msg,cdata);
-        return f;
-    }
 
     private void readSlot(final Slot slot) throws Exception {
         final int slot8 = slot.ordinal() + 8;
         //embedded: 82 01 0c 40 36 01 -- slot version
-        Future<UsbMessage> future = usb.expect("slot version " + slot,
-                m -> m.headx(0x01, 0x0c, V_VERSION, 0x36, slot.ordinal()));
+        Future<UsbMessage> future; // = usb.expect("slot version " + slot,
+                //m -> m.headx(0x01, 0x0c, V_VERSION, 0x36, slot.ordinal()));
         usb.sendSystemRequest("slot version " + slot
                 ,0x35 // Q_VERSION_CNT
                 , slot.ordinal() // slot index
         );
-        int pv = future.get().buffer().get();
+        //int pv = future.get().buffer().get();
+        dispatch1();
+        Patch patch = perf.getSlot(slot);
+        int pv = patch.getVersion();
 
         //extended: 01 09 00 21 -- patch description
-        future = usb.expect("slot patch " + slot,
-                m -> m.head(0x01, slot8, pv, T_PATCH_DESCRIPTION));
+        //future = usb.expect("slot patch " + slot,
+        //        m -> m.head(0x01, slot8, pv, T_PATCH_DESCRIPTION));
         usb.sendSlotRequest(slot,pv,"slot patch" + slot,
                 0x3c // Q_PATCH
         );
-        Patch patch = Patch.readFromMessage(slot,future.get().buffer().rewind());
+        dispatch1();
+        //patch = Patch.readFromMessage(slot,future.get().buffer().rewind());
 
         //extended or embedded: 01 09 00 27 -- patch name, slot 1
         future = usb.expect("slot name " + slot,
@@ -417,6 +405,7 @@ public class Device {
     private boolean setSynthSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf);
         synthSettings = new SynthSettings(Protocol.SynthSettings.FIELDS.read(bb));
+        log.fine(() -> "setSynthSettings");
         return true;
     }
 

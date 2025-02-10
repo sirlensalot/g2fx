@@ -17,7 +17,7 @@ import static g2lib.state.Patch.verifyFileHeader;
 
 public class Performance {
 
-    private static final Logger log = Util.getLogger(Patch.class);
+    private static final Logger log = Util.getLogger(Performance.class);
 
     public static final ByteBuffer HEADER = fileHeader(86, new String[]{
             "Version=Nord Modular G2 File Format 1",
@@ -82,6 +82,7 @@ public class Performance {
         perfName = Protocol.EntryName.FIELDS.read(bb);
         perfSettings = new PerformanceSettings(
                 readSectionSlice(bb.slice(),Sections.SPerformanceSettings));
+        log.fine(() -> "readPerformanceNameAndSettings");
         return true;
     }
 
@@ -109,6 +110,7 @@ public class Performance {
 
     public boolean readSectionSlice(Sections s, BitBuffer bb) {
         updateSection(s,s.fields.read(bb));
+        log.fine(() -> "readSectionSlice: " + s);
         return true;
     }
 
