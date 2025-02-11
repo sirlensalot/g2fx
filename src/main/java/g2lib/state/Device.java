@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 public class Device {
 
     private static final Logger log = Util.getLogger(Device.class);
+
     public static final int T_PATCH_LOAD_DATA = 0x72;
     public static final int T_TEXT_PAD = 0x6f;
     public static final int T_CURRENT_NOTE = 0x69;
@@ -41,6 +42,8 @@ public class Device {
 
     private Performance perf;
     private SynthSettings synthSettings;
+    private int expectCount = 1;
+    private Future<UsbMessage> future1;
 
     public Device(Usb usb) {
         this.usb = usb;
@@ -133,7 +136,7 @@ public class Device {
         return f;
     }
 
-    private int dispatch() throws Exception {
+    private int poll() throws Exception {
         int recd = 0;
         while (true) {
             long s = System.currentTimeMillis();
@@ -219,7 +222,7 @@ public class Device {
                 log.fine(() -> "patch description");
                 yield true;
             }
-            case T_PATCH_NAME -> patch.readSectionSlice(sliceAhead(buf), Sections.SPatchName);
+            case T_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName);
             case T_CURRENT_NOTE -> patch.readSectionSlice(sliceAhead(buf), Sections.SCurrentNote);
             case T_TEXT_PAD -> patch.readSectionSlice(sliceAhead(buf), Sections.STextPad);
             case T_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
@@ -244,16 +247,29 @@ public class Device {
         }
     }
 
-    private void dispatch1() throws Exception {
-        int r = dispatch();
-        if (r == 1) { return; }
-        log.warning("dispatch1: receive count="+r);
+    private void dispatch1(boolean expect) throws Exception {
+
+        if (this.future1 == null) {
+            throw new IllegalStateException("dispatch1: invalid future");
+        }
+        dispatch(future1.get());
+        if (expect) {
+            expect1();
+        } else {
+            this.future1 = null;
+        }
+    }
+
+    private void expect1() {
+        this.future1 = usb.expect("next_msg:" + expectCount++, m -> true);
     }
 
     public void initialize() throws Exception {
 
+        expect1();
+
         usb.sendBulk("Init", Util.asBytes(R_INIT));
-        dispatch1();
+        dispatch1(true);
 
         // perf version
         usb.sendSystemRequest("perf version"
@@ -261,34 +277,34 @@ public class Device {
                 ,0x04 // perf version??
         );
         perf = new Performance();
-        dispatch1();
+        dispatch1(true);
 
         usb.sendSystemRequest("Stop Comm"
                 ,0x7d // S_START_STOP_COM
                 , 0x01 // stop
         );
-        dispatch1();
+        dispatch1(true);
 
         //synth settings
         usb.sendSystemRequest("Synth settings"
                 ,0x02 // Q_SYNTH_SETTINGS
         );
-        dispatch1();
+        dispatch1(true);
 
         usb.sendSystemRequest("unknown 1"
                 ,0x81 // M_UNKNOWN_1
         );
-        dispatch1();
+        dispatch1(true);
 
         usb.sendPerfRequest(perf.getVersion(),"perf settings"
                 ,0x10 // Q_PERF_SETTINGS
         );
-        dispatch1();
+        dispatch1(true);
 
         usb.sendPerfRequest(perf.getVersion(),"unknown 2"
                 ,0x59 // M_UNKNOWN_2
         );
-        dispatch1();
+        dispatch1(true);
 
 
 
@@ -299,22 +315,21 @@ public class Device {
         usb.sendSystemRequest("master clock",
                 0x3b //Q_MASTER_CLOCK
         );
-        dispatch1();
+        dispatch1(true);
 
-        usb.sendPerfRequest(perf.getVersion(),"global knobs"
-                ,0x5e //Q_GLOBAL_KNOBS
+        usb.sendPerfRequest(perf.getVersion(),"global knobs",
+                0x5e //Q_GLOBAL_KNOBS
         );
-        dispatch1();
+        dispatch1(true);
 
         for (Slot slot : Slot.values()) {
             readSlot(slot);
         }
 
-
         usb.sendSystemRequest("assigned voices",
                 0x04 //Q_ASSIGNED_VOICES
                 );
-        dispatch1();
+        dispatch1(false);
 
 
     }
@@ -322,85 +337,59 @@ public class Device {
 
 
     private void readSlot(final Slot slot) throws Exception {
-        final int slot8 = slot.ordinal() + 8;
-        //embedded: 82 01 0c 40 36 01 -- slot version
-        Future<UsbMessage> future; // = usb.expect("slot version " + slot,
-                //m -> m.headx(0x01, 0x0c, V_VERSION, 0x36, slot.ordinal()));
+
         usb.sendSystemRequest("slot version " + slot
                 ,0x35 // Q_VERSION_CNT
                 , slot.ordinal() // slot index
         );
-        //int pv = future.get().buffer().get();
-        dispatch1();
+        dispatch1(true);
         Patch patch = perf.getSlot(slot);
         int pv = patch.getVersion();
 
-        //extended: 01 09 00 21 -- patch description
-        //future = usb.expect("slot patch " + slot,
-        //        m -> m.head(0x01, slot8, pv, T_PATCH_DESCRIPTION));
         usb.sendSlotRequest(slot,pv,"slot patch" + slot,
                 0x3c // Q_PATCH
         );
-        dispatch1();
-        //patch = Patch.readFromMessage(slot,future.get().buffer().rewind());
+        dispatch1(true);
 
-        //extended or embedded: 01 09 00 27 -- patch name, slot 1
-        future = usb.expect("slot name " + slot,
-                m -> m.headx(0x01, slot8, pv, T_PATCH_NAME));
         usb.sendSlotRequest(slot,pv,"slot name" + slot,
                 0x28 // Q_PATCH_NAME
         );
-        patch.readSectionSlice(new BitBuffer(future.get().buffer()),
-                Sections.SPatchName);
+        dispatch1(true);
 
-        //extended: 01 09 00 69
-        future = usb.expect("slot note " + slot,
-                m -> m.head(0x01, slot8, pv, T_CURRENT_NOTE));
         usb.sendSlotRequest(slot,pv,"slot note" + slot,
                 0x68 // Q_CURRENT_NOTE
         );
-        patch.readSectionMessage(Sections.SCurrentNote, future.get());
+        dispatch1(true);
 
-
-        //extended: 01 09 00 6f -- textpad, slot 1
-        future = usb.expect("slot text " + slot,
-                m -> m.headx(0x01, slot8, pv, T_TEXT_PAD));
         usb.sendSlotRequest(slot,pv,"slot text " + slot,
                 0x6e //Q_PATCH_TEXT
         );
-        patch.readSectionMessage(Sections.STextPad, future.get());
+        dispatch1(true);
 
-        patch.readPatchLoadDataMsg(expectSlotMsg(slot, pv, "patch load VA",
-                T_PATCH_LOAD_DATA, // R_RESOURCES_USED
+        usb.sendSlotRequest(slot,pv,"patch load VA",
                 0x71, // Q_RESOURCES_USED
                 AreaId.Voice.ordinal() // LOCATION_VA
-        ).get());
+        );
+        dispatch1(true);
 
-        patch.readPatchLoadDataMsg(expectSlotMsg(slot, pv, "patch load FX",
-                T_PATCH_LOAD_DATA, // R_RESOURCES_USED
+        usb.sendSlotRequest(slot,pv,"patch load FX",
                 0x71, // Q_RESOURCES_USED
                 AreaId.Fx.ordinal() // LOCATION_VA
-        ).get());
+        );
+        dispatch1(true);
 
-        expectSlotMsg(slot, pv, "unknown 6",
-                T_OK, // R_OK
+        usb.sendSlotRequest(slot,pv,"unknown 6",
                 0x70 // M_UNKNOWN_6
-        ).get();
+        );
+        dispatch1(true);
 
-
-        patch.readSelectedParam(expectSlotMsg(slot, pv, "selected param",
-                T_SELECTED_PARAM, // S_SEL_PARAM
+        usb.sendSlotRequest(slot,pv,"selected param",
                 0x2e // Q_SELECTED_PARAM
-        ).get());
+        );
+        dispatch1(true);
 
         perf.setPatch(slot,patch);
 
-    }
-
-    private Future<UsbMessage> expectSlotMsg(Slot slot, int pv, String msg, int type, int... cdata) {
-        Future<UsbMessage> f = usb.expect(msg, m -> m.headx(0x01,slot.ordinal()+8,pv,type));
-        usb.sendSlotRequest(slot,pv,msg,cdata);
-        return f;
     }
 
 

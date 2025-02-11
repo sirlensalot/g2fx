@@ -637,7 +637,7 @@ class ProtocolTest {
     @Test
     void patchFromMessage() throws Exception {
         ByteBuffer buf = Util.readFile(PATCHMSG_1);
-        Patch p = Patch.readFromMessage(Slot.A,buf);
+        Patch p = Patch.readFromMessage(Slot.B,buf);
 //        assertEquals(9,p.slot);
         assertEquals(0,p.version);
 
@@ -719,11 +719,12 @@ class ProtocolTest {
     @Test
     void roundtripMsgFile() throws Exception {
         ByteBuffer msgfile = Util.readFile(PATCHMSG_1);
-        Patch p = Patch.readFromMessage(Slot.A,msgfile);
+        Patch p = Patch.readFromMessage(Slot.B,msgfile);
         p.readSectionMessage(Util.readFile(CURRENT_NOTE_MSG), Sections.SCurrentNote);
         p.readSectionMessage(Util.readFile(TEXTPAD_MSG), Sections.STextPad);
         ByteBuffer msgbuf = p.writeMessage();
-        assertEquals(msgfile.rewind(),msgbuf.rewind());
+        assertEquals(Util.dumpBufferString(msgfile.rewind()),
+                Util.dumpBufferString(msgbuf.rewind()));
 
         Patch.Section pd = p.getSection(Sections.SPatchDescription);
         pd.values().update(PatchDescription.Reserved.value(Data8.asSubfield(0, 0, 0, 0, 0, 0, 0)));

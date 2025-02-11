@@ -176,7 +176,7 @@ public class Patch {
     }
 
     public void writeMessageHeader(ByteBuffer buf) {
-        buf.put(Util.asBytes(0x01,slot.ordinal(),version));
+        buf.put(Util.asBytes(0x01,slot.ordinal()+8,version));
     }
 
     public static Patch readFromFile(Slot slot, String filePath) throws Exception {
@@ -298,6 +298,7 @@ public class Patch {
 
     private void updateSection(Sections s, Section section) {
         sections.put(s, section);
+        log.fine("updateSection: " + s);
         switch (s) {
             case SPatchDescription ->
                 this.patchSettings = new PatchSettings(section.values);
