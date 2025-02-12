@@ -7,7 +7,6 @@ import g2lib.usb.UsbService;
 import g2lib.util.Util;
 
 import java.io.PrintWriter;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -38,8 +37,8 @@ public class Main {
         if (!repl.replEnabled()) {
             devices.addListener(d -> {
                 // on devices thread, so can directly fire off stuff
-                Map<Integer, Map<Integer, String>> perfs = d.readEntryList(8, false);
-                Device.dumpEntries(new PrintWriter(System.out),false,perfs,0);
+                d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Patch);
+                d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Perf);
                 deviceInitialized.countDown();
             });
         }

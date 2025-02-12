@@ -18,7 +18,7 @@ public class Usb {
 
     private final UsbService.UsbDevice device;
     private final UsbReadThread readThread;
-
+    private Dispatcher dispatcher;
 
     public Usb(UsbService.UsbDevice device) {
         this.device = device;
@@ -58,8 +58,12 @@ public class Usb {
 
 
 
-    public synchronized int sendBulk(String msg, byte[] data) {
+    public synchronized int sendBulk(String msg, boolean dispatch, byte[] data) throws Exception {
 
+        if (dispatch && dispatcher == null) {
+            throw new IllegalArgumentException("sendBulk w dispatch but no dispatcher");
+        }
+        Future<UsbMessage> dispatchFuture = dispatch ? expect("dispatch future", m -> true) : null;
 
         int size = data.length + 4;
         ByteBuffer buffer = BufferUtils.allocateByteBuffer(size);
@@ -78,6 +82,11 @@ public class Usb {
             //transferred.rewind();
             log.fine("Sent: " + transferred.get(0));
         }
+
+        if (dispatchFuture != null) {
+            dispatcher.dispatch(dispatchFuture.get());
+        }
+
         return transferred.get();
     }
 
@@ -158,16 +167,24 @@ public class Usb {
         }
     }
 
-    public int sendSystemRequest(String msg, int... cdata) {
-        return sendBulk(msg,Util.concat(Util.asBytes(
+    public int sendSystemRequest(String msg, int... cdata) throws Exception {
+        return sendBulk(msg, true, Util.concat(Util.asBytes(
                 0x01,
                 0x20 + 0x0c,// CMD_REQ + CMD_SYS
                 0x41
-                ),Util.asBytes(cdata)));
+        ),Util.asBytes(cdata)));
     }
 
-    public int sendPerfRequest(int perfVersion, String msg, int... cdata) {
-        return sendBulk(msg,Util.concat(Util.asBytes(
+    public int sendSystemRequestNoDispatch(String msg, int... cdata) throws Exception {
+        return sendBulk(msg, false, Util.concat(Util.asBytes(
+                0x01,
+                0x20 + 0x0c,// CMD_REQ + CMD_SYS
+                0x41
+        ),Util.asBytes(cdata)));
+    }
+
+    public int sendPerfRequest(int perfVersion, String msg, int... cdata) throws Exception {
+        return sendBulk(msg, true, Util.concat(Util.asBytes(
                 0x01,
                 0x20 + 0x0c,// CMD_REQ + CMD_SYS
                 perfVersion
@@ -182,8 +199,8 @@ public class Usb {
      * @param cdata request data
      * @return success code
      */
-    public int sendSlotRequest(Slot slot, int version, String msg, int... cdata) {
-        return sendBulk(msg,Util.concat(Util.asBytes(
+    public int sendSlotRequest(Slot slot, int version, String msg, int... cdata) throws Exception {
+        return sendBulk(msg, true, Util.concat(Util.asBytes(
                 0x01,
                 0x20 + 0x08 + slot.ordinal(), // CMD_REQ + CMD_SLOT + slot index
                 version
@@ -198,8 +215,8 @@ public class Usb {
      * @param cdata cmd data
      * @return success code
      */
-    public int sendSlotCommand(int slot, int version, String msg, int... cdata) {
-        return sendBulk(msg,Util.concat(Util.asBytes(
+    public int sendSlotCommand(int slot, int version, String msg, int... cdata) throws Exception {
+        return sendBulk(msg, false, Util.concat(Util.asBytes(
                 0x01,
                 0x30 + 0x08 + slot, // CMD_NO_RESP + CMD_SLOT + slot index
                 version
@@ -276,4 +293,7 @@ S_SET_MORPH_RANGE :
         return readThread.poll(timeoutMs);
     }
 
+    public void setDispatcher(Dispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
 }

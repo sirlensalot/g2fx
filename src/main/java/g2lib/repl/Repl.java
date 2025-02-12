@@ -174,13 +174,9 @@ public class Repl implements Runnable {
                     return;
                 }
                 if ("perf".equals(type)) {
-                    Map<Integer, Map<Integer, String>> perfs =
-                            devices.getCurrent().readEntryList(8, false);
-                    Device.dumpEntries(getWriter(),false, perfs, bank);
+                    devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Perf);
                 } else if ("patch".equals(type)) {
-                    Map<Integer, Map<Integer, String>> patches =
-                            devices.getCurrent().readEntryList(32, true);
-                    Device.dumpEntries(getWriter(),true, patches, bank);
+                    devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Patch);
                 }
             });
         } catch (Exception e) {

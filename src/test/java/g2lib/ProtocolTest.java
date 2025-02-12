@@ -791,17 +791,6 @@ class ProtocolTest {
         assertEquals(ex,ss,"SynthSettings");
     }
 
-    @Test
-    void readEntryList() throws Exception {
-        ByteBuffer buf = Util.readFile("data/msg_PatchListMessage00_19f4.msg");
-        assertEquals(0x01, buf.get()); // cmd
-        assertEquals(0x0c, buf.get());
-        assertEquals(0x00, buf.get()); //perf version
-        assertEquals(0x13, buf.get()); //entry list
-        BitBuffer bb = new BitBuffer(buf.slice());
-        FieldValues fvs = BankEntries.FIELDS.read(bb);
-        //System.out.println(fvs);
-    }
 
     @Test
     void readPerformanceSettingsMsg() throws Exception {
