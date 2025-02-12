@@ -41,6 +41,16 @@ public class Devices implements UsbService.UsbConnectionListener {
     protected void connected(UsbService.UsbDevice ud) {
         Usb usb = new Usb(ud);
         final Device d = new Device(usb);
+        usb.setThreadsafeDispatcher(msg -> {
+            executorService.execute(() -> {
+                try {
+                    d.dispatch(msg);
+                } catch (Exception e) {
+                    log.log(Level.SEVERE,"Error in dispatcher",e);
+                }
+            });
+            return true;
+        });
         usb.start();
         try {
             d.initialize();

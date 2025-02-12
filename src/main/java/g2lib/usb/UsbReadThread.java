@@ -4,7 +4,9 @@ import g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -15,15 +17,15 @@ public class UsbReadThread implements Runnable {
     private final Usb usb;
     private final Logger log = Util.getLogger(UsbReadThread.class);
     private final Thread thread;
+    private Dispatcher dispatcher;
+    private final AtomicBoolean go = new AtomicBoolean(true);
+    private final AtomicInteger recd = new AtomicInteger(0);
 
     public UsbReadThread(Usb usb) {
         this.usb = usb;
         thread = new Thread(this);
     }
 
-    private final AtomicBoolean go = new AtomicBoolean(true);
-    private final AtomicInteger recd = new AtomicInteger(0);
-    private final LinkedBlockingQueue<UsbMessage> q = new LinkedBlockingQueue<>();
 
     public void shutdown() {
         log.fine("Shutdown");
@@ -34,9 +36,6 @@ public class UsbReadThread implements Runnable {
         } catch (Exception ignored) {}
     }
 
-    public UsbMessage poll(int timeoutMs) throws InterruptedException {
-        return q.poll(timeoutMs, TimeUnit.MILLISECONDS);
-    }
 
     public interface MsgP extends Predicate<UsbMessage> {
 
@@ -62,16 +61,16 @@ public class UsbReadThread implements Runnable {
             if (r.extended()) {
                 r = usb.readBulkRetries(r.size(), 5);
                 if (r.success()) {
-                    receiveMsg(r, "extended");
+                    receiveMsg(r);
                 }
             } else {
-                receiveMsg(r, "embedded");
+                receiveMsg(r);
             }
         }
         log.fine("Exit");
     }
 
-    private void receiveMsg(UsbMessage r, String x) {
+    private void receiveMsg(UsbMessage r) {
         for (MsgFuture f : new ArrayList<>(futures)) {
             if (f.filter.test(r)) {
                 f.future.complete(r);
@@ -79,18 +78,15 @@ public class UsbReadThread implements Runnable {
                 return;
             }
         }
-        try {
-            q.put(r);
-        } catch (Exception e) {
-            log.severe(x + " put failed: " + e);
-        }
+        dispatcher.dispatch(r);
     }
 
     public Future<UsbMessage> expect(String id, MsgP filter) {
         CompletableFuture<UsbMessage> f = new CompletableFuture<>();
-        futures.add(new MsgFuture(id,filter,f));
+        futures.add(new MsgFuture(id, filter, f));
         return f;
     }
-
-
+    public void setDispatcher(Dispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
 }

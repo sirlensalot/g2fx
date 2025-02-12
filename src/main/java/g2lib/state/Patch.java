@@ -362,6 +362,22 @@ public class Patch {
         readSectionMessage(msg.getBufferx(),s);
     }
 
+
+    public boolean readVolumeData(ByteBuffer buf) {
+        //TODO
+        log.fine(() -> "readVolumeData");
+        return true;
+    }
+
+    public boolean readLedData(ByteBuffer buf) {
+        //TODO
+        log.fine(() -> "readLedData");
+        return true;
+    }
+
+
+
+
     public void setAssignedVoices(int i) {
         log.fine(() -> "setAssignedVoices: " + i);
         this.assignedVoices = i;

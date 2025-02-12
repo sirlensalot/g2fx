@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Device implements Dispatcher {
@@ -42,6 +43,8 @@ public class Device implements Dispatcher {
     public static final int T_ASSIGNED_VOICES = 0x05;
     public static final int T_EXT_MASTER_CLOCK = 0x5d;
     public static final int T_ENTRY_LIST = 0x13;
+    public static final int T_VOLUME_DATA = 0x3a;
+    public static final int T_LED_DATA = 0x39;
 
     public enum EntryType {
         Patch,
@@ -55,7 +58,6 @@ public class Device implements Dispatcher {
     private EntriesMsg entriesMsg;
 
     private final Usb usb;
-    private final Thread thread;
 
     private Performance perf;
     private SynthSettings synthSettings;
@@ -68,12 +70,10 @@ public class Device implements Dispatcher {
     public Device(Usb usb) {
         this.usb = usb;
         usb.setDispatcher(this);
-        this.thread = Thread.currentThread();
     }
 
     public Device() {
         this.usb = null;
-        this.thread = Thread.currentThread();
     }
 
     public Repl.Path loadPerfFile(String filePath) throws Exception {
@@ -91,7 +91,7 @@ public class Device implements Dispatcher {
         return entriesMsg;
     }
 
-    private void sendPerf() throws Exception {
+    private void sendPerf() {
         //TODO
     }
 
@@ -103,29 +103,12 @@ public class Device implements Dispatcher {
     public void dumpEntries(PrintWriter writer, EntryType type) {
         entries.get(type).forEach((bi,b) -> {
             writer.format("%s bank %s:\n",type,bi+1);
-            b.forEach((ei,e) -> {
-                writer.format("  %02d: %s [%s]\n", ei+1, e.name(), e.category());
-            });
+            b.forEach((ei,e) ->
+                    writer.format("  %02d: %s [%s]\n", ei+1, e.name(), e.category()));
         });
         writer.flush();
     }
 
-
-    private int poll() throws Exception {
-        int recd = 0;
-        while (true) {
-            long s = System.currentTimeMillis();
-            UsbMessage m = usb.poll(500);
-            long t = System.currentTimeMillis() - s;
-            if (m == null) { return recd; }
-            log.fine(() -> "dispatch: poll took " + t + " ms");
-            if (dispatch(m)) {
-                recd++;
-            } else {
-                log.warning("dispatch: unrecognized message: " + Util.dumpBufferString(m.buffer()));
-            }
-        }
-    }
 
     @Override
     public boolean dispatch(UsbMessage msg) {
@@ -134,7 +117,7 @@ public class Device implements Dispatcher {
         return switch (h) {
             case R_CMD -> dispatchCmd(buf);
             case R_INIT -> dispatchSuccess(() -> "System Init");
-            default -> dispatchFailure("dispatch: unrecognized response code: " + h);
+            default -> dispatchFailure("dispatch: unrecognized response code: %02x",h);
         };
     }
 
@@ -143,8 +126,8 @@ public class Device implements Dispatcher {
         return true;
     }
 
-    private boolean dispatchFailure(String msg) {
-        log.warning(msg);
+    private boolean dispatchFailure(String msg, Object... args) {
+        log.warning(String.format(msg,args));
         return false;
     }
 
@@ -167,7 +150,7 @@ public class Device implements Dispatcher {
         } else if (h >=0 && h < 4) {
             return dispatchSlotCmd(Slot.fromIndex(h),buf);
         } else {
-            return dispatchFailure("dispatchCmd: unrecognized header: " + h);
+            return dispatchFailure("dispatchCmd: unrecognized header: %02x",h);
         }
     }
 
@@ -186,40 +169,8 @@ public class Device implements Dispatcher {
             case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments,sliceAhead(buf));
             case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
             case T_ENTRY_LIST -> dispatchEntryList(buf.slice());
-            default -> dispatchFailure("dispatchPerfCmd: unrecognized type: " + t);
+            default -> dispatchFailure("dispatchPerfCmd: unrecognized type: %02x",t);
         };
-    }
-
-
-
-    public boolean dispatchEntryList(ByteBuffer buf) {
-        buf.position(4); //skip constant header fields
-        BitBuffer bb = new BitBuffer(buf.slice());
-        EntryType type = EntryType.LOOKUP.get(bb.get());
-        List<EntryBank> banks = new ArrayList<>();
-        EntryBank bank = null;
-        while (true) {
-            switch (bb.peek(8)) {
-                case 0x03:
-                    bb.get();
-                    banks.add(bank = new EntryBank(bb.get(),bb.get(),new ArrayList<>()));
-                    break;
-                case 0x04:
-                case 0x05:
-                    entriesMsg = new EntriesMsg(type,banks,bb.get() == 0x04);
-                    return dispatchSuccess(() -> "dispatchEntryList: terminate: " + entriesMsg.done());
-                default:
-                    if (bank == null) { throw new IllegalStateException("invalid message, no current bank"); }
-                    FieldValues fvs = Protocol.EntryData.FIELDS.read(bb);
-                    bank.entries().add(new Entry(Protocol.EntryData.Name.stringValueRequired(fvs),
-                            Protocol.EntryData.Category.intValueRequired(fvs)));
-            }
-        }
-    }
-
-
-    private BitBuffer sliceAhead(ByteBuffer buf) {
-        return BitBuffer.sliceAhead(buf, Util.getShort(buf));
     }
 
     /**
@@ -242,9 +193,26 @@ public class Device implements Dispatcher {
             case T_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
             case T_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
             case T_SELECTED_PARAM -> patch.readSelectedParam(buf);
-            default -> dispatchFailure("dispatchSlotCmd: unrecognized type: " + t);
+            case T_VOLUME_DATA -> patch.readVolumeData(buf);
+            case T_LED_DATA -> patch.readLedData(buf);
+            default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);
         };
     }
+
+
+        /*
+        3a: R_VOLUME_DATA (slot cmd)
+01 00 00 3a 00 00 00 00 00 00 00 00 00 00 00 07   . . . : . . . . . . . . . . . .
+00 00 00 00 00 00 00 00 00 00 30 00 00 00 00 00   . . . . . . . . . . 0 . . . . .
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
+00 00 00 00 00 6d 3d                              . . . . . m =
+
+  R_LED_DATA              = $39; (slot)
+01 00 00 39 00 00 00 00 00 15 00 00 00 00 00 b6   . . . 9 . . . . . . . . . . . .
+54                                                T
+         */
 
     /**
      * Handle 01 0c 40 36 ...
@@ -264,6 +232,8 @@ public class Device implements Dispatcher {
         }
     }
 
+
+
     public void initialize() throws Exception {
 
         usb.sendBulk("Init", true, Util.asBytes(R_INIT));
@@ -275,10 +245,7 @@ public class Device implements Dispatcher {
                 ,0x04 // perf version??
         );
 
-        usb.sendSystemRequest("Stop Comm"
-                ,0x7d // S_START_STOP_COM
-                , 0x01 // stop
-        );
+        sendStartStopComm(false);
 
         //synth settings
         usb.sendSystemRequest("Synth settings"
@@ -321,38 +288,10 @@ public class Device implements Dispatcher {
 
         readEntries(EntryType.Patch);
         readEntries(EntryType.Perf);
-    }
 
-    private void readEntries(EntryType type) throws Exception {
-        entriesMsg = new EntriesMsg(type,List.of(new EntryBank(0,0,List.of())),false);
-        entries.get(type).clear();
-        while (!entriesMsg.done() && !entriesMsg.banks().isEmpty()) {
-            EntryBank lastBank = entriesMsg.banks().getLast();
-            int lastEntry = lastBank.entry() + lastBank.entries().size();
-            log.fine(() -> "sending entry request: " + type + ":" + lastBank.bank() + "," + lastEntry);
-            entriesMsg = null;
-            usb.sendSystemRequest("patch entry"
-                    , 0x14 // Q_LIST_NAMES
-                    , type.ordinal()
-                    , lastBank.bank()
-                    , lastEntry
-            );
-            if (entriesMsg == null) {
-                throw new IllegalStateException("Did not receive entries message!");
-            }
-            log.fine(() -> "received entry data: " + entriesMsg);
-            entriesMsg.banks().forEach(bank -> {
-                Map<Integer, Entry> bm = entries.get(type).computeIfAbsent(bank.bank(),b -> new TreeMap<>());
-                int i = bank.entry();
-                for (Entry e : bank.entries()) {
-                    bm.put(i++,e);
-                }
-            });
-        }
-        log.fine(() -> "readEntries: received " + entries.get(type).size() + " banks");
+        sendStartStopComm(true);
 
     }
-
 
 
     private void readSlot(final Slot slot) throws Exception {
@@ -403,6 +342,73 @@ public class Device implements Dispatcher {
     }
 
 
+    private void sendStartStopComm(boolean start) throws Exception {
+        usb.sendSystemRequest(start ? "Start comm" : "Stop comm"
+                ,0x7d // S_START_STOP_COM
+                , start ? 0x00 : 0x01
+        );
+    }
+
+
+
+    public boolean dispatchEntryList(ByteBuffer buf) {
+        buf.position(4); //skip constant header fields
+        BitBuffer bb = new BitBuffer(buf.slice());
+        EntryType type = EntryType.LOOKUP.get(bb.get());
+        List<EntryBank> banks = new ArrayList<>();
+        EntryBank bank = null;
+        while (true) {
+            switch (bb.peek(8)) {
+                case 0x03:
+                    bb.get();
+                    banks.add(bank = new EntryBank(bb.get(),bb.get(),new ArrayList<>()));
+                    break;
+                case 0x04:
+                case 0x05:
+                    entriesMsg = new EntriesMsg(type,banks,bb.get() == 0x04);
+                    return dispatchSuccess(() -> "dispatchEntryList: terminate: " + entriesMsg.done());
+                default:
+                    if (bank == null) { throw new IllegalStateException("invalid message, no current bank"); }
+                    FieldValues fvs = Protocol.EntryData.FIELDS.read(bb);
+                    bank.entries().add(new Entry(Protocol.EntryData.Name.stringValueRequired(fvs),
+                            Protocol.EntryData.Category.intValueRequired(fvs)));
+            }
+        }
+    }
+
+
+    private void readEntries(EntryType type) throws Exception {
+        entriesMsg = new EntriesMsg(type,List.of(new EntryBank(0,0,List.of())),false);
+        entries.get(type).clear();
+        while (!entriesMsg.done() && !entriesMsg.banks().isEmpty()) {
+            EntryBank lastBank = entriesMsg.banks().getLast();
+            int lastEntry = lastBank.entry() + lastBank.entries().size();
+            log.fine(() -> "sending entries request: " + type + ":" + lastBank.bank() + "," + lastEntry);
+            entriesMsg = null;
+            usb.sendSystemRequest("entries request"
+                    , 0x14 // Q_LIST_NAMES
+                    , type.ordinal()
+                    , lastBank.bank()
+                    , lastEntry
+            );
+            if (entriesMsg == null) {
+                throw new IllegalStateException("Did not receive entries message!");
+            }
+            log.fine(() -> "received entry data: " + entriesMsg);
+            entriesMsg.banks().forEach(bank -> {
+                Map<Integer, Entry> bm = entries.get(type).computeIfAbsent(bank.bank(),b -> new TreeMap<>());
+                int i = bank.entry();
+                for (Entry e : bank.entries()) {
+                    bm.put(i++,e);
+                }
+            });
+        }
+        log.fine(() -> "readEntries: received " + entries.get(type).size() + " banks");
+
+    }
+
+
+
     private boolean readExtMasterClock(ByteBuffer buf) {
         buf.get();
         int v = Util.getShort(buf);
@@ -422,6 +428,11 @@ public class Device implements Dispatcher {
 
     public void shutdown() {
         if (!online()) { return; }
+        try {
+            sendStartStopComm(false);
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"could not send stop message",e);
+        }
         usb.shutdown();
     }
 
@@ -443,4 +454,12 @@ public class Device implements Dispatcher {
         return new Repl.Path(online() ? "online" : "offline",
             assertPerf().getName(), getSlotPatch(assertPerf().getSelectedSlot()),getVariation(),AreaId.Voice,null,null);
     }
+
+
+    private BitBuffer sliceAhead(ByteBuffer buf) {
+        return BitBuffer.sliceAhead(buf, Util.getShort(buf));
+    }
+
+
+
 }

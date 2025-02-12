@@ -52,8 +52,12 @@ public class Main {
 
         if (!repl.replEnabled()) {
             log.info("awaiting init");
-            log.info("init success: " + deviceInitialized.await(15, TimeUnit.SECONDS));
+            boolean success = deviceInitialized.await(15, TimeUnit.SECONDS);
+            log.info("init success: " + success);
             log.info("init took " + (System.currentTimeMillis() - is) + "ms");
+            if (success) {
+                Thread.sleep(2500);
+                }
         }
 
         repl.stop();

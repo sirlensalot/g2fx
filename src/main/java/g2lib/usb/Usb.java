@@ -18,6 +18,9 @@ public class Usb {
 
     private final UsbService.UsbDevice device;
     private final UsbReadThread readThread;
+    /**
+     * Same-thread dispatcher
+     */
     private Dispatcher dispatcher;
 
     public Usb(UsbService.UsbDevice device) {
@@ -28,33 +31,6 @@ public class Usb {
     public void start() {
         readThread.start();
     }
-
-
-//    /**
-//     * only supports 1 connected device
-//     */
-//    static Device getG2Device(Context context) {
-//        // Read the USB device list
-//        final DeviceList list = new DeviceList();
-//
-//        retcode(LibUsb.getDeviceList(context, list), "Unable to get device list");
-//
-//        // Iterate over all devices and dump them
-//        for (Device device : list) {
-//            final DeviceDescriptor descriptor = new DeviceDescriptor();
-//            retcode(LibUsb.getDeviceDescriptor(device, descriptor), "Unable to read device descriptor");
-//            if (descriptor.idVendor() == VENDOR_ID && descriptor.idProduct() == PRODUCT_ID) {
-//                //dumpDevice(device);
-//                return device;
-//            } else {
-//                LibUsb.unrefDevice(device);
-//            }
-//        }
-//        return null;
-//    }
-
-
-
 
 
 
@@ -175,14 +151,6 @@ public class Usb {
         ),Util.asBytes(cdata)));
     }
 
-    public int sendSystemRequestNoDispatch(String msg, int... cdata) throws Exception {
-        return sendBulk(msg, false, Util.concat(Util.asBytes(
-                0x01,
-                0x20 + 0x0c,// CMD_REQ + CMD_SYS
-                0x41
-        ),Util.asBytes(cdata)));
-    }
-
     public int sendPerfRequest(int perfVersion, String msg, int... cdata) throws Exception {
         return sendBulk(msg, true, Util.concat(Util.asBytes(
                 0x01,
@@ -289,11 +257,11 @@ S_SET_MORPH_RANGE :
         return readThread.expect(id,filter);
     }
 
-    public UsbMessage poll(int timeoutMs) throws InterruptedException {
-        return readThread.poll(timeoutMs);
-    }
-
     public void setDispatcher(Dispatcher dispatcher) {
         this.dispatcher = dispatcher;
+    }
+
+    public void setThreadsafeDispatcher(Dispatcher dispatcher) {
+        readThread.setDispatcher(dispatcher);
     }
 }
