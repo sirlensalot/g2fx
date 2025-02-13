@@ -2465,7 +2465,7 @@ public enum ModuleType {
         ,outPorts
         ,params
         ,modes
-        ,Map.of());
+        ,Map.of(Led,List.of(),Meter,List.of()));
     }
 
     ModuleType(int ix,

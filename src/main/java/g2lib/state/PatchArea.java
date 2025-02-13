@@ -1,6 +1,7 @@
 package g2lib.state;
 
 import g2lib.model.SettingsModules;
+import g2lib.model.Visual;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
 import g2lib.util.Util;
@@ -34,11 +35,21 @@ public class PatchArea {
         });
     }
 
+
+    public void addVisuals(Visual.VisualType type, List<Patch.PatchVisual> visuals) {
+        for (PatchModule mod : modules.values()) {
+            visuals.addAll(mod.getUserModuleData().getType().getVisuals().get(type).stream().map(v ->
+                new Patch.PatchVisual(id,mod,v)
+            ).toList());
+        }
+    }
+
+
     public void addModules(FieldValues modListFvs) {
         Protocol.ModuleList.Modules.subfieldsValueRequired(modListFvs).forEach(this::addModule);
     }
 
-    public void addModule(FieldValues fvs) {
+    private void addModule(FieldValues fvs) {
         PatchModule m = new PatchModule(fvs);
         modules.put(m.getIndex(),m);
     }
@@ -81,16 +92,17 @@ public class PatchArea {
     }
 
     public void setModuleLabels(FieldValues fv) {
-        Protocol.ModuleLabels.ModLabels.subfieldsValueRequired(fv).forEach(ml -> {
+        Protocol.ModuleLabels.ModLabels.subfieldsValueRequired(fv).forEach(ml ->
             getModuleRequired(Protocol.ModuleLabel.ModuleIndex.intValueRequired(ml))
-                    .setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValueRequired(ml));
-        });
+                    .setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValueRequired(ml))
+        );
     }
 
     public void setModuleNames(FieldValues fv) {
         Protocol.ModuleNames.Names.subfieldsValueRequired(fv).forEach(mn -> {
-            getModuleRequired(Protocol.ModuleName.ModuleIndex.intValueRequired(mn))
-                            .setModuleName(mn);
+            PatchModule m = getModuleRequired(Protocol.ModuleName.ModuleIndex.intValueRequired(mn));
+            m.setModuleName(mn);
+            log.fine(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.getName());
         });
     }
 

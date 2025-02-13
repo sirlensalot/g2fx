@@ -1,5 +1,6 @@
 package g2lib.state;
 
+import g2lib.model.Visual;
 import g2lib.protocol.FieldValue;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
@@ -10,13 +11,13 @@ import g2lib.util.CRC16;
 import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
 public class Patch {
 
-    private static final Logger log = Util.getLogger(Patch.class);
+    private final Logger log;
 
     public static ByteBuffer fileHeader(int bufSize, String[] headerMsg) {
         ByteBuffer header = ByteBuffer.allocate(bufSize);
@@ -38,14 +39,7 @@ public class Patch {
             "Info=BUILD 320"
     });
 
-    public int getVersion() {
-        return version;
-    }
-
-
-    public record Section(Sections sections, FieldValues values) {
-
-    }
+    public record Section(Sections sections, FieldValues values) { }
 
     public static final Sections[] FILE_SECTIONS = new Sections[] {
             Sections.SPatchDescription,
@@ -103,10 +97,18 @@ public class Patch {
     private ControlAssignments controls;
     private MorphParameters morphParams;
     private int assignedVoices;
+    private final Map<Visual.VisualType,List<PatchVisual>> visuals =
+            new TreeMap<>(Map.of(Visual.VisualType.Led,List.of(), Visual.VisualType.Meter,List.of()));
 
     public Patch(Slot slot) {
+        this.log = Util.getLogger(getClass().getName() + ":" + slot);
         this.slot = slot;
     }
+
+    public int getVersion() {
+        return version;
+    }
+
 
     public void setVersion(int version) {
         this.version = version;
@@ -130,6 +132,7 @@ public class Patch {
                 Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }
         }
+        updateVisualIndex();
     }
     public static Patch readFromMessage(Slot slot, ByteBuffer buf) {
         Patch patch = new Patch(slot);
@@ -153,14 +156,6 @@ public class Patch {
             case 2 -> settingsArea;
             default -> throw new IllegalArgumentException("Invalid area index: " + index);
         };
-    }
-
-    private FieldValues getSectionValues(Sections ss) {
-        Section s = getSection(ss);
-        if (s == null) {
-            throw new IllegalArgumentException("Section not found: " + ss);
-        }
-        return s.values();
     }
 
     public void readMessageHeader(ByteBuffer buf) {
@@ -192,6 +187,7 @@ public class Patch {
         for (Sections ss : FILE_SECTIONS) {
             patch.readSection(fileBuffer,ss);
         }
+        patch.updateVisualIndex();
 
         int fcrc = Util.getShort(fileBuffer);
         if (fcrc != crc) {
@@ -200,6 +196,33 @@ public class Patch {
 
         return patch;
     }
+
+    public static class PatchVisual {
+        private final AreaId area;
+        private final PatchModule module;
+        private final Visual visual;
+        private int value = -1;
+
+        public PatchVisual(AreaId area, PatchModule module, Visual visual) {
+            this.area = area;
+            this.module = module;
+            this.visual = visual;
+        }
+
+        public boolean update(int value) {
+            if (value != this.value) {
+                this.value = value;
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return area + "." + module.getName() + "[" + module.getIndex() + "]." + visual.name() + "=" + value;
+        }
+    }
+
 
     public static ByteBuffer verifyFileHeader(String filePath, ByteBuffer header) throws Exception {
         ByteBuffer fileBuffer = Util.readFile(filePath);
@@ -337,13 +360,6 @@ public class Patch {
     }
 
 
-    public void readSelectedParam(UsbMessage msg) {
-        ByteBuffer buf = msg.getBufferx();
-        readMessageHeader(buf);
-        Util.expectWarn(buf,0x2f,"msg","Selected Param");
-        readSelectedParam(buf);
-    }
-
     public boolean readSelectedParam(ByteBuffer buf) {
         FieldValues fvs = Protocol.SelectedParam.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.SelectedParam.Location.intValueRequired(fvs)).setSelectedParam(fvs);
@@ -356,22 +372,40 @@ public class Patch {
         readSection(buf,s);
     }
 
-
-
-    public void readSectionMessage(Sections s, UsbMessage msg) {
-        readSectionMessage(msg.getBufferx(),s);
+    private void updateVisualIndex() {
+        for (Visual.VisualType t : Visual.VisualType.values()) {
+            List<PatchVisual> vs = new ArrayList<>();
+            fxArea.addVisuals(t,vs);
+            voiceArea.addVisuals(t,vs);
+            visuals.put(t,vs);
+            log.fine(() -> t + ": " + vs);
+        }
     }
 
-
     public boolean readVolumeData(ByteBuffer buf) {
-        //TODO
-        log.fine(() -> "readVolumeData");
+        StringBuilder sb = new StringBuilder();
+        visuals.get(Visual.VisualType.Meter).forEach(v -> {
+            buf.get(); // unknown
+            if (v.update(buf.get())) {
+                if (!sb.isEmpty()) { sb.append(", "); }
+                sb.append(v);
+            }
+        });
+        log.fine(() -> "readVolumeData: " + sb);
         return true;
     }
 
     public boolean readLedData(ByteBuffer buf) {
-        //TODO
-        log.fine(() -> "readLedData");
+        buf.get(); //unknown
+        BitBuffer bb = new BitBuffer(buf.slice());
+        StringBuilder sb = new StringBuilder();
+        visuals.get(Visual.VisualType.Led).forEach(v -> {
+            if (v.update(bb.get(2))) {
+                if (!sb.isEmpty()) { sb.append(", "); }
+                sb.append(v);
+            }
+        });
+        log.fine(() -> "readLedData: " + sb);
         return true;
     }
 
