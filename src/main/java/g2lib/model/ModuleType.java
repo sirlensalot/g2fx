@@ -1,11 +1,15 @@
 package g2lib.model;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.IntStream;
 
 import static g2lib.model.ConnColor.*;
-import static g2lib.model.Connector.*;
+import static g2lib.model.Connector.in;
+import static g2lib.model.Connector.out;
+import static g2lib.model.Visual.VisualType;
+import static g2lib.model.Visual.VisualType.Led;
+import static g2lib.model.Visual.VisualType.Meter;
+// LEDS: types are "Sequencer" and "Green"
 
 public enum ModuleType {
     M_Keyboard
@@ -31,7 +35,8 @@ public enum ModuleType {
      List.of(ModParam.Dst_2.mk("Destination"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Pad_1.mk("Pad")),
-     List.of()),
+     List.of(),
+            meters("L1","R1","L2","R2")),
     M_2_Out
     (4, "2 outputs", 2,
      ModPage.InOut.ix(0),
@@ -41,7 +46,8 @@ public enum ModuleType {
      List.of(ModParam.Dst_1.mk("Destination"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Pad_1.mk("Pad")),
-     List.of()),
+     List.of(),
+            meters("L","R")),
     M_Invert
     (5, "Logic Inverter", 2,
      ModPage.Logic.ix(1),
@@ -50,7 +56,8 @@ public enum ModuleType {
      List.of(out("Out1",Yellow_orange,11,1),
              out("Out2",Yellow_orange,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            leds(2)),
     M_OscB
     (7, "Osc B", 5,
      ModPage.Osc.ix(1),
@@ -162,7 +169,8 @@ public enum ModuleType {
              out("OutOff",Blue_red,19,2)),
      List.of(ModParam.ValSwVal.mk("Val")
              .label("Out 1","Out 2")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_X_Fade
     (18, "Cross Fader", 2,
      ModPage.Mixer.ix(13),
@@ -188,7 +196,8 @@ public enum ModuleType {
              ModParam.MixLevel.mk("Lev3"),
              ModParam.MixLevel.mk("Lev4"),
              ModParam.ExpLin_2.mk("ExpLin")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_EnvADSR
     (20, "Envelop ADSR", 4,
      ModPage.Env.ix(0),
@@ -205,7 +214,8 @@ public enum ModuleType {
              ModParam.PosNegInvBipInv.mk("OutputType"),
              ModParam.OffOn.mk("KB"),
              ModParam.EnvNR.mk("NR")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_Mux1_8
     (21, "Multiplexer 1-8", 2,
      ModPage.Switch.ix(14),
@@ -220,7 +230,8 @@ public enum ModuleType {
              out("Out7",Blue_red,18,1),
              out("Out8",Blue_red,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            leds(8)), // <--- VISUALS DONE TO HERE
     M_PartQuant
     (22, "Partial Quantizer", 2,
      ModPage.Note.ix(2),
@@ -2374,6 +2385,7 @@ public enum ModuleType {
      List.of(ModParam.RndStepPulse.mk("Waveform")));
 
 
+
     public final int ix;
     public final int height;
     public final String longName;
@@ -2383,15 +2395,36 @@ public enum ModuleType {
     private final List<NamedParam> params;
     public final List<NamedParam> modes;
     public final String shortName;
+    private final Map<VisualType,List<Visual>> visuals;
 
     ModuleType(int ix,
-               String longName, int height,
+               String longName,
+               int height,
                ModPageIx modPageIx,
                List<Connector> inPorts,
                List<Connector> outPorts,
                List<NamedParam> params,
                List<NamedParam> modes) {
+        this(ix
+        ,longName
+        ,height
+        ,modPageIx
+        ,inPorts
+        ,outPorts
+        ,params
+        ,modes
+        ,Map.of());
+    }
 
+    ModuleType(int ix,
+               String longName,
+               int height,
+               ModPageIx modPageIx,
+               List<Connector> inPorts,
+               List<Connector> outPorts,
+               List<NamedParam> params,
+               List<NamedParam> modes,
+               Map<VisualType,List<Visual>> visuals) {
         this.ix = ix;
         this.height = height;
         this.longName = longName;
@@ -2401,7 +2434,10 @@ public enum ModuleType {
         this.params = params;
         this.modes = modes;
         this.shortName = mkShortName(name());
+        this.visuals = visuals;
     }
+
+
 
     private static String mkShortName(String name) {
         return name.substring(2).replace('_','-').replace("-and-","&");
@@ -2411,7 +2447,11 @@ public enum ModuleType {
         return params;
     }
 
-    public record ModPageIx(ModPage page,Integer ix) implements Comparable<ModPageIx> {
+    public Map<VisualType, List<Visual>> getVisuals() {
+        return visuals;
+    }
+
+    public record ModPageIx(ModPage page, Integer ix) implements Comparable<ModPageIx> {
 
         @Override
         public int compareTo(ModPageIx o) {
@@ -2459,6 +2499,40 @@ public enum ModuleType {
             throw new IllegalArgumentException("Invalid module id: " + id);
         }
         return m;
+    }
+
+
+    private static Map<VisualType,List<Visual>> meters(String... names) {
+        return visuals(Meter,names);
+    }
+    private static Map<VisualType,List<Visual>> leds(String... names) {
+        return visuals(Led,names);
+    }
+    private static Map<VisualType,List<Visual>> visuals(VisualType type, String... names) {
+        return Map.of(type, Arrays.stream(names).map(n -> new Visual(type,n)).toList(),
+                type == Led ? Meter : Led,List.of());
+    }
+    private static Map<VisualType,List<Visual>> meters(int names) {
+        return visuals(Meter,names);
+    }
+    private static Map<VisualType,List<Visual>> leds(int names) {
+        return visuals(Led,names);
+    }
+    private static Map<VisualType,List<Visual>> visuals(VisualType type, int count) {
+        return visuals(type,IntStream.range(0,count).boxed().map(
+                i -> type.name().charAt(0) + Integer.toString(i))
+                .toList().toArray(new String[count]));
+    }
+
+    private static Map<VisualType,List<Visual>> visuals(
+            Map<VisualType, List<Visual>> v1s,
+            Map<VisualType, List<Visual>> v2s) {
+        HashMap<VisualType, List<Visual>> m = new HashMap<>(v1s);
+        m.putAll(v2s);
+        return m;
+    }
+    private static Map<VisualType, List<Visual>> visual(VisualType type) {
+        return visuals(type,type.name());
     }
 
 }
