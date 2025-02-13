@@ -36,7 +36,7 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Pad_1.mk("Pad")),
      List.of(),
-            meters("L1","R1","L2","R2")),
+            meters(4)),
     M_2_Out
     (4, "2 outputs", 2,
      ModPage.InOut.ix(0),
@@ -231,7 +231,7 @@ public enum ModuleType {
              out("Out8",Blue_red,19,1)),
      List.of(),
      List.of(),
-            leds(8)), // <--- VISUALS DONE TO HERE
+            leds(8)),
     M_PartQuant
     (22, "Partial Quantizer", 2,
      ModPage.Note.ix(2),
@@ -261,7 +261,8 @@ public enum ModuleType {
              ModParam.Level_100.mk("ReleaseMod"),
              ModParam.PosNegInvBipInv.mk("OutputType"),
              ModParam.OffOn.mk("KB")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_LfoC
     (24, "LFO C", 2,
      ModPage.LFO.ix(2),
@@ -272,7 +273,8 @@ public enum ModuleType {
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.LfoRange_3.mk("Range"),
              ModParam.ActiveMonitor.mk("Active")),
-     List.of(ModParam.LfoWaveform_1.mk("Waveform"))),
+     List.of(ModParam.LfoWaveform_1.mk("Waveform")),
+            visual(Led)),
     M_LfoShpA
     (25, "LFO Shape A", 5,
      ModPage.LFO.ix(3),
@@ -296,7 +298,8 @@ public enum ModuleType {
              ModParam.PolyMono.mk("PolyMono"),
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.LfoShpA__Waveform.mk("Waveform")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_LfoA
     (26, "LFO A", 3,
      ModPage.LFO.ix(0),
@@ -311,7 +314,8 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.LfoRange_3.mk("Range")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_OscMaster
     (27, "Osc Master", 3,
      ModPage.Osc.ix(16),
@@ -379,7 +383,8 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.EqLoFreq.mk("LoFreq"),
              ModParam.EqHiFreq.mk("HiFreq")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_Eq3Band
     (33, "Eq 3 Band", 4,
      ModPage.Filter.ix(13),
@@ -393,7 +398,8 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.EqLoFreq.mk("LoFreq"),
              ModParam.EqHiFreq.mk("HiFreq")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_ShpExp
     (34, "Shape Exp", 2,
      ModPage.Shaper.ix(3),
@@ -422,7 +428,8 @@ public enum ModuleType {
      List.of(ModParam.LogicTime.mk("Time"),
              ModParam.Level_100.mk("TimeMod"),
              ModParam.LogicRange.mk("Range")),
-     List.of(ModParam.PulseMode.mk("Mode"))),
+     List.of(ModParam.PulseMode.mk("Mode")),
+            visual(Led)),
     M_Mix8_1B
     (40, "Mixer 8-1 B", 4,
      ModPage.Mixer.ix(9),
@@ -446,7 +453,8 @@ public enum ModuleType {
              ModParam.MixLevel.mk("Lev8"),
              ModParam.ExpLin_2.mk("ExpLin"),
              ModParam.Pad_3.mk("Pad")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_EnvH
     (41, "Envelope Hold", 2,
      ModPage.Env.ix(1),
@@ -457,7 +465,8 @@ public enum ModuleType {
              out("Out",Blue_red,19,1)),
      List.of(ModParam.EnvTime.mk("Hold"),
              ModParam.PosNegInv.mk("OutputType")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_Delay
     (42, "Logic Delay", 2,
      ModPage.Logic.ix(5),
@@ -467,7 +476,8 @@ public enum ModuleType {
      List.of(ModParam.LogicTime.mk("Time"),
              ModParam.Level_100.mk("TimeMod"),
              ModParam.LogicRange.mk("Range")),
-     List.of(ModParam.LogicDelayMode.mk("Mode"))),
+     List.of(ModParam.LogicDelayMode.mk("Mode")),
+            visual(Led)),
     M_Constant
     (43, "Constant Value", 2,
      ModPage.Level.ix(0),
@@ -501,7 +511,8 @@ public enum ModuleType {
              ModParam.Bipolar_127.mk("FreqMod"),
              ModParam.Bipolar_127.mk("Res"),
              ModParam.ActiveMonitor.mk("Active")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_EnvAHD
     (46, "Envelope AHD", 4,
      ModPage.Env.ix(4),
@@ -517,7 +528,8 @@ public enum ModuleType {
              ModParam.EnvTime.mk("Decay"),
              ModParam.PosNegInv.mk("OutputType"),
              ModParam.OffOn.mk("KB")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_Pan
     (47, "Pan", 2,
      ModPage.Mixer.ix(12),
@@ -553,7 +565,8 @@ public enum ModuleType {
              ModParam.Bipolar_127.mk("Pan5"),
              ModParam.Bipolar_127.mk("Pan6"),
              ModParam.Level_100.mk("LevMaster")),
-     List.of()),
+     List.of(),
+            meters("L","R")),
     M_FltMulti
     (49, "Filter Multi-mode", 4,
      ModPage.Filter.ix(4),
@@ -621,7 +634,8 @@ public enum ModuleType {
              ModParam.PosNegInvBip.mk("OutputType"),
              ModParam.OffOn.mk("KB"),
              ModParam.EnvShape_3.mk("Shape")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_S_and_H
     (53, "Sample & Hold", 2,
      ModPage.Switch.ix(16),
@@ -651,7 +665,8 @@ public enum ModuleType {
              out("Out",Blue_red,19,1)),
      List.of(ModParam.EnvTime.mk("Decay"),
              ModParam.PosNegInv.mk("OutputType")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_Automate
     (57, "MIDI Control Automate", 2,
      ModPage.MIDI.ix(6),
@@ -685,7 +700,8 @@ public enum ModuleType {
              ModParam.Level_100.mk("Click"),
              ModParam.Level_100.mk("Noise"),
              ModParam.ActiveMonitor.mk("Active")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_CompLev
     (59, "Compare to Level", 2,
      ModPage.Level.ix(10),
@@ -707,7 +723,8 @@ public enum ModuleType {
              in("Ctrl",Blue,0,1)),
      List.of(out("Out",Blue_red,19,1)),
      List.of(ModParam.Level_100.mk("XFade")),
-     List.of()),
+     List.of(),
+            leds(8)),
     M_Clip
     (61, "Clip", 2,
      ModPage.Shaper.ix(0),
@@ -753,7 +770,8 @@ public enum ModuleType {
              out("Out2",Yellow_orange,19,1)),
      List.of(),
      List.of(ModParam.GateMode.mk("GateMode1"),
-             ModParam.GateMode.mk("GateMode2"))),
+             ModParam.GateMode.mk("GateMode2")),
+            leds(2)),
     M_Mix2_1B
     (66, "Scratch", 2,
      ModPage.Mixer.ix(3),
@@ -899,7 +917,8 @@ public enum ModuleType {
              ModParam.PosNegInv.mk("OutputType"),
              ModParam.OffOn.mk("KB"),
              ModParam.AdAr.mk("DcyRel")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_WindSw
     (85, "Window Switch", 2,
      ModPage.Switch.ix(12),
@@ -909,7 +928,8 @@ public enum ModuleType {
              out("Gate",Yellow_orange,0,1)),
      List.of(ModParam.Range_64.mk("ValFrom"),
              ModParam.Range_64.mk("ValTo")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_8Counter
     (86, "8 Counter", 2,
      ModPage.Logic.ix(6),
@@ -924,7 +944,8 @@ public enum ModuleType {
              out("Out7",Yellow_orange,17,1),
              out("Out8",Yellow_orange,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            leds(8)),
     M_FltLP
     (87, "Filter Lowpass", 2,
      ModPage.Filter.ix(0),
@@ -976,7 +997,8 @@ public enum ModuleType {
      List.of(out("NotQ",Yellow_orange,17,1),
              out("Q",Yellow_orange,19,0)),
      List.of(),
-     List.of(ModParam.FlipFlopMode.mk("OperationMode"))),
+     List.of(ModParam.FlipFlopMode.mk("OperationMode")),
+            leds("QB","Q")),
     M_FltClassic
     (92, "Filter Classic", 4,
      ModPage.Filter.ix(3),
@@ -1068,7 +1090,8 @@ public enum ModuleType {
              ModParam.Level_100.mk("FBMod"),
              ModParam.FltPhaseType.mk("Type"),
              ModParam.Kbt_4.mk("Kbt")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_EqPeak
     (103, "Eq Peak", 4,
      ModPage.Filter.ix(11),
@@ -1079,7 +1102,8 @@ public enum ModuleType {
              ModParam.EqPeakBandwidth.mk("Bandwidth"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Level_100.mk("Level")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_ValSw2_1
     (105, "Value Switch 2-1", 2,
      ModPage.Switch.ix(10),
@@ -1088,7 +1112,8 @@ public enum ModuleType {
              in("Ctrl",Blue_red,0,1)),
      List.of(out("Out",Blue_red,19,1)),
      List.of(ModParam.ValSwVal.mk("Val")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_OscNoise
     (106, "Oscillator Noise", 3,
      ModPage.Osc.ix(8),
@@ -1183,7 +1208,8 @@ public enum ModuleType {
              in("In8",Blue_red,16,1)),
      List.of(out("Out",Blue_red,19,1)),
      List.of(ModParam.Pad_3.mk("Pad")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_LevMod
     (117, "Level Modulator", 3,
      ModPage.Level.ix(7),
@@ -1224,7 +1250,8 @@ public enum ModuleType {
              ModParam.SustainMode_1.mk("SustainMode"),
              ModParam.PosNegInvBipInv.mk("OutputType"),
              ModParam.EnvNR.mk("NR")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_SeqNote
     (121, "Sequencer Note", 9,
      ModPage.Seq.ix(3),
@@ -1276,7 +1303,8 @@ public enum ModuleType {
              ModParam.TrigGate.mk("TG"),
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
-     List.of()),
+     List.of(),
+            visuals(leds(16),leds("Link"))),
     M_Mix4_1C
     (123, "Mixer 4-1 C", 4,
      ModPage.Mixer.ix(6),
@@ -1296,7 +1324,8 @@ public enum ModuleType {
              ModParam.OffOn.mk("On4").label("Ch 4"),
              ModParam.Pad_2.mk("Pad"),
              ModParam.ExpLin_2.mk("ExpLin")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_Mux8_1
     (124, "Multiplexer 8-1", 2,
      ModPage.Switch.ix(13),
@@ -1311,7 +1340,8 @@ public enum ModuleType {
              in("Ctrl",Blue,0,1)),
      List.of(out("Out",Blue_red,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            leds(8)),
     M_WahWah
     (125, "Wah-Wah", 2,
      ModPage.Filter.ix(8),
@@ -1338,7 +1368,8 @@ public enum ModuleType {
      List.of(ModParam.Source_1.mk("Source"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Pad_4.mk("Pad")),
-     List.of()),
+     List.of(),
+            meters("L","R")),
     M_MinMax
     (128, "Min/Max Compare", 2,
      ModPage.Level.ix(12),
@@ -1362,7 +1393,8 @@ public enum ModuleType {
              out("Out064",Yellow_orange,17,1),
              out("Out128",Yellow_orange,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            leds(8)),
     M_ADConv
     (131, "A/D Converter", 2,
      ModPage.Logic.ix(8),
@@ -1376,7 +1408,8 @@ public enum ModuleType {
              out("D6",Yellow_orange,17,1),
              out("D7",Yellow_orange,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            leds(8)),
     M_DAConv
     (132, "D/A Converter", 2,
      ModPage.Logic.ix(9),
@@ -1434,7 +1467,8 @@ public enum ModuleType {
              ModParam.OffOn.mk("On3").label("Ch 3"),
              ModParam.OffOn.mk("On4").label("Ch 4"),
              ModParam.ExpLin_2.mk("ExpLin")),
-     List.of()),
+     List.of(),
+            meters("L","R")),
     M_CtrlSend
     (141, "MIDI Control Send", 2,
      ModPage.MIDI.ix(0),
@@ -1513,7 +1547,8 @@ public enum ModuleType {
              ModParam.SeqLen.mk("Length"),
              ModParam.TrigGate.mk("TG1"),
              ModParam.TrigGate.mk("TG2")),
-     List.of()),
+     List.of(),
+            visuals(leds(16),leds("Link"))),
     M_SeqVal
     (145, "Sequencer Values", 8,
      ModPage.Seq.ix(1),
@@ -1564,7 +1599,8 @@ public enum ModuleType {
              ModParam.TrigGate.mk("TG"),
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
-     List.of()),
+     List.of(),
+            visuals(leds(16),leds("Link"))),
     M_SeqLev
     (146, "Sequencer Level", 8,
      ModPage.Seq.ix(2),
@@ -1615,7 +1651,8 @@ public enum ModuleType {
              ModParam.TrigGate.mk("TG"),
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
-     List.of()),
+     List.of(),
+            visuals(leds(16),leds("Link"))),
     M_CtrlRcv
     (147, "MIDI Control Receive", 2,
      ModPage.MIDI.ix(3),
@@ -1662,7 +1699,8 @@ public enum ModuleType {
              ModParam.CompressorRefLevel.mk("RefLevel"),
              ModParam.OffOn.mk("SideChain"),
              ModParam.ActiveMonitor.mk("Active")),
-     List.of()),
+     List.of(),
+            leds(10)),
     M_KeyQuant
     (152, "Key Quantizer", 2,
      ModPage.Note.ix(1),
@@ -1728,7 +1766,8 @@ public enum ModuleType {
              ModParam.SeqCtrlXFade.mk("XFade"),
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
-     List.of()),
+     List.of(),
+            visuals(leds(16),leds("Link"))),
     M_NoteDet
     (156, "Note Detector", 2,
      ModPage.InOut.ix(9),
@@ -1737,7 +1776,8 @@ public enum ModuleType {
              out("Vel",Blue,16,1),
              out("RelVel",Blue,19,1)),
      List.of(ModParam.FreqCoarse.mk("Note")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_LevConv
     (157, "Level Converter", 2,
      ModPage.Level.ix(4),
@@ -1803,7 +1843,8 @@ public enum ModuleType {
 
              ModParam.ExpLin_2.mk("ExpLin"),
              ModParam.Pad_3.mk("Pad")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_FltComb
     (162, "Filter Comb", 4,
      ModPage.Filter.ix(7),
@@ -1820,7 +1861,8 @@ public enum ModuleType {
              ModParam.CombType.mk("Type"),
              ModParam.Level_100.mk("Lev"),
              ModParam.ActiveMonitor.mk("Active")),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_OscShpA
     (163, "Osc Shape A", 5,
      ModPage.Osc.ix(5),
@@ -1916,7 +1958,8 @@ public enum ModuleType {
              ModParam.Level_100.mk("DecayMod"),
              ModParam.PosNegInv.mk("OutputType"),
              ModParam.OffOn.mk("KB")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_2_In
     (170, "2 inputs", 2,
      ModPage.InOut.ix(2),
@@ -1926,7 +1969,8 @@ public enum ModuleType {
      List.of(ModParam.Source_2.mk("Source"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Pad_4.mk("Pad")),
-     List.of()),
+     List.of(),
+            meters("L","R")),
     M_4_In
     (171, "4 inputs", 2,
      ModPage.InOut.ix(3),
@@ -1938,7 +1982,8 @@ public enum ModuleType {
      List.of(ModParam.Source_3.mk("Source"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Pad_4.mk("Pad")),
-     List.of()),
+     List.of(),
+            meters(4)),
     M_DlySingleA
     (172, "Delay Static", 2,
      ModPage.Delay.ix(0),
@@ -2079,7 +2124,8 @@ public enum ModuleType {
              ModParam.OpLevel.mk("OutLevel"),
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.OffOn.mk("EnvKB")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_DlyEight
     (181, "Delay 8 Tap", 3,
      ModPage.Delay.ix(4),
@@ -2188,7 +2234,8 @@ public enum ModuleType {
              ModParam.NoiseGateAttack.mk("Attack"),
              ModParam.NoiseGateRelease.mk("Release"),
              ModParam.ActiveMonitor.mk("Active")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_LfoB
     (190, "LFO B", 4,
      ModPage.LFO.ix(1),
@@ -2208,7 +2255,8 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.Level_100.mk("PhaseMod")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_Phaser
     (192, "Phaser", 2,
      ModPage.FX.ix(1),
@@ -2228,7 +2276,8 @@ public enum ModuleType {
              in("In4",Blue_red,15,1)),
      List.of(out("Out",Blue_red,19,1)),
      List.of(),
-     List.of()),
+     List.of(),
+            visual(Meter)),
     M_Mix2_1A
     (194, "Mixer 2-1 A", 2,
      ModPage.Mixer.ix(2),
@@ -2287,7 +2336,8 @@ public enum ModuleType {
              out("Gate",Yellow_orange,15,1),
              out("Pitch",Blue,19,1)),
      List.of(ModParam.Threshold_127.mk("Threshold")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_MonoKey
     (199, "Monophonic Keyboard", 2,
      ModPage.InOut.ix(6),
@@ -2309,7 +2359,8 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.RndEdge.mk("Edge"),
              ModParam.RandomAStepProb.mk("StepProb")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_RandomB
     (202, "Random B", 3,
      ModPage.Rnd.ix(1),
@@ -2325,7 +2376,8 @@ public enum ModuleType {
              ModParam.BipPosNeg.mk("OutputType"),
              ModParam.LfoRange_3.mk("Range"),
              ModParam.RndEdge.mk("Edge")),
-     List.of()),
+     List.of(),
+            visual(Led)),
     M_RndClkA
     (204, "Random Clock A", 2,
      ModPage.Rnd.ix(2),
