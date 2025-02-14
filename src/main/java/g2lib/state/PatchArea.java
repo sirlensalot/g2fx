@@ -1,5 +1,6 @@
 package g2lib.state;
 
+import g2lib.model.ModuleType;
 import g2lib.model.SettingsModules;
 import g2lib.model.Visual;
 import g2lib.protocol.FieldValues;
@@ -38,9 +39,16 @@ public class PatchArea {
 
     public void addVisuals(Visual.VisualType type, List<Patch.PatchVisual> visuals) {
         for (PatchModule mod : modules.values()) {
-            visuals.addAll(mod.getUserModuleData().getType().getVisuals().get(type)
-                    .stream().map(v -> new Patch.PatchVisual(id,mod,v)
-            ).toList());
+            ModuleType mt = mod.getUserModuleData().getType();
+            List<Visual> vs;
+            if (type != null) {
+                vs = mt.getVisuals().get(type);
+            } else {
+                vs = new ArrayList<>();
+                vs.addAll(mt.getVisuals().get(Visual.VisualType.Meter));
+                vs.addAll(mt.getVisuals().get(Visual.VisualType.LedGroup));
+            }
+            visuals.addAll(vs.stream().map(v -> new Patch.PatchVisual(id,mod,v)).toList());
         }
     }
 

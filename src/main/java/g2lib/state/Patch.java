@@ -386,10 +386,8 @@ public class Patch {
         log.fine(() -> "leds: " + leds);
 
         metersAndGroups.clear();
-        voiceArea.addVisuals(Visual.VisualType.Meter,metersAndGroups);
-        voiceArea.addVisuals(Visual.VisualType.LedGroup,metersAndGroups);
-        fxArea.addVisuals(Visual.VisualType.Meter,metersAndGroups);
-        fxArea.addVisuals(Visual.VisualType.LedGroup,metersAndGroups);
+        voiceArea.addVisuals(null,metersAndGroups);
+        fxArea.addVisuals(null,metersAndGroups);
         log.fine(() -> "metersAndGroups: " + metersAndGroups);
     }
 
