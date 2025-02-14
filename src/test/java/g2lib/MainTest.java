@@ -64,7 +64,7 @@ class MainTest {
         {
             Consumer<String> f = s -> {
                 int i = Integer.parseInt(s,2);
-                System.out.printf("%s: ",new StringBuilder(s).reverse());
+                System.out.printf("%s: ",new StringBuilder(s));
                 int mask = 0x03;
                 int j = 0;
                 int r = (i & mask) >> j;
