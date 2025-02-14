@@ -11,10 +11,13 @@ import g2lib.util.CRC16;
 import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 public class Patch {
 
@@ -98,8 +101,8 @@ public class Patch {
     private ControlAssignments controls;
     private MorphParameters morphParams;
     private int assignedVoices;
-    private final Map<Visual.VisualType,List<PatchVisual>> visuals =
-            new TreeMap<>(Map.of(Visual.VisualType.Led,List.of(), Visual.VisualType.Meter,List.of()));
+    private final List<PatchVisual> leds = new ArrayList<>();
+    private final List<PatchVisual> metersAndGroups = new ArrayList<>();
 
     public Patch(Slot slot) {
         this.log = Util.getLogger(getClass().getName() + ":" + slot);
@@ -202,25 +205,28 @@ public class Patch {
         private final AreaId area;
         private final PatchModule module;
         private final Visual visual;
-        private int value = -1;
+        private final List<Integer> values;
 
         public PatchVisual(AreaId area, PatchModule module, Visual visual) {
             this.area = area;
             this.module = module;
             this.visual = visual;
+            this.values = new ArrayList<>(
+                    IntStream.range(0,visual.names().size()).boxed().map(i -> 0).toList());
         }
 
         public boolean update(int value) {
-            if (value != this.value) {
-                this.value = value;
+            if (values.size() == 1 && values.getFirst() != value) {
+                values.set(0,value);
                 return true;
             }
+            //groups TODO
             return false;
         }
 
         @Override
         public String toString() {
-            return area + "." + module.getName() + "[" + module.getIndex() + "]." + visual.name() + "=" + value;
+            return area + "." + module.getName() + "[" + module.getIndex() + "]." + visual.names() + "=" + values;
         }
     }
 
@@ -374,18 +380,22 @@ public class Patch {
     }
 
     private void updateVisualIndex() {
-        for (Visual.VisualType t : Visual.VisualType.values()) {
-            List<PatchVisual> vs = new ArrayList<>();
-            voiceArea.addVisuals(t,vs);
-            fxArea.addVisuals(t,vs);
-            visuals.put(t,vs);
-            log.fine(() -> t + ": " + vs);
-        }
+        leds.clear();
+        voiceArea.addVisuals(Visual.VisualType.Led,leds);
+        fxArea.addVisuals(Visual.VisualType.Led,leds);
+        log.fine(() -> "leds: " + leds);
+
+        metersAndGroups.clear();
+        voiceArea.addVisuals(Visual.VisualType.Meter,metersAndGroups);
+        voiceArea.addVisuals(Visual.VisualType.LedGroup,metersAndGroups);
+        fxArea.addVisuals(Visual.VisualType.Meter,metersAndGroups);
+        fxArea.addVisuals(Visual.VisualType.LedGroup,metersAndGroups);
+        log.fine(() -> "metersAndGroups: " + metersAndGroups);
     }
 
     public boolean readVolumeData(ByteBuffer buf) {
         List<PatchVisual> updated = new ArrayList<>();
-        visuals.get(Visual.VisualType.Meter).forEach(v -> {
+        metersAndGroups.forEach(v -> {
             buf.get(); // unknown
             if (v.update(buf.get())) {
                 updated.add(v);
@@ -396,81 +406,11 @@ public class Patch {
     }
 
     public boolean readLedData(ByteBuffer buf) {
-        /*
-        DOH OK it's the "single LED in groups" in the LEDs (gate and invert being the only multi-group leds modules)
-        and the multis go into the "volume data" "as a group" (thus having a single byte rep?)
-          0:00010100 1:00000000 2:00000000 3:00000000 4:00010101 5:00000000 6:00000000 7:00000000 8:00000000 9:00000000
-
-         0:Fx.FilterMode[7].L2=0,
-           Fx.FilterMode[7].L1=1,           <== blinking fast (Lfo2[11])
-           Fx.FilterMode[7].L0=0,           <== blinking slow (Lfo1[9])
-           Voice.EnvADSR1[1].Led=0,
-
-         1:Fx.FilterMode[7].L3=0, Fx.FilterMode[7].L4=0, Fx.FilterMode[7].L5=0, Fx.FilterMode[7].L6=0,
-
-         2:Fx.2,3[13].L0=0, (reverse)
-           Fx.Lfo2[11].Led=0,               !!! off by 8
-           Fx.Lfo1[9].Led=0,                !!! off by 8
-           Fx.FilterMode[7].L7=0,
-
-         3:Fx.4,5[61].L1=0, Fx.4,5[61].L0=0, Fx.PitchPed[60].Led=0, Fx.2,3[13].L1=0,
-
-         4:Fx.PedSel[72].L0=0, (MULTI: skip to VolTrig)
-           Fx.DelayPed[71].Led=1,           <== on
-           Fx.FilterPed[67].Led=1,          <== on
-           Fx.BitsPed[62].Led=1,            <== on
-
-         MULTI 5:Fx.PedSel[72].L1=0, Fx.PedSel[72].L2=0, Fx.PedSel[72].L3=0, Fx.PedSel[72].L4=0, (reverse)
-         6:Fx.VolTrig[73].L0=0,Fx.PedSel[72].L7=0,Fx.PedSel[72].L6=0,Fx.PedSel[72].L5=0,
-         7:Fx.VolTrig[73].L1=0, Fx.EnaVolMv<[78].L0=0, Fx.EnaVolMv<[78].L1=0, Fx.<RND[82].L0=0, (reverse)
-
-         8:<nothing>
-           Fx.>!VolTrig[85].L1=0]           !!! off by 16
-           Fx.>!VolTrig[85].L0=0,           !!! off by 16
-           Fx.<RND[82].L1=0,                !!! off by 16
-
-         == SHOULD BE =========================
-
-         0:Fx.2,3[13].L0=0,
-           Fx.Lfo2[11].Led=0,               <==
-           Fx.Lfo1[9].Led=0,                <==
-           Voice.EnvADSR1[1].Led=0,
-
-         1:Fx.4,5[61].L1=0, Fx.4,5[61].L0=0, Fx.PitchPed[60].Led=0, Fx.2,3[13].L1=0,
-
-         2:VolTrig[73].L0=0
-           Fx.DelayPed[71].Led=1,
-           Fx.FilterPed[67].Led=1,
-           Fx.BitsPed[62].Led=1,
-
-         3:Fx.<RND[82].L0=0, (reverse)
-           Fx.EnaVolMv<[78].L1=0,
-           Fx.EnaVolMv<[78].L0=0,
-           Fx.VolTrig[73].L1=0,
-
-         4:<nothing>
-           Fx.>!VolTrig[85].L1=0]           <==
-           Fx.>!VolTrig[85].L0=0,           <==
-           Fx.<RND[82].L1=0,                <==
-
-
-
-        //Lfo2[11] blinking fast
-        //Lfo1[9] blinking slow
-        //>!VolTrig[85] L0, L1  (invert)
-        //<RND[82] L1 (gate)
-        //but also: FilterMode[7]:7 is on... <-- but it's a multi
-        */
         buf.get(); //unknown
         ByteBuffer buf2 = buf.slice();
-        String s = Util.dumpBufferString(buf2) + "\n";
-        for (int i = 0; i<buf2.limit()-2; i++) {
-            s += " " + i + ":" + Util.asBinary(buf2.get(i));
-        }
-        log.fine("msgbinary:\n" + s);
         List<PatchVisual> updated = new ArrayList<>();
         AtomicInteger i = new AtomicInteger();
-        visuals.get(Visual.VisualType.Led).forEach(v -> {
+        leds.forEach(v -> {
             int bi = Math.floorDiv(i.get(),4);
             int bm = Math.floorMod(i.get(),4) * 2;
             int b = (buf2.get(bi) & (0x03 << bm)) >>> bm;

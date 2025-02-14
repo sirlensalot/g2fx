@@ -1,8 +1,11 @@
 package g2lib.model;
 
-public record Visual(VisualType type,String name) {
+import java.util.List;
+
+public record Visual(VisualType type, List<String> names) {
     public enum VisualType {
-        Led,
-        Meter
+        Led, // single name
+        LedGroup, //multiple names
+        Meter // single name
     }
 }

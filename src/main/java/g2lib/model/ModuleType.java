@@ -7,9 +7,7 @@ import static g2lib.model.ConnColor.*;
 import static g2lib.model.Connector.in;
 import static g2lib.model.Connector.out;
 import static g2lib.model.Visual.VisualType;
-import static g2lib.model.Visual.VisualType.Led;
-import static g2lib.model.Visual.VisualType.Meter;
-// LEDS: types are "Sequencer" and "Green"
+import static g2lib.model.Visual.VisualType.*;
 
 public enum ModuleType {
     M_Keyboard
@@ -57,7 +55,7 @@ public enum ModuleType {
              out("Out2",Yellow_orange,19,1)),
      List.of(),
      List.of(),
-            leds(2)),
+            visuals(led("I1"),led("I2"))), // grouped singles
     M_OscB
     (7, "Osc B", 5,
      ModPage.Osc.ix(1),
@@ -170,7 +168,7 @@ public enum ModuleType {
      List.of(ModParam.ValSwVal.mk("Val")
              .label("Out 1","Out 2")),
      List.of(),
-            visual(Led)),
+            led()),
     M_X_Fade
     (18, "Cross Fader", 2,
      ModPage.Mixer.ix(13),
@@ -197,7 +195,7 @@ public enum ModuleType {
              ModParam.MixLevel.mk("Lev4"),
              ModParam.ExpLin_2.mk("ExpLin")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_EnvADSR
     (20, "Envelop ADSR", 4,
      ModPage.Env.ix(0),
@@ -215,7 +213,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("KB"),
              ModParam.EnvNR.mk("NR")),
      List.of(),
-            visual(Led)),
+            led()),
     M_Mux1_8
     (21, "Multiplexer 1-8", 2,
      ModPage.Switch.ix(14),
@@ -231,7 +229,7 @@ public enum ModuleType {
              out("Out8",Blue_red,19,1)),
      List.of(),
      List.of(),
-            leds(8)),
+            ledgroup(8)),
     M_PartQuant
     (22, "Partial Quantizer", 2,
      ModPage.Note.ix(2),
@@ -262,7 +260,7 @@ public enum ModuleType {
              ModParam.PosNegInvBipInv.mk("OutputType"),
              ModParam.OffOn.mk("KB")),
      List.of(),
-            visual(Led)),
+            led()),
     M_LfoC
     (24, "LFO C", 2,
      ModPage.LFO.ix(2),
@@ -274,7 +272,7 @@ public enum ModuleType {
              ModParam.LfoRange_3.mk("Range"),
              ModParam.ActiveMonitor.mk("Active")),
      List.of(ModParam.LfoWaveform_1.mk("Waveform")),
-            visual(Led)),
+            led()),
     M_LfoShpA
     (25, "LFO Shape A", 5,
      ModPage.LFO.ix(3),
@@ -299,7 +297,7 @@ public enum ModuleType {
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.LfoShpA__Waveform.mk("Waveform")),
      List.of(),
-            visual(Led)),
+            led()),
     M_LfoA
     (26, "LFO A", 3,
      ModPage.LFO.ix(0),
@@ -315,7 +313,7 @@ public enum ModuleType {
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.LfoRange_3.mk("Range")),
      List.of(),
-            visual(Led)),
+            led()),
     M_OscMaster
     (27, "Osc Master", 3,
      ModPage.Osc.ix(16),
@@ -384,7 +382,7 @@ public enum ModuleType {
              ModParam.EqLoFreq.mk("LoFreq"),
              ModParam.EqHiFreq.mk("HiFreq")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_Eq3Band
     (33, "Eq 3 Band", 4,
      ModPage.Filter.ix(13),
@@ -399,7 +397,7 @@ public enum ModuleType {
              ModParam.EqLoFreq.mk("LoFreq"),
              ModParam.EqHiFreq.mk("HiFreq")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_ShpExp
     (34, "Shape Exp", 2,
      ModPage.Shaper.ix(3),
@@ -429,7 +427,7 @@ public enum ModuleType {
              ModParam.Level_100.mk("TimeMod"),
              ModParam.LogicRange.mk("Range")),
      List.of(ModParam.PulseMode.mk("Mode")),
-            visual(Led)),
+            led()),
     M_Mix8_1B
     (40, "Mixer 8-1 B", 4,
      ModPage.Mixer.ix(9),
@@ -454,7 +452,7 @@ public enum ModuleType {
              ModParam.ExpLin_2.mk("ExpLin"),
              ModParam.Pad_3.mk("Pad")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_EnvH
     (41, "Envelope Hold", 2,
      ModPage.Env.ix(1),
@@ -466,7 +464,7 @@ public enum ModuleType {
      List.of(ModParam.EnvTime.mk("Hold"),
              ModParam.PosNegInv.mk("OutputType")),
      List.of(),
-            visual(Led)),
+            led()),
     M_Delay
     (42, "Logic Delay", 2,
      ModPage.Logic.ix(5),
@@ -477,7 +475,7 @@ public enum ModuleType {
              ModParam.Level_100.mk("TimeMod"),
              ModParam.LogicRange.mk("Range")),
      List.of(ModParam.LogicDelayMode.mk("Mode")),
-            visual(Led)),
+            led()),
     M_Constant
     (43, "Constant Value", 2,
      ModPage.Level.ix(0),
@@ -512,7 +510,7 @@ public enum ModuleType {
              ModParam.Bipolar_127.mk("Res"),
              ModParam.ActiveMonitor.mk("Active")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_EnvAHD
     (46, "Envelope AHD", 4,
      ModPage.Env.ix(4),
@@ -529,7 +527,7 @@ public enum ModuleType {
              ModParam.PosNegInv.mk("OutputType"),
              ModParam.OffOn.mk("KB")),
      List.of(),
-            visual(Led)),
+            led()),
     M_Pan
     (47, "Pan", 2,
      ModPage.Mixer.ix(12),
@@ -635,7 +633,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("KB"),
              ModParam.EnvShape_3.mk("Shape")),
      List.of(),
-            visual(Led)),
+            led()),
     M_S_and_H
     (53, "Sample & Hold", 2,
      ModPage.Switch.ix(16),
@@ -666,7 +664,7 @@ public enum ModuleType {
      List.of(ModParam.EnvTime.mk("Decay"),
              ModParam.PosNegInv.mk("OutputType")),
      List.of(),
-            visual(Led)),
+            led()),
     M_Automate
     (57, "MIDI Control Automate", 2,
      ModPage.MIDI.ix(6),
@@ -701,7 +699,7 @@ public enum ModuleType {
              ModParam.Level_100.mk("Noise"),
              ModParam.ActiveMonitor.mk("Active")),
      List.of(),
-            visual(Led)),
+            led()),
     M_CompLev
     (59, "Compare to Level", 2,
      ModPage.Level.ix(10),
@@ -724,7 +722,7 @@ public enum ModuleType {
      List.of(out("Out",Blue_red,19,1)),
      List.of(ModParam.Level_100.mk("XFade")),
      List.of(),
-            leds(8)),
+            ledgroup(8)),
     M_Clip
     (61, "Clip", 2,
      ModPage.Shaper.ix(0),
@@ -771,7 +769,7 @@ public enum ModuleType {
      List.of(),
      List.of(ModParam.GateMode.mk("GateMode1"),
              ModParam.GateMode.mk("GateMode2")),
-            leds(2)),
+            visuals(led("G1"),led("G2"))), // grouped singles
     M_Mix2_1B
     (66, "Scratch", 2,
      ModPage.Mixer.ix(3),
@@ -918,7 +916,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("KB"),
              ModParam.AdAr.mk("DcyRel")),
      List.of(),
-            visual(Led)),
+            led()),
     M_WindSw
     (85, "Window Switch", 2,
      ModPage.Switch.ix(12),
@@ -929,7 +927,7 @@ public enum ModuleType {
      List.of(ModParam.Range_64.mk("ValFrom"),
              ModParam.Range_64.mk("ValTo")),
      List.of(),
-            visual(Led)),
+            led()),
     M_8Counter
     (86, "8 Counter", 2,
      ModPage.Logic.ix(6),
@@ -945,7 +943,7 @@ public enum ModuleType {
              out("Out8",Yellow_orange,19,1)),
      List.of(),
      List.of(),
-            leds(8)),
+            ledgroup(8)),
     M_FltLP
     (87, "Filter Lowpass", 2,
      ModPage.Filter.ix(0),
@@ -998,7 +996,7 @@ public enum ModuleType {
              out("Q",Yellow_orange,19,0)),
      List.of(),
      List.of(ModParam.FlipFlopMode.mk("OperationMode")),
-            leds("QB","Q")),
+            ledgroup("QB","Q")),
     M_FltClassic
     (92, "Filter Classic", 4,
      ModPage.Filter.ix(3),
@@ -1091,7 +1089,7 @@ public enum ModuleType {
              ModParam.FltPhaseType.mk("Type"),
              ModParam.Kbt_4.mk("Kbt")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_EqPeak
     (103, "Eq Peak", 4,
      ModPage.Filter.ix(11),
@@ -1103,7 +1101,7 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.Level_100.mk("Level")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_ValSw2_1
     (105, "Value Switch 2-1", 2,
      ModPage.Switch.ix(10),
@@ -1113,7 +1111,7 @@ public enum ModuleType {
      List.of(out("Out",Blue_red,19,1)),
      List.of(ModParam.ValSwVal.mk("Val")),
      List.of(),
-            visual(Led)),
+            led()),
     M_OscNoise
     (106, "Oscillator Noise", 3,
      ModPage.Osc.ix(8),
@@ -1209,7 +1207,7 @@ public enum ModuleType {
      List.of(out("Out",Blue_red,19,1)),
      List.of(ModParam.Pad_3.mk("Pad")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_LevMod
     (117, "Level Modulator", 3,
      ModPage.Level.ix(7),
@@ -1251,7 +1249,7 @@ public enum ModuleType {
              ModParam.PosNegInvBipInv.mk("OutputType"),
              ModParam.EnvNR.mk("NR")),
      List.of(),
-            visual(Led)),
+            led()),
     M_SeqNote
     (121, "Sequencer Note", 9,
      ModPage.Seq.ix(3),
@@ -1304,7 +1302,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
      List.of(),
-            visuals(leds(16),leds("Link"))),
+            visuals(ledgroup(16),led("Link"))),
     M_Mix4_1C
     (123, "Mixer 4-1 C", 4,
      ModPage.Mixer.ix(6),
@@ -1325,7 +1323,7 @@ public enum ModuleType {
              ModParam.Pad_2.mk("Pad"),
              ModParam.ExpLin_2.mk("ExpLin")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_Mux8_1
     (124, "Multiplexer 8-1", 2,
      ModPage.Switch.ix(13),
@@ -1341,7 +1339,7 @@ public enum ModuleType {
      List.of(out("Out",Blue_red,19,1)),
      List.of(),
      List.of(),
-            leds(8)),
+            ledgroup(8)),
     M_WahWah
     (125, "Wah-Wah", 2,
      ModPage.Filter.ix(8),
@@ -1394,7 +1392,7 @@ public enum ModuleType {
              out("Out128",Yellow_orange,19,1)),
      List.of(),
      List.of(),
-            leds(8)),
+            ledgroup(8)),
     M_ADConv
     (131, "A/D Converter", 2,
      ModPage.Logic.ix(8),
@@ -1409,7 +1407,7 @@ public enum ModuleType {
              out("D7",Yellow_orange,19,1)),
      List.of(),
      List.of(),
-            leds(8)),
+            ledgroup(8)),
     M_DAConv
     (132, "D/A Converter", 2,
      ModPage.Logic.ix(9),
@@ -1548,7 +1546,7 @@ public enum ModuleType {
              ModParam.TrigGate.mk("TG1"),
              ModParam.TrigGate.mk("TG2")),
      List.of(),
-            visuals(leds(16),leds("Link"))),
+            visuals(ledgroup(16),led("Link"))),
     M_SeqVal
     (145, "Sequencer Values", 8,
      ModPage.Seq.ix(1),
@@ -1600,7 +1598,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
      List.of(),
-            visuals(leds(16),leds("Link"))),
+            visuals(ledgroup(16),led("Link"))),
     M_SeqLev
     (146, "Sequencer Level", 8,
      ModPage.Seq.ix(2),
@@ -1652,7 +1650,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
      List.of(),
-            visuals(leds(16),leds("Link"))),
+            visuals(ledgroup(16),led("Link"))),
     M_CtrlRcv
     (147, "MIDI Control Receive", 2,
      ModPage.MIDI.ix(3),
@@ -1700,7 +1698,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("SideChain"),
              ModParam.ActiveMonitor.mk("Active")),
      List.of(),
-            leds(10)),
+            ledgroup(10)),
     M_KeyQuant
     (152, "Key Quantizer", 2,
      ModPage.Note.ix(1),
@@ -1767,7 +1765,7 @@ public enum ModuleType {
              ModParam.OffOn.mk("Clr_Or_Rnd"),
              ModParam.OffOn.mk("Rnd_Or_Clr")),
      List.of(),
-            visuals(leds(16),leds("Link"))),
+            visuals(ledgroup(16),led("Link"))),
     M_NoteDet
     (156, "Note Detector", 2,
      ModPage.InOut.ix(9),
@@ -1777,7 +1775,7 @@ public enum ModuleType {
              out("RelVel",Blue,19,1)),
      List.of(ModParam.FreqCoarse.mk("Note")),
      List.of(),
-            visual(Led)),
+            led()),
     M_LevConv
     (157, "Level Converter", 2,
      ModPage.Level.ix(4),
@@ -1844,7 +1842,7 @@ public enum ModuleType {
              ModParam.ExpLin_2.mk("ExpLin"),
              ModParam.Pad_3.mk("Pad")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_FltComb
     (162, "Filter Comb", 4,
      ModPage.Filter.ix(7),
@@ -1862,7 +1860,7 @@ public enum ModuleType {
              ModParam.Level_100.mk("Lev"),
              ModParam.ActiveMonitor.mk("Active")),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_OscShpA
     (163, "Osc Shape A", 5,
      ModPage.Osc.ix(5),
@@ -1959,7 +1957,7 @@ public enum ModuleType {
              ModParam.PosNegInv.mk("OutputType"),
              ModParam.OffOn.mk("KB")),
      List.of(),
-            visual(Led)),
+            led()),
     M_2_In
     (170, "2 inputs", 2,
      ModPage.InOut.ix(2),
@@ -2125,7 +2123,7 @@ public enum ModuleType {
              ModParam.ActiveMonitor.mk("Active"),
              ModParam.OffOn.mk("EnvKB")),
      List.of(),
-            visual(Led)),
+            led()),
     M_DlyEight
     (181, "Delay 8 Tap", 3,
      ModPage.Delay.ix(4),
@@ -2235,7 +2233,7 @@ public enum ModuleType {
              ModParam.NoiseGateRelease.mk("Release"),
              ModParam.ActiveMonitor.mk("Active")),
      List.of(),
-            visual(Led)),
+            led()),
     M_LfoB
     (190, "LFO B", 4,
      ModPage.LFO.ix(1),
@@ -2256,7 +2254,7 @@ public enum ModuleType {
              ModParam.OutTypeLfo.mk("OutputType"),
              ModParam.Level_100.mk("PhaseMod")),
      List.of(),
-            visual(Led)),
+            led()),
     M_Phaser
     (192, "Phaser", 2,
      ModPage.FX.ix(1),
@@ -2277,7 +2275,7 @@ public enum ModuleType {
      List.of(out("Out",Blue_red,19,1)),
      List.of(),
      List.of(),
-            visual(Meter)),
+            meter()),
     M_Mix2_1A
     (194, "Mixer 2-1 A", 2,
      ModPage.Mixer.ix(2),
@@ -2337,7 +2335,7 @@ public enum ModuleType {
              out("Pitch",Blue,19,1)),
      List.of(ModParam.Threshold_127.mk("Threshold")),
      List.of(),
-            visual(Led)),
+            led()),
     M_MonoKey
     (199, "Monophonic Keyboard", 2,
      ModPage.InOut.ix(6),
@@ -2360,7 +2358,7 @@ public enum ModuleType {
              ModParam.RndEdge.mk("Edge"),
              ModParam.RandomAStepProb.mk("StepProb")),
      List.of(),
-            visual(Led)),
+            led()),
     M_RandomB
     (202, "Random B", 3,
      ModPage.Rnd.ix(1),
@@ -2377,7 +2375,7 @@ public enum ModuleType {
              ModParam.LfoRange_3.mk("Range"),
              ModParam.RndEdge.mk("Edge")),
      List.of(),
-            visual(Led)),
+            led()),
     M_RndClkA
     (204, "Random Clock A", 2,
      ModPage.Rnd.ix(2),
@@ -2486,7 +2484,9 @@ public enum ModuleType {
         this.params = params;
         this.modes = modes;
         this.shortName = mkShortName(name());
-        this.visuals = visuals;
+        this.visuals = new HashMap<>(visuals);
+        Arrays.stream(VisualType.values()).forEach(t ->
+                ModuleType.this.visuals.computeIfAbsent(t,k->List.of()));
     }
 
 
@@ -2554,37 +2554,50 @@ public enum ModuleType {
     }
 
 
-    private static Map<VisualType,List<Visual>> meters(String... names) {
-        return visuals(Meter,names);
-    }
-    private static Map<VisualType,List<Visual>> leds(String... names) {
-        return visuals(Led,names);
-    }
-    private static Map<VisualType,List<Visual>> visuals(VisualType type, String... names) {
-        return Map.of(type, Arrays.stream(names).map(n -> new Visual(type,n)).toList(),
-                type == Led ? Meter : Led,List.of());
+    private static Map<VisualType, List<Visual>> meter() {
+        return meters(VisualType.Meter.name());
     }
     private static Map<VisualType,List<Visual>> meters(int names) {
-        return visuals(Meter,names);
+        return meters(namedRange("M",names));
     }
-    private static Map<VisualType,List<Visual>> leds(int names) {
-        return visuals(Led,names);
+    private static Map<VisualType,List<Visual>> meters(String... names) {
+        return Map.of(VisualType.Meter, Arrays.stream(names).map(n ->
+                new Visual(VisualType.Meter,List.of(n))).toList());
     }
-    private static Map<VisualType,List<Visual>> visuals(VisualType type, int count) {
-        return visuals(type,IntStream.range(0,count).boxed().map(
-                i -> type.name().charAt(0) + Integer.toString(i))
-                .toList().toArray(new String[count]));
+
+    private static Map<VisualType,List<Visual>> ledgroup(int names) {
+        return ledgroup(namedRange("L",names));
+    }
+    private static Map<VisualType,List<Visual>> ledgroup(String... names) {
+        return Map.of(LedGroup,List.of(new Visual(LedGroup,List.of(names))));
+    }
+
+    private static Map<VisualType, List<Visual>> led() {
+        return led("Led");
+    }
+    private static Map<VisualType, List<Visual>> led(String name) {
+        return Map.of(Led,List.of(new Visual(Led,List.of(name))));
     }
 
     private static Map<VisualType,List<Visual>> visuals(
             Map<VisualType, List<Visual>> v1s,
             Map<VisualType, List<Visual>> v2s) {
         HashMap<VisualType, List<Visual>> m = new HashMap<>(v1s);
-        m.putAll(v2s);
+        for (Map.Entry<VisualType, List<Visual>> e : v2s.entrySet()) {
+            List<Visual> l = m.get(e.getKey());
+            if (l == null) {
+                m.put(e.getKey(),e.getValue());
+            } else {
+                ArrayList<Visual> lm = new ArrayList<>(l);
+                lm.addAll(e.getValue());
+                m.put(e.getKey(),lm);
+            }
+        }
         return m;
     }
-    private static Map<VisualType, List<Visual>> visual(VisualType type) {
-        return visuals(type,type.name());
-    }
 
+    private static String[] namedRange(String prefix, int count) {
+        return IntStream.range(0, count).boxed().map(i -> prefix + i)
+                .toList().toArray(new String[count]);
+    }
 }

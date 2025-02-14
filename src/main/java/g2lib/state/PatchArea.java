@@ -38,8 +38,8 @@ public class PatchArea {
 
     public void addVisuals(Visual.VisualType type, List<Patch.PatchVisual> visuals) {
         for (PatchModule mod : modules.values()) {
-            visuals.addAll(mod.getUserModuleData().getType().getVisuals().get(type).stream().map(v ->
-                new Patch.PatchVisual(id,mod,v)
+            visuals.addAll(mod.getUserModuleData().getType().getVisuals().get(type)
+                    .stream().map(v -> new Patch.PatchVisual(id,mod,v)
             ).toList());
         }
     }

@@ -56,7 +56,7 @@ public class Main {
             log.info("init success: " + success);
             log.info("init took " + (System.currentTimeMillis() - is) + "ms");
             if (success) {
-                Thread.sleep(25000);
+                Thread.sleep(5000);
                 }
         }
 
