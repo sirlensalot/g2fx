@@ -1,12 +1,10 @@
 package g2lib;
 
 import g2lib.repl.Repl;
-import g2lib.state.Device;
 import g2lib.state.Devices;
 import g2lib.usb.UsbService;
 import g2lib.util.Util;
 
-import java.io.PrintWriter;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -37,8 +35,8 @@ public class Main {
         if (!repl.replEnabled()) {
             devices.addListener(d -> {
                 // on devices thread, so can directly fire off stuff
-                d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Patch);
-                d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Perf);
+                //d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Patch);
+                //d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Perf);
                 deviceInitialized.countDown();
             });
         }

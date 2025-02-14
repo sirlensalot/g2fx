@@ -12,6 +12,7 @@ import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -216,12 +217,17 @@ public class Patch {
         }
 
         public boolean update(int value) {
-            if (values.size() == 1 && values.getFirst() != value) {
-                values.set(0,value);
-                return true;
+            if (values.size() == 1) {
+                if (values.getFirst() != value) {
+                    values.set(0, value);
+                    return true;
+                }
+                return false;
             }
-            //groups TODO
-            return false;
+            List<Integer> old = new ArrayList<>(values);
+            Collections.fill(values, 0);
+            values.set(value,1);
+            return !old.equals(values);
         }
 
         @Override
@@ -395,7 +401,8 @@ public class Patch {
         List<PatchVisual> updated = new ArrayList<>();
         metersAndGroups.forEach(v -> {
             buf.get(); // unknown
-            if (v.update(buf.get())) {
+            int i = Util.b2i(buf.get());
+            if (v.update(i)) {
                 updated.add(v);
             }
         });
