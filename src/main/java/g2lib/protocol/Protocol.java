@@ -264,6 +264,18 @@ public class Protocol {
         public static final Fields FIELDS = new Fields(VarParams.class,values());
     }
 
+    public enum ParamUpdate implements FieldEnum {
+        Location,
+        Module,
+        Param,
+        Value,
+        Variation;
+        ParamUpdate() { this.f = new SizedField(this,8); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(ParamUpdate.class,values());
+    }
+
     public enum MorphParameters implements FieldEnum {
         VariationCount(8),
         MorphCount(4),

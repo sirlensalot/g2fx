@@ -393,6 +393,11 @@ public class Patch {
         return true;
     }
 
+    public boolean readParamUpdate(ByteBuffer buf) {
+        FieldValues fvs = Protocol.ParamUpdate.FIELDS.read(new BitBuffer(buf.slice()));
+        getArea(Protocol.ParamUpdate.Location.intValueRequired(fvs)).updateParam(fvs);
+        return true;
+    }
 
 
 

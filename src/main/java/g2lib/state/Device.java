@@ -33,9 +33,6 @@ public class Device implements Dispatcher {
     public static final int T_PATCH_DESCRIPTION = 0x21;
     public static final int T_SELECTED_PARAM = 0x2f;
     public static final int T_OK = 0x7f;
-    public static final int V_VERSION = 0x40;
-    public static final int R_CMD = 0x01;
-    public static final int R_INIT = 0x80;
     public static final int T_SYNTH_SETTINGS = 0x03;
     public static final int T_PERFORMANCE_NAME = 0x29;
     public static final int T_RESERVED_1E = 0x1e;
@@ -45,6 +42,13 @@ public class Device implements Dispatcher {
     public static final int T_ENTRY_LIST = 0x13;
     public static final int T_VOLUME_DATA = 0x3a;
     public static final int T_LED_DATA = 0x39;
+    public static final int T_SET_PARAM = 0x40;
+
+    public static final int V_VERSION = 0x40;
+
+    public static final int R_CMD = 0x01;
+    public static final int R_INIT = 0x80;
+
 
     public enum EntryType {
         Patch,
@@ -195,7 +199,7 @@ public class Device implements Dispatcher {
             case T_SELECTED_PARAM -> patch.readSelectedParam(buf);
             case T_VOLUME_DATA -> patch.readVolumeData(buf);
             case T_LED_DATA -> patch.readLedData(buf);
-            //40, SET_PARAM, 01 02 04 40 01 03 02 00 00 90 be 00 00 00 00
+            case T_SET_PARAM -> patch.readParamUpdate(buf);
             default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);
         };
     }

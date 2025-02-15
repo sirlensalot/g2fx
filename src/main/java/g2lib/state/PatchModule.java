@@ -1,14 +1,18 @@
 package g2lib.state;
 
-import g2lib.model.*;
+import g2lib.model.NamedParam;
+import g2lib.model.SettingsModules;
 import g2lib.protocol.FieldValues;
 import g2lib.protocol.Protocol;
+import g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class PatchModule {
 
+    private final Logger log;
     public static final int MAX_VARIATIONS = 10;
     public static final String[] MORPH_LABELS =
             {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
@@ -29,6 +33,7 @@ public class PatchModule {
         this.userModuleData = new UserModuleData(userModuleFvs);
         this.settingsModuleType = null;
         this.params = new ArrayList<>(userModuleData.getType().getParams());
+        log = Util.getLogger(getClass().getName() + "." + userModuleData.getType() + "[" + index + "]");
     }
 
 
@@ -37,6 +42,7 @@ public class PatchModule {
         this.settingsModuleType = settingsModule;
         this.userModuleData = null;
         this.params = settingsModule.mkParams();
+        log = Util.getLogger(getClass().getName() + "." + settingsModuleType + "[" + index + "]");
     }
 
     public void setUserParamValues(FieldValues moduleParams) {
@@ -49,10 +55,10 @@ public class PatchModule {
     }
 
     public List<Integer> getVarValues(int variation) {
-        if (settingsModuleType != null) {
-            return getSettingsVarValues(variation);
-        } else {
+        if (isUserModule()) {
             return getUserVarValues(variation);
+        } else {
+            return getSettingsVarValues(variation);
         }
     }
 
@@ -89,8 +95,12 @@ public class PatchModule {
      * @throws NullPointerException if settings module
      */
     public UserModuleData getUserModuleData() {
-        if (userModuleData != null) return userModuleData;
+        if (isUserModule()) return userModuleData;
         throw new NullPointerException("User module data not available for settings module");
+    }
+
+    private boolean isUserModule() {
+        return userModuleData != null;
     }
 
     public void setUserLabels(List<FieldValues> ls) {
@@ -124,10 +134,7 @@ public class PatchModule {
     }
 
     public String getModuleLabel(int paramIndex) {
-        if (params == null) { throw new UnsupportedOperationException("getModuleLabel: no params"); }
-        if (paramIndex < 0 || paramIndex >= params.size()) {
-            throw new IllegalArgumentException("Invalid param index: " + paramIndex);
-        }
+        NamedParam p = getNamedParam(paramIndex);
         if (userLabels != null) {
             for (FieldValues f : userLabels) {
                 if (paramIndex == Protocol.ParamLabel.ParamIndex.intValueRequired(f)) {
@@ -136,7 +143,32 @@ public class PatchModule {
             }
         }
         //TODO!!! what about ModuleType.M_Sw8_1 and other multi-label params???
-        NamedParam p = params.get(paramIndex);
         return (!p.labels().isEmpty() ? p.labels().getFirst() : null);
+    }
+
+    private NamedParam getNamedParam(int paramIndex) {
+        if (params == null) { throw new UnsupportedOperationException("getModuleLabel: no params"); }
+        if (paramIndex < 0 || paramIndex >= params.size()) {
+            throw new IllegalArgumentException("Invalid param index: " + paramIndex);
+        }
+        NamedParam p = params.get(paramIndex);
+        return p;
+    }
+
+    public void updateParam(FieldValues fvs) {
+        int variation = Protocol.ParamUpdate.Variation.intValueRequired(fvs);
+        int value = Protocol.ParamUpdate.Value.intValueRequired(fvs);
+        int param = Protocol.ParamUpdate.Param.intValueRequired(fvs);
+        FieldValues vvs = getRequiredVarValues(variation);
+        if (isUserModule()) {
+            List<FieldValues> vs = Protocol.VarParams.Params.subfieldsValueRequired(vvs);
+            FieldValues v = vs.get(param);
+            int old = Protocol.Data7.Datum.intValueRequired(v);
+            v.update(Protocol.Data7.Datum.value(value));
+            log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
+                    variation,getNamedParam(param).name(),param,old,value));
+        } else {
+            throw new UnsupportedOperationException("TODO");
+        }
     }
 }

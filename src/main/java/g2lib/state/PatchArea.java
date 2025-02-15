@@ -19,6 +19,7 @@ public class PatchArea {
     private final List<PatchCable> cables = new ArrayList<>();
     private PatchLoadData patchLoadData;
 
+
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
 
@@ -131,5 +132,10 @@ public class PatchArea {
         this.selectedParam = new SelectedParam(Protocol.SelectedParam.Module.intValueRequired(fvs),
                 Protocol.SelectedParam.Param.intValueRequired(fvs));
         log.fine("Selected param: " + selectedParam);
+    }
+
+
+    public void updateParam(FieldValues fvs) {
+        getModuleRequired(Protocol.ParamUpdate.Module.intValueRequired(fvs)).updateParam(fvs);
     }
 }
