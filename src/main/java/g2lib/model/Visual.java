@@ -2,10 +2,24 @@ package g2lib.model;
 
 import java.util.List;
 
-public record Visual(VisualType type, List<String> names) {
+public record Visual(VisualType type, LedGroupType groupType, List<String> names) {
+
+    public Visual(VisualType type,List<String> names) {
+        this(type,LedGroupType.None,names);
+    }
+
     public enum VisualType {
         Led, // single name
         LedGroup, //multiple names
         Meter // single name
     }
+
+    public enum LedGroupType {
+        None, //not a group
+        Radio, //one value at a time: mux, 8counter, sequencers
+        ADConv, //multiple, ADConv (2s complemenet) conversion
+        BinCounter, //multiple, Bin counter conversion
+        Compressor //multiple, compressor conversion
+    }
+
 }

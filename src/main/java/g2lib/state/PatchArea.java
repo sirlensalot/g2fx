@@ -37,7 +37,7 @@ public class PatchArea {
     }
 
 
-    public void addVisuals(Visual.VisualType type, List<Patch.PatchVisual> visuals) {
+    public void addVisuals(Visual.VisualType type, List<PatchVisual> visuals) {
         for (PatchModule mod : modules.values()) {
             ModuleType mt = mod.getUserModuleData().getType();
             List<Visual> vs;
@@ -48,7 +48,7 @@ public class PatchArea {
                 vs.addAll(mt.getVisuals().get(Visual.VisualType.Meter));
                 vs.addAll(mt.getVisuals().get(Visual.VisualType.LedGroup));
             }
-            visuals.addAll(vs.stream().map(v -> new Patch.PatchVisual(id,mod,v)).toList());
+            visuals.addAll(vs.stream().map(v -> new PatchVisual(id,mod,v)).toList());
         }
     }
 

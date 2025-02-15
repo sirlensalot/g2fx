@@ -195,6 +195,7 @@ public class Device implements Dispatcher {
             case T_SELECTED_PARAM -> patch.readSelectedParam(buf);
             case T_VOLUME_DATA -> patch.readVolumeData(buf);
             case T_LED_DATA -> patch.readLedData(buf);
+            //40, SET_PARAM, 01 02 04 40 01 03 02 00 00 90 be 00 00 00 00
             default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);
         };
     }

@@ -12,13 +12,11 @@ import g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 public class Patch {
 
@@ -200,40 +198,6 @@ public class Patch {
         }
 
         return patch;
-    }
-
-    public static class PatchVisual {
-        private final AreaId area;
-        private final PatchModule module;
-        private final Visual visual;
-        private final List<Integer> values;
-
-        public PatchVisual(AreaId area, PatchModule module, Visual visual) {
-            this.area = area;
-            this.module = module;
-            this.visual = visual;
-            this.values = new ArrayList<>(
-                    IntStream.range(0,visual.names().size()).boxed().map(i -> 0).toList());
-        }
-
-        public boolean update(int value) {
-            if (values.size() == 1) {
-                if (values.getFirst() != value) {
-                    values.set(0, value);
-                    return true;
-                }
-                return false;
-            }
-            List<Integer> old = new ArrayList<>(values);
-            Collections.fill(values, 0);
-            values.set(value,1);
-            return !old.equals(values);
-        }
-
-        @Override
-        public String toString() {
-            return area + "." + module.getName() + "[" + module.getIndex() + "]." + visual.names() + "=" + values;
-        }
     }
 
 
