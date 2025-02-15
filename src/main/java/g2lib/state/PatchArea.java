@@ -23,14 +23,14 @@ public class PatchArea {
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
 
-    public PatchArea(AreaId id) {
+    public PatchArea(Slot slot,AreaId id) {
         this.id = id;
-        this.log = Util.getLogger(getClass().getName() + "." + id);
+        this.log = Util.getLogger(getClass().getName() + "." + slot + "." + id);
     }
 
-    public PatchArea() {
+    public PatchArea(Slot slot) {
         this.id = AreaId.Settings;
-        this.log = Util.getLogger(getClass().getName() + "." + id);
+        this.log = Util.getLogger(getClass().getName() + "." + slot + "." + id);
         Arrays.stream(SettingsModules.values()).forEach(sm -> {
             PatchModule m = new PatchModule(sm);
             modules.put(m.getIndex(),m);

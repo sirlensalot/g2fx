@@ -93,9 +93,9 @@ public class Patch {
     private PatchSettings patchSettings;
     private FieldValues textPad;
     private FieldValues currentNote;
-    private final PatchArea voiceArea = new PatchArea(AreaId.Voice);
-    private final PatchArea fxArea = new PatchArea(AreaId.Fx);
-    private final PatchArea settingsArea = new PatchArea();
+    private final PatchArea voiceArea;
+    private final PatchArea fxArea;
+    private final PatchArea settingsArea;
     private KnobAssignments knobAssignments;
     private ControlAssignments controls;
     private MorphParameters morphParams;
@@ -106,6 +106,9 @@ public class Patch {
     public Patch(Slot slot) {
         this.log = Util.getLogger(getClass().getName() + ":" + slot);
         this.slot = slot;
+        voiceArea = new PatchArea(slot,AreaId.Voice);
+        fxArea = new PatchArea(slot,AreaId.Fx);
+        settingsArea = new PatchArea(slot);
     }
 
     public int getVersion() {

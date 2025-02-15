@@ -164,9 +164,11 @@ public class PatchModule {
             List<FieldValues> vs = Protocol.VarParams.Params.subfieldsValueRequired(vvs);
             FieldValues v = vs.get(param);
             int old = Protocol.Data7.Datum.intValueRequired(v);
-            v.update(Protocol.Data7.Datum.value(value));
-            log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
-                    variation,getNamedParam(param).name(),param,old,value));
+            if (old != value) { //updates can happen with same value, ignore
+                v.update(Protocol.Data7.Datum.value(value));
+                log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
+                        variation, getNamedParam(param).name(), param, old, value));
+            }
         } else {
             throw new UnsupportedOperationException("TODO");
         }
