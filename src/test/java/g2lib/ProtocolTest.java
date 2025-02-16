@@ -320,9 +320,9 @@ class ProtocolTest {
         assertEquals(2, Sections.SPatchParams.location,"location"); //patch parameters
 
         FieldValues patchSettings = s.values();
-        int vc = assertFieldEquals(patchSettings,vce, SettingsParams.VariationCount);
-        assertFieldEquals(patchSettings,0x07, SettingsParams.SectionCount);
-        List<FieldValues> sps = new ArrayList<>(SettingsParams.Sections.subfieldsValue(patchSettings));
+        int vc = assertFieldEquals(patchSettings,vce, ModuleParams.VariationCount);
+        assertFieldEquals(patchSettings,0x07, ModuleParams.SetCount);
+        List<FieldValues> sps = new ArrayList<>(ModuleParams.ParamSet.subfieldsValue(patchSettings));
         assertEquals(7,sps.size());
         testSettingsSection(p, sps.removeFirst(), SettingsModules.Morphs,16,vce,List.of(
                 List.of(0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,1),
@@ -352,15 +352,15 @@ class ProtocolTest {
 
     private void testSettingsSection(Patch patch, FieldValues svs, SettingsModules section, int entries, int varCount,
                                      List<List<Integer>> varValues) {
-        assertFieldEquals(svs,section.getModIndex(),SettingsSection.Section);
-        assertFieldEquals(svs,entries,SettingsSection.Entries);
-        List<FieldValues> vvs = SettingsSection.Params.subfieldsValue(svs);
+        assertFieldEquals(svs,section.getModIndex(),ModuleParamSet.ModIndex);
+        assertFieldEquals(svs,entries,ModuleParamSet.ParamCount);
+        List<FieldValues> vvs = ModuleParamSet.ModParams.subfieldsValue(svs);
         for (int v = 0; v < varCount; v++) {
             List<Integer> expecteds = varValues.size() > v ? varValues.get(v) : varValues.getLast();
             FieldValues vs = vvs.get(v);
-            assertFieldEquals(vs,v,SectionVarParams.Variation);
+            assertFieldEquals(vs,v,VarParams.Variation);
             assertEquals(expecteds,
-                    SectionVarParams.Params.subfieldsValue(vs).stream().map(Data7.Datum::intValue).toList(),
+                    VarParams.Params.subfieldsValue(vs).stream().map(Data7.Datum::intValue).toList(),
                     "Settings Section " + section + " var " + v + " values");
             assertEquals(expecteds,
                     patch.getArea(AreaId.Settings).getSettingsModule(section).getVarValues(v));

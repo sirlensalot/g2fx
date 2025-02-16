@@ -97,44 +97,6 @@ public class Protocol {
         public static final Fields FIELDS = new Fields(values());
     }
 
-    public enum SettingsParams implements FieldEnum {
-        SectionCount,
-        VariationCount,
-        Sections(SettingsSection.FIELDS);
-        SettingsParams() { f = new SizedField(this,8); }
-        SettingsParams(Fields fields) {
-            f = new SubfieldsField(this,fields,7);
-        }
-        private final Field f;
-        public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(values());
-    }
-
-    public enum SettingsSection implements FieldEnum {
-        Section(8),
-        Entries(7),
-        Params();
-        SettingsSection(int size) { f = new SizedField(this,size); }
-        SettingsSection() {
-            f = new SubfieldsField(this,SectionVarParams.FIELDS, SettingsParams.VariationCount);
-        }
-        private final Field f;
-        public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(values());
-    }
-
-
-    public enum SectionVarParams implements FieldEnum {
-        Variation(8),
-        Params;
-        SectionVarParams(int size) { f = new SizedField(this,size); }
-        SectionVarParams() { f = new SubfieldsField(this, Data7.FIELDS, SettingsSection.Entries); }
-        private final Field f;
-        public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(values());
-    }
-
-
     public enum Data7 implements FieldEnum {
         Datum;
         Data7() { this.f = new SizedField(this,7); }

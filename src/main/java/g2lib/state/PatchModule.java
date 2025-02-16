@@ -50,21 +50,7 @@ public class PatchModule {
     }
 
     public List<Integer> getVarValues(int variation) {
-        if (isUserModule()) {
-            return getUserVarValues(variation);
-        } else {
-            return getSettingsVarValues(variation);
-        }
-    }
-
-    private List<Integer> getUserVarValues(int variation) {
         return Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation))
-                .stream().map(Protocol.Data7.Datum::intValue).toList();
-
-    }
-
-    private List<Integer> getSettingsVarValues(int variation) {
-        return Protocol.SectionVarParams.Params.subfieldsValue(getRequiredVarValues(variation))
                 .stream().map(Protocol.Data7.Datum::intValue).toList();
     }
 
@@ -151,17 +137,12 @@ public class PatchModule {
         int value = Protocol.ParamUpdate.Value.intValue(fvs);
         int param = Protocol.ParamUpdate.Param.intValue(fvs);
         FieldValues vvs = getRequiredVarValues(variation);
-        if (isUserModule()) {
-            List<FieldValues> vs = Protocol.VarParams.Params.subfieldsValue(vvs);
-            FieldValues v = vs.get(param);
-            int old = Protocol.Data7.Datum.intValue(v);
-            if (old != value) { //updates can happen with same value, ignore
-                v.update(Protocol.Data7.Datum.value(value));
-                log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
-                        variation, getNamedParam(param).name(), param, old, value));
-            }
-        } else {
-            throw new UnsupportedOperationException("TODO");
+        FieldValues v = Protocol.VarParams.Params.subfieldsValue(vvs).get(param);
+        int old = Protocol.Data7.Datum.intValue(v);
+        if (old != value) { //updates can happen with same value, ignore
+            v.update(Protocol.Data7.Datum.value(value));
+            log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
+                    variation, getNamedParam(param).name(), param, old, value));
         }
-    }
+     }
 }

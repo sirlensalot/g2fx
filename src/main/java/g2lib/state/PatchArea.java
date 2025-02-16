@@ -64,31 +64,20 @@ public class PatchArea {
     }
 
     public PatchModule getModule(int index) {
-        return modules.get(index);
-    }
-
-    public PatchModule getModuleRequired(int index) {
-        PatchModule m = getModule(index);
+        PatchModule m = modules.get(index);
         if (m != null) return m;
         throw new IllegalArgumentException("No such module: " + index);
     }
 
     public PatchModule getSettingsModule(SettingsModules m) {
-        return getModuleRequired(m.getModIndex());
+        return getModule(m.getModIndex());
     }
 
     public void setUserModuleParams(FieldValues moduleParams) {
         Protocol.ModuleParams.ParamSet.subfieldsValue(moduleParams)
-                .forEach(fvs -> getModuleRequired(
+                .forEach(fvs -> getModule(
                         Protocol.ModuleParamSet.ModIndex.intValue(fvs))
                         .setParamValues(Protocol.ModuleParamSet.ModParams.subfieldsValue(fvs)));
-    }
-
-    public void setSettingsModuleParams(FieldValues patchParams) {
-        Protocol.SettingsParams.Sections.subfieldsValue(patchParams).forEach(fvs -> {
-            getModuleRequired(Protocol.SettingsSection.Section.intValue(fvs))
-                    .setParamValues(Protocol.SettingsSection.Params.subfieldsValue(fvs));
-        });
     }
 
     public void addCable(FieldValues fvs) {
@@ -105,14 +94,14 @@ public class PatchArea {
 
     public void setModuleLabels(FieldValues fv) {
         Protocol.ModuleLabels.ModLabels.subfieldsValue(fv).forEach(ml ->
-            getModuleRequired(Protocol.ModuleLabel.ModuleIndex.intValue(ml))
+            getModule(Protocol.ModuleLabel.ModuleIndex.intValue(ml))
                     .setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValue(ml))
         );
     }
 
     public void setModuleNames(FieldValues fv) {
         Protocol.ModuleNames.Names.subfieldsValue(fv).forEach(mn -> {
-            PatchModule m = getModuleRequired(Protocol.ModuleName.ModuleIndex.intValue(mn));
+            PatchModule m = getModule(Protocol.ModuleName.ModuleIndex.intValue(mn));
             m.setModuleName(mn);
             log.fine(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.getName());
         });
@@ -139,6 +128,6 @@ public class PatchArea {
 
 
     public void updateParam(FieldValues fvs) {
-        getModuleRequired(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
+        getModule(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
     }
 }

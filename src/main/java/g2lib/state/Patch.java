@@ -305,7 +305,7 @@ public class Patch {
         switch (s) {
             case SPatchDescription ->
                 this.patchSettings = new PatchSettings(section.values);
-            case SPatchParams -> settingsArea.setSettingsModuleParams(section.values);
+            case SPatchParams -> settingsArea.setUserModuleParams(section.values);
             case STextPad -> this.textPad = section.values;
             case SCurrentNote -> this.currentNote = section.values;
             case SModuleList0 -> fxArea.addModules(section.values);
