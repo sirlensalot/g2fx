@@ -10,17 +10,17 @@ public class KnobAssignments {
 
     public KnobAssignments(FieldValues fvs) {
         this.assignments =
-                Protocol.KnobAssignments.Knobs.subfieldsValueRequired(fvs);
+                Protocol.KnobAssignments.Knobs.subfieldsValue(fvs);
     }
 
     public Boolean getKnobAssignment(AreaId area, int module, int param) {
         for (FieldValues ka : assignments) {
-            if (Protocol.KnobAssignment.Assigned.intValueRequired(ka) == 1) {
-                List<FieldValues> kps = Protocol.KnobAssignment.Params.subfieldsValueRequired(ka);
+            if (Protocol.KnobAssignment.Assigned.intValue(ka) == 1) {
+                List<FieldValues> kps = Protocol.KnobAssignment.Params.subfieldsValue(ka);
                 for (FieldValues kp : kps) {
-                    if (area.ordinal() == Protocol.KnobParams.Location.intValueRequired(kp) &&
-                    module == Protocol.KnobParams.Index.intValueRequired(kp) &&
-                    param == Protocol.KnobParams.Param.intValueRequired(kp)) {
+                    if (area.ordinal() == Protocol.KnobParams.Location.intValue(kp) &&
+                    module == Protocol.KnobParams.Index.intValue(kp) &&
+                    param == Protocol.KnobParams.Param.intValue(kp)) {
                         return Protocol.KnobParams.IsLed.booleanIntValue(kp);
                     }
                 }
@@ -31,7 +31,7 @@ public class KnobAssignments {
 
     public List<FieldValues> getActiveAssignments() {
         return assignments.stream().filter(fv ->
-                        Protocol.KnobAssignment.Assigned.intValueRequired(fv) == 1)
-                .map(ka -> Protocol.KnobAssignment.Params.subfieldsValueRequired(ka).getFirst()).toList();
+                        Protocol.KnobAssignment.Assigned.intValue(fv) == 1)
+                .map(ka -> Protocol.KnobAssignment.Params.subfieldsValue(ka).getFirst()).toList();
     }
 }

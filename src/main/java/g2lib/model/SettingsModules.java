@@ -11,7 +11,7 @@ import java.util.function.Function;
 public enum SettingsModules {
     MorphDials {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.Morphs.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.Morphs.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkMorphParams(ModParam.MorphDial, m -> List.of());
@@ -24,7 +24,7 @@ public enum SettingsModules {
     },
     MorphModes {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.Morphs.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.Morphs.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkMorphParams(ModParam.MorphMode, m -> List.of("Knob", m));
@@ -37,7 +37,7 @@ public enum SettingsModules {
     },
     Gain {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionGain.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.SectionGain.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.GainVolume, ModParam.GainActiveMuted);
@@ -53,7 +53,7 @@ public enum SettingsModules {
     },
     Glide {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionGlides.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.SectionGlides.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.Glide, ModParam.GlideSpeed);
@@ -69,7 +69,7 @@ public enum SettingsModules {
     },
     Bend {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionBends.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.SectionBends.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.BendEnable, ModParam.BendSemi);
@@ -85,7 +85,7 @@ public enum SettingsModules {
     },
     Vibrato {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionVibratos.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.SectionVibratos.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate);
@@ -102,7 +102,7 @@ public enum SettingsModules {
     },
     Arpeggiator {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionArps.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.SectionArps.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves);
@@ -120,7 +120,7 @@ public enum SettingsModules {
     },
     Misc {
         public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionMisc.subfieldsValueRequired(patchParams);
+            return Protocol.PatchParams.SectionMisc.subfieldsValue(patchParams);
         }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.MiscOctShift, ModParam.MiscSustain);
@@ -155,12 +155,12 @@ public enum SettingsModules {
     }
 
     public List<Integer> getVarValues(final FieldValues varFvs) {
-        return getFields().stream().map(f -> f.intValueRequired(varFvs)).toList();
+        return getFields().stream().map(f -> f.intValue(varFvs)).toList();
     }
 
     protected List<Integer> getMorphVarValues(Protocol.MorphSettings ms, FieldValues morph) {
-        List<FieldValues> dials = ms.subfieldsValueRequired(morph);
-        return dials.stream().map(Protocol.Data7.Datum::intValueRequired).toList();
+        List<FieldValues> dials = ms.subfieldsValue(morph);
+        return dials.stream().map(Protocol.Data7.Datum::intValue).toList();
     }
 
 }

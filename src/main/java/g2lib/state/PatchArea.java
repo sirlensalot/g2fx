@@ -55,7 +55,7 @@ public class PatchArea {
 
 
     public void addModules(FieldValues modListFvs) {
-        Protocol.ModuleList.Modules.subfieldsValueRequired(modListFvs).forEach(this::addModule);
+        Protocol.ModuleList.Modules.subfieldsValue(modListFvs).forEach(this::addModule);
     }
 
     private void addModule(FieldValues fvs) {
@@ -78,9 +78,9 @@ public class PatchArea {
     }
 
     public void setUserModuleParams(FieldValues moduleParams) {
-        Protocol.ModuleParams.ParamSet.subfieldsValueRequired(moduleParams)
+        Protocol.ModuleParams.ParamSet.subfieldsValue(moduleParams)
                 .forEach(fvs -> getModuleRequired(
-                        Protocol.ModuleParamSet.ModIndex.intValueRequired(fvs))
+                        Protocol.ModuleParamSet.ModIndex.intValue(fvs))
                         .setUserParamValues(fvs));
     }
 
@@ -93,7 +93,7 @@ public class PatchArea {
     }
 
     public void addCables(FieldValues cableListFvs) {
-        Protocol.CableList.Cables.subfieldsValueRequired(cableListFvs).forEach(this::addCable);
+        Protocol.CableList.Cables.subfieldsValue(cableListFvs).forEach(this::addCable);
     }
 
     public List<PatchCable> getCables() {
@@ -101,15 +101,15 @@ public class PatchArea {
     }
 
     public void setModuleLabels(FieldValues fv) {
-        Protocol.ModuleLabels.ModLabels.subfieldsValueRequired(fv).forEach(ml ->
-            getModuleRequired(Protocol.ModuleLabel.ModuleIndex.intValueRequired(ml))
-                    .setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValueRequired(ml))
+        Protocol.ModuleLabels.ModLabels.subfieldsValue(fv).forEach(ml ->
+            getModuleRequired(Protocol.ModuleLabel.ModuleIndex.intValue(ml))
+                    .setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValue(ml))
         );
     }
 
     public void setModuleNames(FieldValues fv) {
-        Protocol.ModuleNames.Names.subfieldsValueRequired(fv).forEach(mn -> {
-            PatchModule m = getModuleRequired(Protocol.ModuleName.ModuleIndex.intValueRequired(mn));
+        Protocol.ModuleNames.Names.subfieldsValue(fv).forEach(mn -> {
+            PatchModule m = getModuleRequired(Protocol.ModuleName.ModuleIndex.intValue(mn));
             m.setModuleName(mn);
             log.fine(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.getName());
         });
@@ -129,13 +129,13 @@ public class PatchArea {
     }
 
     public void setSelectedParam(FieldValues fvs) {
-        this.selectedParam = new SelectedParam(Protocol.SelectedParam.Module.intValueRequired(fvs),
-                Protocol.SelectedParam.Param.intValueRequired(fvs));
+        this.selectedParam = new SelectedParam(Protocol.SelectedParam.Module.intValue(fvs),
+                Protocol.SelectedParam.Param.intValue(fvs));
         log.fine("Selected param: " + selectedParam);
     }
 
 
     public void updateParam(FieldValues fvs) {
-        getModuleRequired(Protocol.ParamUpdate.Module.intValueRequired(fvs)).updateParam(fvs);
+        getModuleRequired(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
     }
 }

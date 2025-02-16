@@ -12,15 +12,15 @@ public interface FieldEnum {
         return values.get(this);
     }
 
-    default Optional<Integer> intValue(FieldValues values) {
+    default Optional<Integer> intValueMaybe(FieldValues values) {
         return get(values).flatMap(fv -> Optional.of(IntValue.intValue(fv)));
     }
 
-    default Optional<String> stringValue(FieldValues values) {
+    default Optional<String> stringValueMaybe(FieldValues values) {
         return get(values).flatMap(fv -> Optional.of(StringValue.stringValue(fv)));
     }
 
-    default Optional<List<FieldValues>> subfieldsValue(FieldValues values) {
+    default Optional<List<FieldValues>> subfieldsValueMaybe(FieldValues values) {
         return get(values).flatMap(fv -> Optional.of(SubfieldsValue.subfieldsValue(fv)));
     }
 
@@ -34,20 +34,20 @@ public interface FieldEnum {
         };
     }
 
-    default Integer intValueRequired(FieldValues values) {
-        return intValue(values).orElseThrow(missing());
+    default Integer intValue(FieldValues values) {
+        return intValueMaybe(values).orElseThrow(missing());
     }
 
     default boolean booleanIntValue(FieldValues values) {
-        return intValueRequired(values) == 1;
+        return intValue(values) == 1;
     }
 
-    default String stringValueRequired(FieldValues values) {
-        return stringValue(values).orElseThrow(missing());
+    default String stringValue(FieldValues values) {
+        return stringValueMaybe(values).orElseThrow(missing());
     }
 
-    default List<FieldValues> subfieldsValueRequired(FieldValues values) {
-        return subfieldsValue(values).orElseThrow(missing());
+    default List<FieldValues> subfieldsValue(FieldValues values) {
+        return subfieldsValueMaybe(values).orElseThrow(missing());
     }
 
     default FieldValue value(int v) {

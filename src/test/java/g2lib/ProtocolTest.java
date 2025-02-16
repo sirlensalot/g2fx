@@ -42,19 +42,19 @@ class ProtocolTest {
 
 
     private static int assertValue(FieldValues values, FieldEnum field) {
-        Optional<Integer> i = field.intValue(values);
+        Optional<Integer> i = field.intValueMaybe(values);
         assertTrue(i.isPresent(),"value found: " + field);
         return i.get();
     }
 
     private static String assertString(FieldValues values, FieldEnum field) {
-        Optional<String> s = field.stringValue(values);
+        Optional<String> s = field.stringValueMaybe(values);
         assertTrue(s.isPresent(),"value found: " + field);
         return s.get();
     }
 
     public static List<FieldValues> assertSubfields(FieldValues fv, int size, FieldEnum field) {
-        Optional<List<FieldValues>> o = field.subfieldsValue(fv);
+        Optional<List<FieldValues>> o = field.subfieldsValueMaybe(fv);
         assertTrue(o.isPresent(),"subfields not found: " + field);
         List<FieldValues> fvs = o.get();
         assertEquals(size,fvs.size(),"size: " + field);
@@ -82,8 +82,8 @@ class ProtocolTest {
     }
 
     private void sectionHeader(FieldValues vs, PatchParams f, int section, int entries) {
-        assertTrue(f.subfieldsValue(vs).isPresent(),"header present: " + f);
-        FieldValues h = f.subfieldsValue(vs).get().getFirst();
+        assertTrue(f.subfieldsValueMaybe(vs).isPresent(),"header present: " + f);
+        FieldValues h = f.subfieldsValueMaybe(vs).get().getFirst();
         assertFieldEquals(h,section,SectionHeader.Section);
         assertFieldEquals(h,entries,SectionHeader.Entries);
     }

@@ -11,15 +11,15 @@ public class ControlAssignments {
 
     public ControlAssignments(FieldValues fvs) {
         this.assignments =
-                Protocol.ControlAssignments.Assignments.subfieldsValueRequired(fvs);
+                Protocol.ControlAssignments.Assignments.subfieldsValue(fvs);
     }
 
     public Integer getControlAssignment(AreaId area, int module, int param) {
         for (FieldValues kp : assignments) {
-            if (area.ordinal() == Protocol.ControlAssignment.Location.intValueRequired(kp) &&
-                    module == Protocol.ControlAssignment.Index.intValueRequired(kp) &&
-                    param == Protocol.ControlAssignment.Param.intValueRequired(kp)) {
-                return Protocol.ControlAssignment.MidiCC.intValueRequired(kp);
+            if (area.ordinal() == Protocol.ControlAssignment.Location.intValue(kp) &&
+                    module == Protocol.ControlAssignment.Index.intValue(kp) &&
+                    param == Protocol.ControlAssignment.Param.intValue(kp)) {
+                return Protocol.ControlAssignment.MidiCC.intValue(kp);
             }
         }
         return null;

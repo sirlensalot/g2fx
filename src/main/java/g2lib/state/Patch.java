@@ -322,7 +322,7 @@ public class Patch {
             case SKnobAssignments -> this.knobAssignments = new KnobAssignments(section.values);
             case SControlAssignments -> this.controls = new ControlAssignments(section.values);
             case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
-            case SPatchName -> this.name = Protocol.EntryName.Name.stringValueRequired(section.values);
+            case SPatchName -> this.name = Protocol.EntryName.Name.stringValue(section.values);
         }
     }
 
@@ -335,14 +335,14 @@ public class Patch {
 
     public boolean readPatchLoadData(ByteBuffer buf) {
         FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
-        getArea(Protocol.PatchLoadData.Location.intValueRequired(fvs)).setPatchLoadData(fvs);
+        getArea(Protocol.PatchLoadData.Location.intValue(fvs)).setPatchLoadData(fvs);
         return true;
     }
 
 
     public boolean readSelectedParam(ByteBuffer buf) {
         FieldValues fvs = Protocol.SelectedParam.FIELDS.read(new BitBuffer(buf.slice()));
-        getArea(Protocol.SelectedParam.Location.intValueRequired(fvs)).setSelectedParam(fvs);
+        getArea(Protocol.SelectedParam.Location.intValue(fvs)).setSelectedParam(fvs);
         return true;
     }
 
@@ -398,7 +398,7 @@ public class Patch {
 
     public boolean readParamUpdate(ByteBuffer buf) {
         FieldValues fvs = Protocol.ParamUpdate.FIELDS.read(new BitBuffer(buf.slice()));
-        getArea(Protocol.ParamUpdate.Location.intValueRequired(fvs)).updateParam(fvs);
+        getArea(Protocol.ParamUpdate.Location.intValue(fvs)).updateParam(fvs);
         return true;
     }
 

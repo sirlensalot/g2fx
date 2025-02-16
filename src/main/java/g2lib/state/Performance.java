@@ -119,7 +119,7 @@ public class Performance {
     }
 
     public String getName() {
-        return perfName == null ? fileName : Protocol.EntryName.Name.stringValueRequired(perfName);
+        return perfName == null ? fileName : Protocol.EntryName.Name.stringValue(perfName);
     }
 
     public void setName(String name) {

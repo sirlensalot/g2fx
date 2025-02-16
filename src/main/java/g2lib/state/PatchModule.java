@@ -29,7 +29,7 @@ public class PatchModule {
 
     // constructor for user modules
     public PatchModule(FieldValues userModuleFvs) {
-        this.index = Protocol.UserModule.Index.intValueRequired(userModuleFvs);
+        this.index = Protocol.UserModule.Index.intValue(userModuleFvs);
         this.userModuleData = new UserModuleData(userModuleFvs);
         this.settingsModuleType = null;
         this.params = new ArrayList<>(userModuleData.getType().getParams());
@@ -47,7 +47,7 @@ public class PatchModule {
 
     public void setUserParamValues(FieldValues moduleParams) {
         values = new ArrayList<>(Protocol.ModuleParamSet.ModParams
-                .subfieldsValueRequired(moduleParams));
+                .subfieldsValue(moduleParams));
     }
 
     public void setSettingParamValues(FieldValues patchParams) {
@@ -63,8 +63,8 @@ public class PatchModule {
     }
 
     private List<Integer> getUserVarValues(int variation) {
-        return Protocol.VarParams.Params.subfieldsValueRequired(getRequiredVarValues(variation))
-                .stream().map(Protocol.Data7.Datum::intValueRequired).toList();
+        return Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation))
+                .stream().map(Protocol.Data7.Datum::intValue).toList();
 
     }
 
@@ -73,8 +73,8 @@ public class PatchModule {
     }
 
     private List<Integer> getMorphVarValues(Protocol.MorphSettings ms, FieldValues morph) {
-        List<FieldValues> dials = ms.subfieldsValueRequired(morph);
-        return dials.stream().map(Protocol.Data7.Datum::intValueRequired).toList();
+        List<FieldValues> dials = ms.subfieldsValue(morph);
+        return dials.stream().map(Protocol.Data7.Datum::intValue).toList();
     }
 
 
@@ -112,7 +112,7 @@ public class PatchModule {
     }
 
     public String getName() {
-        return Protocol.ModuleName.Name.stringValueRequired(name);
+        return Protocol.ModuleName.Name.stringValue(name);
     }
 
     public void setMorphLabels(FieldValues values) {
@@ -124,9 +124,9 @@ public class PatchModule {
             throw new IllegalArgumentException("Invalid param index: " + paramIndex);
         }
         if (morphLabels != null) {
-            for (FieldValues f : Protocol.MorphLabels.Labels.subfieldsValueRequired(morphLabels)) {
-                if (paramIndex + 8 == Protocol.MorphLabel.Entry.intValueRequired(f)) {
-                    return Protocol.MorphLabel.Label.stringValueRequired(f);
+            for (FieldValues f : Protocol.MorphLabels.Labels.subfieldsValue(morphLabels)) {
+                if (paramIndex + 8 == Protocol.MorphLabel.Entry.intValue(f)) {
+                    return Protocol.MorphLabel.Label.stringValue(f);
                 }
             }
         }
@@ -137,8 +137,8 @@ public class PatchModule {
         NamedParam p = getNamedParam(paramIndex);
         if (userLabels != null) {
             for (FieldValues f : userLabels) {
-                if (paramIndex == Protocol.ParamLabel.ParamIndex.intValueRequired(f)) {
-                    return Protocol.ParamLabel.Label.stringValueRequired(f);
+                if (paramIndex == Protocol.ParamLabel.ParamIndex.intValue(f)) {
+                    return Protocol.ParamLabel.Label.stringValue(f);
                 }
             }
         }
@@ -156,14 +156,14 @@ public class PatchModule {
     }
 
     public void updateParam(FieldValues fvs) {
-        int variation = Protocol.ParamUpdate.Variation.intValueRequired(fvs);
-        int value = Protocol.ParamUpdate.Value.intValueRequired(fvs);
-        int param = Protocol.ParamUpdate.Param.intValueRequired(fvs);
+        int variation = Protocol.ParamUpdate.Variation.intValue(fvs);
+        int value = Protocol.ParamUpdate.Value.intValue(fvs);
+        int param = Protocol.ParamUpdate.Param.intValue(fvs);
         FieldValues vvs = getRequiredVarValues(variation);
         if (isUserModule()) {
-            List<FieldValues> vs = Protocol.VarParams.Params.subfieldsValueRequired(vvs);
+            List<FieldValues> vs = Protocol.VarParams.Params.subfieldsValue(vvs);
             FieldValues v = vs.get(param);
-            int old = Protocol.Data7.Datum.intValueRequired(v);
+            int old = Protocol.Data7.Datum.intValue(v);
             if (old != value) { //updates can happen with same value, ignore
                 v.update(Protocol.Data7.Datum.value(value));
                 log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",

@@ -12,7 +12,7 @@ public class PatchSettings {
     }
 
     public int getVoices() {
-        return Protocol.PatchDescription.Voices.intValueRequired(fvs);
+        return Protocol.PatchDescription.Voices.intValue(fvs);
     }
 
     public void setVoices(int value) {
@@ -20,7 +20,7 @@ public class PatchSettings {
     }
 
     public int getHeight() {
-        return Protocol.PatchDescription.Height.intValueRequired(fvs);
+        return Protocol.PatchDescription.Height.intValue(fvs);
     }
 
     public void setHeight(int value) {
@@ -84,7 +84,7 @@ public class PatchSettings {
     }
 
     public int getMonoPoly() {
-        return Protocol.PatchDescription.MonoPoly.intValueRequired(fvs);
+        return Protocol.PatchDescription.MonoPoly.intValue(fvs);
     }
 
     public void setMonoPoly(int value) {
@@ -92,7 +92,7 @@ public class PatchSettings {
     }
 
     public int getVariation() {
-        return Protocol.PatchDescription.Variation.intValueRequired(fvs);
+        return Protocol.PatchDescription.Variation.intValue(fvs);
     }
 
     public void setVariation(int value) {
@@ -100,7 +100,7 @@ public class PatchSettings {
     }
 
     public int getCategory() {
-        return Protocol.PatchDescription.Category.intValueRequired(fvs);
+        return Protocol.PatchDescription.Category.intValue(fvs);
     }
 
     public void setCategory(int value) {

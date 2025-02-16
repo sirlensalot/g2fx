@@ -12,7 +12,7 @@ public class SlotSettings {
     }
 
     public String getPatchName() {
-        return Protocol.PerfSlot.PatchName.stringValueRequired(fvs);
+        return Protocol.PerfSlot.PatchName.stringValue(fvs);
     }
 
     public void setPatchName(String value) {
@@ -20,7 +20,7 @@ public class SlotSettings {
     }
 
     public int getEnabled() {
-        return Protocol.PerfSlot.Enabled.intValueRequired(fvs);
+        return Protocol.PerfSlot.Enabled.intValue(fvs);
     }
 
     public void setEnabled(int value) {
@@ -28,7 +28,7 @@ public class SlotSettings {
     }
 
     public int getKeyboard() {
-        return Protocol.PerfSlot.Keyboard.intValueRequired(fvs);
+        return Protocol.PerfSlot.Keyboard.intValue(fvs);
     }
 
     public void setKeyboard(int value) {
@@ -36,7 +36,7 @@ public class SlotSettings {
     }
 
     public int getHold() {
-        return Protocol.PerfSlot.Hold.intValueRequired(fvs);
+        return Protocol.PerfSlot.Hold.intValue(fvs);
     }
 
     public void setHold(int value) {
@@ -44,7 +44,7 @@ public class SlotSettings {
     }
 
     public int getBankIndex() {
-        return Protocol.PerfSlot.BankIndex.intValueRequired(fvs);
+        return Protocol.PerfSlot.BankIndex.intValue(fvs);
     }
 
     public void setBankIndex(int value) {
@@ -52,7 +52,7 @@ public class SlotSettings {
     }
 
     public int getPatchIndex() {
-        return Protocol.PerfSlot.PatchIndex.intValueRequired(fvs);
+        return Protocol.PerfSlot.PatchIndex.intValue(fvs);
     }
 
     public void setPatchIndex(int value) {
@@ -60,7 +60,7 @@ public class SlotSettings {
     }
 
     public int getKeyboardRangeFrom() {
-        return Protocol.PerfSlot.KeyboardRangeFrom.intValueRequired(fvs);
+        return Protocol.PerfSlot.KeyboardRangeFrom.intValue(fvs);
     }
 
     public void setKeyboardRangeFrom(int value) {
@@ -68,7 +68,7 @@ public class SlotSettings {
     }
 
     public int getKeyboardRangeTo() {
-        return Protocol.PerfSlot.KeyboardRangeTo.intValueRequired(fvs);
+        return Protocol.PerfSlot.KeyboardRangeTo.intValue(fvs);
     }
 
     public void setKeyboardRangeTo(int value) {

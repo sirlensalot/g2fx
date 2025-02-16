@@ -13,9 +13,9 @@ public class MorphParameters {
     public record MorphParam(int morph, int range) { }
 
     public MorphParameters(FieldValues fvs) {
-        Protocol.MorphParameters.VarMorphs.subfieldsValueRequired(fvs).forEach(vm -> {
-            varMorphs.put(Protocol.VarMorph.Variation.intValueRequired(vm),
-                    Protocol.VarMorph.VarMorphParams.subfieldsValueRequired(vm));
+        Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs).forEach(vm -> {
+            varMorphs.put(Protocol.VarMorph.Variation.intValue(vm),
+                    Protocol.VarMorph.VarMorphParams.subfieldsValue(vm));
         });
     }
 
@@ -23,11 +23,11 @@ public class MorphParameters {
         List<FieldValues> vm = varMorphs.get(variation);
         if (vm == null) { throw new IllegalArgumentException("Invalid variation: " + variation); }
         for (FieldValues kp : vm) {
-            if (area.ordinal() == Protocol.VarMorphParam.Location.intValueRequired(kp) &&
-                    module == Protocol.VarMorphParam.ModuleIndex.intValueRequired(kp) &&
-                    param == Protocol.VarMorphParam.ParamIndex.intValueRequired(kp)) {
-                return new MorphParam(Protocol.VarMorphParam.Morph.intValueRequired(kp),
-                        Protocol.VarMorphParam.Range.intValueRequired(kp));
+            if (area.ordinal() == Protocol.VarMorphParam.Location.intValue(kp) &&
+                    module == Protocol.VarMorphParam.ModuleIndex.intValue(kp) &&
+                    param == Protocol.VarMorphParam.ParamIndex.intValue(kp)) {
+                return new MorphParam(Protocol.VarMorphParam.Morph.intValue(kp),
+                        Protocol.VarMorphParam.Range.intValue(kp));
             }
         }
         return null;

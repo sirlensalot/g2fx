@@ -10,18 +10,18 @@ public class GlobalKnobAssignments {
 
     public GlobalKnobAssignments(FieldValues fvs) {
         this.assignments =
-                Protocol.GlobalKnobAssignments.Knobs.subfieldsValueRequired(fvs);
+                Protocol.GlobalKnobAssignments.Knobs.subfieldsValue(fvs);
     }
 
     public Boolean getKnobAssignment(Slot slot, AreaId area, int module, int param) {
         for (FieldValues ka : assignments) {
-            if (Protocol.GlobalKnobAssignment.Assigned.intValueRequired(ka) == 1) {
-                List<FieldValues> kps = Protocol.GlobalKnobAssignment.Params.subfieldsValueRequired(ka);
+            if (Protocol.GlobalKnobAssignment.Assigned.intValue(ka) == 1) {
+                List<FieldValues> kps = Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka);
                 for (FieldValues kp : kps) {
-                    if (area.ordinal() == Protocol.GlobalKnobParams.Location.intValueRequired(kp) &&
-                            slot.ordinal() == Protocol.GlobalKnobParams.Slot.intValueRequired(kp) &&
-                    module == Protocol.GlobalKnobParams.Index.intValueRequired(kp) &&
-                    param == Protocol.GlobalKnobParams.Param.intValueRequired(kp)) {
+                    if (area.ordinal() == Protocol.GlobalKnobParams.Location.intValue(kp) &&
+                            slot.ordinal() == Protocol.GlobalKnobParams.Slot.intValue(kp) &&
+                    module == Protocol.GlobalKnobParams.Index.intValue(kp) &&
+                    param == Protocol.GlobalKnobParams.Param.intValue(kp)) {
                         return Protocol.GlobalKnobParams.IsLed.booleanIntValue(kp);
                     }
                 }
@@ -32,7 +32,7 @@ public class GlobalKnobAssignments {
 
     public List<FieldValues> getActiveAssignments() {
         return assignments.stream().filter(fv ->
-                Protocol.GlobalKnobAssignment.Assigned.intValueRequired(fv) == 1)
-                .map(ka -> Protocol.GlobalKnobAssignment.Params.subfieldsValueRequired(ka).getFirst()).toList();
+                Protocol.GlobalKnobAssignment.Assigned.intValue(fv) == 1)
+                .map(ka -> Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka).getFirst()).toList();
     }
 }

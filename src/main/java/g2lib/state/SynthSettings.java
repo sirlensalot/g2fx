@@ -12,7 +12,7 @@ public class SynthSettings {
     }
 
     public String getDeviceName() {
-        return Protocol.SynthSettings.DeviceName.stringValueRequired(fvs);
+        return Protocol.SynthSettings.DeviceName.stringValue(fvs);
     }
 
     public void setDeviceName(int value) {
@@ -28,7 +28,7 @@ public class SynthSettings {
     }
 
     public int getPerfBank() {
-        return Protocol.SynthSettings.PerfBank.intValueRequired(fvs);
+        return Protocol.SynthSettings.PerfBank.intValue(fvs);
     }
 
     public void setPerfBank(int value) {
@@ -36,7 +36,7 @@ public class SynthSettings {
     }
 
     public int getPerfLocation() {
-        return Protocol.SynthSettings.PerfLocation.intValueRequired(fvs);
+        return Protocol.SynthSettings.PerfLocation.intValue(fvs);
     }
 
     public void setPerfLocation(int value) {
@@ -52,7 +52,7 @@ public class SynthSettings {
     }
 
     public int getMidiChannelA() {
-        return Protocol.SynthSettings.MidiChannelA.intValueRequired(fvs);
+        return Protocol.SynthSettings.MidiChannelA.intValue(fvs);
     }
 
     public void setMidiChannelA(int value) {
@@ -60,7 +60,7 @@ public class SynthSettings {
     }
 
     public int getMidiChannelB() {
-        return Protocol.SynthSettings.MidiChannelB.intValueRequired(fvs);
+        return Protocol.SynthSettings.MidiChannelB.intValue(fvs);
     }
 
     public void setMidiChannelB(int value) {
@@ -68,7 +68,7 @@ public class SynthSettings {
     }
 
     public int getMidiChannelC() {
-        return Protocol.SynthSettings.MidiChannelC.intValueRequired(fvs);
+        return Protocol.SynthSettings.MidiChannelC.intValue(fvs);
     }
 
     public void setMidiChannelC(int value) {
@@ -76,7 +76,7 @@ public class SynthSettings {
     }
 
     public int getMidiChannelD() {
-        return Protocol.SynthSettings.MidiChannelD.intValueRequired(fvs);
+        return Protocol.SynthSettings.MidiChannelD.intValue(fvs);
     }
 
     public void setMidiChannelD(int value) {
@@ -84,7 +84,7 @@ public class SynthSettings {
     }
 
     public int getMidiChannelGlobal() {
-        return Protocol.SynthSettings.MidiChannelGlobal.intValueRequired(fvs);
+        return Protocol.SynthSettings.MidiChannelGlobal.intValue(fvs);
     }
 
     public void setMidiChannelGlobal(int value) {
@@ -92,7 +92,7 @@ public class SynthSettings {
     }
 
     public int getSysExId() {
-        return Protocol.SynthSettings.SysExId.intValueRequired(fvs);
+        return Protocol.SynthSettings.SysExId.intValue(fvs);
     }
 
     public void setSysExId(int value) {
@@ -156,7 +156,7 @@ public class SynthSettings {
     }
 
     public int getTuneCent() {
-        return Protocol.SynthSettings.TuneCent.intValueRequired(fvs);
+        return Protocol.SynthSettings.TuneCent.intValue(fvs);
     }
 
     public void setTuneCent(int value) {
@@ -172,7 +172,7 @@ public class SynthSettings {
     }
 
     public int getGlobalOctaveShift() {
-        return Protocol.SynthSettings.GlobalOctaveShift.intValueRequired(fvs);
+        return Protocol.SynthSettings.GlobalOctaveShift.intValue(fvs);
     }
 
     public void setGlobalOctaveShift(int value) {
@@ -180,7 +180,7 @@ public class SynthSettings {
     }
 
     public int getTuneSemi() {
-        return Protocol.SynthSettings.TuneSemi.intValueRequired(fvs);
+        return Protocol.SynthSettings.TuneSemi.intValue(fvs);
     }
 
     public void setTuneSemi(int value) {
@@ -196,7 +196,7 @@ public class SynthSettings {
     }
 
     public int getControlPedalGain() {
-        return Protocol.SynthSettings.ControlPedalGain.intValueRequired(fvs);
+        return Protocol.SynthSettings.ControlPedalGain.intValue(fvs);
     }
 
     public void setControlPedalGain(int value) {

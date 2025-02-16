@@ -10,7 +10,7 @@ public class UserModuleData {
 
     public UserModuleData(FieldValues fvs) {
         this.fvs = fvs;
-        this.type = ModuleType.getById(Protocol.UserModule.Id.intValueRequired(fvs));
+        this.type = ModuleType.getById(Protocol.UserModule.Id.intValue(fvs));
     }
 
     public ModuleType getType() {
@@ -18,7 +18,7 @@ public class UserModuleData {
     }
 
     public int getHoriz() {
-        return Protocol.UserModule.Horiz.intValueRequired(fvs);
+        return Protocol.UserModule.Horiz.intValue(fvs);
     }
 
     public void setHoriz(int value) {
@@ -26,7 +26,7 @@ public class UserModuleData {
     }
 
     public int getVert() {
-        return Protocol.UserModule.Vert.intValueRequired(fvs);
+        return Protocol.UserModule.Vert.intValue(fvs);
     }
 
     public void setVert(int value) {
@@ -34,7 +34,7 @@ public class UserModuleData {
     }
 
     public int getColor() {
-        return Protocol.UserModule.Color.intValueRequired(fvs);
+        return Protocol.UserModule.Color.intValue(fvs);
     }
 
     public void setColor(int value) {
@@ -42,7 +42,7 @@ public class UserModuleData {
     }
 
     public int getUprate() {
-        return Protocol.UserModule.Uprate.intValueRequired(fvs);
+        return Protocol.UserModule.Uprate.intValue(fvs);
     }
 
     public void setUprate(int value) {

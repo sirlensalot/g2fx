@@ -10,7 +10,7 @@ public class PatchCable {
         this.fvs = fvs;
     }
     public int getColor() {
-        return Protocol.Cable.Color.intValueRequired(fvs);
+        return Protocol.Cable.Color.intValue(fvs);
     }
 
     public void setColor(int value) {
@@ -18,7 +18,7 @@ public class PatchCable {
     }
 
     public int getSrcModule() {
-        return Protocol.Cable.SrcModule.intValueRequired(fvs);
+        return Protocol.Cable.SrcModule.intValue(fvs);
     }
 
     public void setSrcModule(int value) {
@@ -26,7 +26,7 @@ public class PatchCable {
     }
 
     public int getSrcConn() {
-        return Protocol.Cable.SrcConn.intValueRequired(fvs);
+        return Protocol.Cable.SrcConn.intValue(fvs);
     }
 
     public void setSrcConn(int value) {
@@ -42,7 +42,7 @@ public class PatchCable {
     }
 
     public int getDestModule() {
-        return Protocol.Cable.DestModule.intValueRequired(fvs);
+        return Protocol.Cable.DestModule.intValue(fvs);
     }
 
     public void setDestModule(int value) {
@@ -50,7 +50,7 @@ public class PatchCable {
     }
 
     public int getDestConn() {
-        return Protocol.Cable.DestConn.intValueRequired(fvs);
+        return Protocol.Cable.DestConn.intValue(fvs);
     }
 
     public void setDestConn(int value) {

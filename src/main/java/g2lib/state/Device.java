@@ -375,8 +375,8 @@ public class Device implements Dispatcher {
                 default:
                     if (bank == null) { throw new IllegalStateException("invalid message, no current bank"); }
                     FieldValues fvs = Protocol.EntryData.FIELDS.read(bb);
-                    bank.entries().add(new Entry(Protocol.EntryData.Name.stringValueRequired(fvs),
-                            Protocol.EntryData.Category.intValueRequired(fvs)));
+                    bank.entries().add(new Entry(Protocol.EntryData.Name.stringValue(fvs),
+                            Protocol.EntryData.Category.intValue(fvs)));
             }
         }
     }

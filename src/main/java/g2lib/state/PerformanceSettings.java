@@ -12,7 +12,7 @@ public class PerformanceSettings {
     }
 
     public int getSelectedSlot() {
-        return Protocol.PerformanceSettings.SelectedSlot.intValueRequired(fvs);
+        return Protocol.PerformanceSettings.SelectedSlot.intValue(fvs);
     }
 
     public void setSelectedSlot(int value) {
@@ -20,7 +20,7 @@ public class PerformanceSettings {
     }
 
     public int getKeyboardRangeEnabled() {
-        return Protocol.PerformanceSettings.KeyboardRangeEnabled.intValueRequired(fvs);
+        return Protocol.PerformanceSettings.KeyboardRangeEnabled.intValue(fvs);
     }
 
     public void setKeyboardRangeEnabled(int value) {
@@ -28,7 +28,7 @@ public class PerformanceSettings {
     }
 
     public int getMasterClock() {
-        return Protocol.PerformanceSettings.MasterClock.intValueRequired(fvs);
+        return Protocol.PerformanceSettings.MasterClock.intValue(fvs);
     }
 
     public void setMasterClock(int value) {
@@ -36,7 +36,7 @@ public class PerformanceSettings {
     }
 
     public int getMasterClockRun() {
-        return Protocol.PerformanceSettings.MasterClockRun.intValueRequired(fvs);
+        return Protocol.PerformanceSettings.MasterClockRun.intValue(fvs);
     }
 
     public void setMasterClockRun(int value) {
@@ -45,7 +45,7 @@ public class PerformanceSettings {
 
     public SlotSettings getSlotSettings(Slot slot) {
         return new SlotSettings(
-                Protocol.PerformanceSettings.Slots.subfieldsValueRequired(fvs)
+                Protocol.PerformanceSettings.Slots.subfieldsValue(fvs)
                         .get(slot.ordinal()));
     }
     
