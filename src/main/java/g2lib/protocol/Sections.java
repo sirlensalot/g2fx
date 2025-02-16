@@ -18,7 +18,7 @@ public enum Sections {
     SCurrentNote(Protocol.CurrentNote.FIELDS, 0x69),
     SCableList1(Protocol.CableList.FIELDS, 0x52, 1),
     SCableList0(Protocol.CableList.FIELDS, 0x52, 0),
-    SPatchParams(Protocol.PatchParams.FIELDS, 0x4d, 2),
+    SPatchParams(Protocol.SettingsParams.FIELDS, 0x4d, 2),
     SModuleParams1(Protocol.ModuleParams.FIELDS, 0x4d, 1),
     SModuleParams0(Protocol.ModuleParams.FIELDS, 0x4d, 0),
     SMorphParameters(Protocol.MorphParameters.FIELDS, 0x65),

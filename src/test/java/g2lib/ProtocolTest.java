@@ -1,5 +1,6 @@
 package g2lib;
 
+import g2lib.model.SettingsModules;
 import g2lib.protocol.*;
 import g2lib.state.PatchLoadData;
 import g2lib.state.PerformanceSettings;
@@ -81,12 +82,6 @@ class ProtocolTest {
         assertEquals(el,al, message);
     }
 
-    private void sectionHeader(FieldValues vs, PatchParams f, int section, int entries) {
-        assertTrue(f.subfieldsValueMaybe(vs).isPresent(),"header present: " + f);
-        FieldValues h = f.subfieldsValueMaybe(vs).get().getFirst();
-        assertFieldEquals(h,section,SectionHeader.Section);
-        assertFieldEquals(h,entries,SectionHeader.Entries);
-    }
 
 
 
@@ -325,76 +320,53 @@ class ProtocolTest {
         assertEquals(2, Sections.SPatchParams.location,"location"); //patch parameters
 
         FieldValues patchSettings = s.values();
-        int vc = assertFieldEquals(patchSettings,vce, PatchParams.VariationCount);
-        assertFieldEquals(patchSettings,0x07, PatchParams.SectionCount);
-        sectionHeader(patchSettings, PatchParams.S1,1,16);
-        sectionHeader(patchSettings, PatchParams.S2,2,2);
-        sectionHeader(patchSettings, PatchParams.S3,3,2);
-        sectionHeader(patchSettings, PatchParams.S4,4,2);
-        sectionHeader(patchSettings, PatchParams.S5,5,3);
-        sectionHeader(patchSettings, PatchParams.S6,6,4);
-        sectionHeader(patchSettings, PatchParams.S7,7,2);
-        List<FieldValues> morphs = assertSubfields(patchSettings, vc, PatchParams.Morphs);
-        List<FieldValues> s2 = assertSubfields(patchSettings, vc, PatchParams.SectionGain);
-        List<FieldValues> s3 = assertSubfields(patchSettings, vc, PatchParams.SectionGlides);
-        List<FieldValues> s4 = assertSubfields(patchSettings, vc, PatchParams.SectionBends);
-        List<FieldValues> s5 = assertSubfields(patchSettings, vc, PatchParams.SectionVibratos);
-        List<FieldValues> s6 = assertSubfields(patchSettings, vc, PatchParams.SectionArps);
-        List<FieldValues> s7 = assertSubfields(patchSettings, vc, PatchParams.SectionMisc);
-        for (int i = 0; i < vc; i++) {
-            FieldValues ms = morphs.get(i);
-            assertFieldEquals(ms,i,MorphSettings.Variation);
-            List<FieldValues> mdials = assertSubfields(ms, 8, MorphSettings.Dials);
-            List<FieldValues> mmodes = assertSubfields(ms, 8, MorphSettings.Modes);
-            for (int j = 0; j < 8; j++) {
-                if (i == 1 && j == 2) {
-                    assertFieldEquals(mdials.get(j),25, Data7.Datum);
-                } else {
-                    assertFieldEquals(mdials.get(j),0x00, Data7.Datum);
-                }
-                assertFieldEquals(mmodes.get(j),0x01, Data7.Datum);
-            }
-            assertFieldEquals(s2.get(i),i, GainSettings.Variation);
-            assertFieldEquals(s3.get(i),i, GlideSettings.Variation);
-            assertFieldEquals(s4.get(i),i, BendSettings.Variation);
-            assertFieldEquals(s5.get(i),i, VibratoSettings.Variation);
-            assertFieldEquals(s6.get(i),i, ArpSettings.Variation);
-            assertFieldEquals(s7.get(i),i, OctSustainSettings.Variation);
-
-            assertFieldEquals(s3.get(i),0x00, GlideSettings.Glide);
-            assertFieldEquals(s3.get(i),0x1c, GlideSettings.GlideTime);
-
-            assertFieldEquals(s5.get(i),0x00, VibratoSettings.Vibrato);
-            assertFieldEquals(s5.get(i),0x32, VibratoSettings.Cents);
-            assertFieldEquals(s5.get(i),0x40, VibratoSettings.Rate);
-
-            assertFieldEquals(s6.get(i),0x00, ArpSettings.Arpeggiator);
-            assertFieldEquals(s6.get(i),0x03, ArpSettings.Time);
-            assertFieldEquals(s6.get(i),0x00, ArpSettings.Type);
-            assertFieldEquals(s6.get(i),0x00, ArpSettings.Octaves);
-
-            if (i == 1) {
-                assertFieldEquals(s2.get(i),0x00, GainSettings.PatchVol);
-            } else {
-                assertFieldEquals(s2.get(i),0x64, GainSettings.PatchVol);
-            }
-            assertFieldEquals(s2.get(i),0x01, GainSettings.ActiveMuted);
-            if (i == 0 || i == 1) {
-                assertFieldEquals(s4.get(i),0x05, BendSettings.Semi);
-                assertFieldEquals(s7.get(i),0x01, OctSustainSettings.OctShift);
-            } else {
-                assertFieldEquals(s4.get(i),0x01, BendSettings.Semi);
-                assertFieldEquals(s7.get(i),0x02, OctSustainSettings.OctShift);
-            }
-
-            assertFieldEquals(s4.get(i),0x01, BendSettings.Bend);
-
-            assertFieldEquals(s7.get(i),0x01, OctSustainSettings.Sustain);
-
-        }
-
+        int vc = assertFieldEquals(patchSettings,vce, SettingsParams.VariationCount);
+        assertFieldEquals(patchSettings,0x07, SettingsParams.SectionCount);
+        List<FieldValues> sps = new ArrayList<>(SettingsParams.Sections.subfieldsValue(patchSettings));
+        assertEquals(7,sps.size());
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Morphs,16,vce,List.of(
+                List.of(0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,1),
+                List.of(0,0,25,0,0,0,0,0, 1,1,1,1,1,1,1,1),
+                List.of(0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,1)));
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Gain,2,vce,List.of(
+                List.of(0x64,1),
+                List.of(0,1),
+                List.of(0x64,1)));
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Glide,2,vce,List.of(
+                List.of(0,0x1c)));
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Bend,2,vce,List.of(
+                List.of(1,5),
+                List.of(1,5),
+                List.of(1,1)));
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Vibrato,3,vce,List.of(
+                List.of(0,0x32,0x40)));
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Arpeggiator,4,vce,List.of(
+                List.of(0,3,0,0)));
+        testSettingsSection(p, sps.removeFirst(), SettingsModules.Misc,2,vce,List.of(
+                List.of(1,1),
+                List.of(1,1),
+                List.of(2,1)));
         return vc;
     }
+
+
+    private void testSettingsSection(Patch patch, FieldValues svs, SettingsModules section, int entries, int varCount,
+                                     List<List<Integer>> varValues) {
+        assertFieldEquals(svs,section.getModIndex(),SettingsSection.Section);
+        assertFieldEquals(svs,entries,SettingsSection.Entries);
+        List<FieldValues> vvs = SettingsSection.Params.subfieldsValue(svs);
+        for (int v = 0; v < varCount; v++) {
+            List<Integer> expecteds = varValues.size() > v ? varValues.get(v) : varValues.getLast();
+            FieldValues vs = vvs.get(v);
+            assertFieldEquals(vs,v,SectionVarParams.Variation);
+            assertEquals(expecteds,
+                    SectionVarParams.Params.subfieldsValue(vs).stream().map(Data7.Datum::intValue).toList(),
+                    "Settings Section " + section + " var " + v + " values");
+            assertEquals(expecteds,
+                    patch.getArea(AreaId.Settings).getSettingsModule(section).getVarValues(v));
+        }
+    }
+
     private void testCableLists(Patch p,int... indexes) {
 
         FieldValues cl = p.getSection(Sections.SCableList1).values();

@@ -74,18 +74,21 @@ public class PatchArea {
     }
 
     public PatchModule getSettingsModule(SettingsModules m) {
-        return getModuleRequired(m.ordinal());
+        return getModuleRequired(m.getModIndex());
     }
 
     public void setUserModuleParams(FieldValues moduleParams) {
         Protocol.ModuleParams.ParamSet.subfieldsValue(moduleParams)
                 .forEach(fvs -> getModuleRequired(
                         Protocol.ModuleParamSet.ModIndex.intValue(fvs))
-                        .setUserParamValues(fvs));
+                        .setParamValues(Protocol.ModuleParamSet.ModParams.subfieldsValue(fvs)));
     }
 
     public void setSettingsModuleParams(FieldValues patchParams) {
-        modules.values().forEach(m -> m.setSettingParamValues(patchParams));
+        Protocol.SettingsParams.Sections.subfieldsValue(patchParams).forEach(fvs -> {
+            getModuleRequired(Protocol.SettingsSection.Section.intValue(fvs))
+                    .setParamValues(Protocol.SettingsSection.Params.subfieldsValue(fvs));
+        });
     }
 
     public void addCable(FieldValues fvs) {
@@ -116,7 +119,7 @@ public class PatchArea {
     }
 
     public void setMorphLabels(FieldValues values) {
-        getSettingsModule(SettingsModules.MorphModes).setMorphLabels(values);
+        getSettingsModule(SettingsModules.Morphs).setMorphLabels(values);
     }
 
     public void setPatchLoadData(FieldValues fvs) {

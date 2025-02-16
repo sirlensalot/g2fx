@@ -1,144 +1,51 @@
 package g2lib.model;
 
-import g2lib.protocol.FieldEnum;
-import g2lib.protocol.FieldValues;
-import g2lib.protocol.Protocol;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
 public enum SettingsModules {
-    MorphDials {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.Morphs.subfieldsValue(patchParams);
-        }
+    Morphs {
         public List<NamedParam> mkParams() {
-            return mkMorphParams(ModParam.MorphDial, m -> List.of());
-        }
-
-        @Override
-        public List<Integer> getVarValues(FieldValues varFvs) {
-            return getMorphVarValues(Protocol.MorphSettings.Dials, varFvs);
-        }
-    },
-    MorphModes {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.Morphs.subfieldsValue(patchParams);
-        }
-        public List<NamedParam> mkParams() {
-            return mkMorphParams(ModParam.MorphMode, m -> List.of("Knob", m));
-        }
-
-        @Override
-        public List<Integer> getVarValues(FieldValues varFvs) {
-            return getMorphVarValues(Protocol.MorphSettings.Modes, varFvs);
+            List<NamedParam> ps = new ArrayList<>(mkMorphParams(ModParam.MorphDial, m -> List.of()));
+            ps.addAll(mkMorphParams(ModParam.MorphMode, m -> List.of("Knob", m)));
+            return ps;
         }
     },
     Gain {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionGain.subfieldsValue(patchParams);
-        }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.GainVolume, ModParam.GainActiveMuted);
         }
-
-        @Override
-        public List<FieldEnum> getFields() {
-            return List.of(
-                    Protocol.GainSettings.PatchVol,
-                    Protocol.GainSettings.ActiveMuted
-            );
-        }
     },
     Glide {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionGlides.subfieldsValue(patchParams);
-        }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.Glide, ModParam.GlideSpeed);
         }
-
-        @Override
-        public List<FieldEnum> getFields() {
-            return List.of(
-                    Protocol.GlideSettings.Glide,
-                    Protocol.GlideSettings.GlideTime
-            );
-        }
     },
     Bend {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionBends.subfieldsValue(patchParams);
-        }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.BendEnable, ModParam.BendSemi);
         }
-
-        @Override
-        public List<FieldEnum> getFields() {
-            return List.of(
-                    Protocol.BendSettings.Bend,
-                    Protocol.BendSettings.Semi
-            );
-        }
     },
     Vibrato {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionVibratos.subfieldsValue(patchParams);
-        }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate);
         }
-
-        @Override
-        public List<FieldEnum> getFields() {
-            return List.of(
-                    Protocol.VibratoSettings.Vibrato,
-                    Protocol.VibratoSettings.Cents,
-                    Protocol.VibratoSettings.Rate
-            );
-        }
     },
     Arpeggiator {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionArps.subfieldsValue(patchParams);
-        }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves);
         }
-
-        @Override
-        public List<FieldEnum> getFields() {
-            return List.of(
-                    Protocol.ArpSettings.Arpeggiator,
-                    Protocol.ArpSettings.Time,
-                    Protocol.ArpSettings.Type,
-                    Protocol.ArpSettings.Octaves
-            );
-        }
     },
     Misc {
-        public List<FieldValues> getParamValues(FieldValues patchParams) {
-            return Protocol.PatchParams.SectionMisc.subfieldsValue(patchParams);
-        }
         public List<NamedParam> mkParams() {
             return mkParams(ModParam.MiscOctShift, ModParam.MiscSustain);
-        }
-
-        @Override
-        public List<FieldEnum> getFields() {
-            return List.of(
-                    Protocol.OctSustainSettings.OctShift,
-                    Protocol.OctSustainSettings.Sustain
-            );
         }
     };
 
     public static final String[] MORPH_LABELS =
             {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
-
-    public abstract List<FieldValues> getParamValues(FieldValues patchParams);
 
     public abstract List<NamedParam> mkParams();
 
@@ -150,17 +57,6 @@ public enum SettingsModules {
         return Arrays.stream(MORPH_LABELS).map(m -> new NamedParam(modParam, m, labelF.apply(m))).toList();
     }
 
-    public List<FieldEnum> getFields() {
-        throw new UnsupportedOperationException("getFields");
-    }
-
-    public List<Integer> getVarValues(final FieldValues varFvs) {
-        return getFields().stream().map(f -> f.intValue(varFvs)).toList();
-    }
-
-    protected List<Integer> getMorphVarValues(Protocol.MorphSettings ms, FieldValues morph) {
-        List<FieldValues> dials = ms.subfieldsValue(morph);
-        return dials.stream().map(Protocol.Data7.Datum::intValue).toList();
-    }
+    public int getModIndex() { return ordinal() + 1; }
 
 }

@@ -38,20 +38,15 @@ public class PatchModule {
 
 
     public PatchModule(SettingsModules settingsModule) {
-        this.index = settingsModule.ordinal();
+        this.index = settingsModule.getModIndex();
         this.settingsModuleType = settingsModule;
         this.userModuleData = null;
         this.params = settingsModule.mkParams();
         log = Util.getLogger(getClass().getName() + "." + settingsModuleType + "[" + index + "]");
     }
 
-    public void setUserParamValues(FieldValues moduleParams) {
-        values = new ArrayList<>(Protocol.ModuleParamSet.ModParams
-                .subfieldsValue(moduleParams));
-    }
-
-    public void setSettingParamValues(FieldValues patchParams) {
-        values = settingsModuleType.getParamValues(patchParams);
+    public void setParamValues(List<FieldValues> varParams) {
+        values = varParams;
     }
 
     public List<Integer> getVarValues(int variation) {
@@ -69,12 +64,8 @@ public class PatchModule {
     }
 
     private List<Integer> getSettingsVarValues(int variation) {
-        return settingsModuleType.getVarValues(getRequiredVarValues(variation));
-    }
-
-    private List<Integer> getMorphVarValues(Protocol.MorphSettings ms, FieldValues morph) {
-        List<FieldValues> dials = ms.subfieldsValue(morph);
-        return dials.stream().map(Protocol.Data7.Datum::intValue).toList();
+        return Protocol.SectionVarParams.Params.subfieldsValue(getRequiredVarValues(variation))
+                .stream().map(Protocol.Data7.Datum::intValue).toList();
     }
 
 
