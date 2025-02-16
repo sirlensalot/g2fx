@@ -205,6 +205,7 @@ class ProtocolTest {
             int mc = i == 1 ? 1 : 0;
             assertFieldEquals(vm,mc,VarMorph.MorphCount);
             List<FieldValues> vmps = assertSubfields(vm, mc, VarMorph.VarMorphParams);
+            assertEquals(mc,vmps.size());
             if (i == 1) {
                 FieldValues vmp = vmps.getFirst();
                 assertFieldEquals(vmp,0x01,VarMorphParam.Location);

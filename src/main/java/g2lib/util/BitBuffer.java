@@ -122,6 +122,11 @@ public class BitBuffer {
 
     }
 
+    public BitBuffer rewind() {
+        bindex = 0;
+        return this;
+    }
+
     public ByteBuffer toBuffer() {
         return buffer.duplicate().rewind();
     }

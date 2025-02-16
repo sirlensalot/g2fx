@@ -97,6 +97,43 @@ public class Protocol {
         public static final Fields FIELDS = new Fields(PatchDescription.class,values());
     }
 
+    public enum SettingsParams implements FieldEnum {
+        SectionCount,
+        VariationCount,
+        Sections(SettingsSection.FIELDS);
+        SettingsParams() { f = new SizedField(this,8); }
+        SettingsParams(Fields fields) {
+            f = new SubfieldsField(this,fields,7);
+        }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(SettingsParams.class,values());
+    }
+
+    public enum SettingsSection implements FieldEnum {
+        Section(8),
+        Entries(7),
+        Params();
+        SettingsSection(int size) { f = new SizedField(this,size); }
+        SettingsSection() {
+            f = new SubfieldsField(this,SectionVarParams.FIELDS, SettingsParams.VariationCount);
+        }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(SettingsSection.class,values());
+    }
+
+
+    public enum SectionVarParams implements FieldEnum {
+        Variation(8),
+        Params;
+        SectionVarParams(int size) { f = new SizedField(this,size); }
+        SectionVarParams() { f = new SubfieldsField(this, Data7.FIELDS, SettingsSection.Entries); }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(SectionVarParams.class,values());
+    }
+
     public enum PatchParams implements FieldEnum {
 
         SectionCount(8),
