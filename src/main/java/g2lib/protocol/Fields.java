@@ -9,12 +9,12 @@ public class Fields {
     private final List<Field> fields;
     private final String name;
 
-    public Fields(Class<?> clazz, FieldEnum[] fieldEnums) {
+    public Fields(FieldEnum[] fieldEnums) {
         fields = new ArrayList<>();
         for (FieldEnum fieldEnum : fieldEnums) {
             fields.add(fieldEnum.field());
         }
-        this.name = clazz.getSimpleName();
+        this.name = fieldEnums[0].getClass().getSimpleName();
     }
 
     @Override

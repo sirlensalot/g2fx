@@ -13,7 +13,7 @@ public class Protocol {
         CableList(Fields fs, FieldEnum fe) { f = new SubfieldsField(this,fs,fe); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(CableList.class,values());
+        public static final Fields FIELDS = new Fields(values());
 
     }
 
@@ -27,7 +27,7 @@ public class Protocol {
         Cable(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Cable.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleModes implements FieldEnum {
@@ -35,7 +35,7 @@ public class Protocol {
         final private Field f = new SizedField(this,6);
         @Override
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleModes.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleList implements FieldEnum {
@@ -46,7 +46,7 @@ public class Protocol {
         ModuleList(Fields fs,FieldEnum e) { f = new SubfieldsField(this,fs,e);}
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleList.class,values());
+        public static final Fields FIELDS = new Fields(values());
 
     }
 
@@ -67,7 +67,7 @@ public class Protocol {
         UserModule(Fields fs, UserModule ixField) { f = new SubfieldsField(this,fs,ixField); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(UserModule.class,values());
+        public static final Fields FIELDS = new Fields(values());
 
     }
 
@@ -94,7 +94,7 @@ public class Protocol {
         PatchDescription(Fields fs,int c) { f = new SubfieldsField(this,fs,c); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(PatchDescription.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum SettingsParams implements FieldEnum {
@@ -107,7 +107,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(SettingsParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum SettingsSection implements FieldEnum {
@@ -120,7 +120,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(SettingsSection.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -131,7 +131,7 @@ public class Protocol {
         SectionVarParams() { f = new SubfieldsField(this, Data7.FIELDS, SettingsSection.Entries); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(SectionVarParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum PatchParams implements FieldEnum {
@@ -158,7 +158,7 @@ public class Protocol {
         PatchParams() { f = new SubfieldsField(this,SectionHeader.FIELDS,1); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(PatchParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -169,7 +169,7 @@ public class Protocol {
         GainSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(GainSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum GlideSettings implements FieldEnum {
@@ -179,7 +179,7 @@ public class Protocol {
         GlideSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(GlideSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum BendSettings implements FieldEnum {
@@ -189,7 +189,7 @@ public class Protocol {
         BendSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(BendSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -201,7 +201,7 @@ public class Protocol {
         VibratoSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(VibratoSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -214,7 +214,7 @@ public class Protocol {
         ArpSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ArpSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -225,7 +225,7 @@ public class Protocol {
         OctSustainSettings(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(OctSustainSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum SectionHeader implements FieldEnum {
@@ -234,7 +234,7 @@ public class Protocol {
         SectionHeader(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(SectionHeader.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -246,7 +246,7 @@ public class Protocol {
         MorphSettings() { f = new SubfieldsField(this, Data7.FIELDS,8); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(MorphSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum Data7 implements FieldEnum {
@@ -254,7 +254,7 @@ public class Protocol {
         Data7() { this.f = new SizedField(this,7); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Data7.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum Data8 implements FieldEnum {
@@ -262,7 +262,7 @@ public class Protocol {
         Data8() { this.f = new SizedField(this,8); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(Data8.class,values());
+        public static final Fields FIELDS = new Fields(values());
         public static List<FieldValues> asSubfield(int... values) {
             return Arrays.stream(values).boxed().map(v -> FIELDS.init().add(Datum.value(v))).toList();
         }
@@ -276,7 +276,7 @@ public class Protocol {
         ModuleParams(ModuleParams ix) { f = new SubfieldsField(this,ModuleParamSet.FIELDS,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleParamSet implements FieldEnum {
@@ -288,7 +288,7 @@ public class Protocol {
         ModuleParamSet() { f = new SubfieldsField(this,VarParams.FIELDS,ModuleParams.VariationCount); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleParamSet.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum VarParams implements FieldEnum {
@@ -298,7 +298,7 @@ public class Protocol {
         VarParams() { f = new SubfieldsField(this, Data7.FIELDS, ModuleParamSet.ParamCount); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(VarParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ParamUpdate implements FieldEnum {
@@ -310,7 +310,7 @@ public class Protocol {
         ParamUpdate() { this.f = new SizedField(this,8); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ParamUpdate.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum MorphParameters implements FieldEnum {
@@ -322,7 +322,7 @@ public class Protocol {
         MorphParameters(MorphParameters ix) { f = new SubfieldsField(this,VarMorph.FIELDS,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(MorphParameters.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum VarMorph implements FieldEnum {
@@ -339,7 +339,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(VarMorph.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum VarMorphParam implements FieldEnum {
@@ -351,7 +351,7 @@ public class Protocol {
         VarMorphParam(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(VarMorphParam.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum KnobAssignments implements FieldEnum {
@@ -361,7 +361,7 @@ public class Protocol {
         KnobAssignments(KnobAssignments ix, Fields fs) { f = new SubfieldsField(this,fs,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(KnobAssignments.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum KnobAssignment implements FieldEnum {
@@ -373,7 +373,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(KnobAssignment.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum KnobParams implements FieldEnum {
@@ -384,7 +384,7 @@ public class Protocol {
         KnobParams(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(KnobParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -395,7 +395,7 @@ public class Protocol {
         GlobalKnobAssignments(GlobalKnobAssignments ix, Fields fs) { f = new SubfieldsField(this,fs,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(GlobalKnobAssignments.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum GlobalKnobAssignment implements FieldEnum {
@@ -408,7 +408,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(GlobalKnobAssignment.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum GlobalKnobParams implements FieldEnum {
@@ -420,7 +420,7 @@ public class Protocol {
         GlobalKnobParams(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(GlobalKnobParams.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ControlAssignments implements FieldEnum {
@@ -430,7 +430,7 @@ public class Protocol {
         ControlAssignments(Fields fs,ControlAssignments ix) { f = new SubfieldsField(this,fs,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ControlAssignments.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ControlAssignment implements FieldEnum {
@@ -441,7 +441,7 @@ public class Protocol {
         ControlAssignment(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ControlAssignment.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleNames implements FieldEnum {
@@ -452,7 +452,7 @@ public class Protocol {
         ModuleNames(Fields fs,ModuleNames ix) { f = new SubfieldsField(this,fs,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleNames.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleName implements FieldEnum {
@@ -462,7 +462,7 @@ public class Protocol {
         ModuleName() { f = new StringField(this); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleName.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum MorphLabels implements FieldEnum {
@@ -474,7 +474,7 @@ public class Protocol {
         MorphLabels(Fields fs) { f = new SubfieldsField(this,fs,8); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(MorphLabels.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -487,7 +487,7 @@ public class Protocol {
         MorphLabel() { f = new StringField(this,6); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(MorphLabel.class,values());
+        public static final Fields FIELDS = new Fields(values());
 
     }
 
@@ -504,7 +504,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(CurrentNote.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum NoteData implements FieldEnum {
@@ -514,7 +514,7 @@ public class Protocol {
         NoteData(int size) { f = new SizedField(this,size); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(NoteData.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleLabels implements FieldEnum {
@@ -524,7 +524,7 @@ public class Protocol {
         ModuleLabels(Fields fs,FieldEnum e) { f = new SubfieldsField(this,fs,e); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleLabels.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ModuleLabel implements FieldEnum {
@@ -538,7 +538,7 @@ public class Protocol {
         }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ModuleLabel.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum ParamLabel implements FieldEnum {
@@ -550,14 +550,14 @@ public class Protocol {
         ParamLabel() { f = new StringField(this,6); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(ParamLabel.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum TextPad implements FieldEnum {
         Text;
         private final Field f = new StringField(this,StringField.NO_TERMINATION);
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(TextPad.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum SynthSettings implements FieldEnum {
@@ -600,7 +600,7 @@ public class Protocol {
         SynthSettings() { f = new StringField(this); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(SynthSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -612,7 +612,7 @@ public class Protocol {
         EntryData() { f = new StringField(this,15,true); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(EntryData.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -621,7 +621,7 @@ public class Protocol {
         EntryName() { f = new StringField(this); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(EntryName.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum PerformanceSettings implements FieldEnum {
@@ -638,7 +638,7 @@ public class Protocol {
         PerformanceSettings(Fields fields) { f = new SubfieldsField(this,fields,4); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(PerformanceSettings.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum PerfSlot implements FieldEnum {
@@ -655,7 +655,7 @@ public class Protocol {
         PerfSlot() { f = new StringField(this,15,true); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(PerfSlot.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum PatchLoadData implements FieldEnum {
@@ -680,7 +680,7 @@ public class Protocol {
         private final Field f;
         PatchLoadData(int sz) { f = new SizedField(this,sz); }
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(PatchLoadData.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 
@@ -693,7 +693,7 @@ public class Protocol {
         private final Field f;
         SelectedParam() { f = new SizedField(this,8); }
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(SelectedParam.class,values());
+        public static final Fields FIELDS = new Fields(values());
     }
 
 }
