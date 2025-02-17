@@ -32,7 +32,7 @@ public class Main {
             }
         }
 
-        Util.configureLogging(Level.INFO);
+        Util.configureLogging(Level.WARNING);
         log = Util.getLogger(Main.class);
 
         UsbService usb = new UsbService();
@@ -52,7 +52,7 @@ public class Main {
         usb.startListener();
         usb.start();
 
-        log.fine(() -> "Awaiting initialization ...");
+        log.info(() -> "Awaiting initialization ...");
         boolean initSuccess = deviceInitialized.await(2000,TimeUnit.MILLISECONDS);
         repl.start(initSuccess);
 

@@ -51,12 +51,9 @@ public class Util {
         }
         final String fll = ll;
         try {
-            LogManager.getLogManager().updateConfiguration(
-                    (key) -> (oldVal, newVal) -> {
-                        //System.out.println("key: " + key);
-                        return key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
-                                ? fll : newVal; }
-            );
+            LogManager.getLogManager().updateConfiguration(key -> (oldVal, newVal) ->
+                    key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
+                            ? fll : newVal);
         } catch (IOException ignore) {}
     }
 

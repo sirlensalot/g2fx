@@ -128,7 +128,7 @@ public class Device implements Dispatcher {
     }
 
     private boolean dispatchSuccess(Supplier<String> msg) {
-        log.fine(msg);
+        log.info(msg);
         return true;
     }
 
@@ -190,7 +190,7 @@ public class Device implements Dispatcher {
             case T_PATCH_DESCRIPTION -> {
                 buf.position(buf.position()- 0x01);
                 patch.readPatchDescription(buf);
-                log.fine(() -> "patch description");
+                log.info(() -> "patch description");
                 yield true;
             }
             case T_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName);
@@ -390,7 +390,7 @@ public class Device implements Dispatcher {
         while (!entriesMsg.done() && !entriesMsg.banks().isEmpty()) {
             EntryBank lastBank = entriesMsg.banks().getLast();
             int lastEntry = lastBank.entry() + lastBank.entries().size();
-            log.fine(() -> "sending entries request: " + type + ":" + lastBank.bank() + "," + lastEntry);
+            log.info(() -> "sending entries request: " + type + ":" + lastBank.bank() + "," + lastEntry);
             entriesMsg = null;
             usb.sendSystemRequest("entries request"
                     , 0x14 // Q_LIST_NAMES
@@ -401,7 +401,7 @@ public class Device implements Dispatcher {
             if (entriesMsg == null) {
                 throw new IllegalStateException("Did not receive entries message!");
             }
-            log.fine(() -> "received entry data: " + entriesMsg);
+            log.info(() -> "received entry data: " + entriesMsg);
             entriesMsg.banks().forEach(bank -> {
                 Map<Integer, Entry> bm = entries.get(type).computeIfAbsent(bank.bank(),b -> new TreeMap<>());
                 int i = bank.entry();
@@ -410,7 +410,7 @@ public class Device implements Dispatcher {
                 }
             });
         }
-        log.fine(() -> "readEntries: received " + entries.get(type).size() + " banks");
+        log.info(() -> "readEntries: received " + entries.get(type).size() + " banks");
 
     }
 

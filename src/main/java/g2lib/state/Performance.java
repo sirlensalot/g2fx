@@ -82,7 +82,7 @@ public class Performance {
         perfName = Protocol.EntryName.FIELDS.read(bb);
         perfSettings = new PerformanceSettings(
                 readSectionSlice(bb.slice(),Sections.SPerformanceSettings));
-        log.fine(() -> "readPerformanceNameAndSettings");
+        log.info(() -> "readPerformanceNameAndSettings");
         return true;
     }
 
@@ -110,7 +110,7 @@ public class Performance {
 
     public boolean readSectionSlice(Sections s, BitBuffer bb) {
         updateSection(s,s.fields.read(bb));
-        log.fine(() -> "readSectionSlice: " + s);
+        log.info(() -> "readSectionSlice: " + s);
         return true;
     }
 
@@ -167,6 +167,6 @@ public class Performance {
 
     public void setVersion(int version) {
         this.version = version;
-        log.fine(() -> "setVersion: " + version);
+        log.info(() -> "setVersion: " + version);
     }
 }

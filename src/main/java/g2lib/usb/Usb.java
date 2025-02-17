@@ -48,15 +48,15 @@ public class Usb {
         buffer.put(data);
         int crc = CRC16.crc16(data, 0, data.length);
         //dumpBytes(data);
-        log.fine(String.format("send crc: %x %x %x", crc, crc / 256, crc % 256));
+        log.info(String.format("send crc: %x %x %x", crc, crc / 256, crc % 256));
         buffer.put((byte) (crc / 256));
         buffer.put((byte) (crc % 256));
-        log.fine(String.format("--------------- Send Bulk: %s ----------------", msg) + Util.dumpBufferString(buffer));
+        log.info(String.format("--------------- Send Bulk: %s ----------------", msg) + Util.dumpBufferString(buffer));
         IntBuffer transferred = BufferUtils.allocateIntBuffer();
         int r = LibUsb.bulkTransfer(device.handle(), (byte) 0x03, buffer, transferred, 10000);
         if (r >= 0) {
             //transferred.rewind();
-            log.fine("Sent: " + transferred.get(0));
+            log.info("Sent: " + transferred.get(0));
         }
 
         if (dispatchFuture != null) {
@@ -73,7 +73,7 @@ public class Usb {
             r = readInterrupt(2000);
             if (r.success()) { return r; }
         }
-        log.fine("Interrupt retries exhausted");
+        log.info("Interrupt retries exhausted");
         return r;
     }
     public UsbMessage readInterrupt(int timeout) {
@@ -82,7 +82,7 @@ public class Usb {
         int r = LibUsb.interruptTransfer(device.handle(), (byte) 0x81, buffer, transferred, timeout);
         if (r < 0) {
             if (r != -7) { //timeout
-                log.fine(String.format("--------------- Read Interrupt failure: %s ----------------",
+                log.info(String.format("--------------- Read Interrupt failure: %s ----------------",
                         ERRORS.get(r)));
             }
             return new UsbMessage(r,false,-1,null);
@@ -95,14 +95,14 @@ public class Usb {
             if (embedded) {
                 int dil = (buffer.get(0) & 0xf0) >> 4;
                 final int fcrc = crc = CRC16.crc16(buffer, 1, dil - 2);
-                log.fine(() -> String.format("--------------- Read Interrupt embedded, crc: %x %x",
+                log.info(() -> String.format("--------------- Read Interrupt embedded, crc: %x %x",
                         fcrc, buffer.position(dil - 1).getShort()) +
                         Util.dumpBufferString(buffer));
 
             }
             int size = buffer.position(1).getShort();
             if (extended) {
-                log.fine(() -> String.format("--------------- Read Interrupt extended, size: %x", size) +
+                log.info(() -> String.format("--------------- Read Interrupt extended, size: %x", size) +
                         Util.dumpBufferString(buffer));
             }
             return new UsbMessage(size,extended,crc,buffer);
@@ -125,7 +125,7 @@ public class Usb {
         IntBuffer transferred = BufferUtils.allocateIntBuffer();
         int r = LibUsb.bulkTransfer(device.handle(), (byte) 0x82, buffer, transferred, 5000);
         if (r < 0) {
-            log.fine("--------------- Read Bulk failure: " + ERRORS.get(r) + " ---------------");
+            log.info("--------------- Read Bulk failure: " + ERRORS.get(r) + " ---------------");
             return new UsbMessage(r,true,-1,null);
         } else {
             int tfrd = transferred.get();
@@ -134,7 +134,7 @@ public class Usb {
                 int len = buffer.limit();
                 //dumpBytes(recd);
                 int ecrc = CRC16.crc16(buffer, 0, len - 2);
-                log.fine(() -> String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, ecrc, buffer.position(len - 2).getShort()) +
+                log.info(() -> String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, ecrc, buffer.position(len - 2).getShort()) +
                     Util.dumpBufferString(buffer));
                 return new UsbMessage(size,true,ecrc,buffer);
             } else {
@@ -197,11 +197,11 @@ public class Usb {
 
 
 
-        log.fine("Releasing handle");
+        log.info("Releasing handle");
         UsbService.retcode(LibUsb.releaseInterface(device.handle(),
                 UsbService.IFACE), "Unable to release interface");
 
-        log.fine("Closing handle");
+        log.info("Closing handle");
         LibUsb.close(device.handle());
 
     }

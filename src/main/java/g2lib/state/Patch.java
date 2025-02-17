@@ -118,7 +118,7 @@ public class Patch {
 
     public void setVersion(int version) {
         this.version = version;
-        log.fine(() -> "setVersion: " + version);
+        log.info(() -> "setVersion: " + version);
     }
 
     public static <T> T withSliceAhead(ByteBuffer buf, int length, Function<ByteBuffer,T> f) {
@@ -301,7 +301,7 @@ public class Patch {
 
     private void updateSection(Sections s, Section section) {
         sections.put(s, section);
-        log.fine("updateSection: " + s);
+        log.info("updateSection: " + s);
         switch (s) {
             case SPatchDescription ->
                 this.patchSettings = new PatchSettings(section.values);
@@ -356,12 +356,12 @@ public class Patch {
         leds.clear();
         voiceArea.addVisuals(Visual.VisualType.Led,leds);
         fxArea.addVisuals(Visual.VisualType.Led,leds);
-        log.fine(() -> "leds: " + leds);
+        log.info(() -> "leds: " + leds);
 
         metersAndGroups.clear();
         voiceArea.addVisuals(null,metersAndGroups);
         fxArea.addVisuals(null,metersAndGroups);
-        log.fine(() -> "metersAndGroups: " + metersAndGroups);
+        log.info(() -> "metersAndGroups: " + metersAndGroups);
     }
 
     public boolean readVolumeData(ByteBuffer buf) {
@@ -373,7 +373,7 @@ public class Patch {
                 updated.add(v);
             }
         });
-        log.fine(() -> "readVolumeData: " + updated);
+        log.info(() -> "readVolumeData: " + updated);
         return true;
     }
 
@@ -386,13 +386,13 @@ public class Patch {
             int bi = Math.floorDiv(i.get(),4);
             int bm = Math.floorMod(i.get(),4) * 2;
             int b = (buf2.get(bi) & (0x03 << bm)) >>> bm;
-            //log.fine(String.format("%s %s %s %s %s",i,bi,bm,b,Integer.toBinaryString(buf2.get(bi))));
+            //log.info(String.format("%s %s %s %s %s",i,bi,bm,b,Integer.toBinaryString(buf2.get(bi))));
             if (v.update(b)) {
                 updated.add(v);
             }
             i.getAndIncrement();
         });
-        log.fine(() -> "readLedData: " + updated);
+        log.info(() -> "readLedData: " + updated);
         return true;
     }
 
@@ -405,7 +405,7 @@ public class Patch {
 
 
     public void setAssignedVoices(int i) {
-        log.fine(() -> "setAssignedVoices: " + i);
+        log.info(() -> "setAssignedVoices: " + i);
         this.assignedVoices = i;
     }
 

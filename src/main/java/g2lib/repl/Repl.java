@@ -195,6 +195,8 @@ public class Repl implements Runnable {
                 devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Perf,bank);
             } else if ("patch".equals(type)) {
                 devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Patch,bank);
+            } else {
+                throw new InvalidCommandException(desc,"list: invalid type: " + type);
             }
         });
 
@@ -216,7 +218,7 @@ public class Repl implements Runnable {
 
     public void start(boolean initialized) throws Exception {
         if (!replEnabled()) {
-            log.fine("Repl disabled");
+            log.info("Repl disabled");
             return;
         }
 
@@ -256,7 +258,7 @@ public class Repl implements Runnable {
     private void updatePath() {
         Path pp = devices.invoke(devices::getCurrentPath);
         if (this.path == null || this.path.device() == null || this.path.perf() == null) {
-            log.fine("overwriting path");
+            log.info("overwriting path");
             this.path = pp;
         }
     }
