@@ -5,6 +5,7 @@ import g2lib.state.Devices;
 import g2lib.usb.UsbService;
 import g2lib.util.Util;
 
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -12,11 +13,24 @@ import java.util.logging.Logger;
 
 public class Main {
 
-    public static final String PROP_REPL = "repl";
-
     public static Logger log;
 
     public static void main(String[] args) throws Exception {
+
+        boolean replEnabled = true;
+        File scriptFile = null;
+        String usage = "ARGS: (--no-repl|SCRIPT_FILE)";
+        if (args.length > 0) {
+            String a1 = args[0];
+            if ("--no-repl".equals(a1)) {
+                replEnabled = false;
+            } else {
+                scriptFile = new File(a1);
+                if (!scriptFile.isFile()) {
+                    throw new IllegalArgumentException("Invalid script file!\n" + usage);
+                }
+            }
+        }
 
         Util.configureLogging(Level.INFO);
         log = Util.getLogger(Main.class);
@@ -27,36 +41,22 @@ public class Main {
 
         final CountDownLatch deviceInitialized = new CountDownLatch(1);
 
-        Repl repl = new Repl(devices);
-        repl.start();
+        Repl repl = new Repl(devices,replEnabled,scriptFile);
 
-        long is = System.currentTimeMillis();
-
-        if (!repl.replEnabled()) {
-            devices.addListener(d -> {
-                // on devices thread, so can directly fire off stuff
-                //d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Patch);
-                //d.dumpEntries(new PrintWriter(System.out), Device.EntryType.Perf);
-                deviceInitialized.countDown();
-            });
-        }
+        devices.addListener(d -> {
+            deviceInitialized.countDown();
+        });
 
         usb.addListener(devices);
 
         usb.startListener();
         usb.start();
 
-        repl.join();
+        log.fine(() -> "Awaiting initialization ...");
+        boolean initSuccess = deviceInitialized.await(2000,TimeUnit.MILLISECONDS);
+        repl.start(initSuccess);
 
-        if (!repl.replEnabled()) {
-            log.info("awaiting init");
-            boolean success = deviceInitialized.await(15, TimeUnit.SECONDS);
-            log.info("init success: " + success);
-            log.info("init took " + (System.currentTimeMillis() - is) + "ms");
-            if (success) {
-                Thread.sleep(5000);
-                }
-        }
+        repl.join();
 
         repl.stop();
 

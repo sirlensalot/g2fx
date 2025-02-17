@@ -1,6 +1,5 @@
 package g2lib.repl;
 
-import g2lib.Main;
 import g2lib.state.AreaId;
 import g2lib.state.Device;
 import g2lib.state.Devices;
@@ -17,7 +16,9 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.widget.TailTipWidgets;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.function.BiFunction;
@@ -34,6 +35,8 @@ public class Repl implements Runnable {
     private final Devices devices;
     private final LineReader reader;
     private final Thread thread;
+    private final boolean enabled;
+    private final File scriptFile;
     private volatile boolean running = true;
 
     public record Command(String cmd, CommandMethods methods, CmdDesc desc) { }
@@ -69,8 +72,10 @@ public class Repl implements Runnable {
         return new ArgDesc(argName, Arrays.stream(lines).map(AttributedString::new).toList());
     }
 
-    public Repl(Devices devices) throws Exception {
+    public Repl(Devices devices, boolean replEnabled, File scriptFile) throws Exception {
         this.devices = devices;
+        this.enabled = replEnabled;
+        this.scriptFile = scriptFile;
 
         final Completer listCompleter = new Completer() {
             private final Completer arg1 = new StringsCompleter("perf","patch");
@@ -95,6 +100,8 @@ public class Repl implements Runnable {
                         cmdDesc("Switch to voice area")),
                 mkCmd("fx",(c,i) -> area(c,i,AreaId.Fx),NullCompleter.INSTANCE,
                         cmdDesc("Switch to FX area")),
+                mkCmd("wait",Repl.this::doWait,NullCompleter.INSTANCE,
+                        cmdDesc("Pause process",argDesc("time","time in millis"))),
                 mkCmd("slot",Repl.this::slot,new StringsCompleter(
                         Arrays.stream(Slot.values()).map(s -> s.toString().toLowerCase()).toList()),
                         cmdDesc("Set current slot",argDesc("slot","a-d")))
@@ -105,8 +112,11 @@ public class Repl implements Runnable {
             cmds.forEach(c -> methods.put(c.cmd(),c.methods()));
             registerCommands(methods);
         }};
+        boolean interactive = replEnabled && scriptFile == null;
         reader = LineReaderBuilder.builder()
-                .terminal(TerminalBuilder.terminal())
+                .terminal(interactive ?
+                        TerminalBuilder.terminal() :
+                        TerminalBuilder.builder().dumb(true).build())
                 .parser(new DefaultParser())
                 .completer(CommandRegistry.compileCompleters(commandRegistry))
                 .variable(LineReader.HISTORY_FILE, ".g2lib-history")
@@ -115,14 +125,16 @@ public class Repl implements Runnable {
         Map<String, CmdDesc> descs = new HashMap<>();
         cmds.forEach(c -> descs.put(c.cmd(),c.desc()));
         new TailTipWidgets(reader, descs).enable();
-        reader.getTerminal().writer().println("""
-                Welcome to the g2lib interactive repl!
-                     ___ _                \s
-                 ___|_  | |_ ___ ___ _____\s
-                | . |  _|  _| -_|  _|     |
-                |_  |___|_| |___|_| |_|_|_|
-                |___|                     \s
-                """);
+        if (interactive) {
+            reader.getTerminal().writer().println("""
+                    Welcome to the g2lib interactive repl!
+                         ___ _                \s
+                     ___|_  | |_ ___ ___ _____\s
+                    | . |  _|  _| -_|  _|     |
+                    |_  |___|_| |___|_| |_|_|_|
+                    |___|                     \s
+                    """);
+        }
 
     }
 
@@ -132,6 +144,13 @@ public class Repl implements Runnable {
         SlotPatch sp = devices.invoke(() -> devices.getSlotPatch(s));
         path = new Path(path.device(), path.perf(),
                 sp, path.variation(), path.area(), path.module(), path.param());
+        return 1;
+    }
+
+    private Object doWait(CmdDesc c, CommandInput i) {
+        try {
+            Thread.sleep(parseInt(c,"wait",getArgs(c,i).getFirst()));
+        } catch (InterruptedException ignore) { }
         return 1;
     }
 
@@ -166,24 +185,28 @@ public class Repl implements Runnable {
     private Object list(CmdDesc desc, CommandInput input) {
         List<String> words = getArgs(desc,input);
         String type = words.removeFirst();
-        try {
-            int bank = Integer.parseUnsignedInt(words.removeFirst());
-            devices.execute(() -> {
-                if (!devices.online()) {
-                    getWriter().println("Not online!");
-                    return;
-                }
-                if ("perf".equals(type)) {
-                    devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Perf);
-                } else if ("patch".equals(type)) {
-                    devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Patch);
-                }
-            });
-        } catch (Exception e) {
-            throw new InvalidCommandException(desc,"Invalid entry index");
-        }
+        int bank = parseInt(desc,"index",words.removeFirst()) - 1;
+        devices.execute(() -> {
+            if (!devices.online()) {
+                getWriter().println("Not online!");
+                return;
+            }
+            if ("perf".equals(type)) {
+                devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Perf,bank);
+            } else if ("patch".equals(type)) {
+                devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Patch,bank);
+            }
+        });
 
         return "Success";
+    }
+
+    public int parseInt(CmdDesc desc, String msg, String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (Exception ignore) {
+            throw new InvalidCommandException(desc,msg + ": expected integer: " + s);
+        }
     }
 
     public PrintWriter getWriter() {
@@ -191,16 +214,35 @@ public class Repl implements Runnable {
     }
 
 
-    public void start() {
+    public void start(boolean initialized) throws Exception {
         if (!replEnabled()) {
             log.fine("Repl disabled");
             return;
         }
-        thread.start();
+
+        if (!initialized) {
+            getWriter().println("Device unavailable");
+        }
+
+        if (scriptFile == null) {
+            thread.start();
+        } else {
+            runScript();
+        }
+    }
+
+    private void runScript() throws Exception {
+        try (BufferedReader fr = new BufferedReader(new FileReader(scriptFile))) {
+            String line;
+            while ((line = fr.readLine()) != null) {
+                ParsedLine pl = reader.getParser().parse(line, 0);
+                handleInput(new ArrayList<>(pl.words()));
+            }
+        }
     }
 
     public boolean replEnabled() {
-        return System.getProperty(Main.PROP_REPL) != null;
+        return enabled;
     }
 
     public void stop() {
@@ -250,31 +292,37 @@ public class Repl implements Runnable {
                 continue;
             }
             List<String> ws = new ArrayList<>(reader.getParsedLine().words());
-            if (ws.isEmpty()) continue;
-            String cmd = ws.removeFirst();
-            if (!commandRegistry.hasCommand(cmd)) {
-                reader.getTerminal().writer().println("Invalid command: " + cmd);
-                continue;
+            if (!handleInput(ws)) {
+                return;
             }
-            try {
-                Object result = commandRegistry.invoke(
-                        new CommandRegistry.CommandSession(reader.getTerminal()),
-                        cmd,
-                        ws.toArray());
-                if (result == QUIT_SENTINEL) {
-                    reader.getTerminal().writer().println("Exiting");
-                    return;
-                }
-            } catch (InvalidCommandException e) {
-                reader.getTerminal().writer().format("Invalid command: %s\nUsage: %s\n",
-                        e.getMessage(),
-                        usage(e.getDesc(),cmd)
-                        );
-            } catch (Exception e) {
-                log.log(Level.SEVERE,"failure",e);
-            }
-
         }
+    }
+
+    private boolean handleInput(List<String> ws) {
+        if (ws.isEmpty()) return true;
+        String cmd = ws.removeFirst();
+        if (!commandRegistry.hasCommand(cmd)) {
+            reader.getTerminal().writer().println("Invalid command: " + cmd);
+            return true;
+        }
+        try {
+            Object result = commandRegistry.invoke(
+                    new CommandRegistry.CommandSession(reader.getTerminal()),
+                    cmd,
+                    ws.toArray());
+            if (result == QUIT_SENTINEL) {
+                reader.getTerminal().writer().println("Exiting");
+                return false;
+            }
+        } catch (InvalidCommandException e) {
+            reader.getTerminal().writer().format("Invalid command: %s\nUsage: %s\n",
+                    e.getMessage(),
+                    usage(e.getDesc(),cmd)
+            );
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"failure",e);
+        }
+        return true;
     }
 
     public static String usage(CmdDesc desc,String cmd) {

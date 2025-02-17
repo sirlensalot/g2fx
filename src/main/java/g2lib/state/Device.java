@@ -82,12 +82,12 @@ public class Device implements Dispatcher {
 
     public Repl.Path loadPerfFile(String filePath) throws Exception {
         perf = Performance.readFromFile(filePath);
+        String name = new File(filePath).getName();
+        String pn = name.substring(0, name.length() - 5);
+        perf.setFileName(pn);
         if (online()) {
             sendPerf();
         }
-        String name = new File(filePath).getName();
-        String pn = name.substring(0, name.length() - T_ASSIGNED_VOICES);
-        perf.setFileName(pn);
         return getPath();
     }
 
@@ -104,11 +104,13 @@ public class Device implements Dispatcher {
     }
 
 
-    public void dumpEntries(PrintWriter writer, EntryType type) {
+    public void dumpEntries(PrintWriter writer, EntryType type, int bank) {
         entries.get(type).forEach((bi,b) -> {
-            writer.format("%s bank %s:\n",type,bi+1);
-            b.forEach((ei,e) ->
-                    writer.format("  %02d: %s [%s]\n", ei+1, e.name(), e.category()));
+            if (bank == -1 || bi == bank) {
+                writer.format("%s bank %s:\n", type, bi + 1);
+                b.forEach((ei, e) ->
+                        writer.format("  %02d: %s [%s]\n", ei + 1, e.name(), e.category()));
+            }
         });
         writer.flush();
     }
