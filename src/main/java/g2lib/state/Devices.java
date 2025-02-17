@@ -30,8 +30,17 @@ public class Devices implements UsbService.UsbConnectionListener {
     private final Map<Integer, Device> devices = new HashMap<>();
     private Device current;
 
+    private UsbService usbService;
+
     public Devices() {
         this.executorService = Executors.newSingleThreadExecutor();
+        usbService = new UsbService();
+        usbService.addListener(this);
+    }
+
+    public void start() {
+        usbService.startListener();
+        usbService.start();
     }
 
     public void addListener(DeviceListener listener) {
@@ -95,6 +104,7 @@ public class Devices implements UsbService.UsbConnectionListener {
     }
 
     public void shutdown() throws Exception {
+
         //blocking shutdown of devices
         CountDownLatch latch = new CountDownLatch(1);
         executorService.execute(() -> {
@@ -102,6 +112,14 @@ public class Devices implements UsbService.UsbConnectionListener {
             latch.countDown();
         });
         latch.await();
+
+        executorService.shutdown();
+
+        usbService.stop();
+        usbService.stopListener();
+        usbService.shutdown();
+
+
     }
 
 

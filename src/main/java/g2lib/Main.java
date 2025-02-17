@@ -2,7 +2,6 @@ package g2lib;
 
 import g2lib.repl.Repl;
 import g2lib.state.Devices;
-import g2lib.usb.UsbService;
 import g2lib.util.Util;
 
 import java.io.File;
@@ -35,8 +34,6 @@ public class Main {
         Util.configureLogging(Level.WARNING);
         log = Util.getLogger(Main.class);
 
-        UsbService usb = new UsbService();
-
         Devices devices = new Devices();
 
         final CountDownLatch deviceInitialized = new CountDownLatch(1);
@@ -47,10 +44,7 @@ public class Main {
             deviceInitialized.countDown();
         });
 
-        usb.addListener(devices);
-
-        usb.startListener();
-        usb.start();
+        devices.start();
 
         log.info(() -> "Awaiting initialization ...");
         boolean initSuccess = deviceInitialized.await(2000,TimeUnit.MILLISECONDS);
@@ -60,14 +54,9 @@ public class Main {
 
         repl.stop();
 
-        usb.stop();
-        usb.stopListener();
-
         devices.shutdown();
-        usb.shutdown();
 
-        System.out.println("Exit");
-        System.exit(0);
+        log.info("Exit");
     }
 
 }
