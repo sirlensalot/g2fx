@@ -140,8 +140,9 @@ public class Patch {
         }
         updateVisualIndex();
     }
-    public static Patch readFromMessage(Slot slot, ByteBuffer buf) {
+    public static Patch readFromMessage(int version, Slot slot, ByteBuffer buf) {
         Patch patch = new Patch(slot);
+        patch.setVersion(version);
         patch.readMessageHeader(buf);
         patch.readPatchDescription(buf);
         return patch;
@@ -172,7 +173,7 @@ public class Patch {
         }
         int version = buf.get();
         if (this.version != version) {
-            throw new IllegalArgumentException(String.format("Slot mismatch: %s, %d",this.slot,version));
+            throw new IllegalArgumentException(String.format("Slot version mismatch: %s, %d",this.version,version));
         }
     }
 

@@ -603,14 +603,21 @@ class ProtocolTest {
 
         ByteBuffer buf = Util.readFile(PATCHMSG_0);
 
-        Patch.readFromMessage(Slot.A,buf);
+        Patch.readFromMessage(0, Slot.A,buf);
 
+    }
+
+
+    @Test
+    void testPatchFromMessage302a() throws Exception {
+        ByteBuffer buf = Util.readFile("data/PatchDesc_302a.msg");
+        Patch p = Patch.readFromMessage(4, Slot.A, buf);
     }
 
     @Test
     void patchFromMessage() throws Exception {
         ByteBuffer buf = Util.readFile(PATCHMSG_1);
-        Patch p = Patch.readFromMessage(Slot.B,buf);
+        Patch p = Patch.readFromMessage(0, Slot.B,buf);
 //        assertEquals(9,p.slot);
         assertEquals(0,p.version);
 
@@ -692,7 +699,7 @@ class ProtocolTest {
     @Test
     void roundtripMsgFile() throws Exception {
         ByteBuffer msgfile = Util.readFile(PATCHMSG_1);
-        Patch p = Patch.readFromMessage(Slot.B,msgfile);
+        Patch p = Patch.readFromMessage(0, Slot.B,msgfile);
         p.readSectionMessage(Util.readFile(CURRENT_NOTE_MSG), Sections.SCurrentNote);
         p.readSectionMessage(Util.readFile(TEXTPAD_MSG), Sections.STextPad);
         ByteBuffer msgbuf = p.writeMessage();

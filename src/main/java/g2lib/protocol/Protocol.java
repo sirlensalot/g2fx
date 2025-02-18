@@ -1,5 +1,7 @@
 package g2lib.protocol;
 
+import g2lib.util.BitBuffer;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -180,10 +182,20 @@ public class Protocol {
         Reserved2(8),
         MorphCount(8),
         VarMorphParams(VarMorph.MorphCount),
-        Reserved3(4);
+        Reserved3();
         VarMorph(int size) { f = new SizedField(this,size); }
         VarMorph(VarMorph ix) {
             f = new SubfieldsField(this,VarMorphParam.FIELDS,ix);
+        }
+        VarMorph() {
+            //Reserved3 needs to read UP TO 4 bits to get byte-aligned
+            f = new SizedField(this,4) {
+                @Override
+                protected int readValue(BitBuffer bb) {
+                    int sz = Math.min(size, bb.getBitsRemaining());
+                    return bb.get(sz);
+                }
+            };
         }
         private final Field f;
         public Field field() { return f; }

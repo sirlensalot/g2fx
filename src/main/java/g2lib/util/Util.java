@@ -188,12 +188,14 @@ public class Util {
     }
 
     public static void writeBuffer(ByteBuffer data, String name) {
+        int position = data.position();
         try (FileOutputStream fos = new FileOutputStream("data/" + name)) {
             data.rewind();
             byte[] bs = new byte[data.limit()];
             data.get(bs);
             fos.write(bs);
             fos.flush();
+            data.position(position);
         } catch (Exception e) {
             throw new RuntimeException("error writing patch desc", e);
         }

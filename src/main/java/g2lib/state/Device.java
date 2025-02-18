@@ -157,9 +157,18 @@ public class Device implements Dispatcher {
         } else if (h >= 8 && h < 12) {
             return dispatchSlotCmd(Slot.fromIndex(h - 8),buf);
         } else if (h >=0 && h < 4) {
-            return dispatchSlotCmd(Slot.fromIndex(h),buf);
+            return dispatchSlotCmd(Slot.fromIndex(h), buf);
+        } else if (h == 4) {
+            int pv = Util.b2i(buf.get());
+            if (pv == perf.getVersion()) {
+                return dispatchPerfCmd(buf);
+            } else {
+                return dispatchFailure("dispatchCmd: unrecognized perf version: " + pv);
+            }
         } else {
             return dispatchFailure("dispatchCmd: unrecognized header: %02x",h);
+            //2025-02-18 08:58:24.670 INFO g2lib.usb.Usb: --------------- Read Interrupt embedded, crc: 4246 4246
+            //a2 01 04 00 05 01 06 01 01 42 46 00 00 00 00 00   . . . . . . . . . B F . . . . .
         }
     }
 
@@ -191,7 +200,8 @@ public class Device implements Dispatcher {
         int t = Util.b2i(buf.get());
         return switch (t) {
             case T_PATCH_DESCRIPTION -> {
-                buf.position(buf.position()- 0x01);
+                Util.writeBuffer(buf,"data/PatchDesc.msg");
+                buf.position(buf.position()-1);
                 patch.readPatchDescription(buf);
                 log.info(() -> "patch description");
                 yield true;
@@ -228,18 +238,33 @@ public class Device implements Dispatcher {
      * Handle 01 0c 40 36 ...
      */
     private boolean dispatchVersion(ByteBuffer buf) {
-        Util.expectWarn(buf,0x36,"usb","Version lsb");
-        int id = Util.b2i(buf.get());
-        int version = Util.b2i(buf.get());
-        if (id == 4) {
-            perf.setVersion(version);
-            return true;
-        } else if (id >= 0 && id <4) { // does this also support 8-11?
-            perf.getSlot(Slot.fromIndex(id)).setVersion(version);
-            return true;
-        } else {
-            return dispatchFailure("dispatchVersion: unrecognized id " + id);
-        }
+        int sc = Util.b2i(buf.get());
+        return switch (sc) {
+            case 0x36 -> {
+                int id = Util.b2i(buf.get());
+                int version = Util.b2i(buf.get());
+                if (id == 4) {
+                    perf.setVersion(version);
+                    yield true;
+                } else if (id >= 0 && id <4) { // does this also support 8-11?
+                    perf.getSlot(Slot.fromIndex(id)).setVersion(version);
+                    yield true;
+                } else {
+                    yield dispatchFailure("dispatchVersion: unrecognized id " + id);
+                }
+            }
+            case 0x1f -> {
+                perf.setVersion(buf.get());
+                while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
+                    perf.getSlot(Slot.fromIndex(buf.get())).setVersion(Util.b2i(buf.get()));
+                }
+                //01 0c 40 1f 00 36 00 01 36 01 01 36 02 01 36 03   . . @ . . 6 . . 6 . . 6 . . 6 .
+                //01 0d 01 00 00 00 00 ea cf                        . . . . . . . . .
+                yield true;
+            }
+            default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + sc);
+        };
+
     }
 
 
@@ -478,6 +503,7 @@ public class Device implements Dispatcher {
                 bank,
                 entry
                 );
+        //TODO initialize() if perf, readSlot() if slot
     }
 
 

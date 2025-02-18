@@ -21,7 +21,11 @@ public class SizedField extends AbstractField implements Field {
 
     @Override
     public void read(BitBuffer bb, List<FieldValues> values) {
-        values.getFirst().add(new IntValue(this, bb.get(size)));
+        values.getFirst().add(new IntValue(this, readValue(bb)));
+    }
+
+    protected int readValue(BitBuffer bb) {
+        return bb.get(size);
     }
 
     @Override

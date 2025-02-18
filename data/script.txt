@@ -2,5 +2,5 @@ comm start
 #list patch 1
 #list perf 1
 #slot B
-#load perf 1 1
+load perf 1 2
 wait 1000
