@@ -103,7 +103,7 @@ public class PatchArea {
         Protocol.ModuleNames.Names.subfieldsValue(fv).forEach(mn -> {
             PatchModule m = getModule(Protocol.ModuleName.ModuleIndex.intValue(mn));
             m.setModuleName(mn);
-            log.fine(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.getName());
+            log.info(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.getName());
         });
     }
 
@@ -113,7 +113,7 @@ public class PatchArea {
 
     public void setPatchLoadData(FieldValues fvs) {
         this.patchLoadData = new PatchLoadData(fvs);
-        log.fine(() -> "setPatchLoadData: mem=" + patchLoadData.getMem() + ", cyc=" + patchLoadData.getCycles());
+        log.info(() -> "setPatchLoadData: mem=" + patchLoadData.getMem() + ", cyc=" + patchLoadData.getCycles());
     }
 
     public PatchLoadData getPatchLoadData() {

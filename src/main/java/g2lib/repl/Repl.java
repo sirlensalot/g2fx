@@ -4,6 +4,7 @@ import g2lib.state.AreaId;
 import g2lib.state.Device;
 import g2lib.state.Devices;
 import g2lib.state.Slot;
+import g2lib.util.SafeLookup;
 import g2lib.util.Util;
 import org.jline.builtins.Completers;
 import org.jline.console.*;
@@ -104,7 +105,15 @@ public class Repl implements Runnable {
                         cmdDesc("Pause process",argDesc("time","time in millis"))),
                 mkCmd("slot",Repl.this::slot,new StringsCompleter(
                         Arrays.stream(Slot.values()).map(s -> s.toString().toLowerCase()).toList()),
-                        cmdDesc("Set current slot",argDesc("slot","a-d")))
+                        cmdDesc("Set current slot",argDesc("slot","a-d"))),
+                mkCmd("load",Repl.this::load,NullCompleter.INSTANCE,
+                        cmdDesc("Load entry into device",
+                                argDesc("typeOrSlot","'perf' or slot (A,B,C,D)"),
+                                argDesc("bank","bank number"),
+                                argDesc("entry","bank entry number"))),
+                mkCmd("comm",Repl.this::comm,NullCompleter.INSTANCE,
+                        cmdDesc("Start/stop device communication stream",
+                                argDesc("startStop","start or stop")))
 
         );
         commandRegistry = new JlineCommandRegistry(){{
@@ -141,7 +150,7 @@ public class Repl implements Runnable {
     private Object slot(CmdDesc desc, CommandInput input) {
         Slot s = Slot.fromAlpha(getArgs(desc,input).getFirst());
         if (path == null || path.perf() == null) { throw new InvalidCommandException(desc,"No current performance"); }
-        SlotPatch sp = devices.invoke(() -> devices.getSlotPatch(s));
+        SlotPatch sp = devices.invoke(true,() -> devices.getSlotPatch(s));
         path = new Path(path.device(), path.perf(),
                 sp, path.variation(), path.area(), path.module(), path.param());
         return 1;
@@ -154,6 +163,19 @@ public class Repl implements Runnable {
         return 1;
     }
 
+    enum Comm {
+        Start,
+        Stop;
+        public static final SafeLookup<String,Comm> LOOKUP = SafeLookup.makeLowerCaseNameLookup(values());
+    }
+
+    private Object comm(CmdDesc c, CommandInput i) {
+        Comm comm = Comm.LOOKUP.get(getArgs(c,i).getFirst().toLowerCase());
+        return devices.invoke(() -> {
+            devices.getCurrent().sendStartStopComm(comm == Comm.Start);
+            return 1;
+        });
+    }
     private Object area(CmdDesc c, CommandInput i, AreaId areaId) {
         getArgs(c,i); //validate no args
         if (path == null || path.slot() == null) { throw new InvalidCommandException(c,"No current patch"); }
@@ -178,29 +200,34 @@ public class Repl implements Runnable {
         if (!(path.endsWith("prf2") || path.endsWith("pch2"))) {
             throw new InvalidCommandException(desc,"Not a G2 file");
         }
-        this.path = devices.invoke(() -> devices.loadFile(path));
+        this.path = devices.invoke(true,() -> devices.loadFile(path));
         return 0;
     }
 
+
     private Object list(CmdDesc desc, CommandInput input) {
         List<String> words = getArgs(desc,input);
-        String type = words.removeFirst();
+        Device.EntryType type = Device.EntryType.LC_NAME_LOOKUP.get(words.removeFirst());
         int bank = parseInt(desc,"index",words.removeFirst()) - 1;
         devices.execute(() -> {
-            if (!devices.online()) {
-                getWriter().println("Not online!");
-                return;
-            }
-            if ("perf".equals(type)) {
-                devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Perf,bank);
-            } else if ("patch".equals(type)) {
-                devices.getCurrent().dumpEntries(getWriter(), Device.EntryType.Patch,bank);
-            } else {
-                throw new InvalidCommandException(desc,"list: invalid type: " + type);
-            }
+            devices.getCurrent().dumpEntries(getWriter(),type,bank);
         });
-
         return "Success";
+    }
+
+    private Object load(CmdDesc desc, CommandInput input) {
+        List<String> words = getArgs(desc,input);
+        int slotCode;
+        String typeOrSlot = words.removeFirst();
+        if (typeOrSlot.equals("perf")) {
+            slotCode = 4;
+        } else {
+            slotCode = Slot.fromAlpha(typeOrSlot.toUpperCase()).ordinal();
+        }
+        int bank = parseInt(desc,"bank",words.removeFirst()) - 1;
+        int entry = parseInt(desc,"entry",words.removeFirst()) - 1;
+        devices.execute(() -> devices.getCurrent().loadEntry(slotCode,bank,entry));
+        return 1;
     }
 
     public int parseInt(CmdDesc desc, String msg, String s) {
@@ -237,6 +264,7 @@ public class Repl implements Runnable {
         try (BufferedReader fr = new BufferedReader(new FileReader(scriptFile))) {
             String line;
             while ((line = fr.readLine()) != null) {
+                if (line.startsWith("#")) continue;
                 ParsedLine pl = reader.getParser().parse(line, 0);
                 handleInput(new ArrayList<>(pl.words()));
             }
@@ -256,7 +284,7 @@ public class Repl implements Runnable {
     }
 
     private void updatePath() {
-        Path pp = devices.invoke(devices::getCurrentPath);
+        Path pp = devices.invoke(true,devices::getCurrentPath);
         if (this.path == null || this.path.device() == null || this.path.perf() == null) {
             log.info("overwriting path");
             this.path = pp;

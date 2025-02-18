@@ -53,7 +53,10 @@ public class Device implements Dispatcher {
     public enum EntryType {
         Patch,
         Perf;
-        public static final SafeLookup<Integer,EntryType> LOOKUP = SafeLookup.makeEnumOrdLookup(values());
+        public static final SafeLookup<Integer, EntryType> LOOKUP =
+                SafeLookup.makeEnumOrdLookup(values());
+        public static final SafeLookup<String, EntryType> LC_NAME_LOOKUP =
+                SafeLookup.makeLowerCaseNameLookup(values());
     }
     public record Entry(String name,int category) { }
     public record EntryBank(int bank, int entry, List<Entry> entries) { }
@@ -296,7 +299,7 @@ public class Device implements Dispatcher {
         readEntries(EntryType.Patch);
         readEntries(EntryType.Perf);
 
-        sendStartStopComm(true);
+        //sendStartStopComm(true);
 
     }
 
@@ -349,7 +352,7 @@ public class Device implements Dispatcher {
     }
 
 
-    private void sendStartStopComm(boolean start) throws Exception {
+    public void sendStartStopComm(boolean start) throws Exception {
         usb.sendSystemRequest(start ? "Start comm" : "Stop comm"
                 ,0x7d // S_START_STOP_COM
                 , start ? 0x00 : 0x01
@@ -466,6 +469,18 @@ public class Device implements Dispatcher {
     private BitBuffer sliceAhead(ByteBuffer buf) {
         return BitBuffer.sliceAhead(buf, Util.getShort(buf));
     }
+
+    public void loadEntry(int slotCode, int bank, int entry) throws Exception {
+        log.info(String.format("loadEntry: slot=%s, bank=%s, entry=%s",slotCode,bank,entry));
+        usb.sendSystemRequest("loadEntry",
+                0x0a, //S_RETREIVE
+                slotCode,
+                bank,
+                entry
+                );
+    }
+
+
 
 
 

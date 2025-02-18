@@ -141,7 +141,7 @@ public class PatchModule {
         int old = Protocol.Data7.Datum.intValue(v);
         if (old != value) { //updates can happen with same value, ignore
             v.update(Protocol.Data7.Datum.value(value));
-            log.fine(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
+            log.info(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
                     variation, getNamedParam(param).name(), param, old, value));
         }
      }

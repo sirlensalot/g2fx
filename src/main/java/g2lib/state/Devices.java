@@ -47,7 +47,7 @@ public class Devices implements UsbService.UsbConnectionListener {
         listeners.add(listener);
     }
 
-    protected void connected(UsbService.UsbDevice ud) {
+    private void connected(UsbService.UsbDevice ud) {
         Usb usb = new Usb(ud);
         final Device d = new Device(usb);
         usb.setThreadsafeDispatcher(msg -> {
@@ -79,7 +79,7 @@ public class Devices implements UsbService.UsbConnectionListener {
         });
     }
 
-    protected void disconnected(UsbService.UsbDevice ud) {
+    private void disconnected(UsbService.UsbDevice ud) {
         Device d = devices.remove(ud.address());
         if (d != null) {
             d.shutdown();
@@ -160,8 +160,13 @@ public class Devices implements UsbService.UsbConnectionListener {
             return result;
         }
     }
-    public <V> V invoke(Callable<V> c) {
+    public <V> V invoke(Callable<V> c) { return invoke(false,c); }
+
+    public <V> V invoke(boolean offlineOk, Callable<V> c) {
         Future<FailableResult<V>> f = executorService.submit(() -> {
+            if (!offlineOk && !online()) {
+                return FailableResult.failed(new IllegalStateException("Device offline"));
+            }
             try {
                 return FailableResult.success(c.call());
             } catch (RuntimeException e) {
@@ -178,9 +183,12 @@ public class Devices implements UsbService.UsbConnectionListener {
 
     }
 
-
     public void execute(ThrowingRunnable r) {
-        invoke(() -> {
+        execute(false,r);
+    }
+
+    public void execute(boolean offlineOk, ThrowingRunnable r) {
+        invoke(offlineOk,() -> {
             r.run();
             return 1;
         });
