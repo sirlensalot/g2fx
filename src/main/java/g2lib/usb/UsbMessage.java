@@ -16,6 +16,11 @@ public record UsbMessage(int size, boolean extended, int crc, ByteBuffer buffer)
                 size, crc, Util.dumpBufferString(buffer));
     }
 
+    @Override
+    public String toString() {
+        return String.format("UsbMessage[crc=%x, extended=%s, size=%s]",crc,extended,size);
+    }
+
     public boolean head(int... values) {
         boolean test = test(0, values);
         buffer.position(values.length); // side-effect for easier parsing

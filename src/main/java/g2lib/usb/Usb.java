@@ -18,6 +18,7 @@ public class Usb {
 
     private final UsbService.UsbDevice device;
     private final UsbReadThread readThread;
+    private final boolean recordMessages;
     /**
      * Same-thread dispatcher
      */
@@ -26,6 +27,7 @@ public class Usb {
     public Usb(UsbService.UsbDevice device) {
         this.device = device;
         readThread = new UsbReadThread(this);
+        recordMessages = "true".equalsIgnoreCase(System.getProperty("g2lib.record"));
     }
 
     public void start() {
@@ -60,7 +62,13 @@ public class Usb {
         }
 
         if (dispatchFuture != null) {
-            dispatcher.dispatch(dispatchFuture.get());
+            UsbMessage fm = dispatchFuture.get();
+            try {
+                dispatcher.dispatch(fm);
+            } catch (Exception e) {
+                log.severe("Failure dispatching message: " + fm);
+                throw e;
+            }
         }
 
         return transferred.get();
@@ -105,8 +113,19 @@ public class Usb {
                 log.info(() -> String.format("--------------- Read Interrupt extended, size: %x", size) +
                         Util.dumpBufferString(buffer));
             }
-            return new UsbMessage(size,extended,crc,buffer);
+            UsbMessage m = new UsbMessage(size, extended, crc, buffer);
+            if (!m.extended()) {
+                record(m);
+            }
+            return m;
         }
+    }
+
+    private UsbMessage record(UsbMessage msg) {
+        if (recordMessages) {
+            Util.writeMsg("inbound",msg);
+        }
+        return msg;
     }
 
     public UsbMessage readBulkRetries(int size, int retries) {
@@ -136,7 +155,7 @@ public class Usb {
                 int ecrc = CRC16.crc16(buffer, 0, len - 2);
                 log.info(() -> String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, ecrc, buffer.position(len - 2).getShort()) +
                     Util.dumpBufferString(buffer));
-                return new UsbMessage(size,true,ecrc,buffer);
+                return record(new UsbMessage(size,true,ecrc,buffer));
             } else {
                 return new UsbMessage(0,true,-1,null);
             }

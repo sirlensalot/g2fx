@@ -193,7 +193,7 @@ public class Protocol {
                 @Override
                 protected int readValue(BitBuffer bb) {
                     int sz = Math.min(size, bb.getBitsRemaining());
-                    return bb.get(sz);
+                    return sz > 0 ? bb.get(sz) : 0;
                 }
             };
         }
@@ -394,7 +394,8 @@ public class Protocol {
         ModuleLabel(int size) { f = new SizedField(this,size); }
         ModuleLabel(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount fc = new SubfieldsField.FieldCount(e);
-            f = new SubfieldsField(this, fs, values -> fc.getCount(values)/7);
+            //TODO: ModLabelLen/10 will fail/under-read if ParamLen below is ever > 8 (seems to be in bits...)
+            f = new SubfieldsField(this, fs, values -> fc.getCount(values)/10);
         }
         private final Field f;
         public Field field() { return f; }

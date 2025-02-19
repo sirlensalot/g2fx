@@ -610,8 +610,14 @@ class ProtocolTest {
 
     @Test
     void testPatchFromMessage302a() throws Exception {
-        ByteBuffer buf = Util.readFile("data/PatchDesc_302a.msg");
+        ByteBuffer buf = Util.readFile("data/msg_PatchDesc_302a.msg");
         Patch p = Patch.readFromMessage(4, Slot.A, buf);
+    }
+
+    @Test
+    void testPatchFromMessage839d() throws Exception {
+        ByteBuffer buf = Util.readFile("data/msg_PatchDesc_839d.msg");
+        Patch p = Patch.readFromMessage(1, Slot.D, buf);
     }
 
     @Test

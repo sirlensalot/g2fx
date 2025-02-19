@@ -296,7 +296,8 @@ public class Patch {
                 throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc, s));
             }
         }
-        updateSection(s, new Section(s, s.fields.read(bb)));
+        updateSection(s, new Section(s,
+                s.fields.read(bb)));
         return true;
     }
 
