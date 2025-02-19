@@ -200,7 +200,6 @@ public class Device implements Dispatcher {
         int t = Util.b2i(buf.get());
         return switch (t) {
             case T_PATCH_DESCRIPTION -> {
-                Util.writeBuffer(buf,"data/PatchDesc.msg");
                 buf.position(buf.position()-1);
                 patch.readPatchDescription(buf);
                 log.info(() -> "patch description");
