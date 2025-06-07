@@ -45,3 +45,4 @@ bin/
 ### Mac OS ###
 .DS_Store
 /.g2lib-history
+.g2lib-history
