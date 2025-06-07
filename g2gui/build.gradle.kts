@@ -34,13 +34,11 @@ javafx {
 
 dependencies {
     implementation("org.controlsfx:controlsfx:11.1.2")
-    implementation("org.usb4java:usb4java:1.3.0")
-    implementation(files("libs/libusb4java-1.3.0-darwin-aarch64.jar"))
 
+    implementation(project(":g2lib"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-    implementation(project(":g2lib"))
 }
 
 tasks.test {
