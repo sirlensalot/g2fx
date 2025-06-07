@@ -66,7 +66,7 @@ public class Device implements Dispatcher {
 
     private final Usb usb;
 
-    private Performance perf;
+    private Performance perf = new Performance();
     private SynthSettings synthSettings;
 
     private final Map<EntryType,Map<Integer,Map<Integer,Entry>>> entries = Map.of(
