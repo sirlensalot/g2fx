@@ -1,0 +1,23 @@
+.knob {
+    -fx-background-color: lightgrey;
+    -fx-background-width: 50;
+}
+
+.knob-edge {
+    -fx-fill: linear-gradient(to bottom right, #FFFFFF, #AAAAAA);
+    -fx-stroke: #333333;
+    -fx-stroke-width:1.5;
+}
+
+.knob-line {
+    -fx-stroke: #333333;
+    -fx-stroke-width:1.5;
+}
+.knob-center {
+    -fx-fill: #DDDDDD;
+}
+
+.knob-thumb {
+    -fx-stroke: #333333;
+    -fx-stroke-width:1.5;
+}

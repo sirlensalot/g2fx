@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.g2fx.g2gui.controls.Knob;
 
 import java.io.IOException;
 
@@ -37,13 +38,16 @@ public class G2GuiApplication extends Application {
         Button helloButton = new Button("Hello!");
         helloButton.setOnAction(event -> onHelloButtonClick());
 
-        VBox root = new VBox(20, welcomeText, helloButton);
+        Knob knob = new Knob();
+
+        VBox root = new VBox(20, welcomeText, helloButton, knob);
         root.setAlignment(javafx.geometry.Pos.CENTER);
         root.setPadding(new Insets(20));
 
-        Scene scene = new Scene(root, 320, 240);
-        stage.setTitle("Hello!");
+        Scene scene = new Scene(root, 320, 320);
+        stage.setTitle("G2FX");
         stage.setScene(scene);
+        scene.getStylesheets().add(getClass().getResource("g2fx.css").toExternalForm());
         stage.show();
         devices.start();
     }
