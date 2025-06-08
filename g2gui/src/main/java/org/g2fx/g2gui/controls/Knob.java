@@ -1,31 +1,31 @@
 package org.g2fx.g2gui.controls;
 
-import com.sun.javafx.scene.shape.CircleHelper;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SkinBase;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.SVGPath;
 
 public class Knob extends Control {
 
-    private int value;
-    private record Drag(double start,int value) {};
-    private Drag drag;
+    public static final double SIZE = 30;
 
     public static final int MIN=0;
     public static final int MAX=63;
+    private int value;
 
-    private SVGPath thumb;
+    private record Drag(double start,int value) {};
+    private Drag drag;
+
+    private final SVGPath thumb;
 
     public Knob() {
         super();
         getStyleClass().add("knob");
-        setWidth(30);
-        setHeight(30);
+        setWidth(SIZE);
+        setHeight(SIZE);
 
         double cx=0,cy=0;
 
@@ -43,21 +43,18 @@ public class Knob extends Control {
         Line l2 = new Line(0,0,3,3);
         l2.setTranslateX(10);
         l2.setTranslateY(10);
-        l1.getStyleClass().add("knob-line");
+        l2.getStyleClass().add("knob-line");
 
         thumb = new SVGPath();
-        thumb.setContent("M 0,-24 v -1 z M 0,0 v -12 z");
+        thumb.setContent("M 0,-25 v -1 z M 0,0 v -12 z");
         thumb.getStyleClass().add("knob-thumb");
-        Line tl = new Line(0,0,0,11);
-        tl.setTranslateY(-7);
-        tl.getStyleClass().add("knob-line");
-
 
         getChildren().addAll(l1,l2,edge,center,thumb);
 
         setOnMouseDragged(this::mouseDragged);
         setOnMousePressed(this::mousePressed);
 
+        setValue(0);
     }
 
     private void mouseDragged(MouseEvent e) {
@@ -68,14 +65,19 @@ public class Knob extends Control {
         double dist = (drag.start() - e.getY()) / 2;
         int v = (int) (drag.value() + dist);
         v = Math.max(MIN,Math.min(v, MAX));
-        System.out.printf("Drag: %s %s\n",dist,v);
         setValue(v);
     }
 
     private void mousePressed(MouseEvent e) {
-        System.out.printf("Press: %s\n",e);
-        //setValue(30);
-        drag=null;
+        drag=null; //reset drag
+        double x = (SIZE/2) - e.getX();
+        double y = e.getY() - (SIZE/2);
+        double a = Math.atan2(x,y) * (180/Math.PI);
+        a = a < 0 ? (360 + a) : a;
+        a = Math.max(45,(Math.min(315,a)));
+        double pctg = (a - 45) / 270;
+        int v = (int) (pctg * MAX);
+        setValue(v);
     }
 
     public int getValue() {
@@ -89,7 +91,7 @@ public class Knob extends Control {
         this.value = value;
         double pctg = ((double) value) / ((double) MAX);
         double angle = pctg * 270 + 45;
-        System.out.format("setValue: value=%s, pctg=%s, angle=%s",value,pctg,angle);
+        //System.out.format("setValue: value=%s, pctg=%s, angle=%s",value,pctg,angle);
         thumb.setRotate(angle);
     }
 
