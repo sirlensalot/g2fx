@@ -1,4 +1,9 @@
 
+.gfont {
+    -fx-font-size: 10px;
+    -fx-line-spacing: -2px;
+}
+
 .global-bar {
     -fx-border-width: 0px 0px 1px 0px;
     -fx-border-color: #666666;
@@ -13,17 +18,43 @@
 
 .bar {
     -fx-padding: 2;
+    -fx-alignment: center-left;
 }
 
-.slot-pager {
-    -fx-page-information-visible: false;
-    -fx-arrows-visible: false;
+.slot-tabs {
+    -fx-tab-min-width: 16px;
+}
+.slot-tabs .tab-header-area {
+    -fx-padding: 0;
+}
+
+.slot-tab {
+    -fx-border-width: 4px 0px 0px 0px;
+    -fx-border-color: #444444;
+    -fx-border-style: solid;
+    -fx-background-color: #e8e8e8;
+}
+
+.slot-keyboard {
+    -fx-border-color: #FF0000;
+}
+
+.slot-enabled {
+    -fx-background-color: cyan;
+}
+
+.var-button:selected {
+    -fx-background-color: cyan;
+}
+
+.g2-toggle:selected {
+    -fx-background-color: cyan;
 }
 
 /* ========== KNOB CONTROL =========== */
 
 .knob {
-    -fx-background-color: lightgrey;
+    /* -fx-background-color: lightgrey; */
     -fx-background-width: 50;
 }
 
