@@ -1,3 +1,13 @@
+
+.global-bar {
+    -fx-padding: 4;
+    -fx-border-width: 0px,0px,2px,0px;
+    -fx-border-color: black;
+    -fx-border-style: solid;
+}
+
+/* ========== KNOB CONTROL =========== */
+
 .knob {
     -fx-background-color: lightgrey;
     -fx-background-width: 50;
