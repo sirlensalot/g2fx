@@ -5,17 +5,14 @@ import g2lib.state.Slot;
 import g2lib.state.SynthSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
+import javafx.css.Styleable;
+import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import org.g2fx.g2gui.controls.Knob;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +26,8 @@ public class G2GuiApplication extends Application {
     private Stage stage;
 
     private Devices devices;
+
+    private Node fontPane;
 
     @Override
     public void init() throws Exception {
@@ -45,16 +44,21 @@ public class G2GuiApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
-        List<VBox> slots = new ArrayList<>();
+        List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
-            slots.add(mkPatchBox(slot));
+
+            VBox pb = mkPatchBox(slot);
+            Tab t = withClass(new Tab(slot.name(), pb),"slot-tab");
+            t.setClosable(false);
+            slots.add(t);
+
         }
 
-        Pagination slotPager = withClass(new Pagination(4), "slot-pager"); // maybe a decent slot control
-        slotPager.setPageFactory(slots::get);
+        TabPane slotPager = withClass(new TabPane(slots.toArray(new Tab[]{})), "slots-pane"); // maybe a decent slot control
+        //slotPager.setPageFactory(slots::get);
 
-        HBox editorBar = withClass(new HBox(new Label("editorBar")),"editor-bar","bar");
-        HBox globalBar = withClass(new HBox(new Label("globalBar")),"global-bar","bar");
+        HBox editorBar = withClass(new HBox(new Label("editorBar")),"editor-bar","bar","gfont");
+        HBox globalBar = withClass(new HBox(new Label("globalBar")),"global-bar","bar","gfont");
         VBox topBox = withClass(
                 new VBox(globalBar,editorBar,slotPager),"top-box");
         VBox.setVgrow(slotPager, Priority.ALWAYS);
@@ -68,25 +72,28 @@ public class G2GuiApplication extends Application {
         this.stage = stage;
         devices.start();
 
+
     }
 
-    private static <T extends Node> T withClass(T node,String... classes) {
+
+    private static <T extends Styleable> T withClass(T node, String... classes) {
         node.getStyleClass().addAll(classes);
         return node;
     }
 
     private static VBox mkPatchBox(Slot slot) {
-        Pane voicePane = withClass(new Pane(new Label("voice")),"voice-pane","area-pane"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+        Pane voicePane = withClass(
+                new Pane(new Label("voice")),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =
                 withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
 
-        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane");
+        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
         ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
 
         SplitPane patchSplit =
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
         patchSplit.setOrientation(Orientation.VERTICAL);
-        HBox patchBar = withClass(new HBox(new Label("patchBar " + slot)),"patch-bar","bar");
+        HBox patchBar = withClass(new HBox(new Label("patchBar " + slot)),"patch-bar","bar","gfont");
         VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box"); // patch top bar + uis
 
         VBox.setVgrow(patchSplit,Priority.ALWAYS);
