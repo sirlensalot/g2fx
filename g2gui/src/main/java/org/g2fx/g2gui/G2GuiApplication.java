@@ -53,8 +53,8 @@ public class G2GuiApplication extends Application {
         Pagination slotPager = withClass(new Pagination(4), "slot-pager"); // maybe a decent slot control
         slotPager.setPageFactory(slots::get);
 
-        HBox editorBar = withClass(new HBox(new Label("editorBar")),"editor-bar");
-        HBox globalBar = withClass(new HBox(new Label("globalBar")),"global-bar");
+        HBox editorBar = withClass(new HBox(new Label("editorBar")),"editor-bar","bar");
+        HBox globalBar = withClass(new HBox(new Label("globalBar")),"global-bar","bar");
         VBox topBox = withClass(
                 new VBox(globalBar,editorBar,slotPager),"top-box");
         VBox.setVgrow(slotPager, Priority.ALWAYS);
@@ -76,17 +76,17 @@ public class G2GuiApplication extends Application {
     }
 
     private static VBox mkPatchBox(Slot slot) {
-        Pane voicePane = withClass(new Pane(new Label("voice")),"voice-pane","patch-pane"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+        Pane voicePane = withClass(new Pane(new Label("voice")),"voice-pane","area-pane"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =
-                withClass(new ScrollPane(voicePane),"voice-scroll","patch-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
+                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
 
-        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","patch-pane");
-        ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","patch-scroll");
+        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane");
+        ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
 
         SplitPane patchSplit =
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
         patchSplit.setOrientation(Orientation.VERTICAL);
-        HBox patchBar = withClass(new HBox(new Label("patchBar " + slot)),"patch-bar");
+        HBox patchBar = withClass(new HBox(new Label("patchBar " + slot)),"patch-bar","bar");
         VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box"); // patch top bar + uis
 
         VBox.setVgrow(patchSplit,Priority.ALWAYS);

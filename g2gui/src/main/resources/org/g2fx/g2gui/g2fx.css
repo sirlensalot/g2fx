@@ -1,9 +1,23 @@
 
 .global-bar {
-    -fx-padding: 4;
-    -fx-border-width: 0px,0px,2px,0px;
-    -fx-border-color: black;
+    -fx-border-width: 0px 0px 1px 0px;
+    -fx-border-color: #666666;
     -fx-border-style: solid;
+}
+
+.editor-bar {
+    -fx-border-width: 0px 0px 1px 0px;
+    -fx-border-color: #666666;
+    -fx-border-style: solid;
+}
+
+.bar {
+    -fx-padding: 2;
+}
+
+.slot-pager {
+    -fx-page-information-visible: false;
+    -fx-arrows-visible: false;
 }
 
 /* ========== KNOB CONTROL =========== */
