@@ -2513,22 +2513,22 @@ public enum ModuleType {
     }
 
     public enum ModPage {
-        Rnd,
         InOut,
-        Logic,
-        Osc,
-        FX,
-        Switch,
-        Mixer,
-        Env,
-        Level,
-        Filter,
-        MIDI,
-        Shaper,
-        LFO,
         Note,
+        Osc,
+        LFO,
+        Rnd,
+        Env,
+        Filter,
+        FX,
+        Delay,
+        Shaper,
+        Level,
+        Mixer,
+        Switch,
+        Logic,
         Seq,
-        Delay;
+        MIDI;
 
         public ModPageIx ix(int i) {
             return new ModPageIx(this,i);

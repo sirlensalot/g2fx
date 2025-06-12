@@ -10,7 +10,7 @@ import javafx.scene.shape.SVGPath;
 
 public class Knob extends Control {
 
-    public static final double SIZE = 30;
+    public static final double SIZE = 20;
 
     public static final int MIN=0;
     public static final int MAX=63;
@@ -29,24 +29,24 @@ public class Knob extends Control {
 
         double cx=0,cy=0;
 
-        Circle edge = new Circle(cx,cy,13);
+        Circle edge = new Circle(cx,cy,10);
         edge.getStyleClass().add("knob-edge");
 
-        Circle center = new Circle(cx,cy,10);
+        Circle center = new Circle(cx,cy,8);
         center.getStyleClass().add("knob-center");
 
-        Line l1 = new Line(0,3,3,0);
-        l1.setTranslateX(-10);
-        l1.setTranslateY(10);
+        Line l1 = new Line(0,2,2,0);
+        l1.setTranslateX(-8);
+        l1.setTranslateY(8);
         l1.getStyleClass().add("knob-line");
 
-        Line l2 = new Line(0,0,3,3);
-        l2.setTranslateX(10);
-        l2.setTranslateY(10);
+        Line l2 = new Line(0,0,2,2);
+        l2.setTranslateX(8);
+        l2.setTranslateY(8);
         l2.getStyleClass().add("knob-line");
 
         thumb = new SVGPath();
-        thumb.setContent("M 0,-25 v -1 z M 0,0 v -12 z");
+        thumb.setContent("M 0,-19 v -1 z M 0,0 v -10 z");
         thumb.getStyleClass().add("knob-thumb");
 
         getChildren().addAll(l1,l2,edge,center,thumb);

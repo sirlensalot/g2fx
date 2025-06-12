@@ -1,5 +1,6 @@
 package org.g2fx.g2gui;
 
+import g2lib.model.ModuleType;
 import g2lib.state.Devices;
 import g2lib.state.Slot;
 import g2lib.state.SynthSettings;
@@ -12,14 +13,16 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
+import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Stream;
 
 
 public class G2GuiApplication extends Application {
@@ -47,6 +50,78 @@ public class G2GuiApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
+        Scene scene = mkScene();
+
+        stage.setTitle(TITLE);
+        stage.setScene(scene);
+        scene.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource("g2fx.css")).toExternalForm());
+        stage.show();
+
+        this.stage = stage;
+        devices.start();
+
+    }
+
+    private static Scene mkScene() {
+        TabPane slotTabs = mkSlotTabs();
+
+        HBox editorBar = mkEditorBar();
+
+        HBox globalBar = mkGlobalBar();
+
+        VBox topBox = withClass(
+                new VBox(globalBar,editorBar,slotTabs),"top-box");
+        VBox.setVgrow(slotTabs, Priority.ALWAYS);
+
+        Scene scene = new Scene(topBox, 1280, 775);
+        return scene;
+    }
+
+    private static HBox mkEditorBar() {
+        Button newButton = withClass(new Button("New"),"new-patch-button","reset-patch-button");
+        Button init1Button = withClass(new Button("Init1"),"init1-patch-button","reset-patch-button");
+        Button init2Button = withClass(new Button("Init2"),"init2-patch-button","reset-patch-button");
+        VBox resetButtons = withClass(new VBox(newButton,init1Button,init2Button),"reset-patch-buttons");
+
+        ToggleGroup moduleSectionSelector = new ToggleGroup();
+
+        Map<ModuleType.ModPage,List<ModuleType>> modsByType = new TreeMap<>();
+        Stream.of(ModuleType.values()).forEach(mt -> {
+            ModuleType.ModPageIx mpi = mt.modPageIx;
+            modsByType.compute(mpi.page(),(mp,l) -> {
+                if (l == null) { l = new ArrayList<>(); }
+                l.add(mt);
+                URL icon = G2GuiApplication.class.getResource("module-icons" +
+                        File.separator + String.format("%03d.png", mt.ix));
+                System.out.println(mt.shortName + ": " + mt.ix + ":" + icon);
+                return l;
+            });
+        });
+
+        modsByType.values().forEach(l ->
+                l.sort(Comparator.comparingInt(mt -> mt.modPageIx.ix())));
+
+        List<ToggleButton> moduleSectButtons = Stream.of(ModuleType.ModPage.values()).map(n -> {
+                    ToggleButton tb = withClass(new ToggleButton(n.name()), "module-sect-toggle", "module-sect-" + n);
+                    tb.setToggleGroup(moduleSectionSelector);
+                    return tb;
+                }).toList();
+
+        List<VBox> modulePairs = new ArrayList<>();
+        for (int i = 0; i < moduleSectButtons.size()/2; i++) {
+            modulePairs.add(withClass(new VBox(moduleSectButtons.get(i*2),moduleSectButtons.get(i*2+1)),
+                    "module-sect-pair"));
+        }
+        HBox moduleSectPairsBar = withClass(new HBox(modulePairs.toArray(new VBox[] {})),"module-sect-bar");
+        HBox moduleSelectBar = withClass(new HBox(new Label("modules here")),"module-select-bar");
+        VBox moduleSelectBox = withClass(new VBox(moduleSectPairsBar,moduleSelectBar),"module-select-box");
+
+        HBox editorBar = withClass(new HBox(resetButtons,moduleSelectBox),"editor-bar","bar","gfont");
+        return editorBar;
+    }
+
+    private static TabPane mkSlotTabs() {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
 
@@ -59,9 +134,10 @@ public class G2GuiApplication extends Application {
         }
 
         TabPane slotTabs = withClass(new TabPane(slots.toArray(new Tab[]{})), "slot-tabs","gfont");
+        return slotTabs;
+    }
 
-        HBox editorBar = withClass(new HBox(new Label("editorBar")),"editor-bar","bar","gfont");
-
+    private static HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
@@ -80,22 +156,7 @@ public class G2GuiApplication extends Application {
                 synthName,
                 perfModeButton
         ),"global-bar","bar","gfont");
-        VBox topBox = withClass(
-                new VBox(globalBar,editorBar,slotTabs),"top-box");
-        VBox.setVgrow(slotTabs, Priority.ALWAYS);
-
-
-        Scene scene = new Scene(topBox, 1280, 775);
-        stage.setTitle(TITLE);
-        stage.setScene(scene);
-        scene.getStylesheets().add(getClass().getResource("g2fx.css").toExternalForm());
-        stage.show();
-        this.stage = stage;
-        devices.start();
-
-        //slots.getFirst().getStyleClass().add("slot-enabled");
-        //slots.getLast().getStyleClass().add("slot-keyboard");
-
+        return globalBar;
     }
 
 
@@ -161,6 +222,19 @@ public class G2GuiApplication extends Application {
         Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
         ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
 
+        SVGPath powerGraphic = withClass(new SVGPath(),"power-graphic");
+        powerGraphic.setContent("M -3 -3 A 4.5 4.5 0 1 0 3 -3 M 0 0 L 0 -4");
+        ToggleButton patchEnable = withClass(new ToggleButton("", powerGraphic),"power-button");
+
+        CheckBox redCable = cableCheckbox("red");
+        CheckBox blueCable = cableCheckbox("blue");
+        CheckBox yellowCable = cableCheckbox("yellow");
+        CheckBox orangeCable = cableCheckbox("orange");
+        CheckBox purpleCable = cableCheckbox("purple");
+        CheckBox whiteCable = cableCheckbox("white");
+        ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button");
+        Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
+
         SplitPane patchSplit =
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
         patchSplit.setOrientation(Orientation.VERTICAL);
@@ -174,12 +248,22 @@ public class G2GuiApplication extends Application {
                 varSelector,
                 initVar,
                 label("Patch\nLevel"),
-                new Knob()
+                new Knob(),
+                patchEnable,
+                label("Visible\nLabels"),
+                redCable, blueCable, yellowCable, orangeCable, purpleCable, whiteCable,
+                hideCables, shakeCables
         ),"patch-bar","bar","gfont");
         VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box"); // patch top bar + uis
 
         VBox.setVgrow(patchSplit,Priority.ALWAYS);
         return patchBox;
+    }
+
+    private static CheckBox cableCheckbox(String color) {
+        CheckBox cb = withClass(new CheckBox(),"cable-" + color,"cable-checkbox");
+        cb.setSelected(true);
+        return cb;
     }
 
     private static Label label(String text) {

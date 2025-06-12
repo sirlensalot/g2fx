@@ -51,6 +51,59 @@
     -fx-background-color: cyan;
 }
 
+.power-graphic {
+    -fx-fill: none;
+    -fx-stroke: #777777;
+    -fx-stroke-width:1.5;
+}
+
+.power-button {
+    -fx-padding: 2;
+}
+.power-button:selected {
+    -fx-background-color: cyan;
+}
+
+.cable-checkbox {
+    -fx-padding: 0;
+}
+
+.cable-checkbox {
+    /*
+    -fx-border-color: #444444;
+    -fx-border-radius: 2px;
+    */
+}
+
+.cable-button {
+    -fx-padding: 1 5 1 5;
+}
+
+.cable-red .box {
+    -fx-background-color: red;
+}
+.cable-blue .box {
+    -fx-background-color: blue;
+}
+.cable-yellow .box {
+    -fx-background-color: yellow;
+}
+.cable-orange .box {
+    -fx-background-color: orange;
+}
+.cable-green .box {
+    -fx-background-color: green;
+}
+.cable-purple .box {
+    -fx-background-color: purple;
+}
+.cable-white .box {
+    -fx-background-color: white;
+}
+
+.hide-cables:selected {
+    -fx-background-color: cyan;
+}
 /* ========== KNOB CONTROL =========== */
 
 .knob {
@@ -60,12 +113,12 @@
 
 .knob-edge {
     -fx-fill: linear-gradient(to bottom right, #FFFFFF, #AAAAAA);
-    -fx-stroke: #333333;
+    -fx-stroke: #777777;
     -fx-stroke-width:1.5;
 }
 
 .knob-line {
-    -fx-stroke: #333333;
+    -fx-stroke: #777777;
     -fx-stroke-width:1.5;
 }
 .knob-center {
@@ -73,6 +126,6 @@
 }
 
 .knob-thumb {
-    -fx-stroke: #333333;
+    -fx-stroke: #777777;
     -fx-stroke-width:1.5;
 }
