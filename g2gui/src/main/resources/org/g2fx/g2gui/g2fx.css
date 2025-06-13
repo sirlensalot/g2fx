@@ -104,6 +104,15 @@
 .hide-cables:selected {
     -fx-background-color: cyan;
 }
+
+.module-sect-toggle {
+    -fx-min-width: 55px;
+}
+
+.module-select-button {
+    -fx-padding: 1;
+}
+
 /* ========== KNOB CONTROL =========== */
 
 .knob {

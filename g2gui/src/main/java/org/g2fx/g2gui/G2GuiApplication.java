@@ -12,6 +12,8 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
@@ -78,6 +80,11 @@ public class G2GuiApplication extends Application {
         return scene;
     }
 
+    public record ModuleButtonInfo (
+            Integer pageIndex,
+            Integer modIndex,
+            Button button) {}
+
     private static HBox mkEditorBar() {
         Button newButton = withClass(new Button("New"),"new-patch-button","reset-patch-button");
         Button init1Button = withClass(new Button("Init1"),"init1-patch-button","reset-patch-button");
@@ -86,24 +93,38 @@ public class G2GuiApplication extends Application {
 
         ToggleGroup moduleSectionSelector = new ToggleGroup();
 
-        Map<ModuleType.ModPage,List<ModuleType>> modsByType = new TreeMap<>();
+        Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
         Stream.of(ModuleType.values()).forEach(mt -> {
-            ModuleType.ModPageIx mpi = mt.modPageIx;
-            modsByType.compute(mpi.page(),(mp,l) -> {
+            modsByType.compute(mt.modPageIx.page(),(mp, l) -> {
                 if (l == null) { l = new ArrayList<>(); }
-                l.add(mt);
                 URL icon = G2GuiApplication.class.getResource("module-icons" +
                         File.separator + String.format("%03d.png", mt.ix));
                 System.out.println(mt.shortName + ": " + mt.ix + ":" + icon);
+                Button tb = withClass(new Button("",
+                        new ImageView(new Image(
+                                Objects.requireNonNull(icon).toExternalForm())))
+                ,"module-select-button");
+                l.add(new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb));
                 return l;
             });
         });
 
         modsByType.values().forEach(l ->
-                l.sort(Comparator.comparingInt(mt -> mt.modPageIx.ix())));
+                l.sort(Comparator.comparingInt(mt -> mt.pageIndex)));
+
+        Map<ModuleType.ModPage,HBox> modBars = new TreeMap<>();
+        modsByType.forEach((mp,mbis) -> {
+            modBars.put(mp,new HBox(mbis.stream().map(
+                    ModuleButtonInfo::button).toList().toArray(new Button[]{})));
+        });
+        StackPane modsPane = new StackPane(modBars.values().toArray(new HBox[]{}));
 
         List<ToggleButton> moduleSectButtons = Stream.of(ModuleType.ModPage.values()).map(n -> {
-                    ToggleButton tb = withClass(new ToggleButton(n.name()), "module-sect-toggle", "module-sect-" + n);
+                    ToggleButton tb = withClass(new ToggleButton(n.name()),
+                            "module-sect-toggle", "module-sect-" + n);
+                    tb.setOnAction(e -> {
+                        modBars.forEach((p,b) -> b.setVisible(p == n));
+                    });
                     tb.setToggleGroup(moduleSectionSelector);
                     return tb;
                 }).toList();
@@ -114,8 +135,8 @@ public class G2GuiApplication extends Application {
                     "module-sect-pair"));
         }
         HBox moduleSectPairsBar = withClass(new HBox(modulePairs.toArray(new VBox[] {})),"module-sect-bar");
-        HBox moduleSelectBar = withClass(new HBox(new Label("modules here")),"module-select-bar");
-        VBox moduleSelectBox = withClass(new VBox(moduleSectPairsBar,moduleSelectBar),"module-select-box");
+
+        VBox moduleSelectBox = withClass(new VBox(moduleSectPairsBar,modsPane),"module-select-box");
 
         HBox editorBar = withClass(new HBox(resetButtons,moduleSelectBox),"editor-bar","bar","gfont");
         return editorBar;
