@@ -145,3 +145,33 @@
     -fx-stroke: #777777;
     -fx-stroke-width:1.5;
 }
+
+/* =========== LOAD METER CONTROL =========== */
+
+.load-meter-value {
+    -fx-background-color: #555555;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+    -fx-text-fill: #FFFFFF;
+    -fx-min-width: 30px;
+}
+.load-meter-background {
+    -fx-background-color: black;
+    -fx-min-width: 30px;
+    -fx-min-height: 5px;
+}
+.load-meter-indicator {
+    -fx-background-color: #00ff00;
+    -fx-min-height: 5px;
+    -fx-min-width: 0px;
+}
+.load-meter-pane {
+    -fx-alignment: center-left;
+}
+.load-meter-grid {
+    -fx-alignment: center;
+}
+.load-label1 {
+    -fx-text-alignment: center;
+    -fx-min-width: 60px;
+}

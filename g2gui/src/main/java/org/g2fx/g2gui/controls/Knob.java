@@ -1,5 +1,6 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SkinBase;
@@ -14,15 +15,15 @@ public class Knob extends Control {
 
     public static final int MIN=0;
     public static final int MAX=63;
-    private int value;
-
+    private final SimpleIntegerProperty value;
     private record Drag(double start,int value) {};
     private Drag drag;
 
     private final SVGPath thumb;
 
-    public Knob() {
+    public Knob(String name) {
         super();
+        value = new SimpleIntegerProperty(this,name,0);
         getStyleClass().add("knob");
         setWidth(SIZE);
         setHeight(SIZE);
@@ -81,18 +82,22 @@ public class Knob extends Control {
     }
 
     public int getValue() {
-        return value;
+        return value.get();
     }
 
     public void setValue(int value) {
         if (value < MIN || value > MAX) {
             throw new IllegalArgumentException("Invalid knob value: " + value);
         }
-        this.value = value;
+        this.value.setValue(value);
         double pctg = ((double) value) / ((double) MAX);
         double angle = pctg * 270 + 45;
         //System.out.format("setValue: value=%s, pctg=%s, angle=%s",value,pctg,angle);
         thumb.setRotate(angle);
+    }
+
+    public SimpleIntegerProperty getValueProperty() {
+        return value;
     }
 
     @Override

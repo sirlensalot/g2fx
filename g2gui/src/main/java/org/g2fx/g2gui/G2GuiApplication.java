@@ -8,7 +8,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.css.Styleable;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -22,12 +21,15 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
+import org.g2fx.g2gui.controls.LoadMeter;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static org.g2fx.g2gui.FXUtil.withClass;
 
 
 public class G2GuiApplication extends Application {
@@ -148,12 +150,31 @@ public class G2GuiApplication extends Application {
                 moduleColorsCombo
         ),"undo-redo-mod-colors-box");
 
+        LoadMeter voiceCycles = withClass(
+                new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
+        LoadMeter voiceMem = withClass(
+                new LoadMeter("voice-mem"),"load-meter-voice-mem");
+        LoadMeter fxCycles = withClass(
+                new LoadMeter("fx-cycles"),"load-meter-fx-cycles");
+        LoadMeter fxMem = withClass(
+                new LoadMeter("fx-mem"),"load-meter-fx-mem");
 
+        GridPane loadMeterGrid = withClass(new GridPane(),"load-meter-grid");
+        loadMeterGrid.add(withClass(new HBox(label("Patch Load")),"load-label1"),1,0,3,1);
+        loadMeterGrid.add(withClass(label("Cycles"),"load-label"),1,1);
+        loadMeterGrid.add(withClass(label("Memory"),"load-label"),2,1);
+        loadMeterGrid.add(withClass(label("VA"),"load-label"),0,2);
+        loadMeterGrid.add(withClass(label("FX"),"load-label"),0,3);
+        loadMeterGrid.add(voiceCycles,1,2);
+        loadMeterGrid.add(voiceMem,2,2);
+        loadMeterGrid.add(fxCycles,1,3);
+        loadMeterGrid.add(fxMem,2,3);
 
         return withClass(new HBox(
                 resetButtons,
                 moduleSelectBox,
-                undoRedoModColorBox
+                undoRedoModColorBox,
+                loadMeterGrid
         ),"editor-bar","bar","gfont");
     }
 
@@ -245,10 +266,6 @@ public class G2GuiApplication extends Application {
     }
 
 
-    private static <T extends Styleable> T withClass(T node, String... classes) {
-        node.getStyleClass().addAll(classes);
-        return node;
-    }
 
     private static VBox mkPatchBox(Slot slot, Tab t) {
 
@@ -333,7 +350,7 @@ public class G2GuiApplication extends Application {
                 varSelector,
                 initVar,
                 label("Patch\nLevel"),
-                new Knob(),
+                new Knob("patch-volume"),
                 patchEnable,
                 label("Visible\nLabels"),
                 redCable, blueCable, yellowCable, orangeCable, purpleCable, whiteCable,
