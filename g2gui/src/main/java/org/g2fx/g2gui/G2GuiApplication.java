@@ -7,6 +7,7 @@ import g2lib.state.SynthSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.css.Styleable;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -15,8 +16,10 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 
@@ -91,6 +94,70 @@ public class G2GuiApplication extends Application {
         Button init2Button = withClass(new Button("Init2"),"init2-patch-button","reset-patch-button");
         VBox resetButtons = withClass(new VBox(newButton,init1Button,init2Button),"reset-patch-buttons");
 
+        VBox moduleSelectBox = mkModuleSelectBox();
+
+        Button undoButton = withClass(new Button("Undo"),"undo-redo-button");
+        Button redoButton = withClass(new Button("Redo"),"undo-redo-button");
+        HBox undoRedoBar = withClass(new HBox(undoButton,redoButton),"undo-redo-bar");
+
+        ObservableList<String> moduleColors = FXCollections.observableArrayList(
+                "#C0C0C0",
+                "#BABACC", // 1
+                "#BACCBA", // 2
+                "#CCBAB0", // 3
+                "#AACBD0", // 4
+                "#D4A074", // 5
+                "#7A77E5", // 6 R
+                "#BDC17B", // 7
+                "#80B982", // 8
+                "#48D1E7", // 9
+                "#62D193", // 10
+                "#7DC7DE", // 11
+                "#C29A8F", // 12
+                "#817DBA", // 13
+                "#8D8DCA", // 14
+                "#A5D1DE", // 15
+                "#9CCF94", // 16
+                "#C7D669", // 17
+                "#C8D2A0", // 18
+                "#D2D2BE", // 19
+                "#C08C80", // 20
+                "#C773D6", // 21
+                "#BE82BE", // 22
+                "#D2A0CD", // 23
+                "#D2BED2" // 24
+        );
+        ComboBox<String> moduleColorsCombo = withClass(
+                new ComboBox<>(moduleColors),"module-colors-combo");
+
+        Callback<ListView<String>, ListCell<String>> cf = e -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item != null) {
+                    setBackground(new Background(new BackgroundFill(Color.web(item),null,null)));
+                }
+            }
+        };
+        moduleColorsCombo.setCellFactory(cf);
+        moduleColorsCombo.setButtonCell(cf.call(null));
+
+        VBox undoRedoModColorBox = withClass(new VBox(
+                undoRedoBar,
+                label("Module Color"),
+                moduleColorsCombo
+        ),"undo-redo-mod-colors-box");
+
+
+
+        return withClass(new HBox(
+                resetButtons,
+                moduleSelectBox,
+                undoRedoModColorBox
+        ),"editor-bar","bar","gfont");
+    }
+
+    private static VBox mkModuleSelectBox() {
         ToggleGroup moduleSectionSelector = new ToggleGroup();
 
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
@@ -99,7 +166,6 @@ public class G2GuiApplication extends Application {
                 if (l == null) { l = new ArrayList<>(); }
                 URL icon = G2GuiApplication.class.getResource("module-icons" +
                         File.separator + String.format("%03d.png", mt.ix));
-                System.out.println(mt.shortName + ": " + mt.ix + ":" + icon);
                 Button tb = withClass(new Button("",
                         new ImageView(new Image(
                                 Objects.requireNonNull(icon).toExternalForm())))
@@ -137,9 +203,7 @@ public class G2GuiApplication extends Application {
         HBox moduleSectPairsBar = withClass(new HBox(modulePairs.toArray(new VBox[] {})),"module-sect-bar");
 
         VBox moduleSelectBox = withClass(new VBox(moduleSectPairsBar,modsPane),"module-select-box");
-
-        HBox editorBar = withClass(new HBox(resetButtons,moduleSelectBox),"editor-bar","bar","gfont");
-        return editorBar;
+        return moduleSelectBox;
     }
 
     private static TabPane mkSlotTabs() {

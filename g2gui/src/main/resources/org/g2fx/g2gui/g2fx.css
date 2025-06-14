@@ -108,9 +108,16 @@
 .module-sect-toggle {
     -fx-min-width: 55px;
 }
+.module-sect-toggle:selected {
+    -fx-background-color:cyan;
+}
 
 .module-select-button {
     -fx-padding: 1;
+}
+
+.undo-redo-mod-colors-box {
+    -fx-alignment: top-center;
 }
 
 /* ========== KNOB CONTROL =========== */
