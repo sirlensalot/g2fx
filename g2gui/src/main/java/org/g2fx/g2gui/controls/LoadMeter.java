@@ -30,6 +30,7 @@ public class LoadMeter extends Control {
                 new StackPane(meterBkgd, meterIndicator),"load-meter-pane");
         VBox meterBox = withClass(new VBox(valueLabel,meterPane),"load-meter-box");
         getChildren().add(meterBox);
+        getStyleClass().add("load-meter");
         setValue(50.345);
     }
 

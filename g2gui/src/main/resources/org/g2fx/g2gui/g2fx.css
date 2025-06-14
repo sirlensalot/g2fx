@@ -8,12 +8,18 @@
     -fx-border-width: 0px 0px 1px 0px;
     -fx-border-color: #666666;
     -fx-border-style: solid;
+    -fx-spacing: 2px;
 }
 
 .editor-bar {
     -fx-border-width: 0px 0px 1px 0px;
     -fx-border-color: #666666;
     -fx-border-style: solid;
+    -fx-spacing: 6px;
+}
+
+.patch-bar {
+    -fx-spacing: 2px;
 }
 
 .bar {
@@ -120,6 +126,41 @@
     -fx-alignment: top-center;
 }
 
+
+.load-meter-bar {
+    -fx-alignment: center-left;
+    -fx-spacing: 2px;
+}
+.load-meter-empty-0 {
+    -fx-min-width: 21;
+}
+.load-meter-empty-1 {
+    -fx-min-width: 14;
+}
+.load-meter-empty-2 {
+    -fx-min-height: 2px;
+}
+.load-label-rows {
+    -fx-min-width: 14;
+}
+
+.morph-box {
+    -fx-alignment: top-center;
+    -fx-min-width: 42px;
+}
+.morph-name {
+    -fx-alignment: bottom-center;
+    -fx-max-width: 40px;
+}
+.morph-mode-toggle {
+    -fx-min-width: 40px;
+    -fx-padding: 0px;
+}
+.morphs-box {
+    -fx-alignment: top-center;
+}
+
+
 /* ========== KNOB CONTROL =========== */
 
 .knob {
@@ -158,6 +199,7 @@
 .load-meter-background {
     -fx-background-color: black;
     -fx-min-width: 30px;
+    -fx-max-width: 30px;
     -fx-min-height: 5px;
 }
 .load-meter-indicator {
@@ -165,13 +207,12 @@
     -fx-min-height: 5px;
     -fx-min-width: 0px;
 }
+.load-meter-box {
+    -fx-alignment: center-left;
+}
 .load-meter-pane {
     -fx-alignment: center-left;
 }
-.load-meter-grid {
-    -fx-alignment: center;
-}
-.load-label1 {
-    -fx-text-alignment: center;
-    -fx-min-width: 60px;
+.load-meter {
+    -fx-alignment: center-left;
 }

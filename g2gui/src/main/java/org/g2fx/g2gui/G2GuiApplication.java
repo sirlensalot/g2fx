@@ -2,12 +2,14 @@ package org.g2fx.g2gui;
 
 import g2lib.model.ModuleType;
 import g2lib.state.Devices;
+import g2lib.state.PatchModule;
 import g2lib.state.Slot;
 import g2lib.state.SynthSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -19,7 +21,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.controlsfx.control.GridView;
 import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.control.textfield.CustomTextField;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
 
@@ -98,6 +102,81 @@ public class G2GuiApplication extends Application {
 
         VBox moduleSelectBox = mkModuleSelectBox();
 
+        VBox undoRedoModColorBox = mkUndoRedoModColorBox();
+
+        VBox loadMeterBox = mkLoadMeterBox();
+
+        VBox morphsBox = mkMorphsBox();
+
+        return withClass(new HBox(
+                resetButtons,
+                moduleSelectBox,
+                undoRedoModColorBox,
+                loadMeterBox,
+                morphsBox
+        ),"editor-bar","bar","gfont");
+    }
+
+    private static VBox mkMorphsBox() {
+        List<VBox> morphs = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            String morphCtl = PatchModule.MORPH_LABELS[i];
+            ToggleButton tb = withClass(new ToggleButton(morphCtl), "morph-mode-toggle");
+            tb.setOnAction(e -> {
+                tb.setText(tb.isSelected() ? "Knob": morphCtl);
+            });
+            TextField tf =
+                    withClass(new TextField("Group " + i), "morph-name");
+            tf.setPadding(new Insets(1));
+            morphs.add(withClass(new VBox(
+                    tf,
+                    withClass(new Knob("Morph" + i),"morph-knob"),
+                    tb
+            ),"morph-box"));
+        }
+        VBox morphsBox = withClass(new VBox(
+                label("Morph Groups"),
+                withClass(new HBox(morphs.toArray(new VBox[]{})),"morphs-bar")
+        ),"morphs-box");
+        return morphsBox;
+    }
+
+    private static VBox mkLoadMeterBox() {
+        LoadMeter voiceCycles = withClass(
+                new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
+        LoadMeter voiceMem = withClass(
+                new LoadMeter("voice-mem"),"load-meter-voice-mem");
+        LoadMeter fxCycles = withClass(
+                new LoadMeter("fx-cycles"),"load-meter-fx-cycles");
+        LoadMeter fxMem = withClass(
+                new LoadMeter("fx-mem"),"load-meter-fx-mem");
+
+        VBox loadMeterBox = withClass(new VBox(
+               withClass(new HBox(
+                       withClass(new Pane(),"load-meter-empty-0"),
+                       withClass(label("Patch Load"),"load-label-patch-load")
+                       ),"load-meter-bar"),
+                withClass(new HBox(
+                        withClass(new Pane(),"load-meter-empty-1"),
+                        withClass(label("Cycles"),"load-label-cols"),
+                        withClass(label("Memory"),"load-label-cols")
+                        ),"load-meter-bar"),
+                withClass(new HBox(
+                        withClass(label("VA"),"load-label-rows"),
+                        voiceCycles,
+                        voiceMem
+                        ),"load-meter-bar"),
+                withClass(new Pane(),"load-meter-empty-2"),
+                withClass(new HBox(
+                        withClass(label("FX"),"load-label-rows"),
+                        fxCycles,
+                        fxMem
+                        ),"load-meter-bar")
+        ),"load-meter-grid");
+        return loadMeterBox;
+    }
+
+    private static VBox mkUndoRedoModColorBox() {
         Button undoButton = withClass(new Button("Undo"),"undo-redo-button");
         Button redoButton = withClass(new Button("Redo"),"undo-redo-button");
         HBox undoRedoBar = withClass(new HBox(undoButton,redoButton),"undo-redo-bar");
@@ -149,33 +228,7 @@ public class G2GuiApplication extends Application {
                 label("Module Color"),
                 moduleColorsCombo
         ),"undo-redo-mod-colors-box");
-
-        LoadMeter voiceCycles = withClass(
-                new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
-        LoadMeter voiceMem = withClass(
-                new LoadMeter("voice-mem"),"load-meter-voice-mem");
-        LoadMeter fxCycles = withClass(
-                new LoadMeter("fx-cycles"),"load-meter-fx-cycles");
-        LoadMeter fxMem = withClass(
-                new LoadMeter("fx-mem"),"load-meter-fx-mem");
-
-        GridPane loadMeterGrid = withClass(new GridPane(),"load-meter-grid");
-        loadMeterGrid.add(withClass(new HBox(label("Patch Load")),"load-label1"),1,0,3,1);
-        loadMeterGrid.add(withClass(label("Cycles"),"load-label"),1,1);
-        loadMeterGrid.add(withClass(label("Memory"),"load-label"),2,1);
-        loadMeterGrid.add(withClass(label("VA"),"load-label"),0,2);
-        loadMeterGrid.add(withClass(label("FX"),"load-label"),0,3);
-        loadMeterGrid.add(voiceCycles,1,2);
-        loadMeterGrid.add(voiceMem,2,2);
-        loadMeterGrid.add(fxCycles,1,3);
-        loadMeterGrid.add(fxMem,2,3);
-
-        return withClass(new HBox(
-                resetButtons,
-                moduleSelectBox,
-                undoRedoModColorBox,
-                loadMeterGrid
-        ),"editor-bar","bar","gfont");
+        return undoRedoModColorBox;
     }
 
     private static VBox mkModuleSelectBox() {
