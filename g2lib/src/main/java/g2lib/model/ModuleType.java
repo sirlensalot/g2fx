@@ -1,7 +1,10 @@
 package g2lib.model;
 
+import java.io.File;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static g2lib.model.ConnColor.*;
 import static g2lib.model.Connector.in;
@@ -2542,6 +2545,22 @@ public enum ModuleType {
         for (ModuleType t : ModuleType.values()) {
             m.put(t.ix,t);
         }
+        return m;
+    }
+
+    public static final Map<ModPage,List<ModuleType>> BY_PAGE = mkByPage();
+
+    private static Map<ModPage, List<ModuleType>> mkByPage() {
+        Map<ModPage, List<ModuleType>> m = new TreeMap<>();
+        Stream.of(ModuleType.values()).forEach(mt -> {
+            m.compute(mt.modPageIx.page(),(mp, l) -> {
+                if (l == null) { l = new ArrayList<>(); }
+                l.add(mt);
+                return l;
+            });
+        });
+        m.values().forEach(l ->
+                l.sort(Comparator.comparingInt(mt -> mt.modPageIx.ix)));
         return m;
     }
 

@@ -26,6 +26,7 @@ import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
+import org.g2fx.g2gui.controls.ModuleControl;
 
 import java.io.File;
 import java.io.IOException;
@@ -220,7 +221,12 @@ public class G2GuiApplication extends Application {
                 }
             }
         };
-        moduleColorsCombo.setCellFactory(cf);
+        moduleColorsCombo.setCellFactory(e -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+            }
+        });
         moduleColorsCombo.setButtonCell(cf.call(null));
 
         VBox undoRedoModColorBox = withClass(new VBox(
@@ -235,22 +241,17 @@ public class G2GuiApplication extends Application {
         ToggleGroup moduleSectionSelector = new ToggleGroup();
 
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
-        Stream.of(ModuleType.values()).forEach(mt -> {
-            modsByType.compute(mt.modPageIx.page(),(mp, l) -> {
-                if (l == null) { l = new ArrayList<>(); }
+        ModuleType.BY_PAGE.forEach((mp,l) -> {
+            modsByType.put(mp,l.stream().map(mt -> {
                 URL icon = G2GuiApplication.class.getResource("module-icons" +
                         File.separator + String.format("%03d.png", mt.ix));
                 Button tb = withClass(new Button("",
-                        new ImageView(new Image(
-                                Objects.requireNonNull(icon).toExternalForm())))
-                ,"module-select-button");
-                l.add(new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb));
-                return l;
-            });
+                                new ImageView(new Image(
+                                        Objects.requireNonNull(icon).toExternalForm())))
+                        ,"module-select-button");
+                return new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb);
+            }).toList());
         });
-
-        modsByType.values().forEach(l ->
-                l.sort(Comparator.comparingInt(mt -> mt.pageIndex)));
 
         Map<ModuleType.ModPage,HBox> modBars = new TreeMap<>();
         modsByType.forEach((mp,mbis) -> {
@@ -369,8 +370,9 @@ public class G2GuiApplication extends Application {
                 t.getStyleClass().remove("slot-enabled");
             }
         });
+        ModuleControl mc = new ModuleControl(1,"ClkGen1",ModuleType.M_ClkGen);
         Pane voicePane = withClass(
-                new FlowPane(new Label("voice"), key, enable),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+                new FlowPane(new Label("voice"), key, enable,mc.getPane()),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =
                 withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
 
