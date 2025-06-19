@@ -1,10 +1,5 @@
 package org.g2fx.g2gui;
 
-import g2lib.model.ModuleType;
-import g2lib.state.Devices;
-import g2lib.state.PatchModule;
-import g2lib.state.Slot;
-import g2lib.state.SynthSettings;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -21,12 +16,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import org.controlsfx.control.GridView;
 import org.controlsfx.control.SegmentedButton;
-import org.controlsfx.control.textfield.CustomTextField;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.ModuleControl;
+import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.state.Devices;
+import org.g2fx.g2lib.state.PatchModule;
+import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.state.SynthSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -370,7 +368,7 @@ public class G2GuiApplication extends Application {
                 t.getStyleClass().remove("slot-enabled");
             }
         });
-        ModuleControl mc = new ModuleControl(1,"ClkGen1",ModuleType.M_ClkGen);
+        ModuleControl mc = new ModuleControl(1,"ClkGen1", ModuleType.M_ClkGen);
         Pane voicePane = withClass(
                 new FlowPane(new Label("voice"), key, enable,mc.getPane()),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =

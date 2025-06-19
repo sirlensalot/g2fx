@@ -1,19 +1,14 @@
 package org.g2fx.g2gui.controls;
 
-import com.sun.javafx.scene.control.FakeFocusTextField;
-import g2lib.model.ModuleType;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
-
-import java.util.List;
+import org.g2fx.g2lib.model.ModuleType;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 

@@ -29,7 +29,5 @@ tasks.test {
 
 tasks.register<JavaExec>("runApp") {
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass = "g2lib.Main"
+    mainClass = "org.g2fx.g2lib.Main"
 }
-
-
