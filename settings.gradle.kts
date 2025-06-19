@@ -1,2 +1,1 @@
-rootProject.name = "g2lib"
-
+rootProject.name = "g2fx"
