@@ -1,4 +1,2 @@
-rootProject.name = "g2fx"
+rootProject.name = "g2lib"
 
-include("g2lib")
-include("g2gui")
