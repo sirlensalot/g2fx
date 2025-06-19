@@ -129,7 +129,7 @@ public class G2GuiApplication extends Application {
             tf.setPadding(new Insets(1));
             morphs.add(withClass(new VBox(
                     tf,
-                    withClass(new Knob("Morph" + i),"morph-knob"),
+                    FXUtil.withClass(new Knob("Morph" + i),"morph-knob"),
                     tb
             ),"morph-box"));
         }
@@ -141,13 +141,13 @@ public class G2GuiApplication extends Application {
     }
 
     private static VBox mkLoadMeterBox() {
-        LoadMeter voiceCycles = withClass(
+        LoadMeter voiceCycles = FXUtil.withClass(
                 new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
-        LoadMeter voiceMem = withClass(
+        LoadMeter voiceMem = FXUtil.withClass(
                 new LoadMeter("voice-mem"),"load-meter-voice-mem");
-        LoadMeter fxCycles = withClass(
+        LoadMeter fxCycles = FXUtil.withClass(
                 new LoadMeter("fx-cycles"),"load-meter-fx-cycles");
-        LoadMeter fxMem = withClass(
+        LoadMeter fxMem = FXUtil.withClass(
                 new LoadMeter("fx-mem"),"load-meter-fx-mem");
 
         VBox loadMeterBox = withClass(new VBox(
@@ -207,7 +207,7 @@ public class G2GuiApplication extends Application {
                 "#D2A0CD", // 23
                 "#D2BED2" // 24
         );
-        ComboBox<String> moduleColorsCombo = withClass(
+        ComboBox<String> moduleColorsCombo = FXUtil.withClass(
                 new ComboBox<>(moduleColors),"module-colors-combo");
 
         Callback<ListView<String>, ListCell<String>> cf = e -> new ListCell<>() {
@@ -433,6 +433,6 @@ public class G2GuiApplication extends Application {
     }
 
     public static void main(String[] args) {
-        launch();
+        Application.launch();
     }
 }

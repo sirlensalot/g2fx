@@ -1,12 +1,36 @@
 plugins {
-    java
+    id("java")
+    id("application")
+    id("org.openjfx.javafxplugin") version "0.0.13"
+    id("org.beryx.jlink") version "2.25.0"
 }
 
-group = "g2lib"
+group = "org.g2fx"
 version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+
+javafx {
+    version = "21"
+    modules = listOf("javafx.controls")
+}
+
+
+application {
+    mainClass.set("org.g2fx.g2gui.G2GuiApplication")
 }
 
 
@@ -20,6 +44,9 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.3")
     //implementation("info.picocli:picocli:4.7.6")
     implementation("org.jline:jline:3.26.2")
+
+    implementation("org.controlsfx:controlsfx:11.1.2")
+
 }
 
 tasks.test {
@@ -29,5 +56,5 @@ tasks.test {
 
 tasks.register<JavaExec>("runApp") {
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass = "org.g2fx.g2lib.Main"
+    mainClass = "org.g2fx.g2gui.G2GuiApplication"
 }
