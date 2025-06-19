@@ -1,11 +1,14 @@
 package org.g2fx.g2gui.controls;
 
+import com.sun.javafx.scene.control.FakeFocusTextField;
 import g2lib.model.ModuleType;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
@@ -69,10 +72,28 @@ public class ModuleControl {
             }
         });
         cb.setValue(new NameAndType(name,type));
+        cb.setEditable(false);
+        cb.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                cb.setEditable(true);
+                Platform.runLater(cb::requestFocus);
+            }
+        });
+        cb.getEditor().setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                cb.setEditable(false);
+                //commit value to backend here
+            }
+        });
+        cb.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue && cb.isEditable()) {
+                cb.setEditable(false);
+                //commit here too?
+            }
+        });
         cb.setConverter(new StringConverter<>() {
             @Override
             public String toString(NameAndType object) {
-                System.out.println(object);
                 return object != null ? object.toString() : "";
             }
 
