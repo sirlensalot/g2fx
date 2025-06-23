@@ -29,7 +29,10 @@ import org.g2fx.g2lib.state.SynthSettings;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -64,8 +67,7 @@ public class G2GuiApplication extends Application {
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
-        scene.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource("g2fx.css")).toExternalForm());
+        scene.getStylesheets().add(FXUtil.getResource("g2fx.css").toExternalForm());
         stage.show();
 
         this.stage = stage;
@@ -241,11 +243,10 @@ public class G2GuiApplication extends Application {
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
         ModuleType.BY_PAGE.forEach((mp,l) -> {
             modsByType.put(mp,l.stream().map(mt -> {
-                URL icon = G2GuiApplication.class.getResource("module-icons" +
+                URL icon = FXUtil.getResource("module-icons" +
                         File.separator + String.format("%03d.png", mt.ix));
                 Button tb = withClass(new Button("",
-                                new ImageView(new Image(
-                                        Objects.requireNonNull(icon).toExternalForm())))
+                                new ImageView(new Image(icon.toExternalForm())))
                         ,"module-select-button");
                 return new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb);
             }).toList());

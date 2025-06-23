@@ -3,6 +3,7 @@ package org.g2fx.g2lib;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
@@ -12,7 +13,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -69,10 +73,10 @@ class MainTest {
 
         {
             ObjectMapper mapper = new YAMLMapper();
-            HashSet<String> images = new HashSet<>();
+            Map<String,String> images = new HashMap<>();
             HashMap<String,UiModule> m = mapper.readValue(
-                    new File("/Users/stuart/Downloads/nord_g2_editor-master/Gen1/Bin/Modules/combined/combined.yaml")
-                    , new TypeReference<HashMap<String,UiModule>>() {});
+                    FXUtil.getResource("module-uis.yaml")
+                    , new TypeReference<>() {});
             for (Map.Entry<String, UiModule> e : m.entrySet()) {
                 for (Map<String, Object> c : e.getValue().controls) {
                     String imageKey = "data/img-" + e.getKey() + "-" + c.get("ID") + ".png";
@@ -80,9 +84,10 @@ class MainTest {
                         int w = (Integer) c.get("Width");
                         int h = (Integer) c.get("Height");
                         String data = (String) c.get("Data");
-                        if (images.add(data)) {
-                            System.out.println("dupe [bitmap]: " + imageKey);
+                        if (images.containsKey(data)) {
+                            System.out.println("dupe [image]: " + imageKey + ": " + images.get(data));
                         } else {
+                            images.put(data,imageKey);
                             writeImageFromString(
                                     data, w, h,
                                     imageKey,
@@ -95,9 +100,10 @@ class MainTest {
                             int w = (Integer) c.get("ImageWidth");
                             int n = c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 0;
                             int l = data.split(":").length;
-                            if (images.add(data)) {
-                                System.out.println("dupe [image]: " + imageKey);
+                            if (images.containsKey(data)) {
+                                System.out.println("dupe [image]: " + imageKey + ": " + images.get(data));
                             } else {
+                                images.put(data,imageKey);
                                 writeImageFromString(
                                         data, w, l / w,
                                         imageKey,
