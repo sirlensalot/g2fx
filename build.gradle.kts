@@ -38,11 +38,12 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.mockito:mockito-core:4.2.0")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher");
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(files("libs/libusb4java-1.3.0-darwin-aarch64.jar"))
     implementation("org.usb4java:usb4java:1.3.0")
-    implementation("org.yaml:snakeyaml:2.3")
+    //implementation("org.yaml:snakeyaml:2.3")
     //implementation("info.picocli:picocli:4.7.6")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.1")
     implementation("org.jline:jline:3.26.2")
 
     implementation("org.controlsfx:controlsfx:11.1.2")

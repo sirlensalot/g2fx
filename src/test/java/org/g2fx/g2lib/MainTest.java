@@ -1,19 +1,25 @@
 package org.g2fx.g2lib;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.Test;
 
-import java.util.TreeSet;
-import java.util.function.Consumer;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class MainTest {
 
     @Test
-    void crcClavia() {
+    void crcClavia() throws  Exception {
 
 
         assertEquals(0x9188, CRC16.crc16(new byte[] {(byte) 0x80},0,1));
@@ -62,46 +68,107 @@ class MainTest {
         }
 
         {
-            Consumer<String> f = s -> {
-                int i = Integer.parseInt(s,2);
-                System.out.printf("%s: ",new StringBuilder(s));
-                int mask = 0x03;
-                int j = 0;
-                int r = (i & mask) >> j;
-                System.out.format("%s ",r>0);
-                mask = mask << 2;
-                j++;
-                r = (i & mask) >> j;
-                System.out.format("%s ",r>0);
-                mask = mask << 2;
-                j++;
-                r = (i & mask) >> j;
-                System.out.format("%s ",r>0);
-                mask = mask << 2;
-                j++;
-                r = (i & mask) >> j;
-                System.out.format("%s \n",r>0);
-            };
-            f.accept("00000000");
-            f.accept("00000001");
-            f.accept("00000100");
-            f.accept("00000101");
-
-            f.accept("00010000");
-            f.accept("00010001");
-            f.accept("00010100");
-            f.accept("00010101");
-
-            f.accept("01000000");
-            f.accept("01000001");
-            f.accept("01000100");
-            f.accept("01000101");
-            f.accept("01010000");
-            f.accept("01010001");
-            f.accept("01010100");
-            f.accept("01101101");
-
+            ObjectMapper mapper = new YAMLMapper();
+            HashSet<String> images = new HashSet<>();
+            HashMap<String,UiModule> m = mapper.readValue(
+                    new File("/Users/stuart/Downloads/nord_g2_editor-master/Gen1/Bin/Modules/combined/combined.yaml")
+                    , new TypeReference<HashMap<String,UiModule>>() {});
+            for (Map.Entry<String, UiModule> e : m.entrySet()) {
+                for (Map<String, Object> c : e.getValue().controls) {
+                    String imageKey = "data/img-" + e.getKey() + "-" + c.get("ID") + ".png";
+                    if ("Bitmap".equals(c.get("type"))) {
+                        int w = (Integer) c.get("Width");
+                        int h = (Integer) c.get("Height");
+                        String data = (String) c.get("Data");
+                        if (images.add(data)) {
+                            System.out.println("dupe [bitmap]: " + imageKey);
+                        } else {
+                            writeImageFromString(
+                                    data, w, h,
+                                    imageKey,
+                                    false
+                            );
+                        }
+                    } else if (c.containsKey("Image")) {
+                        String data = (String) c.get("Image");
+                        if (!"".equals(data)) {
+                            int w = (Integer) c.get("ImageWidth");
+                            int n = c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 0;
+                            int l = data.split(":").length;
+                            if (images.add(data)) {
+                                System.out.println("dupe [image]: " + imageKey);
+                            } else {
+                                writeImageFromString(
+                                        data, w, l / w,
+                                        imageKey,
+                                        true
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            getClass();
         }
+    }
+    record UiModule(
+            String Name,
+            String FileName,
+            String Tooltip,
+            int Height,
+            int XPos,
+            int YPos,
+            List<Map<String,Object>> controls
+    ){};
+
+    public static void writeImageFromString(
+            String data, int width, int height, String outputFile, boolean hex) throws IOException {
+        String[] colorStrings = data.split(":");
+        if (colorStrings.length != width * height) {
+            throw new IllegalArgumentException("Pixel count does not match width*height");
+        }
+
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        int pixel = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                String color = colorStrings[pixel++];
+                int r, g, b;
+
+                if (hex) {
+                    // Expecting 6-digit hex string, e.g. "aabb99"
+                    if (color.length() != 6)
+                        throw new IllegalArgumentException("Hex color string not 6 digits: " + color);
+                    r = Integer.parseInt(color.substring(0, 2), 16);
+                    g = Integer.parseInt(color.substring(2, 4), 16);
+                    b = Integer.parseInt(color.substring(4, 6), 16);
+                } else {
+                    // Expecting 9-digit decimal string, e.g. "191191191"
+                    if (color.length() != 9 || !color.matches("\\d{9}"))
+                        throw new IllegalArgumentException("Decimal color string not 9 digits: " + color);
+                    r = Integer.parseInt(color.substring(0, 3));
+                    g = Integer.parseInt(color.substring(3, 6));
+                    b = Integer.parseInt(color.substring(6, 9));
+                }
+                // Clamp to 0-255
+                r = Math.max(0, Math.min(255, r));
+                g = Math.max(0, Math.min(255, g));
+                b = Math.max(0, Math.min(255, b));
+                int argb;
+                if (r == g && g == b && r > 188 & r < 193) {
+                    // Fully transparent pixel
+                    argb = 0x00000000;
+                } else {
+                    // Fully opaque pixel
+                    argb = (0xFF << 24) | (r << 16) | (g << 8) | b;
+                }
+                //int rgb = (r << 16) | (g << 8) | b;
+                img.setRGB(x, y, argb);
+            }
+        }
+
+        ImageIO.write(img, "png", new File(outputFile));
     }
 
 }
