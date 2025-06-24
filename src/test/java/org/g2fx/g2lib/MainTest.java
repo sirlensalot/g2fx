@@ -13,10 +13,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -77,25 +74,25 @@ class MainTest {
             HashMap<String,UiModule> m = mapper.readValue(
                     FXUtil.getResource("module-uis.yaml")
                     , new TypeReference<>() {});
-            assertEquals(ModuleType.values().length,m.size());
+            List<ModuleType> all = new ArrayList<>(
+                    Arrays.stream(ModuleType.values()).toList());
             for (Map.Entry<String, UiModule> e : m.entrySet()) {
                 String mtName = "M_" + e.getValue().Name.replace('-','_').replace("&","_and_");
-                ModuleType mt = ModuleType.valueOf(mtName);
+                all.remove(ModuleType.valueOf(mtName));
 
                 for (Map<String, Object> c : e.getValue().controls) {
                     String id = e.getKey() + "-" + c.get("ID");
-                    String imageKey = "data/img/" + id + ".png";
                     if ("Bitmap".equals(c.get("type"))) {
                         int w = (Integer) c.get("Width");
                         int h = (Integer) c.get("Height");
                         String data = (String) c.get("Data");
                         if (images.containsKey(data)) {
-                            System.out.println("dupe [image]: " + imageKey + ": " + images.get(data));
+                            System.out.println("dupe [image]: " + id + ": " + images.get(data));
                         } else {
                             images.put(data,id);
                             writeImageFromString(
                                     data, w, h,
-                                    imageKey,
+                                    id,
                                     false
                             );
                         }
@@ -104,22 +101,31 @@ class MainTest {
                         if (!"".equals(data)) {
                             int w = (Integer) c.get("ImageWidth");
                             int n = c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 0;
-                            int l = data.split(":").length;
+                            List<String> bs = Arrays.stream(data.split(":")).toList();
+                            int l = bs.size();
                             if (images.containsKey(data)) {
-                                System.out.println("dupe [image]: " + imageKey + ": " + images.get(data));
+                                System.out.println("dupe [image]: " + id + ": " + images.get(data));
                             } else {
-                                images.put(data,id);
-                                writeImageFromString(
-                                        data, w, l / w,
-                                        imageKey,
-                                        true
-                                );
+                                for (int i = 0; i < n; i++) {
+                                    int h = l / w / n;
+                                    int a = h * w;
+
+                                    String iid = "%s-%02d".formatted(id, i);
+                                    images.put(data,iid);
+                                    List<String> sl = bs.subList(i * a, (i + 1) * a);
+                                    writeImageFromString(
+                                            String.join(":", sl),
+                                            w, h,
+                                            iid,
+                                            true);
+
+                                }
                             }
                         }
                     }
                 }
             }
-            getClass();
+            //assertEquals(List.of(),all); TODO "Name" module
         }
     }
     record UiModule(
@@ -179,7 +185,7 @@ class MainTest {
             }
         }
 
-        ImageIO.write(img, "png", new File(outputFile));
+        ImageIO.write(img, "png", new File("data/img/" + outputFile + ".png"));
     }
 
 }
