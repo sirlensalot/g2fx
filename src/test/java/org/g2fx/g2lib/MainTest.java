@@ -77,9 +77,14 @@ class MainTest {
             HashMap<String,UiModule> m = mapper.readValue(
                     FXUtil.getResource("module-uis.yaml")
                     , new TypeReference<>() {});
+            assertEquals(ModuleType.values().length,m.size());
             for (Map.Entry<String, UiModule> e : m.entrySet()) {
+                String mtName = "M_" + e.getValue().Name.replace('-','_').replace("&","_and_");
+                ModuleType mt = ModuleType.valueOf(mtName);
+
                 for (Map<String, Object> c : e.getValue().controls) {
-                    String imageKey = "data/img-" + e.getKey() + "-" + c.get("ID") + ".png";
+                    String id = e.getKey() + "-" + c.get("ID");
+                    String imageKey = "data/img/" + id + ".png";
                     if ("Bitmap".equals(c.get("type"))) {
                         int w = (Integer) c.get("Width");
                         int h = (Integer) c.get("Height");
@@ -87,7 +92,7 @@ class MainTest {
                         if (images.containsKey(data)) {
                             System.out.println("dupe [image]: " + imageKey + ": " + images.get(data));
                         } else {
-                            images.put(data,imageKey);
+                            images.put(data,id);
                             writeImageFromString(
                                     data, w, h,
                                     imageKey,
@@ -103,7 +108,7 @@ class MainTest {
                             if (images.containsKey(data)) {
                                 System.out.println("dupe [image]: " + imageKey + ": " + images.get(data));
                             } else {
-                                images.put(data,imageKey);
+                                images.put(data,id);
                                 writeImageFromString(
                                         data, w, l / w,
                                         imageKey,

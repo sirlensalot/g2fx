@@ -1683,7 +1683,7 @@ public enum ModuleType {
              ModParam.MidiCh_20.mk("SendCh"),
              ModParam.NoteZoneThru.mk("ThruMode")),
      List.of()),
-    M_Compressor
+    M_Compress
     (150, "Compressor", 5,
      ModPage.FX.ix(8),
      List.of(in("InL",Red,18,1),
