@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
@@ -15,7 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -89,85 +91,104 @@ class MainTest {
             all.remove(mt);
 
             for (Map<String, Object> c : e.getValue().controls) {
-                String id = e.getKey() + "-" + c.get("ID");
-                String type = (String) c.get("type");
-                Integer cr = (Integer) c.get("CodeRef");
-                if (null != cr) {
-                    BiConsumer<Integer,List<?>> cf = (i,l) -> {
-                        if (l == null) {
-                            System.out.println("ERROR Null control list: " + c);
-                            return;
-                        }
-                        if (l.size() > i) {
-                            //System.out.println(id + ": " + l.get(i));
-                        } else {
-                            System.out.println("ERROR Failed to resolve control: " + id + ", " + c + ", " + mt.getVisuals());
-                        }
-                    };
-                    if ("Input".equals(type)) {
-                        cf.accept(cr,mt.inPorts);
-                    } else if ("Output".equals(type)) {
-                        cf.accept(cr,mt.outPorts);
-                    } else if ("PartSelector".equals(type)) {
-                        cf.accept(cr,mt.modes);
-                    } else if ("Led".equals(type)) {
-                        String ltype = (String) c.get("Type");
-                        if ("Sequencer".equals(ltype)) {
-                            cf.accept(cr, mt.getVisuals().get(Visual.VisualType.LedGroup));
-                        } else {
-                            cf.accept(cr, mt.getVisuals().get(Visual.VisualType.Led));
-                        }
-                    } else if ("MiniVU".equals(type)) {
-                        cf.accept((Integer) c.get("GroupId"),
-                                mt.getVisuals().get(Visual.VisualType.Meter));
-                    } else { // param controls
-                        cf.accept(cr,mt.getParams());
-                    }
+                handleControl(e.getKey(), c, mt, images);
+            }
+        }
+        //assertEquals(List.of(),all); TODO "Name" module
+    }
+
+    private static void handleControl(String cn, Map<String, Object> c, ModuleType mt, Map<String, String> images) throws IOException {
+        String id = cn + "-" + c.get("ID");
+        String type = (String) c.get("type");
+        Integer cr = (Integer) c.get("CodeRef");
+
+        BiFunction<Integer,List<?>,Object> cf = (i, l) -> {
+            if (l == null) {
+                throw new RuntimeException("ERROR Null control list: " + c);
+            }
+            if (l.size() > i) {
+                Object o = l.get(i);
+                System.out.println(id + ": " + o);
+                return o;
+            } else {
+                throw new RuntimeException("ERROR Failed to resolve control: " + id + ", " + c + ", " + mt.getVisuals());
+            }
+        };
+
+        Object ctrl = null;
+        if ("Input".equals(type)) {
+            ctrl=cf.apply(cr, mt.inPorts);
+        } else if ("Output".equals(type)) {
+            ctrl=cf.apply(cr, mt.outPorts);
+        } else if ("PartSelector".equals(type)) {
+            ctrl=cf.apply(cr, mt.modes);
+        } else if ("Led".equals(type)) {
+            Integer gid = (Integer) c.get("GroupId");
+            List<Visual> lg = mt.getVisuals().get(Visual.VisualType.LedGroup);
+            if ("Sequencer".equals(c.get("Type"))) {
+                ctrl=cf.apply(cr, lg.get(gid).names());
+            } else { // Type: "Green"
+                List<Visual> lv = mt.getVisuals().get(Visual.VisualType.Led);
+                if (lv.isEmpty()) {
+                    ctrl=cf.apply(cr,lg.get(gid).names());
+                } else {
+                    ctrl=cf.apply(cr, lv);
                 }
-                if ("Bitmap".equals(type)) {
-                    int w = (Integer) c.get("Width");
-                    int h = (Integer) c.get("Height");
-                    String data = (String) c.get("Data");
-                    if (images.containsKey(data)) {
-                        System.out.println("dupe [image]: " + id + ": " + images.get(data));
-                    } else {
-                        images.put(data,id);
+            }
+        } else if ("MiniVU".equals(type)) {
+            ctrl=cf.apply((Integer) c.get("GroupId"),
+                    mt.getVisuals().get(Visual.VisualType.Meter));
+        } else if (cr != null) { // param controls
+            ctrl=cf.apply(cr, mt.getParams());
+        }
+
+        if ("Bitmap".equals(type)) {
+            int w = (Integer) c.get("Width");
+            int h = (Integer) c.get("Height");
+            String data = (String) c.get("Data");
+            if (images.containsKey(data)) {
+                System.out.println("dupe [bitmap]: " + id + ": " + images.get(data));
+            } else {
+                images.put(data,id);
+                writeImageFromString(
+                        data, w, h,
+                        id,
+                        false
+                );
+            }
+        } else if (c.containsKey("Image")) {
+            if (ctrl != null && ctrl.getClass() == NamedParam.class &&
+                    ((NamedParam) ctrl).param() == ModParam.ActiveMonitor)  {
+                System.out.println("Skipping image for ActiveMonitor: " + id);
+                return;
+            }
+            String data = (String) c.get("Image");
+            if (!"".equals(data)) {
+                int w = (Integer) c.get("ImageWidth");
+                int n = "ButtonRadio".equals(type) ? ((Integer) c.get("ButtonCount")) :
+                        c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 1;
+                List<String> bs = Arrays.stream(data.split(":")).toList();
+                int l = bs.size();
+                if (images.containsKey(data)) {
+                    System.out.println("dupe [image]: " + id + ": " + images.get(data));
+                } else {
+                    for (int i = 0; i < n; i++) {
+                        int h = l / w / n;
+                        int a = h * w;
+
+                        String iid = "%s-%02d".formatted(id, i);
+                        images.put(data,iid);
+                        List<String> sl = bs.subList(i * a, (i + 1) * a);
                         writeImageFromString(
-                                data, w, h,
-                                id,
-                                false
-                        );
-                    }
-                } else if (c.containsKey("Image")) {
-                    String data = (String) c.get("Image");
-                    if (!"".equals(data)) {
-                        int w = (Integer) c.get("ImageWidth");
-                        int n = c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 1;
-                        List<String> bs = Arrays.stream(data.split(":")).toList();
-                        int l = bs.size();
-                        if (images.containsKey(data)) {
-                            System.out.println("dupe [image]: " + id + ": " + images.get(data));
-                        } else {
-                            for (int i = 0; i < n; i++) {
-                                int h = l / w / n;
-                                int a = h * w;
+                                String.join(":", sl),
+                                w, h,
+                                iid,
+                                true);
 
-                                String iid = "%s-%02d".formatted(id, i);
-                                images.put(data,iid);
-                                List<String> sl = bs.subList(i * a, (i + 1) * a);
-                                writeImageFromString(
-                                        String.join(":", sl),
-                                        w, h,
-                                        iid,
-                                        true);
-
-                            }
-                        }
                     }
                 }
             }
         }
-        //assertEquals(List.of(),all); TODO "Name" module
     }
 
     record UiModule(
@@ -181,7 +202,7 @@ class MainTest {
     ){};
 
     public static void writeImageFromString(
-            String data, int width, int height, String outputFile, boolean hex) throws IOException {
+            String data, int width, int height, String outputFile, boolean image) throws IOException {
         String[] colorStrings = data.split(":");
         if (colorStrings.length != width * height) {
             throw new IllegalArgumentException("Pixel count does not match width*height");
@@ -195,7 +216,7 @@ class MainTest {
                 String color = colorStrings[pixel++];
                 int r, g, b;
 
-                if (hex) {
+                if (image) {
                     // Expecting 6-digit hex string, e.g. "aabb99"
                     if (color.length() != 6)
                         throw new IllegalArgumentException("Hex color string not 6 digits: " + color);
@@ -227,7 +248,8 @@ class MainTest {
             }
         }
 
-        ImageIO.write(img, "png", new File("data/img/" + outputFile + ".png"));
+        ImageIO.write(img, "png", new File("data/img/" +
+                (image ? "img" : "bmp") + "_" + outputFile + ".png"));
     }
 
 }
