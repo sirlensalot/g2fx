@@ -16,10 +16,10 @@ public record Visual(VisualType type, LedGroupType groupType, List<String> names
 
     public enum LedGroupType {
         None, //not a group
-        Radio, //one value at a time: mux, 8counter, sequencers
+        Radio, //one value at a time: mux, 8counter, sequencers (but is "Sequencer" in yaml)
         ADConv, //multiple, ADConv (2s complemenet) conversion
         BinCounter, //multiple, Bin counter conversion
-        Compressor //multiple, compressor conversion
+        Compressor //multiple, compressor conversion, called "Sequencer" in yaml
     }
 
 }

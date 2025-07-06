@@ -3337,11 +3337,11 @@
     ZPos: 0
     FontSize: 9
     Text: "Range"
-  - type: "PartSelector"
+  - type: "PartSelector" # MODE
     ID: 1
     XPos: 4
     YPos: 28
-    CodeRef: 0
+    CodeRef: 0 # DelayRange_2
     InfoFunc: 0
     Width: 40
     Height: 14
@@ -3353,28 +3353,28 @@
     ID: 6
     XPos: 95
     YPos: 21
-    CodeRef: 0
+    CodeRef: 0 # DelayTime_2
     InfoFunc: 0
     Type: "Medium"
   - type: "Knob"
     ID: 7
     XPos: 126
     YPos: 12
-    CodeRef: 1
+    CodeRef: 1 # FB
     InfoFunc: 0
     Type: "Medium"
   - type: "Knob"
     ID: 8
     XPos: 203
     YPos: 12
-    CodeRef: 3
+    CodeRef: 3 # DryWet
     InfoFunc: 0
     Type: "Medium"
   - type: "ButtonText"
     ID: 9
     XPos: 239
     YPos: 24
-    CodeRef: 7
+    CodeRef: 7 # ActiveMonitor
     InfoFunc: 8
     Text: "B"
     Type: "Check"
@@ -3386,7 +3386,7 @@
     ID: 10
     XPos: 240
     YPos: 4
-    CodeRef: 0
+    CodeRef: 0 # In
     InfoFunc: 0
     Type: "Audio"
     Bandwidth: "Static"
@@ -3394,7 +3394,7 @@
     ID: 11
     XPos: 240
     YPos: 45
-    CodeRef: 0
+    CodeRef: 0 # Out
     InfoFunc: 0
     Type: "Audio"
     Bandwidth: "Static"
@@ -3418,13 +3418,13 @@
     YPos: 28
     Width: 40
     MasterRef: 0
-    Text Func: 143
-    Dependencies: "0,4,S0"
+    Text Func: 143  # Dly Time compute
+    Dependencies: "0,4,S0" # Time, TimeClk, DelayRange mode
   - type: "Input"
     ID: 15
     XPos: 120
     YPos: 44
-    CodeRef: 1
+    CodeRef: 1 # FBMod
     InfoFunc: 0
     Type: "Control"
     Bandwidth: "Dynamic"
@@ -3432,7 +3432,7 @@
     ID: 16
     XPos: 134
     YPos: 37
-    CodeRef: 5
+    CodeRef: 5 # FBMod
     InfoFunc: 0
     Type: "Small"
   - type: "Line"
@@ -3454,14 +3454,14 @@
     ID: 19
     XPos: 170
     YPos: 37
-    CodeRef: 2
+    CodeRef: 2 # LP
     InfoFunc: 0
     Type: "Small"
   - type: "Input"
     ID: 20
     XPos: 197
     YPos: 44
-    CodeRef: 2
+    CodeRef: 2 # DryWetMod
     InfoFunc: 0
     Type: "Control"
     Bandwidth: "Dynamic"
@@ -3469,7 +3469,7 @@
     ID: 21
     XPos: 211
     YPos: 37
-    CodeRef: 6
+    CodeRef: 6 # DryWetMod
     InfoFunc: 0
     Type: "Small"
   - type: "Line"
@@ -3492,9 +3492,9 @@
     ID: 29
     XPos: 58
     YPos: 14
-    CodeRef: 4
+    CodeRef: 4 # TimeClk
     InfoFunc: 144
-    Text: "Time,Clk"
+    Text: "Time,Clk" # same as param
     Style: "Slim"
     Width: 30
     Image: ""
@@ -3504,7 +3504,7 @@
     ID: 5
     XPos: 170
     YPos: 14
-    CodeRef: 8
+    CodeRef: 8 # HP
     InfoFunc: 0
     Type: "Small"
   - type: "Text"

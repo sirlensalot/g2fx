@@ -329,7 +329,7 @@ public enum ModParam {
      "FX 1/2", "FX 3/4"),
     Pad_4
     (1,
-     "-12 dB", "-6 dB", "0 dB","+6 dB"),
+     "-12 dB", "-6 dB", "0 dB","+6 dB"), //TODO reversed from 2-In yaml
     MidiCh_16
     (0,
      "ch1", "ch 2", "ch3", "ch4", "ch5", "ch6", "ch7", "ch8",
@@ -392,12 +392,12 @@ public enum ModParam {
      "5 m", "25 m", "100 m", "500 m", "1.0 s", "2.0 s", "2.7 s"),
     TimeClk
     (0,
-     "Time", "Clk"),
+     "Time", "Clk"), // NB these line up with yaml
     DelayTime_2
     (0,127,0),
     DelayRange_2
     (0,
-     "500 m", "1.0 s", "2.0 s", "2.7 s"),
+     "500 m", "1.0 s", "2.0 s", "2.7 s"), // NB this lines up with images in yaml
     RatioFixed
     (0,
      "Ratio", "Fixed"),

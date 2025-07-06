@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -68,66 +70,106 @@ class MainTest {
             }
         }
 
-        {
-            ObjectMapper mapper = new YAMLMapper();
-            Map<String,String> images = new HashMap<>();
-            HashMap<String,UiModule> m = mapper.readValue(
-                    FXUtil.getResource("module-uis.yaml")
-                    , new TypeReference<>() {});
-            List<ModuleType> all = new ArrayList<>(
-                    Arrays.stream(ModuleType.values()).toList());
-            for (Map.Entry<String, UiModule> e : m.entrySet()) {
-                String mtName = "M_" + e.getValue().Name.replace('-','_').replace("&","_and_");
-                all.remove(ModuleType.valueOf(mtName));
+    }
 
-                for (Map<String, Object> c : e.getValue().controls) {
-                    String id = e.getKey() + "-" + c.get("ID");
-                    if ("Bitmap".equals(c.get("type"))) {
-                        int w = (Integer) c.get("Width");
-                        int h = (Integer) c.get("Height");
-                        String data = (String) c.get("Data");
+    /**
+     * YAML munger
+     */
+    public static void main(String... args) throws IOException {
+        ObjectMapper mapper = new YAMLMapper();
+        Map<String,String> images = new HashMap<>();
+        HashMap<String,UiModule> m = mapper.readValue(
+                FXUtil.getResource("module-uis.yaml")
+                , new TypeReference<>() {});
+        List<ModuleType> all = new ArrayList<>(
+                Arrays.stream(ModuleType.values()).toList());
+        for (Map.Entry<String, UiModule> e : m.entrySet()) {
+            String mtName = "M_" + e.getValue().Name.replace('-','_').replace("&","_and_");
+            ModuleType mt = ModuleType.valueOf(mtName);
+            all.remove(mt);
+
+            for (Map<String, Object> c : e.getValue().controls) {
+                String id = e.getKey() + "-" + c.get("ID");
+                String type = (String) c.get("type");
+                Integer cr = (Integer) c.get("CodeRef");
+                if (null != cr) {
+                    BiConsumer<Integer,List<?>> cf = (i,l) -> {
+                        if (l == null) {
+                            System.out.println("ERROR Null control list: " + c);
+                            return;
+                        }
+                        if (l.size() > i) {
+                            //System.out.println(id + ": " + l.get(i));
+                        } else {
+                            System.out.println("ERROR Failed to resolve control: " + id + ", " + c + ", " + mt.getVisuals());
+                        }
+                    };
+                    if ("Input".equals(type)) {
+                        cf.accept(cr,mt.inPorts);
+                    } else if ("Output".equals(type)) {
+                        cf.accept(cr,mt.outPorts);
+                    } else if ("PartSelector".equals(type)) {
+                        cf.accept(cr,mt.modes);
+                    } else if ("Led".equals(type)) {
+                        String ltype = (String) c.get("Type");
+                        if ("Sequencer".equals(ltype)) {
+                            cf.accept(cr, mt.getVisuals().get(Visual.VisualType.LedGroup));
+                        } else {
+                            cf.accept(cr, mt.getVisuals().get(Visual.VisualType.Led));
+                        }
+                    } else if ("MiniVU".equals(type)) {
+                        cf.accept((Integer) c.get("GroupId"),
+                                mt.getVisuals().get(Visual.VisualType.Meter));
+                    } else { // param controls
+                        cf.accept(cr,mt.getParams());
+                    }
+                }
+                if ("Bitmap".equals(type)) {
+                    int w = (Integer) c.get("Width");
+                    int h = (Integer) c.get("Height");
+                    String data = (String) c.get("Data");
+                    if (images.containsKey(data)) {
+                        System.out.println("dupe [image]: " + id + ": " + images.get(data));
+                    } else {
+                        images.put(data,id);
+                        writeImageFromString(
+                                data, w, h,
+                                id,
+                                false
+                        );
+                    }
+                } else if (c.containsKey("Image")) {
+                    String data = (String) c.get("Image");
+                    if (!"".equals(data)) {
+                        int w = (Integer) c.get("ImageWidth");
+                        int n = c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 1;
+                        List<String> bs = Arrays.stream(data.split(":")).toList();
+                        int l = bs.size();
                         if (images.containsKey(data)) {
                             System.out.println("dupe [image]: " + id + ": " + images.get(data));
                         } else {
-                            images.put(data,id);
-                            writeImageFromString(
-                                    data, w, h,
-                                    id,
-                                    false
-                            );
-                        }
-                    } else if (c.containsKey("Image")) {
-                        String data = (String) c.get("Image");
-                        if (!"".equals(data)) {
-                            int w = (Integer) c.get("ImageWidth");
-                            int n = c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 0;
-                            List<String> bs = Arrays.stream(data.split(":")).toList();
-                            int l = bs.size();
-                            if (images.containsKey(data)) {
-                                System.out.println("dupe [image]: " + id + ": " + images.get(data));
-                            } else {
-                                for (int i = 0; i < n; i++) {
-                                    int h = l / w / n;
-                                    int a = h * w;
+                            for (int i = 0; i < n; i++) {
+                                int h = l / w / n;
+                                int a = h * w;
 
-                                    String iid = "%s-%02d".formatted(id, i);
-                                    images.put(data,iid);
-                                    List<String> sl = bs.subList(i * a, (i + 1) * a);
-                                    writeImageFromString(
-                                            String.join(":", sl),
-                                            w, h,
-                                            iid,
-                                            true);
+                                String iid = "%s-%02d".formatted(id, i);
+                                images.put(data,iid);
+                                List<String> sl = bs.subList(i * a, (i + 1) * a);
+                                writeImageFromString(
+                                        String.join(":", sl),
+                                        w, h,
+                                        iid,
+                                        true);
 
-                                }
                             }
                         }
                     }
                 }
             }
-            //assertEquals(List.of(),all); TODO "Name" module
         }
+        //assertEquals(List.of(),all); TODO "Name" module
     }
+
     record UiModule(
             String Name,
             String FileName,

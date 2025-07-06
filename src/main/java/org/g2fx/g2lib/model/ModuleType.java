@@ -230,7 +230,7 @@ public enum ModuleType {
              out("Out8",Blue_red,19,1)),
      List.of(),
      List.of(),
-            ledgroup(Visual.LedGroupType.Radio, 8)),
+            ledgroup(Visual.LedGroupType.Radio, 8)), // TODO yaml has 7
     M_PartQuant
     (22, "Partial Quantizer", 2,
      ModPage.Note.ix(2),
@@ -2050,20 +2050,20 @@ public enum ModuleType {
     M_DelayB
     (177, "Delay B", 4,
      ModPage.Delay.ix(8),
-     List.of(in("In",Red,19,0),
-             in("FBMod",Blue_red,9,3),
-             in("DryWetMod",Blue_red,15,3)),
-     List.of(out("Out",Red,19,3)),
-     List.of(ModParam.DelayTime_2.mk("Time"),
-             ModParam.Level_100.mk("FB"),
-             ModParam.Level_100.mk("LP"),
-             ModParam.Level_100.mk("DryWet"),
-             ModParam.TimeClk.mk("TimeClk"),
-             ModParam.Level_100.mk("FBMod"),
-             ModParam.Level_100.mk("DryWetMod"),
-             ModParam.ActiveMonitor.mk("Active"),
-             ModParam.Level_100.mk("HP")),
-     List.of(ModParam.DelayRange_2.mk("DelayRange"))),
+     List.of(in("In",Red,19,0), // 10 <= type "Input"
+             in("FBMod",Blue_red,9,3), // 15
+             in("DryWetMod",Blue_red,15,3)), // 20
+     List.of(out("Out",Red,19,3)), // 11 <= type "Output"
+     List.of(ModParam.DelayTime_2.mk("Time"), // 6
+             ModParam.Level_100.mk("FB"), // 7
+             ModParam.Level_100.mk("LP"), // 19
+             ModParam.Level_100.mk("DryWet"), // 8
+             ModParam.TimeClk.mk("TimeClk"), // 29
+             ModParam.Level_100.mk("FBMod"), // 16
+             ModParam.Level_100.mk("DryWetMod"), // 6
+             ModParam.ActiveMonitor.mk("Active"), // 9
+             ModParam.Level_100.mk("HP")), // 5
+     List.of(ModParam.DelayRange_2.mk("DelayRange"))), // 1 <= type "PartSelector"
     M_DlyClock
     (178, "Delay Clocked", 2,
      ModPage.Delay.ix(6),
