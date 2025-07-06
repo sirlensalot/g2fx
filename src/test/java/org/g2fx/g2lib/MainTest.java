@@ -2,7 +2,8 @@ package org.g2fx.g2lib;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -78,9 +79,10 @@ class MainTest {
      * YAML munger
      */
     public static void main(String... args) throws IOException {
-        ObjectMapper mapper = new YAMLMapper();
-        Map<String,String> images = new HashMap<>();
-        HashMap<String,UiModule> m = mapper.readValue(
+        ObjectMapper mapper = new ObjectMapper(
+                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+        Map<String,Object> images = new HashMap<>();
+        TreeMap<String,UiModule> m = mapper.readValue(
                 FXUtil.getResource("module-uis.yaml")
                 , new TypeReference<>() {});
         List<ModuleType> all = new ArrayList<>(
@@ -95,9 +97,13 @@ class MainTest {
             }
         }
         //assertEquals(List.of(),all); TODO "Name" module
+
+        mapper.writeValue(
+                new File("src/main/resources/org/g2fx/g2gui/module-uis-1.yaml"),
+                m);
     }
 
-    private static void handleControl(String cn, Map<String, Object> c, ModuleType mt, Map<String, String> images) throws IOException {
+    private static void handleControl(String cn, Map<String, Object> c, ModuleType mt, Map<String, Object> images) throws IOException {
         String id = cn + "-" + c.get("ID");
         String type = (String) c.get("type");
         Integer cr = (Integer) c.get("CodeRef");
@@ -127,10 +133,12 @@ class MainTest {
             List<Visual> lg = mt.getVisuals().get(Visual.VisualType.LedGroup);
             if ("Sequencer".equals(c.get("Type"))) {
                 ctrl=cf.apply(cr, lg.get(gid).names());
+                c.put("type","Leds");
             } else { // Type: "Green"
                 List<Visual> lv = mt.getVisuals().get(Visual.VisualType.Led);
                 if (lv.isEmpty()) {
                     ctrl=cf.apply(cr,lg.get(gid).names());
+                    c.put("type","Leds");
                 } else {
                     ctrl=cf.apply(cr, lv);
                 }
@@ -147,15 +155,19 @@ class MainTest {
             int h = (Integer) c.get("Height");
             String data = (String) c.get("Data");
             if (images.containsKey(data)) {
-                System.out.println("dupe [bitmap]: " + id + ": " + images.get(data));
+                Object f = images.get(data);
+                System.out.println("dupe [bitmap]: " + id + ": " + f);
+                c.put("image",f);
             } else {
-                images.put(data,id);
-                writeImageFromString(
+                String fn = writeImageFromString(
                         data, w, h,
                         id,
                         false
                 );
+                images.put(data,fn);
+                c.put("image",fn);
             }
+            c.remove("Data");
         } else if (c.containsKey("Image")) {
             if (ctrl != null && ctrl.getClass() == NamedParam.class &&
                     ((NamedParam) ctrl).param() == ModParam.ActiveMonitor)  {
@@ -170,23 +182,27 @@ class MainTest {
                 List<String> bs = Arrays.stream(data.split(":")).toList();
                 int l = bs.size();
                 if (images.containsKey(data)) {
-                    System.out.println("dupe [image]: " + id + ": " + images.get(data));
+                    Object fs = images.get(data);
+                    System.out.println("dupe [image]: " + id + ": " + fs);
+                    c.put("images",fs);
                 } else {
+                    List<String> files = new ArrayList<>();
                     for (int i = 0; i < n; i++) {
                         int h = l / w / n;
                         int a = h * w;
 
                         String iid = "%s-%02d".formatted(id, i);
-                        images.put(data,iid);
                         List<String> sl = bs.subList(i * a, (i + 1) * a);
-                        writeImageFromString(
+                        files.add(writeImageFromString(
                                 String.join(":", sl),
                                 w, h,
                                 iid,
-                                true);
-
+                                true));
                     }
+                    images.put(data,files);
+                    c.put("images",files);
                 }
+                c.remove("Image");
             }
         }
     }
@@ -201,7 +217,7 @@ class MainTest {
             List<Map<String,Object>> controls
     ){};
 
-    public static void writeImageFromString(
+    public static String writeImageFromString(
             String data, int width, int height, String outputFile, boolean image) throws IOException {
         String[] colorStrings = data.split(":");
         if (colorStrings.length != width * height) {
@@ -248,8 +264,9 @@ class MainTest {
             }
         }
 
-        ImageIO.write(img, "png", new File("data/img/" +
-                (image ? "img" : "bmp") + "_" + outputFile + ".png"));
+        String n = outputFile + ".png";
+        ImageIO.write(img, "png", new File("data/img/" + n));
+        return n;
     }
 
 }
