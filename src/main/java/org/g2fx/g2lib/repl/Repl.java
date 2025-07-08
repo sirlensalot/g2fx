@@ -209,7 +209,7 @@ public class Repl implements Runnable {
         List<String> words = getArgs(desc,input);
         Device.EntryType type = Device.EntryType.LC_NAME_LOOKUP.get(words.removeFirst());
         int bank = parseInt(desc,"index",words.removeFirst()) - 1;
-        devices.execute(() -> {
+        devices.execute((Devices.ThrowingRunnable) () -> {
             devices.getCurrent().dumpEntries(getWriter(),type,bank);
         });
         return "Success";
@@ -226,7 +226,7 @@ public class Repl implements Runnable {
         }
         int bank = parseInt(desc,"bank",words.removeFirst()) - 1;
         int entry = parseInt(desc,"entry",words.removeFirst()) - 1;
-        devices.execute(() -> devices.getCurrent().loadEntry(slotCode,bank,entry));
+        devices.execute((Devices.ThrowingRunnable) () -> devices.getCurrent().loadEntry(slotCode,bank,entry));
         return 1;
     }
 

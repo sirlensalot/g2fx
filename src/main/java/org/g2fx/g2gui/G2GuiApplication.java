@@ -1,7 +1,8 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.beans.property.Property;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -20,11 +21,12 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.ModuleControl;
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.Slot;
-import org.g2fx.g2lib.state.SynthSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -40,24 +44,65 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class G2GuiApplication extends Application {
 
+    private Logger log = Logger.getLogger(getClass().getName());
+
     public static final String TITLE = "g2fx nord modular g2 editor";
     public final Label welcomeText = new Label();
     private Stage stage;
 
     private Devices devices;
 
+    private FXQueue fxQueue;
+
     private Node fontPane;
+
+    private List<AutoCloseable> bridges = new ArrayList<>();
+    private StringProperty synthNameProp;
 
     @Override
     public void init() throws Exception {
+        fxQueue = new FXQueue();
         devices = new Devices();
-        devices.addListener(d -> {
-            Platform.runLater(() -> {
-                SynthSettings ss = d.getSynthSettings();
-                stage.setTitle(TITLE + ": " +
-                        (ss == null ? "no settings" : ss.getDeviceName()));
-            });
-        });
+        devices.addListener(
+                new Devices.DeviceListener() {
+                    @Override
+                    public void onDeviceInitialized(Device d) throws Exception {
+                        fxQueue.execute(() -> {
+                            try {
+                                initDevice(d);
+                            } catch (Exception e) {
+                                log.log(Level.SEVERE,"Error in device init",e);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onDeviceDisposal(Device d) throws Exception {
+                        fxQueue.execute(() -> {
+                            try {
+                                disposeDevice(d);
+                            } catch (Exception e) {
+                                log.log(Level.SEVERE,"Error in device dispose",e);
+                            }
+                        });
+                    }
+                });
+
+    }
+
+    private void initDevice(Device d) throws Exception {
+        bridge(d.getSynthSettings().deviceName(),synthNameProp);
+    }
+
+    private void disposeDevice(Device d) throws Exception {
+        for (AutoCloseable bridge : bridges) {
+            bridge.close();
+        }
+    }
+
+    private <T> void bridge(LibProperty<T> libProperty, Property<T> uiProperty) {
+        PropertyBridge<T> b = new PropertyBridge<>(libProperty, uiProperty, fxQueue, devices);
+        bridges.add(b);
     }
 
     @Override
@@ -71,11 +116,12 @@ public class G2GuiApplication extends Application {
         stage.show();
 
         this.stage = stage;
+        fxQueue.startPolling();
         devices.start();
 
     }
 
-    private static Scene mkScene() {
+    private Scene mkScene() {
         TabPane slotTabs = mkSlotTabs();
 
         HBox editorBar = mkEditorBar();
@@ -86,8 +132,7 @@ public class G2GuiApplication extends Application {
                 new VBox(globalBar,editorBar,slotTabs),"top-box");
         VBox.setVgrow(slotTabs, Priority.ALWAYS);
 
-        Scene scene = new Scene(topBox, 1280, 775);
-        return scene;
+        return new Scene(topBox, 1280, 775);
     }
 
     public record ModuleButtonInfo (
@@ -296,13 +341,14 @@ public class G2GuiApplication extends Application {
         return slotTabs;
     }
 
-    private static HBox mkGlobalBar() {
+    private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
 
         TextField synthName = new TextField("synth name");
+        synthNameProp = synthName.textProperty();
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
 
@@ -430,6 +476,7 @@ public class G2GuiApplication extends Application {
 
     @Override
     public void stop() throws Exception {
+        fxQueue.shutdown();
         devices.shutdown();
     }
 

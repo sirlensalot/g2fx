@@ -1,6 +1,7 @@
 package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.repl.Repl;
+import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.util.Util;
 
@@ -31,7 +32,7 @@ public class Main {
             }
         }
 
-        Util.configureLogging(Level.WARNING);
+        Util.configureLogging(Level.INFO);  // WARNING is quiet, INFO is pretty loud
         log = Util.getLogger(Main.class);
 
         Devices devices = new Devices();
@@ -40,9 +41,18 @@ public class Main {
 
         Repl repl = new Repl(devices,replEnabled,scriptFile);
 
-        devices.addListener(d -> {
-            deviceInitialized.countDown();
-        });
+        devices.addListener(
+                new Devices.DeviceListener() {
+                    @Override
+                    public void onDeviceInitialized(Device d) throws Exception {
+                        deviceInitialized.countDown();
+                    }
+
+                    @Override
+                    public void onDeviceDisposal(Device d) throws Exception {
+
+                    }
+                });
 
         devices.start();
 

@@ -1,11 +1,25 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
 public class SynthSettings {
 
     private final FieldValues fvs;
+
+    private final LibProperty<String> deviceName = new LibProperty<>("") {
+        @Override
+        public String get() {
+            return getDeviceName();
+        }
+
+        @Override
+        public void set(String newValue) {
+            setDeviceName(newValue);
+            super.set(newValue);
+        }
+    };
 
     public SynthSettings(FieldValues fvs) {
         this.fvs = fvs;
@@ -15,9 +29,11 @@ public class SynthSettings {
         return Protocol.SynthSettings.DeviceName.stringValue(fvs);
     }
 
-    public void setDeviceName(int value) {
+    public void setDeviceName(String value) {
         fvs.update(Protocol.SynthSettings.DeviceName.value(value));
     }
+
+    public LibProperty<String> deviceName() { return deviceName; }
 
     public boolean getPerfMode() {
         return Protocol.SynthSettings.PerfMode.booleanIntValue(fvs);

@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Devices implements UsbService.UsbConnectionListener {
+public class Devices implements UsbService.UsbConnectionListener, Executor {
 
     private static final Logger log = Util.getLogger(Devices.class);
 
@@ -22,6 +22,7 @@ public class Devices implements UsbService.UsbConnectionListener {
 
     public interface DeviceListener {
         void onDeviceInitialized(Device d) throws Exception;
+        void onDeviceDisposal(Device d) throws Exception;
     }
 
     public List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
@@ -82,7 +83,16 @@ public class Devices implements UsbService.UsbConnectionListener {
     private void disconnected(UsbService.UsbDevice ud) {
         Device d = devices.remove(ud.address());
         if (d != null) {
+            listeners.forEach(l -> {
+                try {
+                    l.onDeviceDisposal(d);
+                } catch (Exception e) {
+                    log.log(Level.SEVERE,"Error in device disposal listener",e);
+                }
+            });
+
             d.shutdown();
+
         }
     }
 
@@ -181,6 +191,11 @@ public class Devices implements UsbService.UsbConnectionListener {
             throw new RuntimeException("Unable to invoke callable",e);
         }
 
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        execute((ThrowingRunnable) command::run);
     }
 
     public void execute(ThrowingRunnable r) {
