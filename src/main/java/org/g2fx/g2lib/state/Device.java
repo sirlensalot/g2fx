@@ -83,6 +83,10 @@ public class Device implements Dispatcher {
         this.usb = null;
     }
 
+    public Performance getPerf() {
+        return perf;
+    }
+
     public Repl.Path loadPerfFile(String filePath) throws Exception {
         perf = Performance.readFromFile(filePath);
         String name = new File(filePath).getName();

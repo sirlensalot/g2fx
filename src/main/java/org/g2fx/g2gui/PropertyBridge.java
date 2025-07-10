@@ -1,115 +1,124 @@
 package org.g2fx.g2gui;
 
-import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.LibProperty.LibPropertyListener;
+import org.g2fx.g2lib.state.Device;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
- * Bridges a backend Property<T> and a JavaFX Property<T>.
- * Synchronizes changes bidirectionally, with optional thread dispatching.
- * Supports disposal to unregister listeners and allow garbage collection.
+ * Implements bi-directional listeners for a LibProperty and a javaFX Property,
+ * where property change events are propagated to the opposite property on
+ * the appropriate thread, with locks to prevent reentrancy.
  */
-public class PropertyBridge<T> implements AutoCloseable {
-    private static final Logger logger = Logger.getLogger(PropertyBridge.class.getName());
+public class PropertyBridge<T> {
 
-    private final LibProperty<T> libProperty;
+    private static final Logger log =
+            Logger.getLogger(PropertyBridge.class.getName());
+
+    private LibProperty<T> libProperty;
+    private final LibPropertyListener<T> libListener;
+    /**
+     * lib update lock. All reads/writes on lib thread.
+     */
+    private boolean updatingLib = false;
+
     private final Property<T> fxProperty;
-    private final Executor fxExecutor; // For dispatching to FX thread if needed
-    private final Executor backendExecutor; // For dispatching to backend thread if needed
-
-    private final AtomicBoolean updatingBackend = new AtomicBoolean(false);
-    private final AtomicBoolean updatingFx = new AtomicBoolean(false);
-
-    // Keep references to listeners for removal
-    private final LibPropertyListener<T> backendListener;
     private final ChangeListener<T> fxListener;
+    /**
+     * fx update lock. All reads/writes on fx thread.
+     */
+    private boolean updatingFx = false;
 
-    private volatile boolean disposed = false;
+    private final Function<Device,Runnable> initFinalizer;
 
-    public PropertyBridge(LibProperty<T> libProperty,
+    /**
+     * active flag read on both threads. also guards libProperty being not null.
+     */
+    private volatile boolean active = false;
+
+    /**
+     * Constructor called on fx thread.
+     */
+    public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
+                          Executor libExecutor,
                           Property<T> fxProperty,
-                          Executor fxExecutor,
-                          Executor backendExecutor) {
-        this.libProperty = libProperty;
-        this.fxProperty = fxProperty;
-        this.fxExecutor = fxExecutor;
-        this.backendExecutor = backendExecutor;
+                          Executor fxExecutor) {
 
-        // Define listeners
-        this.backendListener = (oldVal, newVal) -> {
-            if (disposed || updatingBackend.get()) return;
-            if (!updatingFx.compareAndSet(false,true)) return;
-            Runnable updateFx = () -> {
-                try {
-                    fxProperty.setValue(newVal);
-                } finally {
-                    updatingFx.set(false);
-                }
-            };
-            if (!Platform.isFxApplicationThread()) {
-                fxExecutor.execute(updateFx);
-            } else {
-                updateFx.run();
-            }
+        this.fxProperty = fxProperty;
+
+        libListener = (oldVal, newVal) -> {
+            // on lib thread, so lock read is safe
+            if (!active || updatingLib) return;
+            fxExecutor.execute(mkFxUpdate(newVal));
         };
 
-        this.fxListener = (obs, oldVal, newVal) -> {
-            if (disposed || updatingFx.get()) return;
-            if (!updatingBackend.compareAndSet(false,true)) return;
-            backendExecutor.execute(() -> {
+        fxListener = (obs, oldVal, newVal) -> {
+            // on fx thread, so lock read is safe
+            if (!active || updatingFx) return;
+            libExecutor.execute(() -> {
+                // on lib thread: lock lib updates
+                updatingLib = true;
                 try {
                     libProperty.set(newVal);
                 } finally {
-                    updatingBackend.set(false);
+                    // unlock lib updates
+                    updatingLib = false;
                 }
             });
         };
 
-        wireUp();
-    }
-
-    private void wireUp() {
-        libProperty.addListener(backendListener);
         fxProperty.addListener(fxListener);
 
-        // Initial sync: set FX property to backend value.
-        // If you want to also fire listeners, do so manually after bridge creation.
-        if (!Platform.isFxApplicationThread() && fxExecutor != null) {
-            fxExecutor.execute(() -> fxProperty.setValue(libProperty.get()));
-        } else {
-            fxProperty.setValue(libProperty.get());
-        }
+        initFinalizer = d -> {
+            libProperty = libPropertyBuilder.apply(d);
+            active = true;
+            libProperty.addListener(libListener);
+            return mkFxUpdate(libProperty.get());
+        };
+
     }
 
-    /**
-     * Unregister listeners to break reference cycles and allow garbage collection.
-     * After disposal, the bridge will no longer synchronize properties.
-     */
-    @Override
-    public void close() {
-        dispose();
+    public Runnable finalizeInit(Device d) {
+        return initFinalizer.apply(d);
     }
+
+    private Runnable mkFxUpdate(T newVal) {
+        return () -> {
+            // on fx thread: lock fx update
+            updatingFx = true;
+            try {
+                fxProperty.setValue(newVal);
+            } finally {
+                // unlock fx update
+                updatingFx = false;
+            }
+        };
+    }
+
+
 
     public void dispose() {
-        if (disposed) return;
-        disposed = true;
+
+        if (!active) return;
+        active = false;
 
         try {
-            libProperty.removeListener(backendListener);
+            libProperty.removeListener(libListener);
         } catch (Exception e) {
-            logger.warning("Failed to remove backend listener: " + e.getMessage());
+            log.warning("Failed to remove backend listener: " + e.getMessage());
         }
 
         try {
+            //TODO this should be on fx thread
             fxProperty.removeListener(fxListener);
         } catch (Exception e) {
-            logger.warning("Failed to remove FX listener: " + e.getMessage());
+            log.warning("Failed to remove FX listener: " + e.getMessage());
         }
     }
+
 }

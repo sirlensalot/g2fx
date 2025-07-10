@@ -2,7 +2,6 @@ package org.g2fx.g2gui;
 
 import javafx.application.Application;
 import javafx.beans.property.Property;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -56,8 +56,7 @@ public class G2GuiApplication extends Application {
 
     private Node fontPane;
 
-    private List<AutoCloseable> bridges = new ArrayList<>();
-    private StringProperty synthNameProp;
+    private List<PropertyBridge<?>> bridges = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -67,13 +66,7 @@ public class G2GuiApplication extends Application {
                 new Devices.DeviceListener() {
                     @Override
                     public void onDeviceInitialized(Device d) throws Exception {
-                        fxQueue.execute(() -> {
-                            try {
-                                initDevice(d);
-                            } catch (Exception e) {
-                                log.log(Level.SEVERE,"Error in device init",e);
-                            }
-                        });
+                        initDevice(d);
                     }
 
                     @Override
@@ -91,18 +84,23 @@ public class G2GuiApplication extends Application {
     }
 
     private void initDevice(Device d) throws Exception {
-        bridge(d.getSynthSettings().deviceName(),synthNameProp);
+
+        //finalize bridges
+        //on lib thread: finalize bridges to get fx init updates
+        List<Runnable> fxUpdates = bridges.stream().map(b -> b.finalizeInit(d)).toList();
+        //run all updates on fx thread
+        fxQueue.execute(() -> fxUpdates.forEach(Runnable::run));
+
     }
 
     private void disposeDevice(Device d) throws Exception {
-        for (AutoCloseable bridge : bridges) {
-            bridge.close();
+        for (PropertyBridge<?> bridge : bridges) {
+            bridge.dispose();
         }
     }
 
-    private <T> void bridge(LibProperty<T> libProperty, Property<T> uiProperty) {
-        PropertyBridge<T> b = new PropertyBridge<>(libProperty, uiProperty, fxQueue, devices);
-        bridges.add(b);
+    private <T> void bridge(Property<T> fxProperty, Function<Device,LibProperty<T>> libProperty) {
+        bridges.add(new PropertyBridge<T>(libProperty, devices, fxProperty, fxQueue));
     }
 
     @Override
@@ -343,12 +341,13 @@ public class G2GuiApplication extends Application {
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
+        //bridge(perfName.textProperty(),d -> d.getPerf());
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
 
         TextField synthName = new TextField("synth name");
-        synthNameProp = synthName.textProperty();
+        bridge(synthName.textProperty(),d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
 
