@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -29,6 +30,19 @@ public class Performance {
     private int version;
 
     private FieldValues perfName;
+    private LibProperty<String> perfNameProperty = new LibProperty<>("") {
+        @Override
+        public String get() {
+            return getName();
+        }
+
+        @Override
+        public void set(String newValue) {
+            setName(newValue);
+            super.set(newValue);
+        }
+    };
+
     private String fileName;
     private PerformanceSettings perfSettings;
     private GlobalKnobAssignments globalKnobAssignments;
@@ -116,6 +130,10 @@ public class Performance {
 
     public GlobalKnobAssignments getGlobalKnobAssignments() {
         return globalKnobAssignments;
+    }
+
+    public LibProperty<String> perfName() {
+        return perfNameProperty;
     }
 
     public String getName() {

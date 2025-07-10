@@ -341,9 +341,12 @@ public class G2GuiApplication extends Application {
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        //bridge(perfName.textProperty(),d -> d.getPerf());
+        bridge(perfName.textProperty(),d -> d.getPerf().perfName());
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
+        bridge(clockSpinner.getValueFactory().valueProperty(),
+                d -> d.getPerf().getPerfSettings().masterClock());
+
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
 
         TextField synthName = new TextField("synth name");

@@ -1,11 +1,25 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
 public class PerformanceSettings {
 
     private final FieldValues fvs;
+
+    private final LibProperty<Integer> masterClock = new LibProperty<>(60) {
+        @Override
+        public Integer get() {
+            return getMasterClock();
+        }
+
+        @Override
+        public void set(Integer newValue) {
+            setMasterClock(newValue);
+            super.set(newValue);
+        }
+    };
 
     public PerformanceSettings(FieldValues fvs) {
         this.fvs = fvs;
@@ -34,6 +48,8 @@ public class PerformanceSettings {
     public void setMasterClock(int value) {
         fvs.update(Protocol.PerformanceSettings.MasterClock.value(value));
     }
+
+    public LibProperty<Integer> masterClock() { return masterClock; }
 
     public int getMasterClockRun() {
         return Protocol.PerformanceSettings.MasterClockRun.intValue(fvs);
