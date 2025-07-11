@@ -27,26 +27,13 @@
     -fx-alignment: center-left;
 }
 
-.slot-tabs {
-    -fx-tab-min-width: 16px;
-}
+
 .slot-tabs .tab-header-area {
+    -fx-max-height: 0;
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
     -fx-padding: 0;
-}
-
-.slot-tab {
-    -fx-border-width: 4px 0px 0px 0px;
-    -fx-border-color: #444444;
-    -fx-border-style: solid;
-    -fx-background-color: #e8e8e8;
-}
-
-.slot-keyboard {
-    -fx-border-color: #FF0000;
-}
-
-.slot-enabled {
-    -fx-background-color: cyan;
 }
 
 .var-button:selected {

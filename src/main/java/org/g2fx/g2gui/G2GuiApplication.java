@@ -31,10 +31,7 @@ import org.g2fx.g2lib.state.Slot;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -57,6 +54,7 @@ public class G2GuiApplication extends Application {
     private Node fontPane;
 
     private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
+    private TabPane slotTabs;
 
     @Override
     public void init() throws Exception {
@@ -128,7 +126,7 @@ public class G2GuiApplication extends Application {
             Integer modIndex,
             Button button) {}
 
-    private static HBox mkEditorBar() {
+    private HBox mkEditorBar() {
         Button newButton = withClass(new Button("New"),"new-patch-button","reset-patch-button");
         Button init1Button = withClass(new Button("Init1"),"init1-patch-button","reset-patch-button");
         Button init2Button = withClass(new Button("Init2"),"init2-patch-button","reset-patch-button");
@@ -151,7 +149,7 @@ public class G2GuiApplication extends Application {
         ),"editor-bar","bar","gfont");
     }
 
-    private static VBox mkMorphsBox() {
+    private VBox mkMorphsBox() {
         List<VBox> morphs = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             String morphCtl = PatchModule.MORPH_LABELS[i];
@@ -161,6 +159,7 @@ public class G2GuiApplication extends Application {
             });
             TextField tf =
                     withClass(new TextField("Group " + i), "morph-name");
+            //bridge(tf.textProperty(),d -> d.getPerf().getSelectedPatch().)
             tf.setPadding(new Insets(1));
             morphs.add(withClass(new VBox(
                     tf,
@@ -175,7 +174,7 @@ public class G2GuiApplication extends Application {
         return morphsBox;
     }
 
-    private static VBox mkLoadMeterBox() {
+    private VBox mkLoadMeterBox() {
         LoadMeter voiceCycles = FXUtil.withClass(
                 new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
         LoadMeter voiceMem = FXUtil.withClass(
@@ -326,39 +325,8 @@ public class G2GuiApplication extends Application {
 
         }
 
-        TabPane slotTabs = withClass(new TabPane(slots.toArray(new Tab[]{})), "slot-tabs","gfont");
+        slotTabs = withClass(new TabPane(slots.toArray(new Tab[]{})), "slot-tabs","gfont");
 
-        bridges.add(new PropertyBridge<Integer, Tab>(
-                d -> d.getPerf().getPerfSettings().selectedSlot(),
-                devices,
-                new PropertyBridge.FxProperty<>() {
-                    @Override
-                    public void setValue(Tab value) {
-                        slotTabs.getSelectionModel().select(value);
-                    }
-
-                    @Override
-                    public void addListener(ChangeListener<Tab> listener) {
-                        slotTabs.getSelectionModel().selectedItemProperty().addListener(listener);
-                    }
-
-                    @Override
-                    public void removeListener(ChangeListener<Tab> listener) {
-                        slotTabs.getSelectionModel().selectedItemProperty().removeListener(listener);
-                    }
-                },
-                fxQueue,
-                new PropertyBridge.Iso<>() {
-                    @Override
-                    public Tab to(Integer integer) {
-                        return slotTabs.getTabs().get(integer);
-                    }
-
-                    @Override
-                    public Integer from(Tab tab) {
-                        return (Integer) tab.getUserData();
-                    }
-                }));
 
         return slotTabs;
     }
@@ -374,6 +342,54 @@ public class G2GuiApplication extends Application {
 
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
 
+        List<ToggleButton> sbs = Arrays.stream(Slot.values()).map(s -> {
+            ToggleButton b = withClass(new RadioButton(s.name()), "slot-button");
+            b.setFocusTraversable(false);
+            b.getStyleClass().remove("radio-button");
+            b.getStyleClass().add("toggle-button");
+            b.setUserData(s.ordinal());
+            return b;
+        }).toList();
+        sbs.getFirst().setSelected(true);
+
+        SegmentedButton slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})),"slot-bar");
+
+
+        bridges.add(new PropertyBridge<Integer, Toggle>(
+                d -> d.getPerf().getPerfSettings().selectedSlot(),
+                devices,
+                new PropertyBridge.FxProperty<>() {
+                    @Override
+                    public void setValue(Toggle value) {
+                        value.setSelected(true);
+                    }
+
+                    @Override
+                    public void addListener(ChangeListener<Toggle> listener) {
+                        slotBar.getToggleGroup().selectedToggleProperty().addListener(listener);
+                    }
+
+                    @Override
+                    public void removeListener(ChangeListener<Toggle> listener) {
+                        slotBar.getToggleGroup().selectedToggleProperty().removeListener(listener);
+                    }
+                },
+                fxQueue,
+                new PropertyBridge.Iso<>() {
+                    @Override
+                    public Toggle to(Integer integer) {
+                        return slotBar.getToggleGroup().getToggles().get(integer);
+                    }
+
+                    @Override
+                    public Integer from(Toggle tab) {
+                        return (Integer) tab.getUserData();
+                    }
+                }));
+        slotBar.getToggleGroup().selectedToggleProperty().addListener((v,o,n) ->
+                slotChanged(o == null ? null : (Integer) o.getUserData(),
+                        n == null ? null : (Integer) n.getUserData()));
+
         TextField synthName = new TextField("synth name");
         bridge(synthName.textProperty(),d -> d.getSynthSettings().deviceName());
 
@@ -385,17 +401,22 @@ public class G2GuiApplication extends Application {
                 label("Master\nClock"),
                 clockSpinner,
                 runClockButton,
+                slotBar,
                 synthName,
                 perfModeButton
         ),"global-bar","bar","gfont");
         return globalBar;
     }
 
+    private void slotChanged(Integer oldSlot, Integer newSlot) {
+        slotTabs.getSelectionModel().select(newSlot);
+    }
 
 
-    private static VBox mkPatchBox(Slot slot, Tab t) {
+    private VBox mkPatchBox(Slot slot, Tab t) {
 
-        TextField patchName = new TextField("patch name");
+        TextField patchName = new TextField("slot" + slot);
+        bridge(patchName.textProperty(),d -> d.getPerf().getSlot(slot).name());
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
                 "No Cat",
                 "Acoustic",
@@ -420,7 +441,12 @@ public class G2GuiApplication extends Application {
 
         List<ToggleButton> varButtons = new ArrayList<>();
         for (int i = 1; i < 9; i++) {
-            varButtons.add(withClass(new ToggleButton(Integer.toString(i)),"var-button"));
+            RadioButton b = new RadioButton(Integer.toString(i));
+            b.setSelected(i==1);
+            b.setFocusTraversable(false);
+            varButtons.add(withClass(b,"var-button"));
+            b.getStyleClass().remove("radio-button");
+            b.getStyleClass().add("toggle-button");
         }
         SegmentedButton varSelector = new SegmentedButton(varButtons.toArray(new ToggleButton[] {}));
 

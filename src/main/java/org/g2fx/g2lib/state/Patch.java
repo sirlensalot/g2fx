@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.protocol.FieldValue;
 import org.g2fx.g2lib.protocol.FieldValues;
@@ -85,7 +86,7 @@ public class Patch {
     };
 
     public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
-    private String name;
+    private LibProperty<String> name;
     private final Slot slot;
     public int version;
 
@@ -324,7 +325,7 @@ public class Patch {
             case SKnobAssignments -> this.knobAssignments = new KnobAssignments(section.values);
             case SControlAssignments -> this.controls = new ControlAssignments(section.values);
             case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
-            case SPatchName -> this.name = Protocol.EntryName.Name.stringValue(section.values);
+            case SPatchName -> this.name = LibProperty.stringFieldProperty(section.values, Protocol.EntryName.Name);
         }
     }
 
@@ -423,7 +424,7 @@ public class Patch {
         return patchSettings;
     }
 
-    public String getName() {
+    public LibProperty<String> name() {
         return name;
     }
 }
