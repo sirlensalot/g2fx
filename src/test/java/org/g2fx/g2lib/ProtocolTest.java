@@ -804,7 +804,7 @@ class ProtocolTest {
     }
 
     private static void testPerformanceSettings(PerformanceSettings ps) {
-        assertEquals(1, ps.getSelectedSlot());
+        assertEquals(1, ps.selectedSlot().get());
         assertEquals(0, ps.getKeyboardRangeEnabled());
         assertEquals(0x78, (int) ps.masterClock().get());
         assertEquals(0, ps.getMasterClockRun());

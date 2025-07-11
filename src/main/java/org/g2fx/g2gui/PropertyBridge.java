@@ -15,10 +15,39 @@ import java.util.logging.Logger;
  * where property change events are propagated to the opposite property on
  * the appropriate thread, with locks to prevent reentrancy.
  */
-public class PropertyBridge<T> {
+public class PropertyBridge<T,F> {
+
+
+    public interface Iso<A,B> {
+        B to(A a);
+        A from(B b);
+    }
+
+    public static <I> Iso<I,I> id() {
+        return new Iso<>() {
+            @Override public I to(I i) { return i; }
+            @Override public I from(I i) { return i; }
+        };
+    }
+
+    public interface FxProperty<T> {
+        void setValue(T value);
+        void addListener(ChangeListener<T> listener);
+        void removeListener(ChangeListener<T> listener);
+    }
+
+    public static <T> FxProperty<T> adaptProperty(Property<T> p) {
+        return new FxProperty<T>() {
+            @Override public void setValue(T value) { p.setValue(value); }
+            @Override public void addListener(ChangeListener<T> listener) { p.addListener(listener); }
+            @Override public void removeListener(ChangeListener<T> listener) { p.removeListener(listener); }
+        };
+    }
 
     private static final Logger log =
             Logger.getLogger(PropertyBridge.class.getName());
+
+    private final Iso<T, F> iso;
 
     private LibProperty<T> libProperty;
     private final LibPropertyListener<T> libListener;
@@ -27,8 +56,8 @@ public class PropertyBridge<T> {
      */
     private boolean updatingLib = false;
 
-    private final Property<T> fxProperty;
-    private final ChangeListener<T> fxListener;
+    private final FxProperty<F> fxProperty;
+    private final ChangeListener<F> fxListener;
     /**
      * fx update lock. All reads/writes on fx thread.
      */
@@ -41,15 +70,22 @@ public class PropertyBridge<T> {
      */
     private volatile boolean active = false;
 
-    /**
-     * Constructor called on fx thread.
-     */
     public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
                           Executor libExecutor,
-                          Property<T> fxProperty,
-                          Executor fxExecutor) {
+                          Property<F> fxProperty,
+                          Executor fxExecutor,
+                          Iso<T,F> iso) {
+        this(libPropertyBuilder,libExecutor,adaptProperty(fxProperty),fxExecutor,iso);
+    }
+
+    public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
+                          Executor libExecutor,
+                          FxProperty<F> fxProperty,
+                          Executor fxExecutor,
+                          Iso<T,F> iso) {
 
         this.fxProperty = fxProperty;
+        this.iso = iso;
 
         libListener = (oldVal, newVal) -> {
             // on lib thread, so lock read is safe
@@ -64,7 +100,7 @@ public class PropertyBridge<T> {
                 // on lib thread: lock lib updates
                 updatingLib = true;
                 try {
-                    libProperty.set(newVal);
+                    libProperty.set(iso.from(newVal));
                 } finally {
                     // unlock lib updates
                     updatingLib = false;
@@ -72,7 +108,7 @@ public class PropertyBridge<T> {
             });
         };
 
-        fxProperty.addListener(fxListener);
+        this.fxProperty.addListener(fxListener);
 
         initFinalizer = d -> {
             libProperty = libPropertyBuilder.apply(d);
@@ -92,7 +128,7 @@ public class PropertyBridge<T> {
             // on fx thread: lock fx update
             updatingFx = true;
             try {
-                fxProperty.setValue(newVal);
+                setFxValue(iso.to(newVal));
             } finally {
                 // unlock fx update
                 updatingFx = false;
@@ -100,11 +136,14 @@ public class PropertyBridge<T> {
         };
     }
 
+    protected void setFxValue(F fv) {
+        fxProperty.setValue(fv);
+    }
 
 
-    public void dispose() {
+    public Runnable dispose() {
 
-        if (!active) return;
+        if (!active) return () -> {};
         active = false;
 
         try {
@@ -113,12 +152,15 @@ public class PropertyBridge<T> {
             log.warning("Failed to remove backend listener: " + e.getMessage());
         }
 
-        try {
-            //TODO this should be on fx thread
-            fxProperty.removeListener(fxListener);
-        } catch (Exception e) {
-            log.warning("Failed to remove FX listener: " + e.getMessage());
-        }
+        return () -> {
+            try {
+                //TODO this should be on fx thread
+                fxProperty.removeListener(fxListener);
+            } catch (Exception e) {
+                log.warning("Failed to remove FX listener: " + e.getMessage());
+            }
+        };
+
     }
 
 }

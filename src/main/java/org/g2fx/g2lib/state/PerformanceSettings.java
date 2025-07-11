@@ -9,18 +9,16 @@ public class PerformanceSettings {
     private final FieldValues fvs;
 
     private final LibProperty<Integer> masterClock;
+    private final LibProperty<Integer> selectedSlot;
 
     public PerformanceSettings(FieldValues fvs) {
         this.fvs = fvs;
         this.masterClock = LibProperty.intFieldProperty(fvs, Protocol.PerformanceSettings.MasterClock);
+        this.selectedSlot = LibProperty.intFieldProperty(fvs, Protocol.PerformanceSettings.SelectedSlot);
     }
 
-    public int getSelectedSlot() {
-        return Protocol.PerformanceSettings.SelectedSlot.intValue(fvs);
-    }
-
-    public void setSelectedSlot(int value) {
-        fvs.update(Protocol.PerformanceSettings.SelectedSlot.value(value));
+    public LibProperty<Integer> selectedSlot() {
+        return selectedSlot;
     }
 
     public int getKeyboardRangeEnabled() {

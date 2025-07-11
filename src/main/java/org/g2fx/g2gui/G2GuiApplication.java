@@ -2,6 +2,7 @@ package org.g2fx.g2gui;
 
 import javafx.application.Application;
 import javafx.beans.property.Property;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -56,36 +56,25 @@ public class G2GuiApplication extends Application {
 
     private Node fontPane;
 
-    private List<PropertyBridge<?>> bridges = new ArrayList<>();
+    private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
         fxQueue = new FXQueue();
         devices = new Devices();
-        devices.addListener(
-                new Devices.DeviceListener() {
+        devices.addListener(new Devices.DeviceListener() {
                     @Override
                     public void onDeviceInitialized(Device d) throws Exception {
                         initDevice(d);
                     }
-
                     @Override
                     public void onDeviceDisposal(Device d) throws Exception {
-                        fxQueue.execute(() -> {
-                            try {
-                                disposeDevice(d);
-                            } catch (Exception e) {
-                                log.log(Level.SEVERE,"Error in device dispose",e);
-                            }
-                        });
-                    }
-                });
+                        disposeDevice(d);
+                    }});
 
     }
 
     private void initDevice(Device d) throws Exception {
-
-        //finalize bridges
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = bridges.stream().map(b -> b.finalizeInit(d)).toList();
         //run all updates on fx thread
@@ -94,13 +83,14 @@ public class G2GuiApplication extends Application {
     }
 
     private void disposeDevice(Device d) throws Exception {
-        for (PropertyBridge<?> bridge : bridges) {
-            bridge.dispose();
-        }
+        //on lib thread: dispose lib listeners, get fx disposals
+        List<Runnable> fxDisposals = bridges.stream().map(PropertyBridge::dispose).toList();
+        //run all disposals on fx thread
+        fxQueue.execute(() -> fxDisposals.forEach(Runnable::run));
     }
 
     private <T> void bridge(Property<T> fxProperty, Function<Device,LibProperty<T>> libProperty) {
-        bridges.add(new PropertyBridge<T>(libProperty, devices, fxProperty, fxQueue));
+        bridges.add(new PropertyBridge<>(libProperty, devices, fxProperty, fxQueue,PropertyBridge.id()));
     }
 
     @Override
@@ -323,11 +313,12 @@ public class G2GuiApplication extends Application {
         return moduleSelectBox;
     }
 
-    private static TabPane mkSlotTabs() {
+    private TabPane mkSlotTabs() {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
 
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
+            t.setUserData(slot.ordinal());
             VBox pb = mkPatchBox(slot,t);
             t.setContent(pb);
             t.setClosable(false);
@@ -336,8 +327,42 @@ public class G2GuiApplication extends Application {
         }
 
         TabPane slotTabs = withClass(new TabPane(slots.toArray(new Tab[]{})), "slot-tabs","gfont");
+
+        bridges.add(new PropertyBridge<Integer, Tab>(
+                d -> d.getPerf().getPerfSettings().selectedSlot(),
+                devices,
+                new PropertyBridge.FxProperty<>() {
+                    @Override
+                    public void setValue(Tab value) {
+                        slotTabs.getSelectionModel().select(value);
+                    }
+
+                    @Override
+                    public void addListener(ChangeListener<Tab> listener) {
+                        slotTabs.getSelectionModel().selectedItemProperty().addListener(listener);
+                    }
+
+                    @Override
+                    public void removeListener(ChangeListener<Tab> listener) {
+                        slotTabs.getSelectionModel().selectedItemProperty().removeListener(listener);
+                    }
+                },
+                fxQueue,
+                new PropertyBridge.Iso<>() {
+                    @Override
+                    public Tab to(Integer integer) {
+                        return slotTabs.getTabs().get(integer);
+                    }
+
+                    @Override
+                    public Integer from(Tab tab) {
+                        return (Integer) tab.getUserData();
+                    }
+                }));
+
         return slotTabs;
     }
+
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");

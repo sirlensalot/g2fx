@@ -150,7 +150,7 @@ public class Performance {
     }
 
     public Slot getSelectedSlot() {
-        return Slot.fromIndex(perfSettings.getSelectedSlot());
+        return Slot.fromIndex(perfSettings.selectedSlot().get());
     }
 
 
