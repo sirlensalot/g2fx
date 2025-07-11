@@ -8,29 +8,11 @@ public class SynthSettings {
 
     private final FieldValues fvs;
 
-    private final LibProperty<String> deviceName = new LibProperty<>("") {
-        @Override
-        public String get() {
-            return getDeviceName();
-        }
-
-        @Override
-        public void set(String newValue) {
-            setDeviceName(newValue);
-            super.set(newValue);
-        }
-    };
+    private final LibProperty<String> deviceName;
 
     public SynthSettings(FieldValues fvs) {
         this.fvs = fvs;
-    }
-
-    public String getDeviceName() {
-        return Protocol.SynthSettings.DeviceName.stringValue(fvs);
-    }
-
-    public void setDeviceName(String value) {
-        fvs.update(Protocol.SynthSettings.DeviceName.value(value));
+        this.deviceName = LibProperty.stringFieldProperty(fvs, Protocol.SynthSettings.DeviceName);
     }
 
     public LibProperty<String> deviceName() { return deviceName; }

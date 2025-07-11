@@ -29,19 +29,7 @@ public class Performance {
 
     private int version;
 
-    private FieldValues perfName;
-    private LibProperty<String> perfNameProperty = new LibProperty<>("") {
-        @Override
-        public String get() {
-            return getName();
-        }
-
-        @Override
-        public void set(String newValue) {
-            setName(newValue);
-            super.set(newValue);
-        }
-    };
+    private LibProperty<String> perfName;
 
     private String fileName;
     private PerformanceSettings perfSettings;
@@ -93,7 +81,7 @@ public class Performance {
 
     public boolean readPerformanceNameAndSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf.slice());
-        perfName = Protocol.EntryName.FIELDS.read(bb);
+        perfName = LibProperty.stringFieldProperty(Protocol.EntryName.FIELDS.read(bb),Protocol.EntryName.Name);
         perfSettings = new PerformanceSettings(
                 readSectionSlice(bb.slice(),Sections.SPerformanceSettings));
         log.info(() -> "readPerformanceNameAndSettings");
@@ -133,19 +121,15 @@ public class Performance {
     }
 
     public LibProperty<String> perfName() {
-        return perfNameProperty;
+        return perfName;
     }
 
     public String getName() {
-        return perfName == null ? fileName : Protocol.EntryName.Name.stringValue(perfName);
-    }
-
-    public void setName(String name) {
-        perfName.update(Protocol.EntryName.Name.value(name));
+        return perfName.get();
     }
 
     public void setFileName(String fileName) {
-        this.fileName = fileName;
+        perfName = new LibProperty<>(fileName);
     }
 
     public PerformanceSettings getPerfSettings() {

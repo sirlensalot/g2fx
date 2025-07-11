@@ -8,21 +8,11 @@ public class PerformanceSettings {
 
     private final FieldValues fvs;
 
-    private final LibProperty<Integer> masterClock = new LibProperty<>(60) {
-        @Override
-        public Integer get() {
-            return getMasterClock();
-        }
-
-        @Override
-        public void set(Integer newValue) {
-            setMasterClock(newValue);
-            super.set(newValue);
-        }
-    };
+    private final LibProperty<Integer> masterClock;
 
     public PerformanceSettings(FieldValues fvs) {
         this.fvs = fvs;
+        this.masterClock = LibProperty.intFieldProperty(fvs, Protocol.PerformanceSettings.MasterClock);
     }
 
     public int getSelectedSlot() {
@@ -39,14 +29,6 @@ public class PerformanceSettings {
 
     public void setKeyboardRangeEnabled(int value) {
         fvs.update(Protocol.PerformanceSettings.KeyboardRangeEnabled.value(value));
-    }
-
-    public int getMasterClock() {
-        return Protocol.PerformanceSettings.MasterClock.intValue(fvs);
-    }
-
-    public void setMasterClock(int value) {
-        fvs.update(Protocol.PerformanceSettings.MasterClock.value(value));
     }
 
     public LibProperty<Integer> masterClock() { return masterClock; }
