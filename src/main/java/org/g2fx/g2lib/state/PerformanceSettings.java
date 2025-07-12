@@ -4,6 +4,9 @@ import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class PerformanceSettings {
 
     private final FieldValues fvs;
@@ -11,10 +14,15 @@ public class PerformanceSettings {
     private final LibProperty<Integer> masterClock;
     private final LibProperty<Integer> selectedSlot;
 
+    private final List<SlotSettings> slotSettings;
+
     public PerformanceSettings(FieldValues fvs) {
         this.fvs = fvs;
         this.masterClock = LibProperty.intFieldProperty(fvs, Protocol.PerformanceSettings.MasterClock);
         this.selectedSlot = LibProperty.intFieldProperty(fvs, Protocol.PerformanceSettings.SelectedSlot);
+        slotSettings = Arrays.stream(Slot.values()).map(s -> new SlotSettings(
+                Protocol.PerformanceSettings.Slots.subfieldsValue(fvs).get(s.ordinal())
+        )).toList();
     }
 
     public LibProperty<Integer> selectedSlot() {
@@ -40,9 +48,7 @@ public class PerformanceSettings {
     }
 
     public SlotSettings getSlotSettings(Slot slot) {
-        return new SlotSettings(
-                Protocol.PerformanceSettings.Slots.subfieldsValue(fvs)
-                        .get(slot.ordinal()));
+        return slotSettings.get(slot.ordinal());
     }
     
 

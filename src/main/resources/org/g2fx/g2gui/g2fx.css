@@ -36,6 +36,36 @@
     -fx-padding: 0;
 }
 
+.slot-button {
+    -fx-border-width: 1 1 1 1;
+    -fx-border-color: #cccccc;
+}
+
+.slot-button:selected {
+    -fx-border-color: #888888;
+}
+
+.slot-none {
+    -fx-background-image: url('slot-none.png')
+}
+
+.slot-keyb {
+    -fx-background-image: url('slot-keyb.png')
+}
+
+.slot-enabled {
+    -fx-background-color: cyan;
+}
+
+.slot-disabled {
+    -fx-background-color: #eeeeee;
+}
+
+.slot-bar {
+    -fx-max-height: 10;
+    -fx-pref-height: 10;
+}
+
 .var-button:selected {
     -fx-background-color: cyan;
 }

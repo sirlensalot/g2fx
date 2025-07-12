@@ -1,9 +1,7 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Application;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -64,7 +62,7 @@ public class G2GuiApplication extends Application {
             control.bind(slotProps.get(slot));
         }
     }
-    private List<SlotControl<?>> slotControls = new ArrayList<>();
+    private final List<SlotControl<?>> slotControls = new ArrayList<>();
 
 
     @Override
@@ -334,8 +332,8 @@ public class G2GuiApplication extends Application {
         StackPane modsPane = new StackPane(modBars.values().toArray(new HBox[]{}));
 
         List<ToggleButton> moduleSectButtons = Stream.of(ModuleType.ModPage.values()).map(n -> {
-                    ToggleButton tb = withClass(new ToggleButton(n.name()),
-                            "module-sect-toggle", "module-sect-" + n);
+                    ToggleButton tb = radioToToggle(withClass(new RadioButton(n.name()),
+                            "module-sect-toggle", "module-sect-" + n));
                     tb.setOnAction(e -> {
                         modBars.forEach((p,b) -> b.setVisible(p == n));
                     });
@@ -351,6 +349,7 @@ public class G2GuiApplication extends Application {
         HBox moduleSectPairsBar = withClass(new HBox(modulePairs.toArray(new VBox[] {})),"module-sect-bar");
 
         VBox moduleSelectBox = withClass(new VBox(moduleSectPairsBar,modsPane),"module-select-box");
+        modBars.forEach((p,b) -> b.setVisible(false));
         return moduleSelectBox;
     }
 
@@ -360,7 +359,7 @@ public class G2GuiApplication extends Application {
 
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());
-            VBox pb = mkPatchBox(slot,t);
+            VBox pb = mkPatchBox(slot);
             t.setContent(pb);
             t.setClosable(false);
             slots.add(t);
@@ -385,11 +384,31 @@ public class G2GuiApplication extends Application {
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
 
         List<ToggleButton> sbs = Arrays.stream(Slot.values()).map(s -> {
-            ToggleButton b = withClass(new RadioButton(s.name()), "slot-button");
+            ToggleButton b = radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));
             b.setFocusTraversable(false);
-            b.getStyleClass().remove("radio-button");
-            b.getStyleClass().add("toggle-button");
             b.setUserData(s.ordinal());
+            BooleanProperty keyboard = new SimpleBooleanProperty(false);
+            bridge(keyboard,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
+            keyboard.addListener((v,o,n) -> {
+                if (n) {
+                    b.getStyleClass().remove("slot-none");
+                    b.getStyleClass().add("slot-keyb");
+                } else {
+                    b.getStyleClass().remove("slot-keyb");
+                    b.getStyleClass().add("slot-none");
+                }
+            });
+            BooleanProperty enabled = new SimpleBooleanProperty(false);
+            bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
+            enabled.addListener((v,o,n) -> {
+                if (n) {
+                    b.getStyleClass().remove("slot-disabled");
+                    b.getStyleClass().add("slot-enabled");
+                } else {
+                    b.getStyleClass().remove("slot-enabled");
+                    b.getStyleClass().add("slot-disabled");
+                }
+            });
             return b;
         }).toList();
         sbs.getFirst().setSelected(true);
@@ -450,6 +469,12 @@ public class G2GuiApplication extends Application {
         return globalBar;
     }
 
+    private static ToggleButton radioToToggle(ToggleButton b) {
+        b.getStyleClass().remove("radio-button");
+        b.getStyleClass().add("toggle-button");
+        return b;
+    }
+
     private void slotChanged(Integer oldSlot, Integer newSlot) {
         slotTabs.getSelectionModel().select(newSlot);
         for (SlotControl<?> control : slotControls) {
@@ -458,7 +483,7 @@ public class G2GuiApplication extends Application {
     }
 
 
-    private VBox mkPatchBox(Slot slot, Tab t) {
+    private VBox mkPatchBox(Slot slot) {
 
         TextField patchName = new TextField("slot" + slot);
         bridge(patchName.textProperty(),d -> d.getPerf().getSlot(slot).name());
@@ -490,32 +515,15 @@ public class G2GuiApplication extends Application {
             b.setSelected(i==1);
             b.setFocusTraversable(false);
             varButtons.add(withClass(b,"var-button"));
-            b.getStyleClass().remove("radio-button");
-            b.getStyleClass().add("toggle-button");
+            radioToToggle(b);
         }
         SegmentedButton varSelector = new SegmentedButton(varButtons.toArray(new ToggleButton[] {}));
 
         Button initVar = new Button("Init");
 
-        ToggleButton key = new ToggleButton("key");
-        key.setOnAction(e -> {
-            if (key.isSelected()) {
-                t.getStyleClass().add("slot-keyboard");
-            } else {
-                t.getStyleClass().remove("slot-keyboard");
-            }
-        });
-        ToggleButton enable = new ToggleButton("enable");
-        enable.setOnAction(e -> {
-            if (enable.isSelected()) {
-                t.getStyleClass().add("slot-enabled");
-            } else {
-                t.getStyleClass().remove("slot-enabled");
-            }
-        });
         ModuleControl mc = new ModuleControl(1,"ClkGen1", ModuleType.M_ClkGen);
         Pane voicePane = withClass(
-                new FlowPane(new Label("voice"), key, enable,mc.getPane()),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+                new FlowPane(new Label("voice"), mc.getPane()),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =
                 withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
 

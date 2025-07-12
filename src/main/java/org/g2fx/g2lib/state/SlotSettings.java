@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
@@ -7,9 +8,17 @@ public class SlotSettings {
 
     private final FieldValues fvs;
 
+    private final LibProperty<Boolean> enabled;
+    private final LibProperty<Boolean> keyboard;
+
     public SlotSettings(FieldValues fvs) {
         this.fvs = fvs;
+        enabled = LibProperty.booleanFieldProperty(fvs, Protocol.PerfSlot.Enabled);
+        keyboard = LibProperty.booleanFieldProperty(fvs, Protocol.PerfSlot.Keyboard);
     }
+
+    public LibProperty<Boolean> enabled() { return enabled; }
+    public LibProperty<Boolean> keyboard() { return keyboard; }
 
     public String getPatchName() {
         return Protocol.PerfSlot.PatchName.stringValue(fvs);
