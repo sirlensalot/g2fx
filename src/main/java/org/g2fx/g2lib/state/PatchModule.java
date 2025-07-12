@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.protocol.FieldValues;
@@ -25,7 +26,8 @@ public class PatchModule {
     private FieldValues name;
 
     private final int index;
-    private FieldValues morphLabels;
+    private FieldValues morphLabelFvs;
+    private List<LibProperty<String>> morphLabels;
 
     // constructor for user modules
     public PatchModule(FieldValues userModuleFvs) {
@@ -93,21 +95,16 @@ public class PatchModule {
     }
 
     public void setMorphLabels(FieldValues values) {
-        this.morphLabels = values;
+        this.morphLabelFvs = values;
+        this.morphLabels = Protocol.MorphLabels.Labels.subfieldsValue(morphLabelFvs).stream().map(fvs ->
+                LibProperty.stringFieldProperty(fvs, Protocol.MorphLabel.Label)).toList();
     }
 
-    public String getMorphLabel(int paramIndex) {
-        if (paramIndex < 0 || paramIndex > 7) {
-            throw new IllegalArgumentException("Invalid param index: " + paramIndex);
+    public LibProperty<String> getMorphLabel(int index) {
+        if (index < 0 || index > 7) {
+            throw new IllegalArgumentException("Invalid param index: " + index);
         }
-        if (morphLabels != null) {
-            for (FieldValues f : Protocol.MorphLabels.Labels.subfieldsValue(morphLabels)) {
-                if (paramIndex + 8 == Protocol.MorphLabel.Entry.intValue(f)) {
-                    return Protocol.MorphLabel.Label.stringValue(f);
-                }
-            }
-        }
-        return MORPH_LABELS[paramIndex];
+        return morphLabels.get(index);
     }
 
     public String getModuleLabel(int paramIndex) {

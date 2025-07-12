@@ -157,6 +157,8 @@ public class Patch {
         };
     }
 
+    public PatchArea getSettingsArea() { return getArea(AreaId.Settings); }
+
     public PatchArea getArea(int index) {
         return switch (index) {
             case 0 -> fxArea;

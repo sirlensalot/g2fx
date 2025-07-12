@@ -2,6 +2,8 @@ package org.g2fx.g2gui;
 
 import javafx.application.Application;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,16 +25,16 @@ import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.ModuleControl;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
-import org.g2fx.g2lib.state.Device;
-import org.g2fx.g2lib.state.Devices;
-import org.g2fx.g2lib.state.PatchModule;
-import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -56,8 +58,18 @@ public class G2GuiApplication extends Application {
     private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
     private TabPane slotTabs;
 
+    public record SlotControl<T> (Property<T> control, List<Property<T>> slotProps) {
+        public void bind(int slot) {
+            control.unbind();
+            control.bind(slotProps.get(slot));
+        }
+    }
+    private List<SlotControl<?>> slotControls = new ArrayList<>();
+
+
     @Override
     public void init() throws Exception {
+        Util.configureLogging(Level.WARNING);
         fxQueue = new FXQueue();
         devices = new Devices();
         devices.addListener(new Devices.DeviceListener() {
@@ -77,7 +89,7 @@ public class G2GuiApplication extends Application {
         List<Runnable> fxUpdates = bridges.stream().map(b -> b.finalizeInit(d)).toList();
         //run all updates on fx thread
         fxQueue.execute(() -> fxUpdates.forEach(Runnable::run));
-
+        d.sendStartStopComm(true);
     }
 
     private void disposeDevice(Device d) throws Exception {
@@ -152,14 +164,19 @@ public class G2GuiApplication extends Application {
     private VBox mkMorphsBox() {
         List<VBox> morphs = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
+            final int ii = i;
             String morphCtl = PatchModule.MORPH_LABELS[i];
             ToggleButton tb = withClass(new ToggleButton(morphCtl), "morph-mode-toggle");
             tb.setOnAction(e -> {
-                tb.setText(tb.isSelected() ? "Knob": morphCtl);
+                tb.setText(tb.isSelected() ? "Knob": morphCtl); // TODO knob five GWh1
             });
-            TextField tf =
-                    withClass(new TextField("Group " + i), "morph-name");
-            //bridge(tf.textProperty(),d -> d.getPerf().getSelectedPatch().)
+            TextField tf = withClass(new TextField(morphCtl), "morph-name");
+            bindSlotControl(tf.textProperty(),s -> {
+                SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
+                bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
+                return gn;
+            });
+
             tf.setPadding(new Insets(1));
             morphs.add(withClass(new VBox(
                     tf,
@@ -174,15 +191,39 @@ public class G2GuiApplication extends Application {
         return morphsBox;
     }
 
+    private <T> void bindSlotControl(Property<T> control, Function<Slot,Property<T>> slotPropBuilder) {
+        slotControls.add(new SlotControl<T>(control, Arrays.stream(Slot.values()).map(slotPropBuilder).toList()));
+    }
+
+
+    private void bindLoadMeter(LoadMeter m, Function<Slot, Function<Device, LibProperty<Double>>> slotPropBuilder) {
+        bindSlotControl(m.getValueProperty(), s -> {
+            Property<Double> p = new SimpleObjectProperty<>((double) 0);
+            Function<Slot,Function<Device,LibProperty<Double>>> f = slotPropBuilder;
+            Function<Device, LibProperty<Double>> b = f.apply(s);
+            bridge(p, b);
+            return p;
+        });
+    }
+
+
     private VBox mkLoadMeterBox() {
         LoadMeter voiceCycles = FXUtil.withClass(
                 new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
+        bindLoadMeter(voiceCycles, s -> d ->
+                d.getPerf().getSlot(s).getArea(AreaId.Voice).getPatchLoadData().cycles());
         LoadMeter voiceMem = FXUtil.withClass(
                 new LoadMeter("voice-mem"),"load-meter-voice-mem");
+        bindLoadMeter(voiceMem, s -> d ->
+                d.getPerf().getSlot(s).getArea(AreaId.Voice).getPatchLoadData().mem());
         LoadMeter fxCycles = FXUtil.withClass(
                 new LoadMeter("fx-cycles"),"load-meter-fx-cycles");
+        bindLoadMeter(fxCycles, s -> d ->
+                d.getPerf().getSlot(s).getArea(AreaId.Fx).getPatchLoadData().cycles());
         LoadMeter fxMem = FXUtil.withClass(
                 new LoadMeter("fx-mem"),"load-meter-fx-mem");
+        bindLoadMeter(fxMem, s -> d ->
+                d.getPerf().getSlot(s).getArea(AreaId.Fx).getPatchLoadData().mem());
 
         VBox loadMeterBox = withClass(new VBox(
                withClass(new HBox(
@@ -208,6 +249,7 @@ public class G2GuiApplication extends Application {
         ),"load-meter-grid");
         return loadMeterBox;
     }
+
 
     private static VBox mkUndoRedoModColorBox() {
         Button undoButton = withClass(new Button("Undo"),"undo-redo-button");
@@ -410,6 +452,9 @@ public class G2GuiApplication extends Application {
 
     private void slotChanged(Integer oldSlot, Integer newSlot) {
         slotTabs.getSelectionModel().select(newSlot);
+        for (SlotControl<?> control : slotControls) {
+            control.bind(newSlot);
+        }
     }
 
 
