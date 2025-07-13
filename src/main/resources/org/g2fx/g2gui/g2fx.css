@@ -37,7 +37,7 @@
 }
 
 .slot-button {
-    -fx-border-width: 1 1 1 1;
+    -fx-border-width: 1 1 0 1;
     -fx-border-color: #cccccc;
 }
 
