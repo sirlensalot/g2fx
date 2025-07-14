@@ -1,6 +1,7 @@
 package org.g2fx.g2gui.controls;
 
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SkinBase;
@@ -14,8 +15,8 @@ public class Knob extends Control {
     public static final double SIZE = 20;
 
     public static final int MIN=0;
-    public static final int MAX=63;
-    private final SimpleIntegerProperty value;
+    public static final int MAX=127;
+    private final SimpleObjectProperty<Integer> value;
     private record Drag(double start,int value) {};
     private Drag drag;
 
@@ -23,10 +24,13 @@ public class Knob extends Control {
 
     public Knob(String name) {
         super();
-        value = new SimpleIntegerProperty(this,name,0);
+        value = new SimpleObjectProperty<>(this,name,0);
+        value.addListener((v,o,n) ->
+                setValue(n));
         getStyleClass().add("knob");
         setWidth(SIZE);
         setHeight(SIZE);
+
 
         double cx=0,cy=0;
 
@@ -55,6 +59,7 @@ public class Knob extends Control {
         setOnMouseDragged(this::mouseDragged);
         setOnMousePressed(this::mousePressed);
 
+        value.set(0);
         setValue(0);
     }
 
@@ -66,7 +71,7 @@ public class Knob extends Control {
         double dist = (drag.start() - e.getY()) / 2;
         int v = (int) (drag.value() + dist);
         v = Math.max(MIN,Math.min(v, MAX));
-        setValue(v);
+        value.set(v);
     }
 
     private void mousePressed(MouseEvent e) {
@@ -78,7 +83,7 @@ public class Knob extends Control {
         a = Math.max(45,(Math.min(315,a)));
         double pctg = (a - 45) / 270;
         int v = (int) (pctg * MAX);
-        setValue(v);
+        value.set(v);
     }
 
     public int getValue() {
@@ -89,14 +94,13 @@ public class Knob extends Control {
         if (value < MIN || value > MAX) {
             throw new IllegalArgumentException("Invalid knob value: " + value);
         }
-        this.value.setValue(value);
         double pctg = ((double) value) / ((double) MAX);
         double angle = pctg * 270 + 45;
         //System.out.format("setValue: value=%s, pctg=%s, angle=%s",value,pctg,angle);
         thumb.setRotate(angle);
     }
 
-    public SimpleIntegerProperty getValueProperty() {
+    public Property<Integer> getValueProperty() {
         return value;
     }
 

@@ -37,12 +37,12 @@
 }
 
 .slot-button {
-    -fx-border-width: 1 1 0 1;
-    -fx-border-color: #cccccc;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #eeeeee;
 }
 
 .slot-button:selected {
-    -fx-border-color: #888888;
+    -fx-border-color: black;
 }
 
 .slot-none {

@@ -1,6 +1,7 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.protocol.FieldValues;
@@ -54,6 +55,25 @@ public class PatchModule {
     public List<Integer> getVarValues(int variation) {
         return Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation))
                 .stream().map(Protocol.Data7.Datum::intValue).toList();
+    }
+
+    public LibProperty<Integer> getSettingsValueProperty(ModParam param, int variation) {
+        int i = settingsModuleType.getModParams().indexOf(param);
+        if (i == -1) { throw new IllegalArgumentException(
+                "Invalid mod param " + param + " for settings " + settingsModuleType); }
+        List<FieldValues> fvss = Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation));
+        FieldValues fvs = fvss.get(i);
+        return new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+            @Override
+            public Integer get() {
+                return Protocol.Data7.Datum.intValue(fvs);
+            }
+
+            @Override
+            public void set(Integer newValue) {
+                fvs.update(Protocol.Data7.Datum.value(newValue));
+            }
+        });
     }
 
 

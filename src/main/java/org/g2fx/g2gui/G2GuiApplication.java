@@ -22,6 +22,7 @@ import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.ModuleControl;
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.*;
@@ -32,8 +33,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -56,14 +59,28 @@ public class G2GuiApplication extends Application {
     private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
     private TabPane slotTabs;
 
-    public record SlotControl<T> (Property<T> control, List<Property<T>> slotProps) {
+    public static class SlotControl<T> {
+        private final Property<T> control;
+        private final List<Property<T>> slotProps;
+        private Property<T> last;
+        public SlotControl(Property<T> control, List<Property<T>> slotProps) {
+            this.control = control;
+            this.slotProps = slotProps;
+        }
         public void bind(int slot) {
-            control.unbind();
-            control.bind(slotProps.get(slot));
+            if (last != null) { control.unbindBidirectional(last); }
+            control.bindBidirectional(last = slotProps.get(slot));
         }
     }
     private final List<SlotControl<?>> slotControls = new ArrayList<>();
 
+    private final EnumMap<Slot,List<SlotControl<?>>> varControls = initVarControls();
+
+    private static EnumMap<Slot, List<SlotControl<?>>> initVarControls() {
+        EnumMap<Slot, List<SlotControl<?>>> m = new EnumMap<>(Slot.class);
+        Arrays.stream(Slot.values()).forEach(s -> m.put(s,new ArrayList<>()));
+        return m;
+    }
 
     @Override
     public void init() throws Exception {
@@ -193,6 +210,9 @@ public class G2GuiApplication extends Application {
         slotControls.add(new SlotControl<T>(control, Arrays.stream(Slot.values()).map(slotPropBuilder).toList()));
     }
 
+    private <T> void bindVarControl(Slot slot, Property<T> control, IntFunction<Property<T>> varPropBuilder) {
+        varControls.get(slot).add(new SlotControl<>(control, IntStream.range(0, 8).mapToObj(varPropBuilder).toList()));
+    }
 
     private void bindLoadMeter(LoadMeter m, Function<Slot, Function<Device, LibProperty<Double>>> slotPropBuilder) {
         bindSlotControl(m.getValueProperty(), s -> {
@@ -458,7 +478,10 @@ public class G2GuiApplication extends Application {
         }
     }
 
-    private void varChanged(Integer oldVar, Integer newVar) {
+    private void varChanged(Slot slot, Integer oldVar, Integer newVar) {
+        for (SlotControl<?> vc : varControls.get(slot)) {
+            vc.bind(newVar);
+        }
     }
 
 
@@ -525,13 +548,14 @@ public class G2GuiApplication extends Application {
             b.setSelected(i==1);
             b.setFocusTraversable(false);
             varButtons.add(withClass(b,"var-button"));
+            b.setUserData(i - 1);
             radioToToggle(b);
         }
         SegmentedButton varSelector = new SegmentedButton(varButtons.toArray(new ToggleButton[] {}));
         bridgeSegmentedButton(varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
 
         varSelector.getToggleGroup().selectedToggleProperty().addListener((v,o,n) ->
-                varChanged(o == null ? null : (Integer) o.getUserData(),
+                varChanged(slot,o == null ? null : (Integer) o.getUserData(),
                         n == null ? null : (Integer) n.getUserData()));
 
 
@@ -564,8 +588,13 @@ public class G2GuiApplication extends Application {
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
         patchSplit.setOrientation(Orientation.VERTICAL);
         Knob patchVolume = withClass(new Knob("patch-volume"),"patch-volume");
-        //bridge(patchVolume.getValueProperty(),d->d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain));
-        //TODO ^^^ needs variation support
+
+        bindVarControl(slot,patchVolume.getValueProperty(),v -> {
+            SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+slot+":"+v,0);
+            bridge(p,d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
+                    .getSettingsValueProperty(ModParam.GainVolume,v));
+            return p;
+        });
 
         HBox patchBar = withClass(new HBox(
                 label("Patch\nName"),

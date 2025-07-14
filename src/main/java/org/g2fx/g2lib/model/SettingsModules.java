@@ -2,11 +2,19 @@ package org.g2fx.g2lib.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
 public enum SettingsModules {
     Morphs {
+        @Override
+        public List<ModParam> getModParams() {
+            ArrayList<ModParam> ps = new ArrayList<>(Collections.nCopies(8, ModParam.MorphDial));
+            ps.addAll(Collections.nCopies(8,ModParam.MorphMode));
+            return ps;
+        }
+
         public List<NamedParam> mkParams() {
             List<NamedParam> ps = new ArrayList<>(mkMorphParams(ModParam.MorphDial, m -> List.of()));
             ps.addAll(mkMorphParams(ModParam.MorphMode, m -> List.of("Knob", m)));
@@ -14,43 +22,44 @@ public enum SettingsModules {
         }
     },
     Gain {
-        public List<NamedParam> mkParams() {
-            return mkParams(ModParam.GainVolume, ModParam.GainActiveMuted);
+        public List<ModParam> getModParams() {
+            return List.of(ModParam.GainVolume, ModParam.GainActiveMuted);
         }
     },
     Glide {
-        public List<NamedParam> mkParams() {
-            return mkParams(ModParam.Glide, ModParam.GlideSpeed);
+        public List<ModParam> getModParams() {
+            return List.of(ModParam.Glide, ModParam.GlideSpeed);
         }
     },
     Bend {
-        public List<NamedParam> mkParams() {
-            return mkParams(ModParam.BendEnable, ModParam.BendSemi);
+        public List<ModParam> getModParams() {
+            return List.of(ModParam.BendEnable, ModParam.BendSemi);
         }
     },
     Vibrato {
-        public List<NamedParam> mkParams() {
-            return mkParams(ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate);
+        public List<ModParam> getModParams() {
+            return List.of(ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate);
         }
     },
     Arpeggiator {
-        public List<NamedParam> mkParams() {
-            return mkParams(ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves);
+        public List<ModParam> getModParams() {
+            return List.of(ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves);
         }
     },
     Misc {
-        public List<NamedParam> mkParams() {
-            return mkParams(ModParam.MiscOctShift, ModParam.MiscSustain);
+        public List<ModParam> getModParams() {
+            return List.of(ModParam.MiscOctShift, ModParam.MiscSustain);
         }
     };
 
     public static final String[] MORPH_LABELS =
             {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
 
-    public abstract List<NamedParam> mkParams();
 
-    protected static List<NamedParam> mkParams(ModParam... params) {
-        return Arrays.stream(params).map(NamedParam::new).toList();
+    public abstract List<ModParam> getModParams();
+
+    public List<NamedParam> mkParams() {
+        return getModParams().stream().map(NamedParam::new).toList();
     }
 
     protected List<NamedParam> mkMorphParams(ModParam modParam, Function<String,List<String>> labelF) {
