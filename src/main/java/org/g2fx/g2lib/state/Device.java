@@ -61,7 +61,7 @@ public class Device {
     }
 
     private int getVariation() {
-        return perf.getSelectedPatch().getPatchSettings().getVariation();
+        return perf.getSelectedPatch().getPatchSettings().variation().get();
     }
 
     private Performance assertPerf() {

@@ -382,6 +382,7 @@ public class G2GuiApplication extends Application {
                 d -> d.getPerf().getPerfSettings().masterClock());
 
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
+        bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
 
         List<ToggleButton> sbs = Arrays.stream(Slot.values()).map(s -> {
             ToggleButton b = radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));
@@ -414,39 +415,8 @@ public class G2GuiApplication extends Application {
         sbs.getFirst().setSelected(true);
 
         SegmentedButton slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})),"slot-bar");
+        bridgeSegmentedButton(slotBar,d -> d.getPerf().getPerfSettings().selectedSlot());
 
-
-        bridges.add(new PropertyBridge<Integer, Toggle>(
-                d -> d.getPerf().getPerfSettings().selectedSlot(),
-                devices,
-                new PropertyBridge.FxProperty<>() {
-                    @Override
-                    public void setValue(Toggle value) {
-                        value.setSelected(true);
-                    }
-
-                    @Override
-                    public void addListener(ChangeListener<Toggle> listener) {
-                        slotBar.getToggleGroup().selectedToggleProperty().addListener(listener);
-                    }
-
-                    @Override
-                    public void removeListener(ChangeListener<Toggle> listener) {
-                        slotBar.getToggleGroup().selectedToggleProperty().removeListener(listener);
-                    }
-                },
-                fxQueue,
-                new PropertyBridge.Iso<>() {
-                    @Override
-                    public Toggle to(Integer integer) {
-                        return slotBar.getToggleGroup().getToggles().get(integer);
-                    }
-
-                    @Override
-                    public Integer from(Toggle tab) {
-                        return (Integer) tab.getUserData();
-                    }
-                }));
         slotBar.getToggleGroup().selectedToggleProperty().addListener((v,o,n) ->
                 slotChanged(o == null ? null : (Integer) o.getUserData(),
                         n == null ? null : (Integer) n.getUserData()));
@@ -488,6 +458,9 @@ public class G2GuiApplication extends Application {
         }
     }
 
+    private void varChanged(Integer oldVar, Integer newVar) {
+    }
+
 
     private VBox mkPatchBox(Slot slot) {
 
@@ -511,7 +484,38 @@ public class G2GuiApplication extends Application {
                 "User1",
                 "User2"
         ));
-        patchCategory.getSelectionModel().selectFirst();
+        bridges.add(new PropertyBridge<Integer, Number>(
+                d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
+                devices,
+                new PropertyBridge.FxProperty<>() {
+                    @Override
+                    public void setValue(Number value) {
+                        patchCategory.getSelectionModel().select(value.intValue());
+                    }
+
+                    @Override
+                    public void addListener(ChangeListener<Number> listener) {
+                        patchCategory.getSelectionModel().selectedIndexProperty().addListener(listener);
+                    }
+
+                    @Override
+                    public void removeListener(ChangeListener<Number> listener) {
+                        patchCategory.getSelectionModel().selectedIndexProperty().removeListener(listener);
+                    }
+                },
+                fxQueue,
+                new PropertyBridge.Iso<>() {
+                    @Override
+                    public Number to(Integer integer) {
+                        return integer;
+                    }
+
+                    @Override
+                    public Integer from(Number number) {
+                        return number.intValue();
+                    }
+                }
+        ));
 
         Spinner<String> voicesSpinner = new Spinner<>(FXCollections.observableArrayList("Legato","Mono","1 (1)","2 (2)"));
 
@@ -524,6 +528,13 @@ public class G2GuiApplication extends Application {
             radioToToggle(b);
         }
         SegmentedButton varSelector = new SegmentedButton(varButtons.toArray(new ToggleButton[] {}));
+        bridgeSegmentedButton(varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
+
+        varSelector.getToggleGroup().selectedToggleProperty().addListener((v,o,n) ->
+                varChanged(o == null ? null : (Integer) o.getUserData(),
+                        n == null ? null : (Integer) n.getUserData()));
+
+
 
         Button initVar = new Button("Init");
 
@@ -552,6 +563,10 @@ public class G2GuiApplication extends Application {
         SplitPane patchSplit =
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
         patchSplit.setOrientation(Orientation.VERTICAL);
+        Knob patchVolume = withClass(new Knob("patch-volume"),"patch-volume");
+        //bridge(patchVolume.getValueProperty(),d->d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain));
+        //TODO ^^^ needs variation support
+
         HBox patchBar = withClass(new HBox(
                 label("Patch\nName"),
                 patchName,
@@ -562,7 +577,7 @@ public class G2GuiApplication extends Application {
                 varSelector,
                 initVar,
                 label("Patch\nLevel"),
-                new Knob("patch-volume"),
+                patchVolume,
                 patchEnable,
                 label("Visible\nLabels"),
                 redCable, blueCable, yellowCable, orangeCable, purpleCable, whiteCable,
@@ -573,6 +588,41 @@ public class G2GuiApplication extends Application {
         VBox.setVgrow(patchSplit,Priority.ALWAYS);
         return patchBox;
     }
+
+    private void bridgeSegmentedButton(SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
+        bridges.add(new PropertyBridge<Integer, Toggle>(
+                libPropBuilder,
+                devices,
+                new PropertyBridge.FxProperty<>() {
+                    @Override
+                    public void setValue(Toggle value) {
+                        value.setSelected(true);
+                    }
+
+                    @Override
+                    public void addListener(ChangeListener<Toggle> listener) {
+                        button.getToggleGroup().selectedToggleProperty().addListener(listener);
+                    }
+
+                    @Override
+                    public void removeListener(ChangeListener<Toggle> listener) {
+                        button.getToggleGroup().selectedToggleProperty().removeListener(listener);
+                    }
+                },
+                fxQueue,
+                new PropertyBridge.Iso<>() {
+                    @Override
+                    public Toggle to(Integer integer) {
+                        return button.getToggleGroup().getToggles().get(integer);
+                    }
+
+                    @Override
+                    public Integer from(Toggle tab) {
+                        return (Integer) tab.getUserData();
+                    }
+                }));
+    }
+
 
     private static CheckBox cableCheckbox(String color) {
         CheckBox cb = withClass(new CheckBox(),"cable-" + color,"cable-checkbox");

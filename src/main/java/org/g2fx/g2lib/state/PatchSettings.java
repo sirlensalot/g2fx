@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
@@ -7,104 +8,48 @@ public class PatchSettings {
 
     private final FieldValues fvs;
 
+    private final LibProperty<Integer> voices;
+    private final LibProperty<Integer> height;
+    private final LibProperty<Integer> red;
+    private final LibProperty<Integer> blue;
+    private final LibProperty<Integer> yellow;
+    private final LibProperty<Integer> orange;
+    private final LibProperty<Integer> green;
+    private final LibProperty<Integer> purple;
+    private final LibProperty<Integer> white;
+    private final LibProperty<Integer> monoPoly;
+    private final LibProperty<Integer> variation;
+    private final LibProperty<Integer> category;
+
+
     public PatchSettings(FieldValues fvs) {
         this.fvs = fvs;
+        voices = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Voices);
+        height = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Height);
+        red = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Red);
+        blue = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Blue);
+        yellow = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Yellow);
+        orange = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Orange);
+        green = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Green);
+        purple = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Purple);
+        white = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.White);
+        monoPoly = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.MonoPoly);
+        variation = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Variation);
+        category = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Category);
+
     }
 
-    public int getVoices() {
-        return Protocol.PatchDescription.Voices.intValue(fvs);
-    }
-
-    public void setVoices(int value) {
-        fvs.update(Protocol.PatchDescription.Voices.value(value));
-    }
-
-    public int getHeight() {
-        return Protocol.PatchDescription.Height.intValue(fvs);
-    }
-
-    public void setHeight(int value) {
-        fvs.update(Protocol.PatchDescription.Height.value(value));
-    }
-
-    public boolean getRed() {
-        return Protocol.PatchDescription.Red.booleanIntValue(fvs);
-    }
-
-    public void setRed(boolean value) {
-        fvs.update(Protocol.PatchDescription.Red.value(value));
-    }
-
-    public boolean getBlue() {
-        return Protocol.PatchDescription.Blue.booleanIntValue(fvs);
-    }
-
-    public void setBlue(boolean value) {
-        fvs.update(Protocol.PatchDescription.Blue.value(value));
-    }
-
-    public boolean getYellow() {
-        return Protocol.PatchDescription.Yellow.booleanIntValue(fvs);
-    }
-
-    public void setYellow(boolean value) {
-        fvs.update(Protocol.PatchDescription.Yellow.value(value));
-    }
-
-    public boolean getOrange() {
-        return Protocol.PatchDescription.Orange.booleanIntValue(fvs);
-    }
-
-    public void setOrange(boolean value) {
-        fvs.update(Protocol.PatchDescription.Orange.value(value));
-    }
-
-    public boolean getGreen() {
-        return Protocol.PatchDescription.Green.booleanIntValue(fvs);
-    }
-
-    public void setGreen(boolean value) {
-        fvs.update(Protocol.PatchDescription.Green.value(value));
-    }
-
-    public boolean getPurple() {
-        return Protocol.PatchDescription.Purple.booleanIntValue(fvs);
-    }
-
-    public void setPurple(boolean value) {
-        fvs.update(Protocol.PatchDescription.Purple.value(value));
-    }
-
-    public boolean getWhite() {
-        return Protocol.PatchDescription.White.booleanIntValue(fvs);
-    }
-
-    public void setWhite(boolean value) {
-        fvs.update(Protocol.PatchDescription.White.value(value));
-    }
-
-    public int getMonoPoly() {
-        return Protocol.PatchDescription.MonoPoly.intValue(fvs);
-    }
-
-    public void setMonoPoly(int value) {
-        fvs.update(Protocol.PatchDescription.MonoPoly.value(value));
-    }
-
-    public int getVariation() {
-        return Protocol.PatchDescription.Variation.intValue(fvs);
-    }
-
-    public void setVariation(int value) {
-        fvs.update(Protocol.PatchDescription.Variation.value(value));
-    }
-
-    public int getCategory() {
-        return Protocol.PatchDescription.Category.intValue(fvs);
-    }
-
-    public void setCategory(int value) {
-        fvs.update(Protocol.PatchDescription.Category.value(value));
-    }
+    public LibProperty<Integer> voices() { return voices; }
+    public LibProperty<Integer> height() { return height; }
+    public LibProperty<Integer> red() { return red; }
+    public LibProperty<Integer> blue() { return blue; }
+    public LibProperty<Integer> yellow() { return yellow; }
+    public LibProperty<Integer> orange() { return orange; }
+    public LibProperty<Integer> green() { return green; }
+    public LibProperty<Integer> purple() { return purple; }
+    public LibProperty<Integer> white() { return white; }
+    public LibProperty<Integer> monoPoly() { return monoPoly; }
+    public LibProperty<Integer> variation() { return variation; }
+    public LibProperty<Integer> category() { return category; }
 
 }
