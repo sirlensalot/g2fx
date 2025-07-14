@@ -399,7 +399,7 @@ public class G2GuiApplication extends Application {
                 }
             });
             BooleanProperty enabled = new SimpleBooleanProperty(false);
-            bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
+            bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).enabled());
             enabled.addListener((v,o,n) -> {
                 if (n) {
                     b.getStyleClass().remove("slot-disabled");
@@ -456,6 +456,10 @@ public class G2GuiApplication extends Application {
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
 
+        Button testFileButton = new Button("Test file");
+        testFileButton.setOnAction(e -> {
+            devices.invoke(true,() -> devices.loadFile("data/perf-20240802.prf2"));
+        });
         HBox globalBar = withClass(new HBox(
                 label("Perf\nName"),
                 perfName,
@@ -464,7 +468,8 @@ public class G2GuiApplication extends Application {
                 runClockButton,
                 slotBar,
                 synthName,
-                perfModeButton
+                perfModeButton,
+                testFileButton
         ),"global-bar","bar","gfont");
         return globalBar;
     }
@@ -486,7 +491,7 @@ public class G2GuiApplication extends Application {
     private VBox mkPatchBox(Slot slot) {
 
         TextField patchName = new TextField("slot" + slot);
-        bridge(patchName.textProperty(),d -> d.getPerf().getSlot(slot).name());
+        bridge(patchName.textProperty(),d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
                 "No Cat",
                 "Acoustic",

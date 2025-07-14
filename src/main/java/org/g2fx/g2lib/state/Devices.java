@@ -28,10 +28,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     public List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
 
     private final ExecutorService executorService;
-    private final Map<Integer, Device> devices = new HashMap<>();
+    private final Map<Integer, UsbDevice> devices = new HashMap<>();
     private Device current;
 
-    private UsbService usbService;
+    private final UsbService usbService;
+
 
     public Devices() {
         this.executorService = Executors.newSingleThreadExecutor();
@@ -50,7 +51,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
     private void connected(UsbService.UsbDevice ud) {
         Usb usb = new Usb(ud);
-        final Device d = new Device(usb);
+        final UsbDevice d = new UsbDevice(usb);
         usb.setThreadsafeDispatcher(msg -> {
             executorService.execute(() -> {
                 try {
@@ -71,6 +72,16 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         devices.put(ud.address(), d);
         log.fine("Setting current device to " + ud.address());
         current = d;
+        notifyDeviceInit(d);
+    }
+
+    private void disconnected(UsbService.UsbDevice ud) {
+        UsbDevice d = devices.remove(ud.address());
+        notifyDeviceDispose(d);
+        d.shutdown();
+    }
+
+    private void notifyDeviceInit(Device d) {
         listeners.forEach(l -> {
             try {
                 l.onDeviceInitialized(d);
@@ -80,8 +91,8 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         });
     }
 
-    private void disconnected(UsbService.UsbDevice ud) {
-        Device d = devices.remove(ud.address());
+    private void notifyDeviceDispose(Device d) {
+
         if (d != null) {
             listeners.forEach(l -> {
                 try {
@@ -90,9 +101,6 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
                     log.log(Level.SEVERE,"Error in device disposal listener",e);
                 }
             });
-
-            d.shutdown();
-
         }
     }
 
@@ -116,12 +124,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     public void shutdown() throws Exception {
 
         //blocking shutdown of devices
-        CountDownLatch latch = new CountDownLatch(1);
-        executorService.execute(() -> {
-            devices.values().forEach(Device::shutdown);
-            latch.countDown();
+        Future<Boolean> f = executorService.submit(() -> {
+            devices.values().forEach(this::notifyDeviceDispose);
+            return true;
         });
-        latch.await();
+        f.get();
 
         executorService.shutdown();
 
@@ -144,13 +151,18 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
 
     public Repl.Path loadFile(String path) {
+
+        notifyDeviceDispose(current); //null safe
+
         if (current == null) {
-            log.fine("Initializing offline device");
+            log.info("Initializing offline device");
             current = new Device();
         }
         try {
             if (path.endsWith("prf2")) {
-                return current.loadPerfFile(path);
+                Repl.Path p = current.loadPerfFile(path);
+                notifyDeviceInit(current);
+                return p;
             }
             if (path.endsWith("pch2")) {
                 throw new UnsupportedOperationException("Patch load TODO"); //TODO
@@ -195,7 +207,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
     @Override
     public void execute(Runnable command) {
-        execute((ThrowingRunnable) command::run);
+        execute(true, command::run);
     }
 
     public void execute(ThrowingRunnable r) {

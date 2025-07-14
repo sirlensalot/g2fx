@@ -1,6 +1,6 @@
 package org.g2fx.g2lib;
 
-import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.state.UsbDevice;
 import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.Test;
@@ -17,29 +17,29 @@ class DeviceTest {
     @Test
     public void dispatchEntryList() throws Exception {
         Usb usb = mock(Usb.class);
-        Device d = new Device(usb);
+        UsbDevice d = new UsbDevice(usb);
         ByteBuffer buf = Util.readFile("data/msg_PatchListMessage00_19f4.msg");
         d.dispatchEntryList(buf.position(4).slice());
-        Device.EntriesMsg m = d.getEntriesMsg();
-        assertEquals(Device.EntryType.Patch, m.type());
+        UsbDevice.EntriesMsg m = d.getEntriesMsg();
+        assertEquals(UsbDevice.EntryType.Patch, m.type());
         assertFalse(m.done());
         assertEquals(List.of(
-                new Device.EntryBank(0,0,List.of(
-                        new Device.Entry("-- Welcome G2 --",12), 
-                        new Device.Entry("BackTo72",8), 
-                        new Device.Entry("FM_Filter",12), 
-                        new Device.Entry("HooverSeq2_DZ",2),
-                        new Device.Entry("WhatIsSync",8),
-                        new Device.Entry("NordSynth",12),
-                        new Device.Entry("FATBass  NL2",3),
-                        new Device.Entry("AccGuit",1),
-                        new Device.Entry("HornModel",1),
-                        new Device.Entry("YetAnotherOrgan",9),
-                        new Device.Entry("ZeroHzLinFM",12),
-                        new Device.Entry("Bells",1),
-                        new Device.Entry("Cue   NL3",12),
-                        new Device.Entry("LushModular",10),
-                        new Device.Entry("GlassFright",7))
+                new UsbDevice.EntryBank(0,0,List.of(
+                        new UsbDevice.Entry("-- Welcome G2 --",12), 
+                        new UsbDevice.Entry("BackTo72",8), 
+                        new UsbDevice.Entry("FM_Filter",12), 
+                        new UsbDevice.Entry("HooverSeq2_DZ",2),
+                        new UsbDevice.Entry("WhatIsSync",8),
+                        new UsbDevice.Entry("NordSynth",12),
+                        new UsbDevice.Entry("FATBass  NL2",3),
+                        new UsbDevice.Entry("AccGuit",1),
+                        new UsbDevice.Entry("HornModel",1),
+                        new UsbDevice.Entry("YetAnotherOrgan",9),
+                        new UsbDevice.Entry("ZeroHzLinFM",12),
+                        new UsbDevice.Entry("Bells",1),
+                        new UsbDevice.Entry("Cue   NL3",12),
+                        new UsbDevice.Entry("LushModular",10),
+                        new UsbDevice.Entry("GlassFright",7))
                 )),m.banks());
 
     }

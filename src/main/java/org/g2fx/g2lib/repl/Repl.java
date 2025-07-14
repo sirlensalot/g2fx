@@ -1,9 +1,9 @@
 package org.g2fx.g2lib.repl;
 
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.state.UsbDevice;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.g2fx.g2lib.util.Util;
 import org.jline.builtins.Completers;
@@ -207,7 +207,7 @@ public class Repl implements Runnable {
 
     private Object list(CmdDesc desc, CommandInput input) {
         List<String> words = getArgs(desc,input);
-        Device.EntryType type = Device.EntryType.LC_NAME_LOOKUP.get(words.removeFirst());
+        UsbDevice.EntryType type = UsbDevice.EntryType.LC_NAME_LOOKUP.get(words.removeFirst());
         int bank = parseInt(desc,"index",words.removeFirst()) - 1;
         devices.execute((Devices.ThrowingRunnable) () -> {
             devices.getCurrent().dumpEntries(getWriter(),type,bank);

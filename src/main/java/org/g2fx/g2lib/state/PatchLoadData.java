@@ -23,6 +23,27 @@ public class PatchLoadData {
     public PatchLoadData(FieldValues fvs) {
         this.fvs = fvs;
     }
+    public PatchLoadData() {
+        this.fvs = Protocol.PatchLoadData.FIELDS.values(
+                Protocol.PatchLoadData.Location.value(0),
+                Protocol.PatchLoadData.CyclesRed1Msb.value(0),
+                Protocol.PatchLoadData.CyclesRed1Lsb.value(0),
+                Protocol.PatchLoadData.CyclesBlue1Msb.value(0),
+                Protocol.PatchLoadData.CyclesBlue1Lsb.value(0),
+                Protocol.PatchLoadData.InternalMem.value(0),
+                Protocol.PatchLoadData.Unknown1.value(0),
+                Protocol.PatchLoadData.Resource4Msb.value(0),
+                Protocol.PatchLoadData.Resource4Lsb.value(0),
+                Protocol.PatchLoadData.Resource5.value(0),
+                Protocol.PatchLoadData.CyclesRed2.value(0),
+                Protocol.PatchLoadData.Unknown3.value(0),
+                Protocol.PatchLoadData.Resource8.value(0),
+                Protocol.PatchLoadData.CyclesBlue2.value(0),
+                Protocol.PatchLoadData.Unknown4.value(0),
+                Protocol.PatchLoadData.RAM.value(0),
+                Protocol.PatchLoadData.Unknown5.value(0)
+        );
+    }
     /**
      * Some values are msb * 128 + lsb for unknown reason
      */

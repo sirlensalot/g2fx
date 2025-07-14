@@ -10,15 +10,18 @@ public class SlotSettings {
 
     private final LibProperty<Boolean> enabled;
     private final LibProperty<Boolean> keyboard;
+    private final LibProperty<String> patchName;
 
     public SlotSettings(FieldValues fvs) {
         this.fvs = fvs;
         enabled = LibProperty.booleanFieldProperty(fvs, Protocol.PerfSlot.Enabled);
         keyboard = LibProperty.booleanFieldProperty(fvs, Protocol.PerfSlot.Keyboard);
+        patchName = LibProperty.stringFieldProperty(fvs, Protocol.PerfSlot.PatchName);
     }
 
     public LibProperty<Boolean> enabled() { return enabled; }
     public LibProperty<Boolean> keyboard() { return keyboard; }
+    public LibProperty<String> patchName() { return patchName; }
 
     public String getPatchName() {
         return Protocol.PerfSlot.PatchName.stringValue(fvs);

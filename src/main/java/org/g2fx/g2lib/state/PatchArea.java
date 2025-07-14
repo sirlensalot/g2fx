@@ -17,7 +17,7 @@ public class PatchArea {
 
     private final Map<Integer,PatchModule> modules = new TreeMap<>();
     private final List<PatchCable> cables = new ArrayList<>();
-    private PatchLoadData patchLoadData;
+    private PatchLoadData patchLoadData = new PatchLoadData();
 
 
     public record SelectedParam(int module,int param) { }
