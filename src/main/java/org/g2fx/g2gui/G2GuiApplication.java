@@ -455,6 +455,7 @@ public class G2GuiApplication extends Application {
         bridge(synthName.textProperty(),d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
+        bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
 
         Button testFileButton = new Button("Test file");
         testFileButton.setOnAction(e -> {

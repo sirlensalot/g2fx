@@ -9,10 +9,12 @@ public class SynthSettings {
     private final FieldValues fvs;
 
     private final LibProperty<String> deviceName;
+    private final LibProperty<Boolean> perfMode;
 
     public SynthSettings(FieldValues fvs) {
         this.fvs = fvs;
         this.deviceName = LibProperty.stringFieldProperty(fvs, Protocol.SynthSettings.DeviceName);
+        this.perfMode = LibProperty.booleanFieldProperty(fvs, Protocol.SynthSettings.PerfMode);
     }
 
     public SynthSettings() {
@@ -56,12 +58,8 @@ public class SynthSettings {
 
     public LibProperty<String> deviceName() { return deviceName; }
 
-    public boolean getPerfMode() {
-        return Protocol.SynthSettings.PerfMode.booleanIntValue(fvs);
-    }
-
-    public void setPerfMode(boolean value) {
-        fvs.update(Protocol.SynthSettings.PerfMode.value(value));
+    public LibProperty<Boolean> perfMode() {
+        return perfMode;
     }
 
     public int getPerfBank() {

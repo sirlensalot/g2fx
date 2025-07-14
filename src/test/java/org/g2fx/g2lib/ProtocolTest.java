@@ -805,56 +805,56 @@ class ProtocolTest {
 
     private static void testPerformanceSettings(PerformanceSettings ps) {
         assertEquals(1, ps.selectedSlot().get());
-        assertEquals(0, ps.getKeyboardRangeEnabled());
+        assertEquals(false, ps.keyboardRangeEnabled().get());
         assertEquals(0x78, (int) ps.masterClock().get());
-        assertEquals(0, ps.getMasterClockRun());
+        assertEquals(false, ps.masterClockRun().get());
 
         {
             SlotSettings ss = ps.getSlotSettings(Slot.A);
-            assertEquals("No name", ss.getPatchName());
-            assertEquals(1, ss.getEnabled());
-            assertEquals(1, ss.getKeyboard());
-            assertEquals(0, ss.getHold());
-            assertEquals(0, ss.getBankIndex());
-            assertEquals(0, ss.getPatchIndex());
-            assertEquals(0, ss.getKeyboardRangeFrom());
-            assertEquals(0x7f, ss.getKeyboardRangeTo());
+            assertEquals("No name", ss.patchName().get());
+            assertEquals(true, ss.enabled().get());
+            assertEquals(true, ss.keyboard().get());
+            assertEquals(false, ss.hold().get());
+            assertEquals(0, ss.bankIndex().get());
+            assertEquals(0, ss.patchIndex().get());
+            assertEquals(0, ss.keyboardRangeFrom().get());
+            assertEquals(0x7f, ss.keyboardRangeTo().get());
         }
 
         {
             SlotSettings ss = ps.getSlotSettings(Slot.B);
-            assertEquals("simple synth 001", ss.getPatchName());
-            assertEquals(1, ss.getEnabled());
-            assertEquals(1, ss.getKeyboard());
-            assertEquals(0, ss.getHold());
-            assertEquals(0, ss.getBankIndex());
-            assertEquals(0, ss.getPatchIndex());
-            assertEquals(0, ss.getKeyboardRangeFrom());
-            assertEquals(0x7f, ss.getKeyboardRangeTo());
+            assertEquals("simple synth 001", ss.patchName().get());
+            assertEquals(true, ss.enabled().get());
+            assertEquals(true, ss.keyboard().get());
+            assertEquals(false, ss.hold().get());
+            assertEquals(0, ss.bankIndex().get());
+            assertEquals(0, ss.patchIndex().get());
+            assertEquals(0, ss.keyboardRangeFrom().get());
+            assertEquals(0x7f, ss.keyboardRangeTo().get());
         }
 
         {
             SlotSettings ss = ps.getSlotSettings(Slot.C);
-            assertEquals("No name", ss.getPatchName());
-            assertEquals(1, ss.getEnabled());
-            assertEquals(0, ss.getKeyboard());
-            assertEquals(0, ss.getHold());
-            assertEquals(0, ss.getBankIndex());
-            assertEquals(0, ss.getPatchIndex());
-            assertEquals(0, ss.getKeyboardRangeFrom());
-            assertEquals(0x7f, ss.getKeyboardRangeTo());
+            assertEquals("No name", ss.patchName().get());
+            assertEquals(true, ss.enabled().get());
+            assertEquals(false, ss.keyboard().get());
+            assertEquals(false, ss.hold().get());
+            assertEquals(0, ss.bankIndex().get());
+            assertEquals(0, ss.patchIndex().get());
+            assertEquals(0, ss.keyboardRangeFrom().get());
+            assertEquals(0x7f, ss.keyboardRangeTo().get());
         }
 
         {
             SlotSettings ss = ps.getSlotSettings(Slot.C);
-            assertEquals("No name", ss.getPatchName());
-            assertEquals(1, ss.getEnabled());
-            assertEquals(0, ss.getKeyboard());
-            assertEquals(0, ss.getHold());
-            assertEquals(0, ss.getBankIndex());
-            assertEquals(0, ss.getPatchIndex());
-            assertEquals(0, ss.getKeyboardRangeFrom());
-            assertEquals(0x7f, ss.getKeyboardRangeTo());
+            assertEquals("No name", ss.patchName().get());
+            assertEquals(true, ss.enabled().get());
+            assertEquals(false, ss.keyboard().get());
+            assertEquals(false, ss.hold().get());
+            assertEquals(0, ss.bankIndex().get());
+            assertEquals(0, ss.patchIndex().get());
+            assertEquals(0, ss.keyboardRangeFrom().get());
+            assertEquals(0x7f, ss.keyboardRangeTo().get());
         }
     }
 

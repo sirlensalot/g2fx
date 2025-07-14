@@ -57,7 +57,7 @@ public class Device {
 
 
     public Repl.SlotPatch getSlotPatch (Slot s) {
-        return new Repl.SlotPatch(s,perf.getPerfSettings().getSlotSettings(s).getPatchName());
+        return new Repl.SlotPatch(s,perf.getPerfSettings().getSlotSettings(s).patchName().get());
     }
 
     private int getVariation() {
