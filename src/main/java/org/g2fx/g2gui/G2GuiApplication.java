@@ -596,6 +596,27 @@ public class G2GuiApplication extends Application {
             return p;
         });
 
+        bindVarControl(slot,patchEnable.selectedProperty(),v -> {
+            SimpleBooleanProperty p = new SimpleBooleanProperty(patchEnable,"patchEnable:"+slot+":"+v,false);
+            bridges.add(new PropertyBridge<>(
+                    d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
+                            .getSettingsValueProperty(ModParam.GainActiveMuted,v),
+                    devices,
+                    p,
+                    fxQueue,
+                    new PropertyBridge.Iso<>() {
+                        @Override
+                        public Boolean to(Integer a) {
+                            return a == 1;
+                        }
+                        @Override
+                        public Integer from(Boolean b) {
+                            return b ? 1 : 0;
+                        }
+                    }
+            ));
+            return p;
+        });
         HBox patchBar = withClass(new HBox(
                 label("Patch\nName"),
                 patchName,
