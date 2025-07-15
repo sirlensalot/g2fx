@@ -100,7 +100,7 @@ public class Patch {
     private KnobAssignments knobAssignments;
     private ControlAssignments controls;
     private MorphParameters morphParams;
-    private int assignedVoices;
+    private LibProperty<Integer> assignedVoices = new LibProperty<>(0);
     private final List<PatchVisual> leds = new ArrayList<>();
     private final List<PatchVisual> metersAndGroups = new ArrayList<>();
 
@@ -411,10 +411,10 @@ public class Patch {
 
     public void setAssignedVoices(int i) {
         log.info(() -> "setAssignedVoices: " + i);
-        this.assignedVoices = i;
+        this.assignedVoices.set(i);
     }
 
-    public int getAssignedVoices() {
+    public LibProperty<Integer> assignedVoices() {
         return assignedVoices;
     }
 

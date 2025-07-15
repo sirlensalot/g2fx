@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
@@ -540,7 +541,7 @@ public class G2GuiApplication extends Application {
                 }
         ));
 
-        Spinner<String> voicesSpinner = new Spinner<>(FXCollections.observableArrayList("Legato","Mono","1 (1)","2 (2)"));
+        Spinner<VoiceMode> voicesSpinner = mkVoicesSpinner(slot);
 
         List<ToggleButton> varButtons = new ArrayList<>();
         for (int i = 1; i < 9; i++) {
@@ -637,6 +638,66 @@ public class G2GuiApplication extends Application {
 
         VBox.setVgrow(patchSplit,Priority.ALWAYS);
         return patchBox;
+    }
+
+    private Spinner<VoiceMode> mkVoicesSpinner(Slot slot) {
+        SimpleObjectProperty<Integer> monoPoly = new SimpleObjectProperty<>(0);
+        bridge(monoPoly,d->d.getPerf().getSlot(slot).getPatchSettings().monoPoly());
+
+        SimpleObjectProperty<Integer> voices = new SimpleObjectProperty<>(2);
+        bridge(voices,d->d.getPerf().getSlot(slot).getPatchSettings().voices());
+
+        SimpleObjectProperty<Integer> assignedVoices = new SimpleObjectProperty<>(0);
+        bridge(assignedVoices,d->d.getPerf().getSlot(slot).assignedVoices());
+
+        ObservableList<VoiceMode> items = FXCollections.observableArrayList(VoiceMode.values());
+        Spinner<VoiceMode> spinner = withClass(new Spinner<>(),"voice-spinner");
+        SpinnerValueFactory.ListSpinnerValueFactory<VoiceMode> valueFactory =
+                new SpinnerValueFactory.ListSpinnerValueFactory<>(items);
+        spinner.setValueFactory(valueFactory);
+        // Set converter to format display in editable area
+        valueFactory.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(VoiceMode voiceMode) {
+                if (voiceMode == null) return "";
+                return voiceMode.getDisplayName(assignedVoices.get());
+            }
+
+            @Override
+            public VoiceMode fromString(String s) {
+                // Optional: not needed if spinner is not editable
+                return null;
+            }
+        });
+
+        spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                monoPoly.set(newVal.getMonoPoly());
+                voices.set(newVal.getVoices());
+            }
+        });
+
+        ChangeListener<Number> syncSpinner = (obs, oldVal, newVal) -> {
+            VoiceMode updated = VoiceMode.fromMonoPolyAndVoices(monoPoly.get(), voices.get());
+            if (updated != spinner.getValue()) {
+                spinner.getValueFactory().setValue(updated);
+                // Force a UI update on assignedVoices change
+                spinner.getEditor().setText(valueFactory.getConverter().toString(updated));
+            }
+        };
+        monoPoly.addListener(syncSpinner);
+        voices.addListener(syncSpinner);
+
+        assignedVoices.addListener((obs, old, val) -> {
+            VoiceMode current = spinner.getValue();
+            if (current != null) {
+                spinner.getEditor().setText(valueFactory.getConverter().toString(current));
+            }
+        });
+
+        spinner.getValueFactory().setValue(VoiceMode.P2);
+
+        return spinner;
     }
 
     private void bridgeSegmentedButton(SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {

@@ -153,13 +153,6 @@ public class Performance {
         return Slot.fromIndex(perfSettings.selectedSlot().get());
     }
 
-
-    public void readAssignedVoicesMsg(ByteBuffer buf) {
-        readPerfMsgHeader(buf);
-        Util.expectWarn(buf,0x05,"msg","Assigned Voices type");
-        readAssignedVoices(buf);
-    }
-
     public boolean readAssignedVoices(ByteBuffer buf) {
         for (Slot s : Slot.values()) {
             getSlot(s).setAssignedVoices(Util.b2i(buf.get()));
