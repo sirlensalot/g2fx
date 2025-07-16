@@ -30,17 +30,9 @@ public class PropertyBridge<T,F> {
         };
     }
 
-    public interface FxProperty<T> {
-        void setValue(T value);
-        void addListener(ChangeListener<T> listener);
-        void removeListener(ChangeListener<T> listener);
-    }
-
-    public static <T> FxProperty<T> adaptProperty(Property<T> p) {
-        return new FxProperty<T>() {
+    public static <T> FxProperty<T> adaptProperty(Property<T> p, Undos undos) {
+        return new FxProperty<T>(p,undos) {
             @Override public void setValue(T value) { p.setValue(value); }
-            @Override public void addListener(ChangeListener<T> listener) { p.addListener(listener); }
-            @Override public void removeListener(ChangeListener<T> listener) { p.removeListener(listener); }
         };
     }
 
@@ -74,8 +66,9 @@ public class PropertyBridge<T,F> {
                           Executor libExecutor,
                           Property<F> fxProperty,
                           Executor fxExecutor,
-                          Iso<T,F> iso) {
-        this(libPropertyBuilder,libExecutor,adaptProperty(fxProperty),fxExecutor,iso);
+                          Iso<T,F> iso,
+                          Undos undos) {
+        this(libPropertyBuilder,libExecutor,adaptProperty(fxProperty,undos),fxExecutor,iso);
     }
 
     public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
