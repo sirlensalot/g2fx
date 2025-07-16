@@ -574,12 +574,12 @@ public class G2GuiApplication extends Application {
         powerGraphic.setContent("M -3 -3 A 4.5 4.5 0 1 0 3 -3 M 0 0 L 0 -4");
         ToggleButton patchEnable = withClass(new ToggleButton("", powerGraphic),"power-button");
 
-        CheckBox redCable = cableCheckbox("red");
-        CheckBox blueCable = cableCheckbox("blue");
-        CheckBox yellowCable = cableCheckbox("yellow");
-        CheckBox orangeCable = cableCheckbox("orange");
-        CheckBox purpleCable = cableCheckbox("purple");
-        CheckBox whiteCable = cableCheckbox("white");
+        CheckBox redCable = cableCheckbox(slot,"red",PatchSettings::red);
+        CheckBox blueCable = cableCheckbox(slot,"blue",PatchSettings::blue);
+        CheckBox yellowCable = cableCheckbox(slot,"yellow",PatchSettings::yellow);
+        CheckBox orangeCable = cableCheckbox(slot,"orange",PatchSettings::orange);
+        CheckBox purpleCable = cableCheckbox(slot,"purple",PatchSettings::purple);
+        CheckBox whiteCable = cableCheckbox(slot,"white",PatchSettings::white);
         ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button");
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
 
@@ -715,9 +715,14 @@ public class G2GuiApplication extends Application {
     }
 
 
-    private static CheckBox cableCheckbox(String color) {
+    private CheckBox cableCheckbox(Slot slot, String color,Function<PatchSettings,LibProperty<Boolean>> libProp) {
         CheckBox cb = withClass(new CheckBox(),"cable-" + color,"cable-checkbox");
         cb.setSelected(true);
+        bindVarControl(slot,cb.selectedProperty(),v -> {
+            BooleanProperty p = new SimpleBooleanProperty(cb,color + " cable",true);
+            bridge(p,d->d.getPerf().getSlot(slot).getPatchSettings().red());
+            return p;
+        });
         return cb;
     }
 

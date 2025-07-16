@@ -10,13 +10,13 @@ public class PatchSettings {
 
     private final LibProperty<Integer> voices;
     private final LibProperty<Integer> height;
-    private final LibProperty<Integer> red;
-    private final LibProperty<Integer> blue;
-    private final LibProperty<Integer> yellow;
-    private final LibProperty<Integer> orange;
-    private final LibProperty<Integer> green;
-    private final LibProperty<Integer> purple;
-    private final LibProperty<Integer> white;
+    private final LibProperty<Boolean> red;
+    private final LibProperty<Boolean> blue;
+    private final LibProperty<Boolean> yellow;
+    private final LibProperty<Boolean> orange;
+    private final LibProperty<Boolean> green;
+    private final LibProperty<Boolean> purple;
+    private final LibProperty<Boolean> white;
     private final LibProperty<Integer> monoPoly;
     private final LibProperty<Integer> variation;
     private final LibProperty<Integer> category;
@@ -26,13 +26,13 @@ public class PatchSettings {
         this.fvs = fvs;
         voices = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Voices);
         height = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Height);
-        red = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Red);
-        blue = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Blue);
-        yellow = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Yellow);
-        orange = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Orange);
-        green = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Green);
-        purple = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Purple);
-        white = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.White);
+        red = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Red);
+        blue = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Blue);
+        yellow = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Yellow);
+        orange = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Orange);
+        green = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Green);
+        purple = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Purple);
+        white = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.White);
         monoPoly = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.MonoPoly);
         variation = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Variation);
         category = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Category);
@@ -41,13 +41,13 @@ public class PatchSettings {
 
     public LibProperty<Integer> voices() { return voices; }
     public LibProperty<Integer> height() { return height; }
-    public LibProperty<Integer> red() { return red; }
-    public LibProperty<Integer> blue() { return blue; }
-    public LibProperty<Integer> yellow() { return yellow; }
-    public LibProperty<Integer> orange() { return orange; }
-    public LibProperty<Integer> green() { return green; }
-    public LibProperty<Integer> purple() { return purple; }
-    public LibProperty<Integer> white() { return white; }
+    public LibProperty<Boolean> red() { return red; }
+    public LibProperty<Boolean> blue() { return blue; }
+    public LibProperty<Boolean> yellow() { return yellow; }
+    public LibProperty<Boolean> orange() { return orange; }
+    public LibProperty<Boolean> green() { return green; }
+    public LibProperty<Boolean> purple() { return purple; }
+    public LibProperty<Boolean> white() { return white; }
     public LibProperty<Integer> monoPoly() { return monoPoly; }
     public LibProperty<Integer> variation() { return variation; }
     public LibProperty<Integer> category() { return category; }
