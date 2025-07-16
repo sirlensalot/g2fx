@@ -1,6 +1,5 @@
 package org.g2fx.g2gui;
 
-import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.LibProperty.LibPropertyListener;
@@ -30,12 +29,6 @@ public class PropertyBridge<T,F> {
         };
     }
 
-    public static <T> FxProperty<T> adaptProperty(Property<T> p, Undos undos) {
-        return new FxProperty<T>(p,undos) {
-            @Override public void setValue(T value) { p.setValue(value); }
-        };
-    }
-
     private static final Logger log =
             Logger.getLogger(PropertyBridge.class.getName());
 
@@ -46,14 +39,14 @@ public class PropertyBridge<T,F> {
     /**
      * lib update lock. All reads/writes on lib thread.
      */
-    private boolean updatingLib = false;
+    private static boolean updatingLib = false;
 
     private final FxProperty<F> fxProperty;
     private final ChangeListener<F> fxListener;
     /**
      * fx update lock. All reads/writes on fx thread.
      */
-    private boolean updatingFx = false;
+    private static boolean updatingFx = false;
 
     private final Function<Device,Runnable> initFinalizer;
 
@@ -64,18 +57,10 @@ public class PropertyBridge<T,F> {
 
     public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
                           Executor libExecutor,
-                          Property<F> fxProperty,
+                          FxProperty<F> fxProperty,
                           Executor fxExecutor,
                           Iso<T,F> iso,
                           Undos undos) {
-        this(libPropertyBuilder,libExecutor,adaptProperty(fxProperty,undos),fxExecutor,iso);
-    }
-
-    public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
-                          Executor libExecutor,
-                          FxProperty<F> fxProperty,
-                          Executor fxExecutor,
-                          Iso<T,F> iso) {
 
         this.fxProperty = fxProperty;
         this.iso = iso;
@@ -89,6 +74,10 @@ public class PropertyBridge<T,F> {
         fxListener = (obs, oldVal, newVal) -> {
             // on fx thread, so lock read is safe
             if (!active || updatingFx) return;
+            //getting here means "real" UI update, not from backend
+            if (newVal != null && !newVal.equals(oldVal) && !fxProperty.isChanging()) {
+                undos.push(new Undos.Undo<F>(fxProperty,oldVal,newVal)); //TODO refactor undo creation into Undos::undo
+            }
             libExecutor.execute(() -> {
                 // on lib thread: lock lib updates
                 updatingLib = true;

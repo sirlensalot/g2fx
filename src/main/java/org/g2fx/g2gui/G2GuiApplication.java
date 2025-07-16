@@ -119,13 +119,13 @@ public class G2GuiApplication extends Application {
     }
 
     private <T> void bridge(Property<T> fxProperty, Function<Device,LibProperty<T>> libProperty) {
-        bridge(libProperty,PropertyBridge.adaptProperty(fxProperty, undos),PropertyBridge.id());
+        bridge(libProperty, new FxProperty.SimpleFxProperty<T>(fxProperty),PropertyBridge.id());
     }
 
     private <T,F> void bridge(Function<Device,LibProperty<T>> libProperty,
                             FxProperty<F> fxProperty,
                             PropertyBridge.Iso<T,F> iso) {
-        bridges.add(new PropertyBridge<>(libProperty, devices,fxProperty, fxQueue, iso));
+        bridges.add(new PropertyBridge<>(libProperty, devices,fxProperty, fxQueue, iso, undos));
     }
 
     @Override
@@ -520,7 +520,7 @@ public class G2GuiApplication extends Application {
                 "User2"
         ));
         bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
-            new FxProperty<>(patchCategory.getSelectionModel().selectedIndexProperty(),undos) {
+            new FxProperty<>(patchCategory.getSelectionModel().selectedIndexProperty()) {
                 @Override
                 public void setValue(Number value) {
                     patchCategory.getSelectionModel().select(value.intValue());
@@ -587,12 +587,11 @@ public class G2GuiApplication extends Application {
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
         patchSplit.setOrientation(Orientation.VERTICAL);
         Knob patchVolume = withClass(new Knob("patch-volume"),"patch-volume");
-
         bindVarControl(slot,patchVolume.getValueProperty(),v -> {
             SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+slot+":"+v,0);
             bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
                         .getSettingsValueProperty(ModParam.GainVolume,v),
-                    PropertyBridge.adaptProperty(p, undos),
+                    new FxProperty.SimpleFxProperty<>(p,patchVolume.valueChangingProperty()),
                     PropertyBridge.id());
             return p;
         });
@@ -601,7 +600,7 @@ public class G2GuiApplication extends Application {
             SimpleBooleanProperty p = new SimpleBooleanProperty(patchEnable,"patchEnable:"+slot+":"+v,false);
             bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
                             .getSettingsValueProperty(ModParam.GainActiveMuted,v),
-                    PropertyBridge.adaptProperty(p,undos),
+                    new FxProperty.SimpleFxProperty<>(p),
                     new PropertyBridge.Iso<>() {
                         @Override
                         public Boolean to(Integer a) {
@@ -696,7 +695,7 @@ public class G2GuiApplication extends Application {
 
     private void bridgeSegmentedButton(SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
         bridge(libPropBuilder,
-                new FxProperty<>(button.getToggleGroup().selectedToggleProperty(),undos) {
+                new FxProperty<>(button.getToggleGroup().selectedToggleProperty()) {
                     @Override
                     public void setValue(Toggle value) {
                         value.setSelected(true);

@@ -1,7 +1,10 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.EventHandler;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SkinBase;
@@ -19,6 +22,7 @@ public class Knob extends Control {
     private final SimpleObjectProperty<Integer> value;
     private record Drag(double start,int value) {};
     private Drag drag;
+    private SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
 
     private final SVGPath thumb;
 
@@ -57,7 +61,15 @@ public class Knob extends Control {
         getChildren().addAll(l1,l2,edge,center,thumb);
 
         setOnMouseDragged(this::mouseDragged);
+        setOnMouseReleased(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println("change done");
+                valueChanging.set(false);
+            }
+        });
         setOnMousePressed(this::mousePressed);
+
 
         value.set(0);
         setValue(0);
@@ -76,6 +88,8 @@ public class Knob extends Control {
 
     private void mousePressed(MouseEvent e) {
         drag=null; //reset drag
+        valueChanging.set(true);
+        System.out.println("change starting");
         double x = (SIZE/2) - e.getX();
         double y = e.getY() - (SIZE/2);
         double a = Math.atan2(x,y) * (180/Math.PI);
@@ -103,6 +117,12 @@ public class Knob extends Control {
     public Property<Integer> getValueProperty() {
         return value;
     }
+
+    public BooleanProperty valueChangingProperty() {
+        return valueChanging;
+    }
+
+
 
     @Override
     protected Skin<Knob> createDefaultSkin() {
