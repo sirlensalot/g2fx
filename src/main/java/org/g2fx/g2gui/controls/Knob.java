@@ -4,7 +4,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.EventHandler;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SkinBase;
@@ -20,9 +19,9 @@ public class Knob extends Control {
     public static final int MIN=0;
     public static final int MAX=127;
     private final SimpleObjectProperty<Integer> value;
-    private record Drag(double start,int value) {};
+    private record Drag(double start,int value) {}
     private Drag drag;
-    private SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
 
     private final SVGPath thumb;
 
@@ -61,13 +60,7 @@ public class Knob extends Control {
         getChildren().addAll(l1,l2,edge,center,thumb);
 
         setOnMouseDragged(this::mouseDragged);
-        setOnMouseReleased(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                System.out.println("change done");
-                valueChanging.set(false);
-            }
-        });
+        setOnMouseReleased(event -> valueChanging.set(false));
         setOnMousePressed(this::mousePressed);
 
 
@@ -89,7 +82,6 @@ public class Knob extends Control {
     private void mousePressed(MouseEvent e) {
         drag=null; //reset drag
         valueChanging.set(true);
-        System.out.println("change starting");
         double x = (SIZE/2) - e.getX();
         double y = e.getY() - (SIZE/2);
         double a = Math.atan2(x,y) * (180/Math.PI);
@@ -126,7 +118,7 @@ public class Knob extends Control {
 
     @Override
     protected Skin<Knob> createDefaultSkin() {
-        return new SkinBase<Knob>(this) {
+        return new SkinBase<>(this) {
             @Override
             public void dispose() {
                 super.dispose();

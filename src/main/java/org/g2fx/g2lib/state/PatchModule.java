@@ -61,8 +61,12 @@ public class PatchModule {
         int i = settingsModuleType.getModParams().indexOf(param);
         if (i == -1) { throw new IllegalArgumentException(
                 "Invalid mod param " + param + " for settings " + settingsModuleType); }
+        return getParamValueProperty(variation, i);
+    }
+
+    public LibProperty<Integer> getParamValueProperty(int variation, int index) {
         List<FieldValues> fvss = Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation));
-        FieldValues fvs = fvss.get(i);
+        FieldValues fvs = fvss.get(index);
         return new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
             @Override
             public Integer get() {
@@ -145,8 +149,7 @@ public class PatchModule {
         if (paramIndex < 0 || paramIndex >= params.size()) {
             throw new IllegalArgumentException("Invalid param index: " + paramIndex);
         }
-        NamedParam p = params.get(paramIndex);
-        return p;
+        return params.get(paramIndex);
     }
 
     public void updateParam(FieldValues fvs) {

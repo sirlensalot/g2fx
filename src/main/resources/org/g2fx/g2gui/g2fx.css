@@ -1,3 +1,6 @@
+.root {
+    -fx-g2-selected: #aaffff;
+}
 
 .gfont {
     -fx-font-size: 10px;
@@ -54,11 +57,11 @@
 }
 
 .slot-enabled {
-    -fx-background-color: cyan;
+    -fx-color: cyan;
 }
 
 .slot-disabled {
-    -fx-background-color: #eeeeee;
+
 }
 
 .slot-bar {
@@ -67,11 +70,11 @@
 }
 
 .var-button:selected {
-    -fx-background-color: cyan;
+    -fx-color: -fx-g2-selected;
 }
 
 .g2-toggle:selected {
-    -fx-background-color: cyan;
+    -fx-color: -fx-g2-selected;
 }
 
 .power-graphic {
@@ -84,7 +87,7 @@
     -fx-padding: 2;
 }
 .power-button:selected {
-    -fx-background-color: cyan;
+    -fx-color: -fx-g2-selected;
 }
 
 .cable-checkbox {
@@ -125,14 +128,14 @@
 }
 
 .hide-cables:selected {
-    -fx-background-color: cyan;
+    -fx-color: -fx-g2-selected;
 }
 
 .module-sect-toggle {
     -fx-min-width: 55px;
 }
 .module-sect-toggle:selected {
-    -fx-background-color:cyan;
+    -fx-color: -fx-g2-selected;
 }
 
 .module-select-button {
