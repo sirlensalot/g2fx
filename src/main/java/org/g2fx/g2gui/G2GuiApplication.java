@@ -46,6 +46,7 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class G2GuiApplication extends Application {
 
+    public static final int UI_MAX_VARIATIONS = 8;
     private final Logger log = Logger.getLogger(getClass().getName());
 
     public static final String TITLE = "g2fx nord modular g2 editor";
@@ -191,10 +192,10 @@ public class G2GuiApplication extends Application {
 
     private VBox mkMorphsBox() {
         List<VBox> morphs = new ArrayList<>();
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < UI_MAX_VARIATIONS; i++) {
             final int ii = i;
-            String morphCtl = PatchModule.MORPH_LABELS[i];
-            ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,"G.Wh 1") : List.of(morphCtl));
+            String morphCtl = SettingsModules.MORPH_LABELS[i];
+            ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
             bindSlotControl(tf.textProperty(),s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
@@ -237,7 +238,7 @@ public class G2GuiApplication extends Application {
         bindMorphControl(state,sv -> {
             Property<Integer> p = new SimpleObjectProperty<>(btn,"morphMode:"+sv,1);
             bridge(p,d->d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
-                    .getParamValueProperty(sv.var,index+8));
+                    .getParamValueProperty(sv.var,index+ 8));
             return p;
         });
 
@@ -263,13 +264,13 @@ public class G2GuiApplication extends Application {
     }
 
     private <T> void bindVarControl(Slot slot, Property<T> control, IntFunction<Property<T>> varPropBuilder) {
-        List<Property<T>> l = IntStream.range(0, 8).mapToObj(varPropBuilder).toList();
+        List<Property<T>> l = IntStream.range(0, UI_MAX_VARIATIONS).mapToObj(varPropBuilder).toList();
         varControls.get(slot).add(new RebindableControl<>(control, l::get));
     }
 
     private <T> void bindMorphControl(Property<T> control, Function<SlotAndVar,Property<T>> propBuilder) {
         List<List<Property<T>>> props = Arrays.stream(Slot.values()).map(s ->
-                IntStream.range(0,8).mapToObj(v -> propBuilder.apply(new SlotAndVar(s,v))).toList()).toList();
+                IntStream.range(0, UI_MAX_VARIATIONS).mapToObj(v -> propBuilder.apply(new SlotAndVar(s,v))).toList()).toList();
         morphControls.add(new RebindableControl<>(control,sv -> props.get(sv.slot.ordinal()).get(sv.var)));
     }
 

@@ -16,8 +16,6 @@ public class PatchModule {
 
     private final Logger log;
     public static final int MAX_VARIATIONS = 10;
-    public static final String[] MORPH_LABELS =
-            {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
 
     private final UserModuleData userModuleData;
     private final SettingsModules settingsModuleType;

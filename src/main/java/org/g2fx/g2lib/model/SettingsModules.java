@@ -54,6 +54,7 @@ public enum SettingsModules {
 
     public static final String[] MORPH_LABELS =
             {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
+    public static final String MORPH_GW1="G.Wh 1";
 
 
     public abstract List<ModParam> getModParams();
