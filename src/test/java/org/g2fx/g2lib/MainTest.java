@@ -98,10 +98,14 @@ class MainTest {
         }
         //assertEquals(List.of(),all); TODO "Name" module
 
+        System.out.printf("XPos max: %d\n",maxXPos);
+
         mapper.writeValue(
                 new File("src/main/resources/org/g2fx/g2gui/module-uis-1.yaml"),
                 m);
     }
+
+    static int maxXPos = 0;
 
     private static void handleControl(String cn, Map<String, Object> c, ModuleType mt, Map<String, Object> images) throws IOException {
         String id = cn + "-" + c.get("ID");
@@ -122,6 +126,12 @@ class MainTest {
         };
 
         Object ctrl = null;
+
+        Integer xpos = (Integer) c.get("YPos");
+        if (xpos != null) {
+            maxXPos = Math.max(xpos,maxXPos);
+        }
+
         if ("Input".equals(type)) {
             ctrl=cf.apply(cr, mt.inPorts);
         } else if ("Output".equals(type)) {
@@ -151,6 +161,14 @@ class MainTest {
         }
 
         if ("Bitmap".equals(type)) {
+
+            if (c.containsKey("skipImage")) {
+                c.remove("Data");
+                c.remove("skipImage");
+                c.put("type","CustomText");
+                return;
+            }
+
             int w = (Integer) c.get("Width");
             int h = (Integer) c.get("Height");
             String data = (String) c.get("Data");
@@ -172,8 +190,11 @@ class MainTest {
             if (ctrl != null && ctrl.getClass() == NamedParam.class &&
                     ((NamedParam) ctrl).param() == ModParam.ActiveMonitor)  {
                 System.out.println("Skipping image for ActiveMonitor: " + id);
-                return;
+                c.put("skipImage",1);
             }
+
+            if (c.containsKey("skipImage")) { c.remove("Image"); c.remove("skipImage"); return; }
+
             String data = (String) c.get("Image");
             if (!"".equals(data)) {
                 int w = (Integer) c.get("ImageWidth");

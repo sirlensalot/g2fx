@@ -89,7 +89,6 @@
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 6
@@ -192,7 +191,6 @@
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 10
@@ -352,7 +350,6 @@
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 14
@@ -464,7 +461,6 @@
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 11
@@ -1452,7 +1448,6 @@ Clip:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 7
@@ -1619,7 +1614,6 @@ ClkGen:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 6
@@ -2040,7 +2034,6 @@ Compress:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Leds"
     ID: 21
@@ -3193,11 +3186,6 @@ DelayA:
     ImageCount: 4
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayA-0-00.png"
-    - "DelayA-0-01.png"
-    - "DelayA-0-02.png"
-    - "DelayA-0-03.png"
   - type: "Knob"
     ID: 2
     XPos: 95
@@ -3252,7 +3240,6 @@ DelayA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 10
@@ -3329,11 +3316,6 @@ DelayB:
     ImageCount: 4
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayA-0-00.png"
-    - "DelayA-0-01.png"
-    - "DelayA-0-02.png"
-    - "DelayA-0-03.png"
   - type: "Knob"
     ID: 6
     XPos: 95
@@ -3365,7 +3347,6 @@ DelayB:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 10
@@ -3532,14 +3513,6 @@ DelayDual:
     ImageCount: 7
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayDual-0-00.png"
-    - "DelayDual-0-01.png"
-    - "DelayDual-0-02.png"
-    - "DelayDual-0-03.png"
-    - "DelayDual-0-04.png"
-    - "DelayDual-0-05.png"
-    - "DelayDual-0-06.png"
   - type: "Knob"
     ID: 3
     XPos: 133
@@ -3885,14 +3858,6 @@ DelayQuad:
     ImageCount: 7
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayDual-0-00.png"
-    - "DelayDual-0-01.png"
-    - "DelayDual-0-02.png"
-    - "DelayDual-0-03.png"
-    - "DelayDual-0-04.png"
-    - "DelayDual-0-05.png"
-    - "DelayDual-0-06.png"
   - type: "Text"
     ID: 31
     XPos: 231
@@ -4066,7 +4031,6 @@ Digitizer:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 1
@@ -4362,14 +4326,6 @@ DlyEight:
     ImageCount: 7
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayDual-0-00.png"
-    - "DelayDual-0-01.png"
-    - "DelayDual-0-02.png"
-    - "DelayDual-0-03.png"
-    - "DelayDual-0-04.png"
-    - "DelayDual-0-05.png"
-    - "DelayDual-0-06.png"
   - type: "Line"
     ID: 15
     XPos: 102
@@ -4577,14 +4533,6 @@ DlySingleA:
     ImageCount: 7
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayDual-0-00.png"
-    - "DelayDual-0-01.png"
-    - "DelayDual-0-02.png"
-    - "DelayDual-0-03.png"
-    - "DelayDual-0-04.png"
-    - "DelayDual-0-05.png"
-    - "DelayDual-0-06.png"
   - type: "Knob"
     ID: 3
     XPos: 182
@@ -4657,14 +4605,6 @@ DlySingleB:
     ImageCount: 7
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DelayDual-0-00.png"
-    - "DelayDual-0-01.png"
-    - "DelayDual-0-02.png"
-    - "DelayDual-0-03.png"
-    - "DelayDual-0-04.png"
-    - "DelayDual-0-05.png"
-    - "DelayDual-0-06.png"
   - type: "Knob"
     ID: 2
     XPos: 182
@@ -4880,7 +4820,6 @@ DlyStereo:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 20
@@ -4922,10 +4861,6 @@ DlyStereo:
     ImageCount: 3
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "DlyStereo-25-00.png"
-    - "DlyStereo-25-01.png"
-    - "DlyStereo-25-02.png"
   - type: "Text"
     ID: 24
     XPos: 214
@@ -5170,7 +5105,6 @@ DrumSynth:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 26
@@ -5308,38 +5242,38 @@ DrumSynth:
     Length: 40
     Orientation: "Horizontal"
     Width: "Thin"
-  - type: "Bitmap"
+  - type: "CustomText"
     ID: 35
     XPos: 24
     YPos: 14
     ZPos: 0
     Width: 91
     Height: 11
-    image: "DrumSynth-35.png"
-  - type: "Bitmap"
+    Text: "MasterOsc"
+  - type: "CustomText"
     ID: 43
     XPos: 24
     YPos: 67
     ZPos: 0
     Width: 91
     Height: 11
-    image: "DrumSynth-43.png"
-  - type: "Bitmap"
+    Text: "SlaveOsc"
+  - type: "CustomText"
     ID: 33
     XPos: 123
     YPos: 26
     ZPos: 0
     Width: 91
     Height: 11
-    image: "DrumSynth-33.png"
-  - type: "Bitmap"
+    Text: "NoiseFilter"
+  - type: "CustomText"
     ID: 46
     XPos: 125
     YPos: 72
     ZPos: 0
     Width: 49
     Height: 11
-    image: "DrumSynth-46.png"
+    Text: "Bend"
 EnvADDSR:
   Name: "EnvADDSR"
   FileName: "EnvADBDSR"
@@ -7128,7 +7062,6 @@ Eq2Band:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 13
@@ -7292,7 +7225,6 @@ Eq3Band:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 13
@@ -7493,7 +7425,6 @@ EqPeak:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 13
@@ -7767,7 +7698,6 @@ Flanger:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 5
@@ -8095,7 +8025,6 @@ FltClassic:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 21
@@ -8154,7 +8083,6 @@ FltComb:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 2
@@ -8426,7 +8354,6 @@ FltHP:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "ButtonFlat"
     ID: 6
@@ -8553,7 +8480,6 @@ FltLP:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "ButtonFlat"
     ID: 6
@@ -8787,7 +8713,6 @@ FltMulti:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 26
@@ -9022,7 +8947,6 @@ FltNord:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 25
@@ -9104,7 +9028,6 @@ FltPhase:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 4
@@ -9454,7 +9377,6 @@ FltStatic:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 25
@@ -9498,7 +9420,6 @@ FltVoice:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 3
@@ -9830,7 +9751,6 @@ FreqShift:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 11
@@ -9943,7 +9863,6 @@ Fx-In:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
 Gate:
   Name: "Gate"
@@ -11309,7 +11228,6 @@ LfoA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "TextField"
     ID: 10
@@ -11464,7 +11382,6 @@ LfoB:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "TextField"
     ID: 8
@@ -11682,7 +11599,6 @@ LfoC:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 9
@@ -11771,7 +11687,6 @@ LfoShpA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 2
@@ -12099,7 +12014,6 @@ MetNoise:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 2
@@ -15907,7 +15821,6 @@ Noise:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
 NoiseGate:
   Name: "NoiseGate"
@@ -16001,7 +15914,6 @@ NoiseGate:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 8
@@ -17194,7 +17106,6 @@ Operator:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 27
@@ -17223,22 +17134,22 @@ Operator:
     Width: 18
     Image: ""
     ImageWidth: 0
-  - type: "Bitmap"
+  - type: "CustomText"
     ID: 82
     XPos: 34
     YPos: 39
     ZPos: 0
     Width: 215
     Height: 12
-    image: "Operator-82.png"
-  - type: "Bitmap"
+    Text: "Envelope"
+  - type: "CustomText"
     ID: 25
     XPos: 35
     YPos: 123
     ZPos: 0
     Width: 215
     Height: 12
-    image: "Operator-25.png"
+    Text: "KBLevScale"
   - type: "Text"
     ID: 49
     XPos: 34
@@ -17348,7 +17259,6 @@ OscA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "TextField"
     ID: 10
@@ -17493,7 +17403,6 @@ OscB:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Symbol"
     ID: 19
@@ -17756,7 +17665,6 @@ OscC:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 12
@@ -17934,7 +17842,6 @@ OscD:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 9
@@ -18069,7 +17976,6 @@ OscDual:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Symbol"
     ID: 19
@@ -18505,7 +18411,6 @@ OscNoise:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 4
@@ -18691,7 +18596,6 @@ OscPM:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 12
@@ -18925,7 +18829,6 @@ OscPerc:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 18
@@ -19100,7 +19003,6 @@ OscShpA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Symbol"
     ID: 19
@@ -19299,7 +19201,6 @@ OscShpB:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "PartSelector"
     ID: 20
@@ -19678,7 +19579,6 @@ OscString:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "ButtonFlat"
     ID: 12
@@ -19788,7 +19688,6 @@ Overdrive:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 13
@@ -20077,7 +19976,6 @@ PShift:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Text"
     ID: 9
@@ -20340,7 +20238,6 @@ Phaser:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "TextField"
     ID: 9
@@ -20600,7 +20497,6 @@ RandomA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Input"
     ID: 9
@@ -20781,7 +20677,6 @@ RandomB:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "TextField"
     ID: 10
@@ -20931,7 +20826,6 @@ Rect:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 3
@@ -21028,11 +20922,6 @@ Reverb:
     ImageCount: 4
     ImageWidth: 48
     MenuOffset: 0
-    images:
-    - "Reverb-13-00.png"
-    - "Reverb-13-01.png"
-    - "Reverb-13-02.png"
-    - "Reverb-13-03.png"
   - type: "Text"
     ID: 14
     XPos: 4
@@ -21066,7 +20955,6 @@ Reverb:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 19
@@ -21196,7 +21084,6 @@ RndClkA:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Symbol"
     ID: 8
@@ -21332,9 +21219,6 @@ RndClkB:
     ImageCount: 2
     ImageWidth: 30
     MenuOffset: 0
-    images:
-    - "RndClkB-10-00.png"
-    - "RndClkB-10-01.png"
   - type: "Text"
     ID: 11
     XPos: 77
@@ -21382,7 +21266,6 @@ RndClkB:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Symbol"
     ID: 15
@@ -21604,7 +21487,6 @@ RndPattern:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "ButtonIncDec"
     ID: 23
@@ -21779,7 +21661,6 @@ RndTrig:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Symbol"
     ID: 15
@@ -22022,7 +21903,6 @@ Saturate:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "ButtonRadio"
     ID: 6
@@ -22142,7 +22022,6 @@ Scratch:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "TextField"
     ID: 10
@@ -26679,7 +26558,6 @@ ShpExp:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "ButtonRadio"
     ID: 6
@@ -26743,7 +26621,6 @@ ShpStatic:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 2
@@ -26802,7 +26679,6 @@ StChorus:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Output"
     ID: 2
@@ -28619,7 +28495,6 @@ Vocoder:
     Type: "Check"
     Style: "Slim"
     Width: 25
-    Image: ""
     ImageWidth: 0
   - type: "Input"
     ID: 24
@@ -29038,7 +28913,6 @@ WahWah:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
 WaveWrap:
   Name: "WaveWrap"
@@ -29112,7 +28986,6 @@ WaveWrap:
     Type: "Check"
     Style: "Slim"
     Width: 13
-    Image: "cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:000000:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:000000:cecbce:cecbce:cecbce:cecbce:cecbce:000000:000000:000000:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:cecbce:"
     ImageWidth: 9
   - type: "Line"
     ID: 8
