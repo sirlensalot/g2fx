@@ -389,7 +389,7 @@ public enum ModParam {
     (0,127,0),
     DelayRange_3
     (0,
-     "5 m", "25 m", "100 m", "500 m", "1.0 s", "2.0 s", "2.7 s"),
+     "5m", "25m", "100m", "500m", "1.0s", "2.0s", "2.7s"),
     TimeClk
     (0,
      "Time", "Clk"), // NB these line up with yaml
@@ -397,7 +397,7 @@ public enum ModParam {
     (0,127,0),
     DelayRange_2
     (0,
-     "500 m", "1.0 s", "2.0 s", "2.7 s"), // NB this lines up with images in yaml
+     "500m", "1.0s", "2.0s", "2.7s"), // NB this lines up with images in yaml
     RatioFixed
     (0,
      "Ratio", "Fixed"),
@@ -427,7 +427,7 @@ public enum ModParam {
     (0,127,0),
     DelayRange_1
     (0,
-     "500 m", "1.0s", /*"2.0 s",*/ "1.35s"), //TODO check
+     "500m", "1.0s", /*"2.0s",*/ "1.35s"), //TODO check
     OscWaveform_1
     (0,
      "Sine", "Tri"),
