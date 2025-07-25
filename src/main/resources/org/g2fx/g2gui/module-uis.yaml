@@ -1414,7 +1414,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 3
     XPos: 121
@@ -1499,7 +1499,7 @@
     ZPos: 0
     Length: 34
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "ClkDiv":
   Name: "ClkDiv"
@@ -2234,7 +2234,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 40
     XPos: 245
@@ -2242,7 +2242,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 42
     XPos: 240
@@ -2250,7 +2250,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 48
     XPos: 250
@@ -2258,7 +2258,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 50
     XPos: 240
@@ -2266,7 +2266,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 51
     XPos: 240
@@ -2274,7 +2274,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 53
     XPos: 230
@@ -2282,7 +2282,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 54
     XPos: 230
@@ -2290,7 +2290,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 55
     XPos: 225
@@ -2298,7 +2298,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 56
     XPos: 235
@@ -2306,7 +2306,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 57
     XPos: 225
@@ -2314,7 +2314,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 58
     XPos: 225
@@ -2322,7 +2322,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "ConstSwM":
   Name: "ConstSwM"
@@ -2362,7 +2362,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Bitmap"
     ID: 4
     XPos: 218
@@ -2439,7 +2439,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Bitmap"
     ID: 4
     XPos: 217
@@ -2508,7 +2508,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonFlat"
     ID: 5
     XPos: 54
@@ -3108,7 +3108,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 3
     XPos: 101
@@ -3179,7 +3179,7 @@
     ZPos: 0
     Length: 20
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 11
     XPos: 225
@@ -3187,7 +3187,7 @@
     ZPos: 0
     Length: 20
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "DelayA":
   Name: "DelayA"
@@ -3322,7 +3322,7 @@
     ZPos: 0
     Length: 27
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "DelayB":
   Name: "DelayB"
@@ -3445,7 +3445,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 18
     XPos: 163
@@ -3482,7 +3482,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Line"
     ID: 26
     XPos: 245
@@ -3490,7 +3490,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonFlat"
     ID: 29
     XPos: 58
@@ -3582,7 +3582,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 6
     XPos: 90
@@ -3628,7 +3628,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 21
     XPos: 165
@@ -3734,7 +3734,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 8
     XPos: 95
@@ -3780,7 +3780,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 14
     XPos: 142
@@ -3826,7 +3826,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 20
     XPos: 189
@@ -3872,7 +3872,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Output"
     ID: 26
     XPos: 240
@@ -4102,7 +4102,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 6
     XPos: 180
@@ -4154,7 +4154,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 14
     XPos: 131
@@ -4384,7 +4384,7 @@
     ZPos: 0
     Length: 145
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 9
     XPos: 233
@@ -4502,7 +4502,7 @@
     ZPos: 0
     Length: 164
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 12
     XPos: 103
@@ -4692,7 +4692,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 7
     XPos: 139
@@ -4958,7 +4958,7 @@
     ZPos: 0
     Length: 58
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 28
     XPos: 225
@@ -4966,7 +4966,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 29
     XPos: 225
@@ -4974,7 +4974,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 30
     XPos: 159
@@ -5283,7 +5283,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 44
     XPos: 94
@@ -5305,7 +5305,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Bitmap"
     ID: 35
     XPos: 24
@@ -6091,7 +6091,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 29
     XPos: 245
@@ -6099,7 +6099,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "EnvAHD":
   Name: "EnvAHD"
@@ -6324,7 +6324,7 @@
     ZPos: 0
     Length: 16
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 26
     XPos: 245
@@ -6332,7 +6332,7 @@
     ZPos: 0
     Length: 16
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "EnvD":
   Name: "EnvD"
@@ -6983,7 +6983,7 @@
     ZPos: 0
     Length: 12
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Line"
     ID: 37
     XPos: 99
@@ -6991,7 +6991,7 @@
     ZPos: 0
     Length: 12
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Line"
     ID: 39
     XPos: 158
@@ -6999,7 +6999,7 @@
     ZPos: 0
     Length: 12
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Line"
     ID: 44
     XPos: 217
@@ -7007,7 +7007,7 @@
     ZPos: 0
     Length: 12
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 45
     XPos: 4
@@ -7123,7 +7123,7 @@
     ZPos: 0
     Length: 31
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 14
     XPos: 24
@@ -7288,7 +7288,7 @@
     ZPos: 0
     Length: 42
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 14
     XPos: 202
@@ -7347,7 +7347,7 @@
     ZPos: 0
     Length: 82
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonFlat"
     ID: 24
     XPos: 137
@@ -7490,7 +7490,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 14
     XPos: 203
@@ -7603,7 +7603,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Bitmap"
     ID: 12
     XPos: 184
@@ -7702,7 +7702,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Bitmap"
     ID: 11
     XPos: 184
@@ -7783,7 +7783,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 10
     XPos: 199
@@ -7834,7 +7834,7 @@
     ZPos: 0
     Length: 42
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 2
     XPos: 152
@@ -7842,7 +7842,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 3
     XPos: 116
@@ -7890,7 +7890,7 @@
     ZPos: 0
     Length: 18
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Led"
     ID: 9
     XPos: 230
@@ -7914,7 +7914,7 @@
     ZPos: 0
     Length: 58
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 12
     XPos: 63
@@ -7968,7 +7968,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 2
     XPos: 4
@@ -8095,7 +8095,7 @@
     ZPos: 0
     Length: 37
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 22
     XPos: 148
@@ -8155,7 +8155,7 @@
     ZPos: 0
     Length: 44
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 5
     XPos: 66
@@ -8193,7 +8193,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 8
     XPos: 82
@@ -8301,7 +8301,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 23
     XPos: 149
@@ -8359,7 +8359,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 3
     XPos: 99
@@ -8449,7 +8449,7 @@
     ZPos: 0
     Length: 32
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "FltLP":
   Name: "FltLP"
@@ -8481,7 +8481,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 2
     XPos: 99
@@ -8571,7 +8571,7 @@
     ZPos: 0
     Length: 32
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "FltMulti":
   Name: "FltMulti"
@@ -8603,7 +8603,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 2
     XPos: 4
@@ -8779,7 +8779,7 @@
     ZPos: 0
     Length: 34
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 28
     XPos: 153
@@ -8818,7 +8818,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 3
     XPos: 4
@@ -8856,7 +8856,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 8
     XPos: 46
@@ -9015,7 +9015,7 @@
     ZPos: 0
     Length: 56
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 26
     XPos: 124
@@ -9038,7 +9038,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 29
     XPos: 120
@@ -9098,7 +9098,7 @@
     ZPos: 0
     Length: 54
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 5
     XPos: 91
@@ -9128,7 +9128,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 9
     XPos: 87
@@ -9172,7 +9172,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 16
     XPos: 50
@@ -9253,7 +9253,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 22
     XPos: 4
@@ -9449,7 +9449,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "FltVoice":
   Name: "FltVoice"
@@ -9494,7 +9494,7 @@
     ZPos: 0
     Length: 44
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 4
     XPos: 139
@@ -9576,7 +9576,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 15
     XPos: 42
@@ -9620,7 +9620,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 22
     XPos: 215
@@ -9649,7 +9649,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 25
     XPos: 209
@@ -9657,7 +9657,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "MiniVU"
     ID: 26
     XPos: 230
@@ -9713,7 +9713,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 6
     XPos: 4
@@ -9777,7 +9777,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 26
     XPos: 245
@@ -9785,7 +9785,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 29
     XPos: 221
@@ -9793,7 +9793,7 @@
     ZPos: 0
     Length: 9
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 7
     XPos: 84
@@ -9827,7 +9827,7 @@
     ZPos: 0
     Length: 9
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "Fx-In":
   Name: "Fx-In"
@@ -9978,7 +9978,7 @@
     ZPos: 0
     Length: 30
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 4
     XPos: 182
@@ -9986,7 +9986,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 5
     XPos: 163
@@ -10038,7 +10038,7 @@
     ZPos: 0
     Length: 30
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 11
     XPos: 91
@@ -10046,7 +10046,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 12
     XPos: 70
@@ -10070,7 +10070,7 @@
     ZPos: 0
     Length: 18
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 15
     XPos: 225
@@ -10078,7 +10078,7 @@
     ZPos: 0
     Length: 18
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "Glide":
   Name: "Glide"
@@ -10219,7 +10219,7 @@
     ZPos: 0
     Length: 18
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 6
     XPos: 100
@@ -10243,7 +10243,7 @@
     ZPos: 0
     Length: 14
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Led"
     ID: 3
     XPos: 230
@@ -10267,7 +10267,7 @@
     ZPos: 0
     Length: 18
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 9
     XPos: 193
@@ -10291,7 +10291,7 @@
     ZPos: 0
     Length: 14
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "KeyQuant":
   Name: "KeyQuant"
@@ -10623,7 +10623,7 @@
     ZPos: 0
     Length: 62
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 14
     XPos: 140
@@ -10631,7 +10631,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "LevAdd":
   Name: "LevAdd"
@@ -10679,7 +10679,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 6
     XPos: 180
@@ -10687,7 +10687,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Bitmap"
     ID: 2
     XPos: 219
@@ -10703,7 +10703,7 @@
     ZPos: 0
     Length: 4
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonFlat"
     ID: 9
     XPos: 54
@@ -10723,7 +10723,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "LevAmp":
   Name: "LevAmp"
@@ -10779,7 +10779,7 @@
     ZPos: 0
     Length: 52
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 6
     XPos: 180
@@ -10787,7 +10787,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonFlat"
     ID: 7
     XPos: 54
@@ -10838,7 +10838,7 @@
     ZPos: 0
     Length: 32
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonRadio"
     ID: 0
     XPos: 96
@@ -10915,7 +10915,7 @@
     ZPos: 0
     Length: 9
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 6
     XPos: 91
@@ -10938,7 +10938,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 9
     XPos: 144
@@ -10988,7 +10988,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "LevMult":
   Name: "LevMult"
@@ -11029,7 +11029,7 @@
     ZPos: 0
     Length: 47
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 4
     XPos: 185
@@ -11037,7 +11037,7 @@
     ZPos: 0
     Length: 9
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 6
     XPos: 180
@@ -11233,7 +11233,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 3
     XPos: 4
@@ -11385,7 +11385,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 2
     XPos: 28
@@ -11555,7 +11555,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 25
     XPos: 176
@@ -11781,7 +11781,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Symbol"
     ID: 8
     XPos: 17
@@ -11853,7 +11853,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Graph"
     ID: 19
     XPos: 199
@@ -11938,7 +11938,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonRadio"
     ID: 31
     XPos: 92
@@ -12081,7 +12081,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 9
     XPos: 150
@@ -12104,7 +12104,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
 
 "MinMax":
   Name: "MinMax"
@@ -12249,7 +12249,7 @@
     ZPos: 0
     Length: 30
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "Mix1-1S":
   Name: "Mix1-1S"
@@ -14536,7 +14536,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 29
     XPos: 79
@@ -14559,7 +14559,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 32
     XPos: 115
@@ -14582,7 +14582,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 35
     XPos: 151
@@ -14605,7 +14605,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Bitmap"
     ID: 15
     XPos: 240
@@ -14640,7 +14640,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 24
     XPos: 245
@@ -14648,7 +14648,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "ModAHD":
   Name: "ModAHD"
@@ -14838,7 +14838,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 19
     XPos: 110
@@ -14861,7 +14861,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 27
     XPos: 153
@@ -14884,7 +14884,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 30
     XPos: 220
@@ -14911,7 +14911,7 @@
     ZPos: 0
     Length: 23
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 33
     XPos: 245
@@ -14919,7 +14919,7 @@
     ZPos: 0
     Length: 23
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "ModAmt":
   Name: "ModAmt"
@@ -14991,7 +14991,7 @@
     ZPos: 0
     Length: 36
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 9
     XPos: 195
@@ -14999,7 +14999,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 10
     XPos: 74
@@ -15998,7 +15998,7 @@
     ZPos: 0
     Length: 30
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 10
     XPos: 10
@@ -17281,7 +17281,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 3
     XPos: 4
@@ -17437,7 +17437,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 12
     XPos: 188
@@ -17556,7 +17556,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 13
     XPos: 180
@@ -17579,7 +17579,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 25
     XPos: 160
@@ -17594,7 +17594,7 @@
     ZPos: 0
     Length: 26
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "TextField"
     ID: 26
     XPos: 159
@@ -17610,7 +17610,7 @@
     ZPos: 0
     Length: 14
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Line"
     ID: 30
     XPos: 221
@@ -17618,7 +17618,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Vertical"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 27
     XPos: 114
@@ -17799,7 +17799,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 18
     XPos: 4
@@ -17822,7 +17822,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 9
     XPos: 181
@@ -18017,7 +18017,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 12
     XPos: 161
@@ -18130,7 +18130,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 25
     XPos: 163
@@ -18173,7 +18173,7 @@
     ZPos: 0
     Length: 93
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 13
     XPos: 158
@@ -18188,7 +18188,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 15
     XPos: 124
@@ -18211,7 +18211,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 32
     XPos: 161
@@ -18326,7 +18326,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 2
     XPos: 4
@@ -18470,7 +18470,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonText"
     ID: 1
     XPos: 224
@@ -18505,7 +18505,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 7
     XPos: 4
@@ -18731,7 +18731,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 18
     XPos: 4
@@ -18754,7 +18754,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 21
     XPos: 190
@@ -18946,7 +18946,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 21
     XPos: 225
@@ -19032,7 +19032,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 12
     XPos: 188
@@ -19151,7 +19151,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 13
     XPos: 180
@@ -19174,7 +19174,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 25
     XPos: 159
@@ -19330,7 +19330,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Symbol"
     ID: 4
     XPos: 17
@@ -19416,7 +19416,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 15
     XPos: 187
@@ -19439,7 +19439,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Graph"
     ID: 26
     XPos: 208
@@ -19580,7 +19580,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 10
     XPos: 164
@@ -19632,7 +19632,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonText"
     ID: 27
     XPos: 224
@@ -19671,7 +19671,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 14
     XPos: 240
@@ -19679,7 +19679,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 17
     XPos: 245
@@ -19687,7 +19687,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 18
     XPos: 250
@@ -19695,7 +19695,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 19
     XPos: 240
@@ -19703,7 +19703,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 
 "Overdrive":
@@ -19798,7 +19798,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 9
     XPos: 32
@@ -19825,7 +19825,7 @@
     ZPos: 0
     Length: 32
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "PCSend":
   Name: "PCSend"
@@ -19987,7 +19987,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 3
     XPos: 138
@@ -20062,7 +20062,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "Pan":
   Name: "Pan"
@@ -20094,7 +20094,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 3
     XPos: 140
@@ -20302,7 +20302,7 @@
     ZPos: 0
     Length: 36
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonText"
     ID: 8
     XPos: 224
@@ -20461,7 +20461,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 2
     XPos: 101
@@ -20532,7 +20532,7 @@
     ZPos: 0
     Length: 20
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 11
     XPos: 226
@@ -20540,7 +20540,7 @@
     ZPos: 0
     Length: 20
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 
 "RandomA":
@@ -20721,7 +20721,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 3
     XPos: 4
@@ -20912,7 +20912,7 @@
     ZPos: 0
     Length: 36
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonRadio"
     ID: 4
     XPos: 96
@@ -21080,7 +21080,7 @@
     ZPos: 0
     Length: 20
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 24
     XPos: 245
@@ -21088,7 +21088,7 @@
     ZPos: 0
     Length: 20
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 4
     XPos: 196
@@ -21096,7 +21096,7 @@
     ZPos: 0
     Length: 16
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 
 "RndClkA":
@@ -21409,7 +21409,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonFlat"
     ID: 26
     XPos: 222
@@ -21662,7 +21662,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
 
 
 
@@ -21811,7 +21811,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Graph"
     ID: 8
     XPos: 214
@@ -21860,7 +21860,7 @@
     ZPos: 0
     Length: 47
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 4
     XPos: 167
@@ -21868,7 +21868,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 5
     XPos: 162
@@ -21899,7 +21899,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Symbol"
     ID: 8
     XPos: 175
@@ -21953,7 +21953,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 4
     XPos: 210
@@ -22017,7 +22017,7 @@
     ZPos: 0
     Length: 34
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "Scratch":
   Name: "Scratch"
@@ -22072,7 +22072,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 3
     XPos: 88
@@ -22133,7 +22133,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 
 "SeqCtr":
@@ -22487,7 +22487,7 @@
     ZPos: 0
     Length: 31
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 114
     XPos: 240
@@ -22631,7 +22631,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 26
     XPos: 28
@@ -22751,7 +22751,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 84
     XPos: 204
@@ -22759,7 +22759,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 14
     XPos: 12
@@ -22767,7 +22767,7 @@
     ZPos: 0
     Length: 12
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 15
     XPos: 23
@@ -22775,7 +22775,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 16
     XPos: 225
@@ -22783,7 +22783,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 17
     XPos: 225
@@ -22791,7 +22791,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 0
     XPos: 4
@@ -23501,7 +23501,7 @@
     ZPos: 0
     Length: 29
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 62
     XPos: 218
@@ -23509,7 +23509,7 @@
     ZPos: 0
     Length: 29
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Symbol"
     ID: 63
     XPos: 16
@@ -23675,7 +23675,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 86
     XPos: 24
@@ -23683,7 +23683,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 87
     XPos: 5
@@ -24171,7 +24171,7 @@
     ZPos: 0
     Length: 28
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 114
     XPos: 240
@@ -24337,7 +24337,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 26
     XPos: 28
@@ -24457,7 +24457,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 84
     XPos: 204
@@ -24465,7 +24465,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 11
     XPos: 4
@@ -24480,7 +24480,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 15
     XPos: 23
@@ -24488,7 +24488,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 16
     XPos: 225
@@ -24496,7 +24496,7 @@
     ZPos: 0
     Length: 19
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 17
     XPos: 225
@@ -24504,7 +24504,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonText"
     ID: 200
     XPos: 231
@@ -25017,7 +25017,7 @@
     ZPos: 0
     Length: 33
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Symbol"
     ID: 62
     XPos: 17
@@ -25191,7 +25191,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 11
     XPos: 4
@@ -25206,7 +25206,7 @@
     ZPos: 0
     Length: 16
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 16
     XPos: 225
@@ -25214,7 +25214,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 20
     XPos: 197
@@ -25222,7 +25222,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Text"
     ID: 21
     XPos: 82
@@ -25253,7 +25253,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Knob"
     ID: 17
     XPos: 25
@@ -25373,7 +25373,7 @@
     ZPos: 0
     Length: 193
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 98
     XPos: 24
@@ -25381,7 +25381,7 @@
     ZPos: 0
     Length: 205
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 99
     XPos: 24
@@ -25389,7 +25389,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 100
     XPos: 228
@@ -25397,7 +25397,7 @@
     ZPos: 0
     Length: 92
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Graph"
     ID: 101
     XPos: 217
@@ -25413,7 +25413,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 102
     XPos: 216
@@ -25421,7 +25421,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Graph"
     ID: 13
     XPos: 231
@@ -25922,7 +25922,7 @@
     ZPos: 0
     Length: 26
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Symbol"
     ID: 62
     XPos: 17
@@ -26080,7 +26080,7 @@
     ZPos: 0
     Length: 26
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 86
     XPos: 24
@@ -26112,7 +26112,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 11
     XPos: 46
@@ -26120,7 +26120,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 12
     XPos: 34
@@ -26128,7 +26128,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonIncDec"
     ID: 13
     XPos: 29
@@ -26264,7 +26264,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 92
     XPos: 70
@@ -26272,7 +26272,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 93
     XPos: 84
@@ -26296,7 +26296,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 96
     XPos: 94
@@ -26304,7 +26304,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 97
     XPos: 108
@@ -26328,7 +26328,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 100
     XPos: 118
@@ -26336,7 +26336,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 101
     XPos: 132
@@ -26360,7 +26360,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 104
     XPos: 142
@@ -26368,7 +26368,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 105
     XPos: 156
@@ -26392,7 +26392,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 108
     XPos: 166
@@ -26400,7 +26400,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 109
     XPos: 180
@@ -26424,7 +26424,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 112
     XPos: 190
@@ -26432,7 +26432,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextField"
     ID: 113
     XPos: 204
@@ -26448,7 +26448,7 @@
     ZPos: 0
     Length: 50
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 114
     XPos: 240
@@ -26472,7 +26472,7 @@
     ZPos: 0
     Length: 28
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 118
     XPos: 220
@@ -26480,7 +26480,7 @@
     ZPos: 0
     Length: 21
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 119
     XPos: 4
@@ -26611,7 +26611,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Input"
     ID: 4
     XPos: 210
@@ -26675,7 +26675,7 @@
     ZPos: 0
     Length: 34
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "ShpStatic":
   Name: "ShpStatic"
@@ -26720,7 +26720,7 @@
     ZPos: 0
     Length: 40
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonRadio"
     ID: 5
     XPos: 96
@@ -26792,7 +26792,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 7
     XPos: 245
@@ -26800,7 +26800,7 @@
     ZPos: 0
     Length: 13
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 8
     XPos: 240
@@ -26844,7 +26844,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 13
     XPos: 233
@@ -26852,7 +26852,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
 
 "Status":
   Name: "Status"
@@ -26970,7 +26970,7 @@
     ZPos: 0
     Length: 46
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 8
     XPos: 185
@@ -26978,7 +26978,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 0
     XPos: 210
@@ -27073,7 +27073,7 @@
     ZPos: 0
     Length: 46
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 8
     XPos: 185
@@ -27081,7 +27081,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 0
     XPos: 210
@@ -27491,7 +27491,7 @@
     ZPos: 0
     Length: 48
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 10
     XPos: 246
@@ -27499,7 +27499,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "ButtonRadioEdit"
     ID: 11
     XPos: 83
@@ -27594,7 +27594,7 @@
     ZPos: 0
     Length: 47
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 10
     XPos: 246
@@ -27602,7 +27602,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextEdit"
     ID: 6
     XPos: 111
@@ -27982,7 +27982,7 @@
     ZPos: 0
     Length: 56
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 7
     XPos: 173
@@ -27990,7 +27990,7 @@
     ZPos: 0
     Length: 5
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextEdit"
     ID: 3
     XPos: 152
@@ -28071,7 +28071,7 @@
     ZPos: 0
     Length: 56
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 9
     XPos: 173
@@ -28079,7 +28079,7 @@
     ZPos: 0
     Length: 5
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "TextEdit"
     ID: 2
     XPos: 152
@@ -28130,7 +28130,7 @@
     ZPos: 0
     Length: 47
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 5
     XPos: 167
@@ -28138,7 +28138,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 4
     XPos: 162
@@ -28169,7 +28169,7 @@
     ZPos: 0
     Length: 15
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 9
     XPos: 144
@@ -28224,7 +28224,7 @@
     ZPos: 0
     Length: 46
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 4
     XPos: 185
@@ -28232,7 +28232,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 5
     XPos: 210
@@ -28307,7 +28307,7 @@
     ZPos: 0
     Length: 29
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 16
     XPos: 145
@@ -28383,7 +28383,7 @@
     ZPos: 0
     Length: 29
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 17
     XPos: 145
@@ -28430,7 +28430,7 @@
     ZPos: 0
     Length: 47
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 5
     XPos: 246
@@ -28438,7 +28438,7 @@
     ZPos: 0
     Length: 7
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 7
     XPos: 223
@@ -28745,7 +28745,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 44
     XPos: 54
@@ -28753,7 +28753,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 45
     XPos: 66
@@ -28761,7 +28761,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 46
     XPos: 78
@@ -28769,7 +28769,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 47
     XPos: 90
@@ -28777,7 +28777,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 48
     XPos: 102
@@ -28785,7 +28785,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 49
     XPos: 114
@@ -28793,7 +28793,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 50
     XPos: 126
@@ -28801,7 +28801,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 51
     XPos: 138
@@ -28809,7 +28809,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 52
     XPos: 150
@@ -28817,7 +28817,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 53
     XPos: 162
@@ -28825,7 +28825,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 54
     XPos: 174
@@ -28833,7 +28833,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 55
     XPos: 186
@@ -28841,7 +28841,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 56
     XPos: 198
@@ -28849,7 +28849,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 57
     XPos: 210
@@ -28857,7 +28857,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 58
     XPos: 222
@@ -28865,7 +28865,7 @@
     ZPos: 0
     Length: 76
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 59
     XPos: 26
@@ -28873,7 +28873,7 @@
     ZPos: 0
     Length: 8
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 60
     XPos: 15
@@ -28881,7 +28881,7 @@
     ZPos: 0
     Length: 11
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 61
     XPos: 26
@@ -28889,7 +28889,7 @@
     ZPos: 0
     Length: 197
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 62
     XPos: 42
@@ -28897,7 +28897,7 @@
     ZPos: 0
     Length: 188
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Line"
     ID: 63
     XPos: 229
@@ -28905,7 +28905,7 @@
     ZPos: 0
     Length: 3
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Text"
     ID: 71
     XPos: 102
@@ -28986,7 +28986,7 @@
     ZPos: 0
     Length: 25
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Input"
     ID: 1
     XPos: 97
@@ -29009,7 +29009,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "ButtonText"
     ID: 8
     XPos: 224
@@ -29053,7 +29053,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 3
     XPos: 149
@@ -29104,7 +29104,7 @@
     ZPos: 0
     Length: 32
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
 
 "WindSw":
   Name: "WindSw"
@@ -29204,7 +29204,7 @@
     ZPos: 0
     Length: 43
     Orientation: "Horizontal"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Output"
     ID: 12
     XPos: 181
@@ -29220,7 +29220,7 @@
     ZPos: 0
     Length: 10
     Orientation: "Vertical"
-    Width: "Thin"
+    Weight: "Thin"
   - type: "Led"
     ID: 14
     XPos: 198
@@ -29260,7 +29260,7 @@
     ZPos: 0
     Length: 22
     Orientation: "Horizontal"
-    Width: "Thick"
+    Weight: "Thick"
   - type: "Knob"
     ID: 0
     XPos: 140
