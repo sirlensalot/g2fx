@@ -18,7 +18,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -92,7 +91,7 @@ class MainTest {
             ModuleType mt = ModuleType.valueOf(mtName);
             all.remove(mt);
 
-            for (Map<String, Object> c : e.getValue().controls) {
+            for (Map<String, Object> c : e.getValue().Controls) {
                 handleControl(e.getKey(), c, mt, images);
             }
         }
@@ -109,58 +108,50 @@ class MainTest {
 
     private static void handleControl(String cn, Map<String, Object> c, ModuleType mt, Map<String, Object> images) throws IOException {
         String id = cn + "-" + c.get("ID");
-        String type = (String) c.get("type");
+        String cls = (String) c.get("Class");
         Integer cr = (Integer) c.get("CodeRef");
 
-        BiFunction<Integer,List<?>,Object> cf = (i, l) -> {
-            if (l == null) {
-                throw new RuntimeException("ERROR Null control list: " + c);
-            }
-            if (l.size() > i) {
-                Object o = l.get(i);
-                System.out.println(id + ": " + o);
-                return o;
-            } else {
-                throw new RuntimeException("ERROR Failed to resolve control: " + id + ", " + c + ", " + mt.getVisuals());
-            }
-        };
 
-        Object ctrl = null;
+        boolean isAM = false;
+        String name = null;
 
         Integer xpos = (Integer) c.get("YPos");
         if (xpos != null) {
             maxXPos = Math.max(xpos,maxXPos);
         }
 
-        if ("Input".equals(type)) {
-            ctrl=cf.apply(cr, mt.inPorts);
-        } else if ("Output".equals(type)) {
-            ctrl=cf.apply(cr, mt.outPorts);
-        } else if ("PartSelector".equals(type)) {
-            ctrl=cf.apply(cr, mt.modes);
-        } else if ("Led".equals(type)) {
+        if ("Input".equals(cls)) {
+            name=mt.inPorts.get(cr).name();
+        } else if ("Output".equals(cls)) {
+            name=mt.outPorts.get(cr).name();
+        } else if ("PartSelector".equals(cls)) {
+            name=mt.modes.get(cr).name();
+        } else if ("Led".equals(cls)) {
             Integer gid = (Integer) c.get("GroupId");
             List<Visual> lg = mt.getVisuals().get(Visual.VisualType.LedGroup);
             if ("Sequencer".equals(c.get("Type"))) {
-                ctrl=cf.apply(cr, lg.get(gid).names());
+                name=lg.get(gid).names().get(cr);
                 c.put("type","Leds");
             } else { // Type: "Green"
                 List<Visual> lv = mt.getVisuals().get(Visual.VisualType.Led);
                 if (lv.isEmpty()) {
-                    ctrl=cf.apply(cr,lg.get(gid).names());
-                    c.put("type","Leds");
+                    name=lg.get(gid).names().get(cr);
+                    c.put("Class","Leds");
                 } else {
-                    ctrl=cf.apply(cr, lv);
+                    name=lv.get(cr).names().getFirst();
                 }
             }
-        } else if ("MiniVU".equals(type)) {
-            ctrl=cf.apply((Integer) c.get("GroupId"),
-                    mt.getVisuals().get(Visual.VisualType.Meter));
+        } else if ("MiniVU".equals(cls)) {
+            name=mt.getVisuals().get(Visual.VisualType.Meter).get((Integer) c.get("GroupId")).names().getFirst();
         } else if (cr != null) { // param controls
-            ctrl=cf.apply(cr, mt.getParams());
+            NamedParam p = mt.getParams().get(cr);
+            isAM = p.param()==ModParam.ActiveMonitor;
+            name = p.name();
         }
 
-        if ("Bitmap".equals(type)) {
+        if (name != null) { c.put("Control",name); }
+
+        if ("Bitmap".equals(cls)) {
 
             if (c.containsKey("skipImage")) {
                 c.remove("Data");
@@ -187,8 +178,7 @@ class MainTest {
             }
             c.remove("Data");
         } else if (c.containsKey("Image")) {
-            if (ctrl != null && ctrl.getClass() == NamedParam.class &&
-                    ((NamedParam) ctrl).param() == ModParam.ActiveMonitor)  {
+            if (isAM)  {
                 System.out.println("Skipping image for ActiveMonitor: " + id);
                 c.put("skipImage",1);
             }
@@ -198,7 +188,7 @@ class MainTest {
             String data = (String) c.get("Image");
             if (!"".equals(data)) {
                 int w = (Integer) c.get("ImageWidth");
-                int n = "ButtonRadio".equals(type) ? ((Integer) c.get("ButtonCount")) :
+                int n = "ButtonRadio".equals(cls) ? ((Integer) c.get("ButtonCount")) :
                         c.containsKey("ImageCount") ? ((Integer) c.get("ImageCount")) : 1;
                 List<String> bs = Arrays.stream(data.split(":")).toList();
                 int l = bs.size();
@@ -235,7 +225,7 @@ class MainTest {
             int Height,
             int XPos,
             int YPos,
-            List<Map<String,Object>> controls
+            List<Map<String,Object>> Controls
     ){};
 
     public static String writeImageFromString(
