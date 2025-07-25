@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
@@ -82,7 +81,7 @@ class MainTest {
                 new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
         Map<String,Object> images = new HashMap<>();
         TreeMap<String,UiModule> m = mapper.readValue(
-                FXUtil.getResource("module-uis.yaml")
+                new File("data/module-uis-input.yaml")
                 , new TypeReference<>() {});
         List<ModuleType> all = new ArrayList<>(
                 Arrays.stream(ModuleType.values()).toList());
@@ -100,7 +99,7 @@ class MainTest {
         System.out.printf("XPos max: %d\n",maxXPos);
 
         mapper.writeValue(
-                new File("src/main/resources/org/g2fx/g2gui/module-uis-1.yaml"),
+                new File("src/main/resources/org/g2fx/g2gui/module-uis.yaml"),
                 m);
     }
 
