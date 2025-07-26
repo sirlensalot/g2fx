@@ -576,7 +576,6 @@ public class G2GuiApplication extends Application {
             UIModule<UIElement> ui = uiModules.get(md.getType());
             int x = md.getHoriz();
             int y = md.getVert();
-            if (ui == null) { continue; } //TODO M_Name
             int h = ui.Height();
             int w = 260;
             System.out.printf("%s x=%s y=%s h=%s w=%s\n",md.getType(),x,y,h,w);

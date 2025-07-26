@@ -15134,6 +15134,11 @@ Mux8-1X:
     XPos: 183
     YPos: 10
     Text: "X-Fade"
+Name:
+  Name: "Name"
+  Tooltip: "Name"
+  Height: 1
+  Controls: []
 Noise:
   Name: "Noise"
   Tooltip: "Noise"

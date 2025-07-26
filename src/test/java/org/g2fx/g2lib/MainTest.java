@@ -84,6 +84,7 @@ class MainTest {
         TreeMap<String,UiModule> m = mapper.readValue(
                 new File("data/module-uis-input.yaml")
                 , new TypeReference<>() {});
+        m.put("Name",new UiModule("Name","Name",1,List.of()));
         List<ModuleType> all = new ArrayList<>(
                 Arrays.stream(ModuleType.values()).toList());
         for (Map.Entry<String, UiModule> e : m.entrySet()) {
@@ -104,9 +105,9 @@ class MainTest {
                 updateFields(c);
             }
         }
-        //assertEquals(List.of(),all); TODO "Name" module
 
-        System.out.printf("XPos max: %d\n",maxXPos);
+
+        assertEquals(List.of(),all);
 
         mapper.writeValue(
                 new File("src/main/resources/org/g2fx/g2gui/module-uis.yaml"),
@@ -188,8 +189,6 @@ class MainTest {
 
     }
 
-    static int maxXPos = 0;
-
     private static void handleControl(String cn, Map<String, Object> c, ModuleType mt, Map<String, Object> images) throws IOException {
         String id = cn + "-" + c.get("ID");
         String cls = (String) c.get("Class");
@@ -198,11 +197,6 @@ class MainTest {
 
         boolean isAM = false;
         String name = null;
-
-        Integer xpos = (Integer) c.get("YPos");
-        if (xpos != null) {
-            maxXPos = Math.max(xpos,maxXPos);
-        }
 
         if ("Input".equals(cls)) {
             name=mt.inPorts.get(cr).name();
