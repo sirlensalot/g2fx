@@ -21,7 +21,7 @@ import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
-import org.g2fx.g2gui.controls.ModuleControl;
+import org.g2fx.g2gui.controls.ModuleSelector;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -601,7 +601,7 @@ public class G2GuiApplication extends Application {
 
         Button initVar = new Button("Init");
 
-        ModuleControl mc = new ModuleControl(1,"ClkGen1", ModuleType.M_ClkGen);
+        ModuleSelector mc = new ModuleSelector(1,"ClkGen1", ModuleType.M_ClkGen);
         Pane voicePane = withClass(
                 new FlowPane(new Label("voice"), mc.getPane()),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =

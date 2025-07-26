@@ -12,7 +12,7 @@ import org.g2fx.g2lib.model.ModuleType;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 
-public class ModuleControl {
+public class ModuleSelector {
 
     private final int id;
     private final ModuleType type;
@@ -28,7 +28,7 @@ public class ModuleControl {
     }
     private final ComboBox<NameAndType> nameAndTypeCombo;
 
-    public ModuleControl(int id, String name, ModuleType type) {
+    public ModuleSelector(int id, String name, ModuleType type) {
         this.id = id;
         this.type = type;
         this.name = name;

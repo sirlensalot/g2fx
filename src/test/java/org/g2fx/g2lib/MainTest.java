@@ -1,5 +1,6 @@
 package org.g2fx.g2lib;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -15,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -92,6 +95,15 @@ class MainTest {
 
             for (Map<String, Object> c : e.getValue().Controls) {
                 handleControl(e.getKey(), c, mt, images);
+                for (String s : List.of("ZPos","Image","Style","FontSize")) {
+                    c.remove(s);
+                }
+                for (String s : List.of("Graph Func","Text Func")) {
+                    if (c.containsKey(s)) {
+                        c.put(s.replace(" ",""), c.remove(s));
+                    }
+                }
+                updateFields(c);
             }
         }
         //assertEquals(List.of(),all); TODO "Name" module
@@ -101,6 +113,81 @@ class MainTest {
         mapper.writeValue(
                 new File("src/main/resources/org/g2fx/g2gui/module-uis.yaml"),
                 m);
+
+        Map<String,Integer> fieldCounts = new TreeMap<>();
+        for (Map<String, FieldInfo> v : fields.values()) {
+            for (String k : v.keySet()) {
+                fieldCounts.compute(k,(fn,c) -> c == null ? 1 : c + 1);
+                FieldInfo f = v.get(k);
+                int s = f.values.size();
+                if (s > 1) {
+                    f.values.clear();
+                    f.values.add("Size: " + s);
+                }
+            }
+        }
+        mapper.writeValue(
+                new File("data/fields.yaml"),
+                fields);
+        mapper.writeValue(new File("data/fieldUse.yaml"),fieldCounts);
+        try (PrintWriter w = new PrintWriter(new FileWriter("src/main/java/org/g2fx/g2gui/controls/UIElements.java"))) {
+            w.println("""
+                    package org.g2fx.g2gui.controls;
+                    
+                    import java.util.List;
+
+                    public class UIElements {""");
+
+
+                    
+            w.println("    public enum ElementType {");
+            boolean first = true;
+            for (String cls : fields.keySet()) {
+                w.print("      ");
+                w.print(first ? "  " : ", ");
+                first = false;
+                w.format("%s { @Override public Class<? extends UIElement> getType() { return %s.class; } }\n",cls,cls);
+            }
+            w.println("        ;\n        public abstract Class<? extends UIElement> getType();\n    }\n");
+            for (String cls : fields.keySet()) {
+                w.format("\n    public record %s (\n",cls.replace(" ",""));
+                Map<String, FieldInfo> fs = fields.get(cls);
+                first = true;
+                for (String f : fs.keySet()) {
+                    FieldInfo fi = fs.get(f);
+                    w.print("      ");
+                    w.print(first ? "  " : ", ");
+                    first = false;
+                    w.format("%s %s\n",fi.ty.getSimpleName().replace("ArrayList","List<String>"),f.replace(" ",""));
+                }
+                w.format("    ) implements UIElement%s {\n",fs.containsKey("Control") ? ", UIControl" : "");
+                w.format("        @Override public ElementType elementType() { return ElementType.%s; }\n",cls);
+                w.println("    }");
+            }
+
+            w.println("}\n");
+
+        }
+    }
+
+    record FieldInfo(int count,Class<?> ty,Set<Object> values) {}
+
+    static Map<String,Map<String,FieldInfo>> fields = new TreeMap<>();
+
+    private static void updateFields(Map<String, Object> cc) {
+        TreeMap<String, Object> c = new TreeMap<>(cc);
+        String cls = (String)c.remove("Class");
+        Map<String, FieldInfo> m = fields.computeIfAbsent(cls, s -> new TreeMap<>());
+        for (String f : c.keySet()) {
+            Object v= c.get(f);
+            FieldInfo fi = m.computeIfAbsent(f, s -> new FieldInfo(0,v.getClass(),new HashSet<>()));
+            fi.values.add(v);
+            m.put(f,new FieldInfo(fi.count+1,fi.ty,fi.values));
+            if (v.getClass()!=fi.ty) {
+                throw new RuntimeException("Class mismatch:" + f + ", " + v.getClass() + ", " + fi);
+            }
+        }
+
     }
 
     static int maxXPos = 0;
@@ -130,12 +217,12 @@ class MainTest {
             List<Visual> lg = mt.getVisuals().get(Visual.VisualType.LedGroup);
             if ("Sequencer".equals(c.get("Type"))) {
                 name=lg.get(gid).names().get(cr);
-                c.put("type","Leds");
+                c.put("LedGroup",true);
             } else { // Type: "Green"
                 List<Visual> lv = mt.getVisuals().get(Visual.VisualType.Led);
                 if (lv.isEmpty()) {
                     name=lg.get(gid).names().get(cr);
-                    c.put("Class","Leds");
+                    c.put("LedGroup",true);
                 } else {
                     name=lv.get(cr).names().getFirst();
                 }
@@ -155,7 +242,7 @@ class MainTest {
             if (c.containsKey("skipImage")) {
                 c.remove("Data");
                 c.remove("skipImage");
-                c.put("type","CustomText");
+                c.put("CustomText",true);
                 return;
             }
 
@@ -165,7 +252,7 @@ class MainTest {
             if (images.containsKey(data)) {
                 Object f = images.get(data);
                 System.out.println("dupe [bitmap]: " + id + ": " + f);
-                c.put("image",f);
+                c.put("ImageFile",f);
             } else {
                 String fn = writeImageFromString(
                         data, w, h,
@@ -173,7 +260,7 @@ class MainTest {
                         false
                 );
                 images.put(data,fn);
-                c.put("image",fn);
+                c.put("ImageFile",fn);
             }
             c.remove("Data");
         } else if (c.containsKey("Image")) {
@@ -194,7 +281,7 @@ class MainTest {
                 if (images.containsKey(data)) {
                     Object fs = images.get(data);
                     System.out.println("dupe [image]: " + id + ": " + fs);
-                    c.put("images",fs);
+                    c.put("Images",fs);
                 } else {
                     List<String> files = new ArrayList<>();
                     for (int i = 0; i < n; i++) {
@@ -210,20 +297,21 @@ class MainTest {
                                 true));
                     }
                     images.put(data,files);
-                    c.put("images",files);
+                    c.put("Images",files);
                 }
                 c.remove("Image");
             }
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     record UiModule(
             String Name,
-            String FileName,
+            //String FileName,
             String Tooltip,
             int Height,
-            int XPos,
-            int YPos,
+            //int XPos,
+            //int YPos,
             List<Map<String,Object>> Controls
     ){};
 
