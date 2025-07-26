@@ -69,6 +69,10 @@ public class PatchArea {
         throw new IllegalArgumentException("No such module: " + index);
     }
 
+    public Collection<PatchModule> getModules() {
+        return modules.values();
+    }
+
     public PatchModule getSettingsModule(SettingsModules m) {
         return getModule(m.getModIndex());
     }

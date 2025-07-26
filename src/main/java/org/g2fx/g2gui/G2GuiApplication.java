@@ -21,7 +21,8 @@ import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
-import org.g2fx.g2gui.controls.ModuleSelector;
+import org.g2fx.g2gui.controls.UIElement;
+import org.g2fx.g2gui.controls.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -90,9 +91,12 @@ public class G2GuiApplication extends Application {
 
     private final List<ObservableValue<Toggle>> selectedVars = new ArrayList<>();
 
+    private Map<ModuleType, UIModule<UIElement>> uiModules;
+
     @Override
     public void init() throws Exception {
         Util.configureLogging(Level.WARNING);
+        uiModules = UIModule.readModuleUIs();
         fxQueue = new FXQueue();
         devices = new Devices();
         devices.addListener(new Devices.DeviceListener() {
@@ -111,7 +115,10 @@ public class G2GuiApplication extends Application {
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = bridges.stream().map(b -> b.finalizeInit(d)).toList();
         //run all updates on fx thread
-        fxQueue.execute(() -> fxUpdates.forEach(Runnable::run));
+        fxQueue.execute(() -> {
+            fxUpdates.forEach(Runnable::run);
+            renderModules(d);
+        });
         d.sendStartStopComm(true);
     }
 
@@ -551,6 +558,36 @@ public class G2GuiApplication extends Application {
         }
     }
 
+    record PatchModulePanes(Slot slot, Pane voicePane, Pane fxPane) {}
+
+    private List<PatchModulePanes> patchModulePanes = new ArrayList<>();
+
+    private void renderModules(Device d) {
+        for (Slot slot : Slot.values()) {
+            PatchModulePanes pmp = patchModulePanes.get(slot.ordinal());
+            renderModules(slot,pmp.voicePane,AreaId.Voice,d);
+            renderModules(slot,pmp.fxPane,AreaId.Fx,d);
+        }
+    }
+
+    private void renderModules(Slot slot, Pane pane, AreaId area, Device d) {
+        for (PatchModule pm : d.getPerf().getSlot(slot).getArea(area).getModules()) {
+            UserModuleData md = pm.getUserModuleData();
+            UIModule<UIElement> ui = uiModules.get(md.getType());
+            int x = md.getHoriz();
+            int y = md.getVert();
+            if (ui == null) { continue; } //TODO M_Name
+            int h = ui.Height();
+            int w = 260;
+            System.out.printf("%s x=%s y=%s h=%s w=%s\n",md.getType(),x,y,h,w);
+            Pane modPane = withClass(new Pane(new Label(md.getType().longName)),"mod-pane");
+            modPane.setLayoutX(x * 260);
+            modPane.setLayoutY(y * 20);
+            modPane.setMinHeight(h * 20);
+            modPane.setMinWidth(w);
+            pane.getChildren().add(modPane);
+        }
+    }
 
     private VBox mkPatchBox(Slot slot) {
 
@@ -601,14 +638,16 @@ public class G2GuiApplication extends Application {
 
         Button initVar = new Button("Init");
 
-        ModuleSelector mc = new ModuleSelector(1,"ClkGen1", ModuleType.M_ClkGen);
+        //ModuleSelector mc = new ModuleSelector(1,"ClkGen1", ModuleType.M_ClkGen);
         Pane voicePane = withClass(
-                new FlowPane(new Label("voice"), mc.getPane()),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+                new Pane(new Label("voice")),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
         ScrollPane voiceScroll =
                 withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
 
         Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
         ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
+
+        patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane));
 
         SVGPath powerGraphic = withClass(new SVGPath(),"power-graphic");
         powerGraphic.setContent("M -3 -3 A 4.5 4.5 0 1 0 3 -3 M 0 0 L 0 -4");

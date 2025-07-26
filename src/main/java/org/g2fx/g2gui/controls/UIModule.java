@@ -18,8 +18,7 @@ public record UIModule<C> (
 
     public static Map<ModuleType,UIModule<UIElement>> readModuleUIs() throws Exception {
         Map<ModuleType, UIModule<UIElement>> m = new TreeMap<>();
-        ObjectMapper mapper = new ObjectMapper(
-                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+        ObjectMapper mapper = mkYamlMapper();
         HashMap<String,UIModule<Map<String,Object>>> y = mapper.readValue(
                 FXUtil.getResource("module-uis.yaml")
                 , new TypeReference<>() {});
@@ -42,9 +41,13 @@ public record UIModule<C> (
 
     public static void main(String[] args) throws Exception {
         Map<ModuleType, UIModule<UIElement>> m = readModuleUIs();
-        ObjectMapper mapper = new ObjectMapper(
-                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+        ObjectMapper mapper = mkYamlMapper();
         mapper.writeValue(new File("data/module-uis-output.yaml"),m);
 
+    }
+
+    public static ObjectMapper mkYamlMapper() {
+        return new ObjectMapper(
+                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
     }
 }

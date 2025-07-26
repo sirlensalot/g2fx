@@ -3,8 +3,7 @@ package org.g2fx.g2lib;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.g2fx.g2gui.controls.UIModule;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
@@ -80,8 +79,7 @@ class MainTest {
      * YAML munger
      */
     public static void main(String... args) throws IOException {
-        ObjectMapper mapper = new ObjectMapper(
-                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+        ObjectMapper mapper = UIModule.mkYamlMapper();
         Map<String,Object> images = new HashMap<>();
         TreeMap<String,UiModule> m = mapper.readValue(
                 new File("data/module-uis-input.yaml")
