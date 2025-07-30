@@ -3,11 +3,11 @@ package org.g2fx.g2gui.controls;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -16,7 +16,8 @@ public class ModuleSelector {
 
     private final int id;
     private final ModuleType type;
-    private String name;
+    private final LibProperty<String> name;
+
 
     private final Pane pane;
 
@@ -28,15 +29,12 @@ public class ModuleSelector {
     }
     private final ComboBox<NameAndType> nameAndTypeCombo;
 
-    public ModuleSelector(int id, String name, ModuleType type) {
+    public ModuleSelector(int id, LibProperty<String> name, ModuleType type) {
         this.id = id;
         this.type = type;
         this.name = name;
         nameAndTypeCombo = withClass(mkModuleSelectCombo());
-        pane = switch (type) {
-            case M_ClkGen -> mkClkGen();
-            default -> new Pane(new Label("Unsupported: " + type));
-        };
+        pane = withClass(new Pane(nameAndTypeCombo));
         pane.getStyleClass().add("module-control");
     }
 
@@ -66,7 +64,7 @@ public class ModuleSelector {
                 if (item != null) { setText(item.toString()); }
             }
         });
-        cb.setValue(new NameAndType(name,type));
+        cb.setValue(new NameAndType(name.get(),type));
         cb.setEditable(false);
         cb.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
@@ -98,11 +96,6 @@ public class ModuleSelector {
             }
         });
         return cb;
-    }
-
-
-    private Pane mkClkGen() {
-        return withClass(new Pane(nameAndTypeCombo));
     }
 
 

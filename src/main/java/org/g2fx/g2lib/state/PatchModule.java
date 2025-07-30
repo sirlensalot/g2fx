@@ -22,7 +22,7 @@ public class PatchModule {
     private final List<NamedParam> params;
     private List<FieldValues> values;
     private List<FieldValues> userLabels;
-    private FieldValues name;
+    private LibProperty<String> name;
 
     private final int index;
     private FieldValues morphLabelFvs;
@@ -109,11 +109,11 @@ public class PatchModule {
     }
 
     public void setModuleName(FieldValues mn) {
-        this.name = mn;
+        this.name = LibProperty.stringFieldProperty(mn,Protocol.ModuleName.Name);
     }
 
-    public String getName() {
-        return Protocol.ModuleName.Name.stringValue(name);
+    public LibProperty<String> name() {
+        return name;
     }
 
     public void setMorphLabels(FieldValues values) {

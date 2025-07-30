@@ -107,7 +107,7 @@ public class PatchArea {
         Protocol.ModuleNames.Names.subfieldsValue(fv).forEach(mn -> {
             PatchModule m = getModule(Protocol.ModuleName.ModuleIndex.intValue(mn));
             m.setModuleName(mn);
-            log.info(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.getName());
+            log.info(() -> "setModuleName: " + m.getIndex() + ", " + m.getUserModuleData().getType() + ", " + m.name().get());
         });
     }
 

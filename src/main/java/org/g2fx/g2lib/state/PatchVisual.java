@@ -31,6 +31,6 @@ public class PatchVisual {
             case 2 , 3 , 4 -> visual.names().toString();
             default -> visual.groupType() + "[" + visual.names().size() + "]";
         };
-        return area + "." + module.getName() + "[" + module.getIndex() + "]." + ns + "=" + value;
+        return area + "." + module.name().get() + "[" + module.getIndex() + "]." + ns + "=" + value;
     }
 }

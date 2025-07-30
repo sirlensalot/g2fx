@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -19,10 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.controls.Knob;
-import org.g2fx.g2gui.controls.LoadMeter;
-import org.g2fx.g2gui.controls.UIElement;
-import org.g2fx.g2gui.controls.UIModule;
+import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -92,6 +90,10 @@ public class G2GuiApplication extends Application {
     private final List<ObservableValue<Toggle>> selectedVars = new ArrayList<>();
 
     private Map<ModuleType, UIModule<UIElement>> uiModules;
+
+    record PatchModulePanes(Slot slot, Pane voicePane, Pane fxPane) {}
+
+    private final List<PatchModulePanes> patchModulePanes = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -558,9 +560,6 @@ public class G2GuiApplication extends Application {
         }
     }
 
-    record PatchModulePanes(Slot slot, Pane voicePane, Pane fxPane) {}
-
-    private List<PatchModulePanes> patchModulePanes = new ArrayList<>();
 
     private void renderModules(Device d) {
         for (Slot slot : Slot.values()) {
@@ -570,16 +569,21 @@ public class G2GuiApplication extends Application {
         }
     }
 
-    private void renderModules(Slot slot, Pane pane, AreaId area, Device d) {
-        for (PatchModule pm : d.getPerf().getSlot(slot).getArea(area).getModules()) {
+    private void renderModules(Slot slot, Pane pane, AreaId areaId, Device d) {
+        PatchArea area = d.getPerf().getSlot(slot).getArea(areaId);
+        for (PatchModule pm : area.getModules()) {
             UserModuleData md = pm.getUserModuleData();
-            UIModule<UIElement> ui = uiModules.get(md.getType());
+            ModuleType type = md.getType();
+            UIModule<UIElement> ui = uiModules.get(type);
             int x = md.getHoriz();
             int y = md.getVert();
             int h = ui.Height();
             int w = 260;
-            System.out.printf("%s x=%s y=%s h=%s w=%s\n",md.getType(),x,y,h,w);
-            Pane modPane = withClass(new Pane(new Label(md.getType().longName)),"mod-pane");
+            List<Node> children = switch (type) {
+                case M_Name -> List.of(withClass(new TextField(pm.name().get()),"mod-name"));
+                default -> List.of(new ModuleSelector(pm.getIndex(),pm.name(),type).getPane());
+            };
+            Pane modPane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
             modPane.setLayoutX(x * 260);
             modPane.setLayoutY(y * 20);
             modPane.setMinHeight(h * 20);
@@ -590,6 +594,30 @@ public class G2GuiApplication extends Application {
 
     private VBox mkPatchBox(Slot slot) {
 
+        HBox patchBar = mkPatchBar(slot);
+
+        //ModuleSelector mc = new ModuleSelector(1,"ClkGen1", ModuleType.M_ClkGen);
+        Pane voicePane = withClass(
+                new Pane(new Label("voice")),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+        ScrollPane voiceScroll =
+                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
+
+        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
+        ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
+
+        patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane));
+
+        SplitPane patchSplit =
+                withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
+        patchSplit.setOrientation(Orientation.VERTICAL);
+
+        VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box"); // patch top bar + uis
+
+        VBox.setVgrow(patchSplit,Priority.ALWAYS);
+        return patchBox;
+    }
+
+    private HBox mkPatchBar(Slot slot) {
         TextField patchName = new TextField("slot" + slot);
         bridge(patchName.textProperty(),d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
@@ -637,16 +665,6 @@ public class G2GuiApplication extends Application {
 
         Button initVar = new Button("Init");
 
-        //ModuleSelector mc = new ModuleSelector(1,"ClkGen1", ModuleType.M_ClkGen);
-        Pane voicePane = withClass(
-                new Pane(new Label("voice")),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
-        ScrollPane voiceScroll =
-                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
-
-        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
-        ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
-
-        patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane));
 
         SVGPath powerGraphic = withClass(new SVGPath(),"power-graphic");
         powerGraphic.setContent("M -3 -3 A 4.5 4.5 0 1 0 3 -3 M 0 0 L 0 -4");
@@ -661,12 +679,10 @@ public class G2GuiApplication extends Application {
         ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button");
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
 
-        SplitPane patchSplit =
-                withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
-        patchSplit.setOrientation(Orientation.VERTICAL);
+
         Knob patchVolume = withClass(new Knob("patch-volume"),"patch-volume");
-        bindVarControl(slot,patchVolume.getValueProperty(),v -> {
-            SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+slot+":"+v,0);
+        bindVarControl(slot,patchVolume.getValueProperty(), v -> {
+            SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+ slot +":"+v,0);
             bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
                         .getSettingsValueProperty(ModParam.GainVolume,v),
                     new FxProperty.SimpleFxProperty<>(p,patchVolume.valueChangingProperty()),
@@ -674,8 +690,8 @@ public class G2GuiApplication extends Application {
             return p;
         });
 
-        bindVarControl(slot,patchEnable.selectedProperty(),v -> {
-            SimpleBooleanProperty p = new SimpleBooleanProperty(patchEnable,"patchEnable:"+slot+":"+v,false);
+        bindVarControl(slot,patchEnable.selectedProperty(), v -> {
+            SimpleBooleanProperty p = new SimpleBooleanProperty(patchEnable,"patchEnable:"+ slot +":"+v,false);
             bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
                             .getSettingsValueProperty(ModParam.GainActiveMuted,v),
                     new FxProperty.SimpleFxProperty<>(p),
@@ -707,10 +723,7 @@ public class G2GuiApplication extends Application {
                 redCable, blueCable, yellowCable, orangeCable, purpleCable, whiteCable,
                 hideCables, shakeCables
         ),"patch-bar","bar","gfont");
-        VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box"); // patch top bar + uis
-
-        VBox.setVgrow(patchSplit,Priority.ALWAYS);
-        return patchBox;
+        return patchBar;
     }
 
     private SegmentedButton mkVarSelector(Slot slot) {

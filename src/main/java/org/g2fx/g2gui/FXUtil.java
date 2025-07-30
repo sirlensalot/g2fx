@@ -1,8 +1,10 @@
 package org.g2fx.g2gui;
 
 import javafx.css.Styleable;
+import javafx.scene.Node;
 
 import java.net.URL;
+import java.util.List;
 
 public class FXUtil {
 
@@ -19,4 +21,7 @@ public class FXUtil {
         return r;
     }
 
+    public static Node[] toArray(List<? extends Node> children) {
+        return children.toArray(new Node[] {});
+    }
 }
