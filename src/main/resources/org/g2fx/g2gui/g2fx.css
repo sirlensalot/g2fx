@@ -241,3 +241,31 @@
 .load-meter {
     -fx-alignment: center-left;
 }
+
+
+/* =========== ModuleSelector control ============= */
+
+.modsel-arrow-button {
+    -fx-font-size: 10px;  /* adjust font size */
+        -fx-background-color: transparent;
+        -fx-padding: 0 0 0 1;
+        -fx-text-fill: black;
+        -fx-border-color: transparent;
+}
+
+.modsel-text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: black;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 0 0; /* 2px left padding, adjust as needed */
+        -fx-margin: 0;       /* usually not needed for text field */
+        -fx-translate-x: -2;
+}
+
+.modsel-list {
+    -fx-font-size: 11px;
+    -fx-pref-width: 96px;
+    -fx-max-width: 96px;
+}

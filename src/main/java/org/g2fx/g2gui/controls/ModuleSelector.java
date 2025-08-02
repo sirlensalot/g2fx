@@ -1,11 +1,13 @@
 package org.g2fx.g2gui.controls;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.stage.Popup;
 import javafx.util.StringConverter;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
@@ -17,86 +19,111 @@ public class ModuleSelector {
     private final int id;
     private final ModuleType type;
     private final LibProperty<String> name;
+    private final HBox hb;
 
-
-    private final Pane pane;
-
-    record NameAndType (String name,ModuleType type) {
-        @Override
-        public String toString() {
-            return name != null ? name : type.shortName;
-        }
-    }
-    private final ComboBox<NameAndType> nameAndTypeCombo;
 
     public ModuleSelector(int id, LibProperty<String> name, ModuleType type) {
         this.id = id;
         this.type = type;
         this.name = name;
-        nameAndTypeCombo = withClass(mkModuleSelectCombo());
-        pane = withClass(new Pane(nameAndTypeCombo));
-        pane.getStyleClass().add("module-control");
+        hb = mkControl();
     }
 
-    public Pane getPane() {
-        return pane;
+    public Node getPane() {
+        return hb;
     }
 
-    private ComboBox<NameAndType> mkModuleSelectCombo() {
-        ComboBox<NameAndType> cb = new ComboBox<>(FXCollections.observableArrayList(
-                ModuleType.BY_PAGE.get(type.modPageIx.page()).stream().map(
-                        mt -> new NameAndType(null, mt)).toList()));
+    record ModTypeShortName (ModuleType type) {
+        @Override
+        public String toString() {
+            return type.shortName;
+        }
+    }
 
-        cb.setCellFactory(lv -> new ListCell<>() {
+
+    private void valueChanged(String n) {
+        name.set(n); // TODO not bridged
+    }
+
+    private HBox mkControl() {
+        // Arrow button (styled to look like combo arrow)
+        Button arrowButton = new Button();
+        arrowButton.getStyleClass().add("modsel-arrow-button");
+        arrowButton.setFocusTraversable(false);
+        arrowButton.setText("▼");
+        arrowButton.setGraphic(null);
+
+        // TextField with transparent background
+        TextField textField = new TextField(name.get()); //TODO not bridged
+        //textField.setEditable(false);
+        textField.setFocusTraversable(false);
+        textField.setTextFormatter(new TextFormatter<String>(new StringConverter<>() {
+            @Override public String toString(String object) { return object; }
+            @Override public String fromString(String string) { return string; }
+        },
+                name.get()));
+        textField.getTextFormatter().valueProperty().addListener((c,o,n) -> {
+            if (n != null && !n.equals(o)) {
+                valueChanged((String) n);
+            }
+        });
+        textField.getStyleClass().add("modsel-text-field");
+
+        // ListView for dropdown items
+        ObservableList<ModTypeShortName> items = FXCollections.observableArrayList(
+                ModuleType.BY_PAGE.get(type.modPageIx.page()).stream().map(ModTypeShortName::new).toList()); //FXCollections.observableArrayList("Apple", "Banana", "Cherry", "Date");
+        ListView<ModTypeShortName> listView = withClass(new ListView<>(items),"modsel-list");
+        listView.setFixedCellSize(18);
+        listView.setPrefHeight(18 * items.size() + 2);
+        listView.setCellFactory(lv -> new ListCell<>() {
             @Override
-            protected void updateItem(NameAndType item, boolean empty) {
+            protected void updateItem(ModTypeShortName item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item != null) {
                     setText(item.toString());
-                    setDisable(item.type == type);
+                    if (item.type == type) {
+                        setDisable(true);
+                        setStyle("-fx-text-fill: gray;");
+                    }
                 }
             }
         });
-        cb.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(NameAndType item, boolean empty) {
-                super.updateItem(item,empty);
-                if (item != null) { setText(item.toString()); }
-            }
-        });
-        cb.setValue(new NameAndType(name.get(),type));
-        cb.setEditable(false);
-        cb.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
-                cb.setEditable(true);
-                Platform.runLater(cb::requestFocus);
-            }
-        });
-        cb.getEditor().setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) {
-                cb.setEditable(false);
-                //commit value to backend here
-            }
-        });
-        cb.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue && cb.isEditable()) {
-                cb.setEditable(false);
-                //commit here too?
-            }
-        });
-        cb.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(NameAndType object) {
-                return object != null ? object.toString() : "";
-            }
 
-            @Override
-            public NameAndType fromString(String string) {
-                return new NameAndType(string,type);
+
+        // Popup to hold the ListView
+        Popup popup = new Popup();
+        popup.setAutoHide(true);
+        popup.getContent().add(listView);
+
+        // When arrow is clicked, show popup and hide arrow button
+        arrowButton.setOnAction(e -> {
+            if (!popup.isShowing()) {
+                popup.show(arrowButton.getScene().getWindow());
+                popup.setX(arrowButton.localToScreen(0, arrowButton.getHeight()).getX());
+                popup.setY(arrowButton.localToScreen(0, arrowButton.getHeight()).getY());
+                arrowButton.setVisible(false);
             }
         });
-        return cb;
+
+        // When an item is selected, update text field and hide popup + show arrow again
+        listView.setOnMouseClicked((MouseEvent event) -> {
+            ModTypeShortName selected = listView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                textField.setText(selected + "1");
+                popup.hide();
+                arrowButton.setVisible(true);
+            }
+        });
+
+        // When popup hides (outside click), also show arrow again
+        popup.setOnHidden(e -> arrowButton.setVisible(true));
+
+        // Layout: HBox with arrow button on left, text field on right
+        HBox hbox = new HBox(arrowButton, textField);
+        hbox.setAlignment(Pos.CENTER_LEFT);
+        return hbox;
     }
+
 
 
 }
