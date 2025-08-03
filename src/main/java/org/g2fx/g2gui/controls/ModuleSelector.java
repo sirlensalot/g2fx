@@ -1,5 +1,6 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -9,7 +10,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Popup;
 import javafx.util.StringConverter;
-import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -18,14 +18,14 @@ public class ModuleSelector {
 
     private final int id;
     private final ModuleType type;
-    private final LibProperty<String> name;
+    private final SimpleStringProperty name;
     private final HBox hb;
 
 
-    public ModuleSelector(int id, LibProperty<String> name, ModuleType type) {
+    public ModuleSelector(int id, String name, ModuleType type) {
         this.id = id;
         this.type = type;
-        this.name = name;
+        this.name = new SimpleStringProperty(name);
         hb = mkControl();
     }
 
@@ -42,8 +42,9 @@ public class ModuleSelector {
 
 
     private void valueChanged(String n) {
-        name.set(n); // TODO not bridged
+        name.set(n);
     }
+
 
     private HBox mkControl() {
         // Arrow button (styled to look like combo arrow)

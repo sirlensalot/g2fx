@@ -46,6 +46,8 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 public class G2GuiApplication extends Application {
 
     public static final int UI_MAX_VARIATIONS = 8;
+    public static final int MODULE_WIDTH = 260;
+    public static final int MODULE_Y_MULT = 20;
     private final Logger log = Logger.getLogger(getClass().getName());
 
     public static final String TITLE = "g2fx nord modular g2 editor";
@@ -59,6 +61,7 @@ public class G2GuiApplication extends Application {
     private TabPane slotTabs;
 
     private final Undos undos = new Undos();
+
 
     public static class RebindableControl<T,P> {
         private final Property<P> control;
@@ -104,31 +107,68 @@ public class G2GuiApplication extends Application {
         devices.addListener(new Devices.DeviceListener() {
                     @Override
                     public void onDeviceInitialized(Device d) throws Exception {
-                        initDevice(d);
+                        G2GuiApplication.this.onDeviceInitialized(d);
                     }
                     @Override
                     public void onDeviceDisposal(Device d) throws Exception {
-                        disposeDevice(d);
+                        G2GuiApplication.this.onDeviceDisposal(d);
                     }});
 
     }
 
-    private void initDevice(Device d) throws Exception {
+    private void onDeviceInitialized(Device d) throws Exception {
         //on lib thread: finalize bridges to get fx init updates
-        List<Runnable> fxUpdates = bridges.stream().map(b -> b.finalizeInit(d)).toList();
+        List<Runnable> fxUpdates = new ArrayList<>(
+                bridges.stream().map(b -> b.finalizeInit(d)).toList());
+        fxUpdates.addAll(initModules(d));
+        initModules(d);
+
         //run all updates on fx thread
         fxQueue.execute(() -> {
             fxUpdates.forEach(Runnable::run);
-            renderModules(d);
         });
         d.sendStartStopComm(true);
     }
 
-    private void disposeDevice(Device d) throws Exception {
+    private void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners, get fx disposals
         List<Runnable> fxDisposals = bridges.stream().map(PropertyBridge::dispose).toList();
         //run all disposals on fx thread
         fxQueue.execute(() -> fxDisposals.forEach(Runnable::run));
+    }
+
+
+    /**
+     * Captures initial module info that is then one-way UI -> backend from then on.
+     */
+    public record ModuleSpec(
+            int index,
+            ModuleType type,
+            String name,
+            int horiz,
+            int vert,
+            int color,
+            int uprate,
+            boolean leds,
+            List<Integer> modes) {}
+
+    private List<Runnable> initModules(Device d) {
+        //on device thread, create module inits for FX thread
+        List<Runnable> l = new ArrayList<>();
+        for (Slot s : Slot.values()) {
+            for (AreaId a : AreaId.USER_AREAS) {
+                for (PatchModule m : d.getPerf().getSlot(s).getArea(a).getModules()) {
+                    UserModuleData md = m.getUserModuleData();
+                    ModuleSpec spec = new ModuleSpec(md.getIndex(), md.getType(),
+                            m.name().get(), md.horiz().get(), md.vert().get(),
+                            md.color().get(), md.uprate().get(),
+                            md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
+                    PatchModulePanes pmp = patchModulePanes.get(s.ordinal());
+                    l.add(() -> renderModule(a == AreaId.Voice ? pmp.voicePane : pmp.fxPane, spec));
+                }
+            }
+        }
+        return l;
     }
 
     private <T> void bridge(Property<T> fxProperty, Function<Device,LibProperty<T>> libProperty) {
@@ -561,35 +601,23 @@ public class G2GuiApplication extends Application {
     }
 
 
-    private void renderModules(Device d) {
-        for (Slot slot : Slot.values()) {
-            PatchModulePanes pmp = patchModulePanes.get(slot.ordinal());
-            renderModules(slot,pmp.voicePane,AreaId.Voice,d);
-            renderModules(slot,pmp.fxPane,AreaId.Fx,d);
-        }
-    }
 
-    private void renderModules(Slot slot, Pane pane, AreaId areaId, Device d) {
-        PatchArea area = d.getPerf().getSlot(slot).getArea(areaId);
-        for (PatchModule pm : area.getModules()) {
-            UserModuleData md = pm.getUserModuleData();
-            ModuleType type = md.getType();
-            UIModule<UIElement> ui = uiModules.get(type);
-            int x = md.getHoriz();
-            int y = md.getVert();
-            int h = ui.Height();
-            int w = 260;
-            List<Node> children = switch (type) {
-                case M_Name -> List.of(withClass(new TextField(pm.name().get()),"mod-name"));
-                default -> List.of(new ModuleSelector(pm.getIndex(),pm.name(),type).getPane());
-            };
-            Pane modPane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
-            modPane.setLayoutX(x * 260);
-            modPane.setLayoutY(y * 20);
-            modPane.setMinHeight(h * 20);
-            modPane.setMinWidth(w);
-            pane.getChildren().add(modPane);
-        }
+    private void renderModule(Pane pane, ModuleSpec m) {
+        UIModule<UIElement> ui = uiModules.get(m.type);
+        int x = m.horiz;
+        int y = m.vert;
+        int h = ui.Height();
+        int w = MODULE_WIDTH;
+        List<Node> children = switch (m.type) {
+            case M_Name -> List.of(withClass(new TextField(m.name),"mod-name"));
+            default -> List.of(new ModuleSelector(m.index, m.name,m.type).getPane());
+        };
+        Pane modPane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
+        modPane.setLayoutX(x * MODULE_WIDTH);
+        modPane.setLayoutY(y * MODULE_Y_MULT);
+        modPane.setMinHeight(h * MODULE_Y_MULT);
+        modPane.setMinWidth(w);
+        pane.getChildren().add(modPane);
     }
 
     private VBox mkPatchBox(Slot slot) {

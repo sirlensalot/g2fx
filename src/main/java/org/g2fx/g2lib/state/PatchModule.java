@@ -30,8 +30,8 @@ public class PatchModule {
 
     // constructor for user modules
     public PatchModule(FieldValues userModuleFvs) {
-        this.index = Protocol.UserModule.Index.intValue(userModuleFvs);
         this.userModuleData = new UserModuleData(userModuleFvs);
+        this.index = userModuleData.getIndex();
         this.settingsModuleType = null;
         this.params = new ArrayList<>(userModuleData.getType().getParams());
         log = Util.getLogger(getClass().getName() + "." + userModuleData.getType() + "[" + index + "]");

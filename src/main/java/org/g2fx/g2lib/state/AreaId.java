@@ -7,4 +7,7 @@ public enum AreaId {
     Voice,
     Settings;
     public static final SafeLookup<Integer,AreaId> LOOKUP = SafeLookup.makeEnumOrdLookup(values());
+
+    public static final AreaId[] USER_AREAS = new AreaId[] { Fx, Voice };
+
 }
