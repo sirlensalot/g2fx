@@ -21,16 +21,6 @@ public class UserModuleData {
     private final LibProperty<Integer> uprate;
     private final LibProperty<Boolean> leds;
 
-    public record ModuleSpec(
-            ModuleType type,
-            int index,
-            int horiz,
-            int vert,
-            int color,
-            int uprate,
-            boolean leds,
-            List<Integer> modes) {}
-
     /**
      * Modes are module params that cannot be assigned to knobs,
      * thus editor-only.
@@ -42,14 +32,11 @@ public class UserModuleData {
         this.fvs = fvs;
         this.type = ModuleType.getById(Protocol.UserModule.Id.intValue(fvs));
         this.index = Protocol.UserModule.Index.intValue(fvs);
-        //id = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Id);
-        //index = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Index);
         horiz = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Horiz);
         vert = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Vert);
         color = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Color);
         uprate = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Uprate);
         leds = LibProperty.booleanFieldProperty(fvs,Protocol.UserModule.Leds);
-        //modeCount = LibProperty.intFieldProperty(fvs,Protocol.UserModule.ModeCount);
         modes = Protocol.UserModule.Modes.subfieldsValue(fvs).stream().map(mfs ->
                 LibProperty.intFieldProperty(mfs, Protocol.ModuleModes.Data)).toList();
 
@@ -63,13 +50,6 @@ public class UserModuleData {
         return index;
     }
 
-    public ModuleSpec toSpec() {
-        return new ModuleSpec(type,index, horiz.get(), vert.get(), color.get(), uprate.get(),
-                leds.get(), modes.stream().map(LibProperty::get).toList());
-    }
-
-    //public LibProperty<Integer> id() { return id; }
-    //public LibProperty<Integer> index() { return index; }
     public LibProperty<Integer> horiz() { return horiz; }
     public LibProperty<Integer> vert() { return vert; }
     public LibProperty<Integer> color() { return color; }
@@ -83,9 +63,6 @@ public class UserModuleData {
     public List<LibProperty<Integer>> getModes() {
         return modes;
     }
-
-    //public LibProperty<Integer> modeCount() { return modeCount; }
-    //public LibProperty<Integer> modes() { return modes; }
 
 
 }

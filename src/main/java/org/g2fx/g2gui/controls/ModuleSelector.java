@@ -1,13 +1,14 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.Popup;
 import javafx.util.StringConverter;
 import org.g2fx.g2lib.model.ModuleType;
@@ -19,18 +20,20 @@ public class ModuleSelector {
     private final int id;
     private final ModuleType type;
     private final SimpleStringProperty name;
-    private final HBox hb;
+    private final Pane pane;
+
+    private boolean isModuleChange = false;
 
 
     public ModuleSelector(int id, String name, ModuleType type) {
         this.id = id;
         this.type = type;
         this.name = new SimpleStringProperty(name);
-        hb = mkControl();
+        pane = mkControl();
     }
 
-    public Node getPane() {
-        return hb;
+    public Pane getPane() {
+        return pane;
     }
 
     record ModTypeShortName (ModuleType type) {
@@ -41,18 +44,21 @@ public class ModuleSelector {
     }
 
 
-    private void valueChanged(String n) {
+    /**
+     * Only fires on same-module name change, allowing `name`
+     * to function as a simple bridge property.
+     */
+    private void moduleNameChanged(String n) {
         name.set(n);
     }
 
+    public Property<String> name() {
+        return name;
+    }
 
-    private HBox mkControl() {
-        // Arrow button (styled to look like combo arrow)
-        Button arrowButton = new Button();
-        arrowButton.getStyleClass().add("modsel-arrow-button");
-        arrowButton.setFocusTraversable(false);
-        arrowButton.setText("▼");
-        arrowButton.setGraphic(null);
+
+    private Pane mkControl() {
+
 
         // TextField with transparent background
         TextField textField = new TextField(name.get()); //TODO not bridged
@@ -65,10 +71,13 @@ public class ModuleSelector {
                 name.get()));
         textField.getTextFormatter().valueProperty().addListener((c,o,n) -> {
             if (n != null && !n.equals(o)) {
-                valueChanged((String) n);
+                if (!isModuleChange) {
+                    moduleNameChanged((String) n);
+                }
             }
         });
         textField.getStyleClass().add("modsel-text-field");
+
 
         // ListView for dropdown items
         ObservableList<ModTypeShortName> items = FXCollections.observableArrayList(
@@ -96,6 +105,13 @@ public class ModuleSelector {
         popup.setAutoHide(true);
         popup.getContent().add(listView);
 
+        // Arrow button (styled to look like combo arrow)
+        Button arrowButton = new Button();
+        arrowButton.getStyleClass().add("modsel-arrow-button");
+        arrowButton.setFocusTraversable(false);
+        arrowButton.setText("▼");
+        arrowButton.setGraphic(null);
+
         // When arrow is clicked, show popup and hide arrow button
         arrowButton.setOnAction(e -> {
             if (!popup.isShowing()) {
@@ -110,6 +126,7 @@ public class ModuleSelector {
         listView.setOnMouseClicked((MouseEvent event) -> {
             ModTypeShortName selected = listView.getSelectionModel().getSelectedItem();
             if (selected != null) {
+                isModuleChange = true;
                 textField.setText(selected + "1");
                 popup.hide();
                 arrowButton.setVisible(true);
@@ -120,8 +137,16 @@ public class ModuleSelector {
         popup.setOnHidden(e -> arrowButton.setVisible(true));
 
         // Layout: HBox with arrow button on left, text field on right
-        HBox hbox = new HBox(arrowButton, textField);
-        hbox.setAlignment(Pos.CENTER_LEFT);
+        HBox hbox = withClass(new HBox(),"modsel-box");
+        if (type == ModuleType.M_Name) {
+            hbox.getChildren().add(textField);
+            hbox.setAlignment(Pos.CENTER);
+            hbox.getStyleClass().add("modsel-text-field-name");
+            textField.setAlignment(Pos.CENTER);
+        } else {
+            hbox.getChildren().addAll(arrowButton,textField);
+            hbox.setAlignment(Pos.CENTER_LEFT);
+        }
         return hbox;
     }
 

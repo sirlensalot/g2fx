@@ -118,9 +118,9 @@ public class G2GuiApplication extends Application {
 
     private void onDeviceInitialized(Device d) throws Exception {
         //on lib thread: finalize bridges to get fx init updates
-        List<Runnable> fxUpdates = new ArrayList<>(
-                bridges.stream().map(b -> b.finalizeInit(d)).toList());
-        fxUpdates.addAll(initModules(d));
+        List<Runnable> fxUpdates = new ArrayList<>();
+        fxUpdates.addAll(initModules(d)); // modules first to bridge controls
+        fxUpdates.addAll(bridges.stream().map(b -> b.finalizeInit(d)).toList());
         initModules(d);
 
         //run all updates on fx thread
@@ -608,10 +608,9 @@ public class G2GuiApplication extends Application {
         int y = m.vert;
         int h = ui.Height();
         int w = MODULE_WIDTH;
-        List<Node> children = switch (m.type) {
-            case M_Name -> List.of(withClass(new TextField(m.name),"mod-name"));
-            default -> List.of(new ModuleSelector(m.index, m.name,m.type).getPane());
-        };
+        ModuleSelector moduleSelector = new ModuleSelector(m.index, m.name, m.type);
+
+        List<Node> children = List.of(moduleSelector.getPane());
         Pane modPane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
         modPane.setLayoutX(x * MODULE_WIDTH);
         modPane.setLayoutY(y * MODULE_Y_MULT);
