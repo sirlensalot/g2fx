@@ -77,6 +77,9 @@ public class ModuleSelector {
             }
         });
         textField.getStyleClass().add("modsel-text-field");
+        name.addListener((v,o,n) -> {
+            textField.setText(n);
+        });
 
 
         // ListView for dropdown items

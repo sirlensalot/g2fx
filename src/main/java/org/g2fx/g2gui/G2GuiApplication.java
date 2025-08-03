@@ -8,7 +8,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -46,8 +45,7 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 public class G2GuiApplication extends Application {
 
     public static final int UI_MAX_VARIATIONS = 8;
-    public static final int MODULE_WIDTH = 260;
-    public static final int MODULE_Y_MULT = 20;
+
     private final Logger log = Logger.getLogger(getClass().getName());
 
     public static final String TITLE = "g2fx nord modular g2 editor";
@@ -119,8 +117,8 @@ public class G2GuiApplication extends Application {
     private void onDeviceInitialized(Device d) throws Exception {
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = new ArrayList<>();
-        fxUpdates.addAll(initModules(d)); // modules first to bridge controls
         fxUpdates.addAll(bridges.stream().map(b -> b.finalizeInit(d)).toList());
+        fxUpdates.addAll(initModules(d));
         initModules(d);
 
         //run all updates on fx thread
@@ -138,19 +136,7 @@ public class G2GuiApplication extends Application {
     }
 
 
-    /**
-     * Captures initial module info that is then one-way UI -> backend from then on.
-     */
-    public record ModuleSpec(
-            int index,
-            ModuleType type,
-            String name,
-            int horiz,
-            int vert,
-            int color,
-            int uprate,
-            boolean leds,
-            List<Integer> modes) {}
+
 
     private List<Runnable> initModules(Device d) {
         //on device thread, create module inits for FX thread
@@ -159,26 +145,40 @@ public class G2GuiApplication extends Application {
             for (AreaId a : AreaId.USER_AREAS) {
                 for (PatchModule m : d.getPerf().getSlot(s).getArea(a).getModules()) {
                     UserModuleData md = m.getUserModuleData();
-                    ModuleSpec spec = new ModuleSpec(md.getIndex(), md.getType(),
-                            m.name().get(), md.horiz().get(), md.vert().get(),
+                    ModulePane.ModuleSpec spec = new ModulePane.ModuleSpec(md.getIndex(), md.getType(),
+                            md.horiz().get(), md.vert().get(),
                             md.color().get(), md.uprate().get(),
                             md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
                     PatchModulePanes pmp = patchModulePanes.get(s.ordinal());
-                    l.add(() -> renderModule(a == AreaId.Voice ? pmp.voicePane : pmp.fxPane, spec));
+                    l.add(() -> renderModule(a == AreaId.Voice ? pmp.voicePane : pmp.fxPane, spec, m, d));
                 }
             }
         }
         return l;
     }
 
-    private <T> void bridge(Property<T> fxProperty, Function<Device,LibProperty<T>> libProperty) {
-        bridge(libProperty, new FxProperty.SimpleFxProperty<>(fxProperty),PropertyBridge.id());
+
+    private void renderModule(Pane pane, ModulePane.ModuleSpec m, PatchModule pm, Device d) {
+        UIModule<UIElement> ui = uiModules.get(m.type());
+        ModulePane modulePane = new ModulePane(ui,m);
+        pane.getChildren().add(modulePane.getPane());
+        modulePane.addBridge(bridge(modulePane.getModuleSelector().name(),dd -> pm.name()),d);
     }
 
-    private <T,F> void bridge(Function<Device,LibProperty<T>> libProperty,
-                            FxProperty<F> fxProperty,
-                            PropertyBridge.Iso<T,F> iso) {
-        bridges.add(new PropertyBridge<>(libProperty, devices,fxProperty, fxQueue, iso, undos));
+
+    private <T> PropertyBridge<T, T> bridge(Property<T> fxProperty,
+                                            Function<Device,LibProperty<T>> libProperty) {
+        return bridge(libProperty,
+                new FxProperty.SimpleFxProperty<>(fxProperty),PropertyBridge.id());
+    }
+
+    private <T,F> PropertyBridge<T, F> bridge(Function<Device,LibProperty<T>> libProperty,
+                                              FxProperty<F> fxProperty,
+                                              PropertyBridge.Iso<T,F> iso) {
+        PropertyBridge<T, F> bridge =
+                new PropertyBridge<>(libProperty, devices, fxProperty, fxQueue, iso, undos);
+        bridges.add(bridge);
+        return bridge;
     }
 
     @Override
@@ -601,23 +601,6 @@ public class G2GuiApplication extends Application {
     }
 
 
-
-    private void renderModule(Pane pane, ModuleSpec m) {
-        UIModule<UIElement> ui = uiModules.get(m.type);
-        int x = m.horiz;
-        int y = m.vert;
-        int h = ui.Height();
-        int w = MODULE_WIDTH;
-        ModuleSelector moduleSelector = new ModuleSelector(m.index, m.name, m.type);
-
-        List<Node> children = List.of(moduleSelector.getPane());
-        Pane modPane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
-        modPane.setLayoutX(x * MODULE_WIDTH);
-        modPane.setLayoutY(y * MODULE_Y_MULT);
-        modPane.setMinHeight(h * MODULE_Y_MULT);
-        modPane.setMinWidth(w);
-        pane.getChildren().add(modPane);
-    }
 
     private VBox mkPatchBox(Slot slot) {
 
