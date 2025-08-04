@@ -319,7 +319,7 @@ public class Protocol {
         ModuleIndex(8),
         Name;
         ModuleName(int size) { f = new SizedField(this,size); }
-        ModuleName() { f = new StringField(this); }
+        ModuleName() { f = new StringField(this,16,true); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
@@ -344,7 +344,7 @@ public class Protocol {
         Entry(8),
         Label();
         MorphLabel(int size) { f = new SizedField(this,size); }
-        MorphLabel() { f = new StringField(this,6); }
+        MorphLabel() { f = new StringField(this,7); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
@@ -408,7 +408,7 @@ public class Protocol {
         ParamIndex(8),
         Label();
         ParamLabel(int size) { f = new SizedField(this,size); }
-        ParamLabel() { f = new StringField(this,6); }
+        ParamLabel() { f = new StringField(this,7); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
@@ -416,7 +416,7 @@ public class Protocol {
 
     public enum TextPad implements FieldEnum {
         Text;
-        private final Field f = new StringField(this,StringField.NO_TERMINATION);
+        private final Field f = new StringField(this,StringField.READ_TO_EOF);
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
     }
@@ -470,7 +470,7 @@ public class Protocol {
         Name,
         Category(8);
         EntryData(int s) { f = new SizedField(this,s); }
-        EntryData() { f = new StringField(this,15,true); }
+        EntryData() { f = new StringField(this,16,true); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
@@ -513,7 +513,7 @@ public class Protocol {
         KeyboardRangeTo(8),
         Unknown(24);
         PerfSlot(int size) { f = new SizedField(this,size); }
-        PerfSlot() { f = new StringField(this,15,true); }
+        PerfSlot() { f = new StringField(this,16,true); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
