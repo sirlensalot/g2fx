@@ -1,13 +1,19 @@
 package org.g2fx.g2lib.protocol;
 
 import org.g2fx.g2lib.util.BitBuffer;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SubfieldsField extends AbstractField implements Field {
+
+    private static final Logger log = Util.getLogger(SubfieldsField.class);
+
     protected final Fields subfields;
     private final SubfieldCount subfieldCount;
 
@@ -75,7 +81,15 @@ public class SubfieldsField extends AbstractField implements Field {
 
     protected void readSubfields(BitBuffer bb, List<FieldValues> values, int count, List<FieldValues> result) {
         for (int i = 0; i < count; i++) {
-            result.add(subfields.read(bb, values));
+            try {
+                result.add(subfields.read(bb, values));
+            } catch (RuntimeException e) {
+                log.log(Level.SEVERE,String.format(
+                        "Subfields read failure at subfield %d of %d, partial result:\n%s\n",i,count,
+                        String.join("\n",result.stream().map(Object::toString).toList())
+                ),e);
+                throw e;
+            }
         }
     }
 

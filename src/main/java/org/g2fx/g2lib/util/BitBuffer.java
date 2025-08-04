@@ -25,6 +25,12 @@ public class BitBuffer {
 
     public int getBitLength() { return blength; }
     public int getBitIndex() { return bindex; }
+
+    public BitBuffer setBitIndex(int index) {
+        if (index >= blength) { throw new IllegalArgumentException("setBitIndex: invalid index: " + index + ", length " + blength); }
+        bindex = index;
+        return this;
+    }
     public int getBitsRemaining() { return blength - bindex; }
 
     public int get() {
@@ -123,9 +129,9 @@ public class BitBuffer {
     }
 
     public BitBuffer rewind() {
-        bindex = 0;
-        return this;
+        return setBitIndex(0);
     }
+
 
     public ByteBuffer toBuffer() {
         return buffer.duplicate().rewind();

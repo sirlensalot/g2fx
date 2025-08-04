@@ -293,14 +293,24 @@ public class Patch {
     }
 
     public boolean readSectionSlice(BitBuffer bb, Sections s) {
+        int startIx = bb.getBitIndex();
         if (s.location != null) {
             Integer loc = bb.get(2);
             if (!loc.equals(s.location)) {
                 throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc, s));
             }
         }
-        updateSection(s, new Section(s,
-                s.fields.read(bb)));
+        FieldValues fvs;
+        try {
+            fvs = s.fields.read(bb);
+        } catch (RuntimeException e) {
+            String file = String.format("error_%s.msg",s.name());
+            log.severe(String.format("Error reading section %s, dumping buffer to %s",s,file));
+            ByteBuffer data = bb.setBitIndex(startIx).shiftedSlice();
+            Util.writeBuffer(data,file);
+            throw e;
+        }
+        updateSection(s, new Section(s, fvs));
         return true;
     }
 

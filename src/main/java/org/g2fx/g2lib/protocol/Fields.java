@@ -1,11 +1,17 @@
 package org.g2fx.g2lib.protocol;
 
 import org.g2fx.g2lib.util.BitBuffer;
+import org.g2fx.g2lib.util.Util;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Fields {
+
+    private static final Logger log = Util.getLogger(Fields.class);
     private final List<Field> fields;
     private final String name;
 
@@ -29,12 +35,25 @@ public class Fields {
     }
 
     public FieldValues read(BitBuffer bb, List<FieldValues> context) {
+        int fvsStart = bb.getBitIndex();
         FieldValues l = init();
         context.addFirst(l);
         fields.forEach(f -> {
+            int fStart = bb.getBitIndex();
             try {
                 f.read(bb, context);
             } catch (Exception e) {
+                int pos = bb.getBitIndex();
+                String fvsBuf = dumpBufContext(bb, fvsStart, pos);
+                String fBuf = dumpBufContext(bb, fStart, pos);
+                log.log(Level.SEVERE,String.format("""
+                        Field %s read failure at buffer pos %s(%d)
+                        Row context: %s
+                        Field context: %s
+                        Fields:
+                        %s
+                        """,
+                        f.name(),pos,pos/8,fvsBuf,fBuf,l),e);
                 throw new IllegalStateException(
                         "readFailed, field=" + f + ", context=" + context
                         ,e);
@@ -42,6 +61,15 @@ public class Fields {
         });
         return context.removeFirst();
     }
+
+    private static String dumpBufContext(BitBuffer bb, int start, int pos) {
+        if (start >= bb.getBitLength()) {
+            return "EOF";
+        }
+        ByteBuffer b = bb.setBitIndex(start).shiftedSlice();
+        return "Buffer length: " + b.limit() + "\n" + Util.dumpBufferString(b);
+    }
+
 
     public FieldValues init() {
         return new FieldValues(fields.size(),this);
