@@ -166,13 +166,48 @@ public class Util {
         return buf;
     }
 
+
+    public static ByteBuffer shiftLeft(ByteBuffer buffer, int shiftBitCount) {
+        byte[] data = getBytes(buffer);
+        shiftLeft(data, shiftBitCount);
+        return ByteBuffer.wrap(data);
+    }
+
+    public static byte[] getBytes(ByteBuffer buffer) {
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data);
+        return data;
+    }
+
+    public static void shiftLeft(byte[] byteArray, int shiftBitCount) {
+        final int shiftMod = shiftBitCount % 8;
+        final byte carryMask = (byte) ((1 << shiftMod) - 1);
+        final int offsetBytes = (shiftBitCount / 8);
+
+        int sourceIndex;
+        for (int i = 0; i < byteArray.length; i++) {
+            sourceIndex = i + offsetBytes;
+            if (sourceIndex >= byteArray.length) {
+                byteArray[i] = 0;
+            } else {
+                byte src = byteArray[sourceIndex];
+                byte dst = (byte) (src << shiftMod);
+                if (sourceIndex + 1 < byteArray.length) {
+                    dst |= (byteArray[sourceIndex + 1] & 0xFF) >>> (8 - shiftMod) & carryMask;
+                }
+                byteArray[i] = dst;
+            }
+        }
+    }
+
+
     public static void dumpAllShifts(ByteBuffer buf) {
         buf.rewind();
         Util.dumpBuffer(buf);
         for (int i = 1; i < 7; i++) {
             buf.rewind();
             System.out.println("Shift " + i);
-            Util.dumpBuffer(BitBuffer.shiftedBuffer(buf,i));
+            Util.dumpBuffer(shiftLeft(buf,i));
         }
         buf.rewind();
     }

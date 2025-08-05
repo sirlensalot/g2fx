@@ -63,11 +63,12 @@ public class Fields {
     }
 
     private static String dumpBufContext(BitBuffer bb, int start, int pos) {
-        if (start >= bb.getBitLength()) {
+        int bl = bb.getBitLength();
+        if (start >= bl) {
             return "EOF";
         }
         ByteBuffer b = bb.setBitIndex(start).shiftedSlice();
-        return "Buffer length: " + b.limit() + "\n" + Util.dumpBufferString(b);
+        return String.format("BitBuffer length: %d (%d bytes)\n%s\n",(bl-start),b.limit(),Util.dumpBufferString(b));
     }
 
 

@@ -65,4 +65,41 @@ class BitBufferTest {
 
     }
 
+    @Test
+    void testShift() throws Exception {
+
+        String binary = "10110111 01111011 11101111 11011111";
+        ByteBuffer bb0 = binaryStringToByteBuffer(binary);
+
+        bb0.rewind();
+        BitBuffer bb = new BitBuffer(bb0);
+        assertEquals(bb0,bb.shiftedSlice());
+
+        assertEquals(1,bb.get(1));
+        ByteBuffer bb1 = binaryStringToByteBuffer(binary.substring(1));
+        assertArrayEquals(Util.getBytes(bb1),Util.getBytes(bb.shiftedSlice()));
+
+    }
+
+    public static ByteBuffer binaryStringToByteBuffer(String binary) {
+        binary = binary.replace(" ","");
+        binary = binary.replace("\n","");
+        int len = binary.length();
+        int padLen = (8 - (len % 8)) % 8;
+        StringBuilder sb = new StringBuilder();
+        sb.append(binary);
+        for (int i = 0; i < padLen; i++) sb.append('0');
+        String padded = sb.toString();
+
+        int nBytes = padded.length() / 8;
+        byte[] byteArr = new byte[nBytes];
+        for (int i = 0; i < nBytes; i++) {
+            int index = i * 8;
+            String byteStr = padded.substring(index, index + 8);
+            byteArr[i] = (byte) Integer.parseInt(byteStr, 2);
+        }
+        return ByteBuffer.wrap(byteArr);
+    }
+
+
 }

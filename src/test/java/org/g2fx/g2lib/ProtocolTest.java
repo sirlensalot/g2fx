@@ -884,10 +884,18 @@ class ProtocolTest {
 
 
     @Test
-    void readModNamesTest1() throws Exception {
+    void readModNames1Test() throws Exception {
         ByteBuffer buf = Util.readFile("data/sect_SModuleNames1.msg");
         BitBuffer bb = new BitBuffer(buf);
         assertEquals(Sections.SModuleNames1.location,bb.get(2));
         Sections.SModuleNames1.fields.read(bb);
+    }
+
+    @Test
+    void readModLabels0Test() throws Exception {
+        ByteBuffer buf = Util.readFile("data/sect_SModuleLabels0.msg");
+        BitBuffer bb = new BitBuffer(buf);
+        assertEquals(Sections.SModuleLabels0.location,bb.get(2));
+        Sections.SModuleLabels0.fields.read(bb);
     }
 }
