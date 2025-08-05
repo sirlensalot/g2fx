@@ -133,8 +133,8 @@ public class PatchModule {
         NamedParam p = getNamedParam(paramIndex);
         if (userLabels != null) {
             for (FieldValues f : userLabels) {
-                if (paramIndex == Protocol.ParamLabel.ParamIndex.intValue(f)) {
-                    return Protocol.ParamLabel.Label.stringValue(f);
+                if (paramIndex == Protocol.ParamLabels.ParamIndex.intValue(f)) {
+                    return Protocol.ParamLabels.Labels.stringValue(f);
                 }
             }
         }

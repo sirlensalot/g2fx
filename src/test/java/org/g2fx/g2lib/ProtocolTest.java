@@ -540,16 +540,20 @@ class ProtocolTest {
         List<FieldValues> ls = assertSubfields(mls, 2, ModuleLabel.Labels);
 
         FieldValues l = ls.getFirst();
-        assertFieldEquals(l,0x01,ParamLabel.IsString);
-        assertFieldEquals(l,0x08,ParamLabel.ParamLen);
-        assertFieldEquals(l,0x01,ParamLabel.ParamIndex);
-        assertFieldEquals(l,"Ch 1",ParamLabel.Label);
+        assertFieldEquals(l,0x01, ParamLabels.IsString);
+        assertFieldEquals(l,0x08, ParamLabels.ParamLen);
+        assertFieldEquals(l,0x01, ParamLabels.ParamIndex);
+        assertFieldEquals(
+                assertSubfields(l, 1, ParamLabels.Labels).getFirst(),
+                "Ch 1", ParamLabel.Label);
 
         l = ls.get(1);
-        assertFieldEquals(l,0x01,ParamLabel.IsString);
-        assertFieldEquals(l,0x08,ParamLabel.ParamLen);
-        assertFieldEquals(l,0x03,ParamLabel.ParamIndex);
-        assertFieldEquals(l,"Ch Two",ParamLabel.Label);
+        assertFieldEquals(l,0x01, ParamLabels.IsString);
+        assertFieldEquals(l,0x08, ParamLabels.ParamLen);
+        assertFieldEquals(l,0x03, ParamLabels.ParamIndex);
+        assertFieldEquals(
+                assertSubfields(l, 1, ParamLabels.Labels).getFirst(),
+                "Ch Two", ParamLabel.Label);
     }
 
 
@@ -896,6 +900,7 @@ class ProtocolTest {
         ByteBuffer buf = Util.readFile("data/sect_SModuleLabels0.msg");
         BitBuffer bb = new BitBuffer(buf);
         assertEquals(Sections.SModuleLabels0.location,bb.get(2));
-        Sections.SModuleLabels0.fields.read(bb);
+        FieldValues fvs = Sections.SModuleLabels0.fields.read(bb);
+        //System.out.println(fvs);
     }
 }

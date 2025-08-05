@@ -360,7 +360,7 @@ public class Protocol {
         CurrentNote(int size) { f = new SizedField(this,size); }
         CurrentNote(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount c = new SubfieldsField.FieldCount(e);
-            f = new SubfieldsField(this, fs, values -> c.getCount(values) + 1);
+            f = new SubfieldsField(this, fs, (SubfieldsField.SubfieldCount) values -> c.getCount(values) + 1);
         }
         private final Field f;
         public Field field() { return f; }
@@ -390,12 +390,40 @@ public class Protocol {
     public enum ModuleLabel implements FieldEnum {
         ModuleIndex(8),
         ModLabelLen(8),
-        Labels(ParamLabel.FIELDS,ModuleLabel.ModLabelLen);
+        Labels(ParamLabels.FIELDS,ModuleLabel.ModLabelLen);
         ModuleLabel(int size) { f = new SizedField(this,size); }
         ModuleLabel(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount fc = new SubfieldsField.FieldCount(e);
-            //TODO: ModLabelLen/10 will fail/under-read if ParamLen below is ever > 8 (seems to be in bits...)
-            f = new SubfieldsField(this, fs, values -> fc.getCount(values)/10);
+            SubfieldsField.SubfieldCounterFactory ff = values -> {
+                int bytes = fc.getCount(values);
+                return (SubfieldsField.SubfieldCounter) (values1, result, index) -> {
+                    int labels = 0;
+                    for (FieldValues fvs : result) {
+                        labels += ParamLabels.Labels.subfieldsValue(fvs).size();
+                    }
+                    int bytesRead = (index * 3) + (labels * 7);
+                    return bytesRead < bytes;
+                };
+            };
+            f = new SubfieldsField(this, fs, ff);
+        }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(values());
+    }
+
+    public enum ParamLabels implements FieldEnum {
+        IsString(8),
+        ParamLen(8),
+        ParamIndex(8),
+        Labels(ParamLen);
+        ParamLabels(int size) { f = new SizedField(this,size); }
+        ParamLabels(FieldEnum e) {
+            SubfieldsField.FieldCount fc = new SubfieldsField.FieldCount(e);
+            f = new SubfieldsField(this, ParamLabel.FIELDS, (SubfieldsField.SubfieldCount) values -> {
+                int count = fc.getCount(values);
+                return (count - 1) / 7;
+            });
         }
         private final Field f;
         public Field field() { return f; }
@@ -403,11 +431,7 @@ public class Protocol {
     }
 
     public enum ParamLabel implements FieldEnum {
-        IsString(8),
-        ParamLen(8),
-        ParamIndex(8),
         Label();
-        ParamLabel(int size) { f = new SizedField(this,size); }
         ParamLabel() { f = new StringField(this,7); }
         private final Field f;
         public Field field() { return f; }

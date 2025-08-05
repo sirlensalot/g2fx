@@ -15,7 +15,7 @@ public class SubfieldsField extends AbstractField implements Field {
     private static final Logger log = Util.getLogger(SubfieldsField.class);
 
     protected final Fields subfields;
-    private final SubfieldCount subfieldCount;
+    private final SubfieldCounterFactory subfieldCount;
 
     public interface SubfieldCount {
         int getCount(List<FieldValues> values);
@@ -47,6 +47,15 @@ public class SubfieldsField extends AbstractField implements Field {
         }
     }
 
+    public interface SubfieldCounterFactory {
+        SubfieldCounter makeCounter(List<FieldValues> values);
+    }
+
+    public interface SubfieldCounter {
+        boolean hasMore(List<FieldValues> values, List<FieldValues> result, int index);
+    }
+
+
     public static SubfieldCount fieldCount(FieldEnum e) {
         return new FieldCount(e);
     }
@@ -60,6 +69,13 @@ public class SubfieldsField extends AbstractField implements Field {
     }
 
     public <T extends Enum<T>> SubfieldsField(Enum<T> e, Fields subfields, SubfieldCount subfieldCount) {
+        this(e, subfields, (SubfieldCounterFactory) values -> {
+            int count = subfieldCount.getCount(values);
+            return (vs, rs, i) -> i < count;
+        });
+    }
+
+    public <T extends Enum<T>> SubfieldsField(Enum<T> e, Fields subfields, SubfieldCounterFactory subfieldCount) {
         super(e);
         this.subfields = subfields;
         this.subfieldCount = subfieldCount;
@@ -73,19 +89,19 @@ public class SubfieldsField extends AbstractField implements Field {
 
     @Override
     public void read(BitBuffer bb, List<FieldValues> values) {
-        int count = subfieldCount.getCount(values);
-        List<FieldValues> vs = new ArrayList<>(count);
-        readSubfields(bb, values, count, vs);
+        List<FieldValues> vs = new ArrayList<>();
+        readSubfields(bb, values, vs);
         values.getFirst().add(new SubfieldsValue(this, vs));
     }
 
-    protected void readSubfields(BitBuffer bb, List<FieldValues> values, int count, List<FieldValues> result) {
-        for (int i = 0; i < count; i++) {
+    private void readSubfields(BitBuffer bb, List<FieldValues> values, List<FieldValues> result) {
+        SubfieldCounter counter = subfieldCount.makeCounter(values);
+        for (int i = 0; counter.hasMore(values,result,i); i++) {
             try {
                 result.add(subfields.read(bb, values));
             } catch (RuntimeException e) {
                 log.log(Level.SEVERE,String.format(
-                        "Subfields read failure at subfield %d of %d, partial result:\n%s\n",i,count,
+                        "Subfields read failure at subfield %d, partial result:\n%s\n",i,
                         String.join("\n",result.stream().map(Object::toString).toList())
                 ),e);
                 throw e;
