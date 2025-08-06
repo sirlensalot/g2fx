@@ -1,6 +1,7 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -12,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
@@ -552,8 +554,10 @@ public class G2GuiApplication extends Application {
         bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
 
         Button testFileButton = new Button("Test file");
+        String testFile = "data/perf-20240802.prf2";
+        //String testFile = "data/begintomind.prf2";
         testFileButton.setOnAction(e ->
-                devices.invoke(true,() -> devices.loadFile("data/perf-20240802.prf2")));
+                devices.invoke(true,() -> devices.loadFile(testFile)));
         HBox globalBar = withClass(new HBox(
                 label("Perf\nName"),
                 perfName,
@@ -606,22 +610,48 @@ public class G2GuiApplication extends Application {
 
         HBox patchBar = mkPatchBar(slot);
 
-        //ModuleSelector mc = new ModuleSelector(1,"ClkGen1", ModuleType.M_ClkGen);
         Pane voicePane = withClass(
-                new Pane(new Label("voice")),"voice-pane","area-pane","gfont"); // fixed-size area pane (although maybe no scroll unless modules are outside)
+                new Pane(new Label("voice")),"voice-pane","area-pane","gfont");
         ScrollPane voiceScroll =
-                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll"); // scroll for area. investigate pannable. can prob use ctor instead of setContent
+                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll");
+        voiceScroll.setMinHeight(0);
 
         Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
         ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
+        fxScroll.setMinHeight(0);
 
         patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane));
 
         SplitPane patchSplit =
-                withClass(new SplitPane(voiceScroll,fxScroll),"patch-split"); // voice + fx
+                withClass(new SplitPane(voiceScroll,fxScroll),"patch-split");
         patchSplit.setOrientation(Orientation.VERTICAL);
 
-        VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box"); // patch top bar + uis
+        SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
+        SplitPane.Divider divider = patchSplit.getDividers().getFirst();
+
+        Platform.runLater(() -> {
+            //have to hack to get unexposed target for commit listener
+            patchSplit.lookupAll(".split-pane-divider").forEach(d -> {
+                d.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> valueChanging.set(false));
+                d.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> valueChanging.set(true));
+            });
+        });
+
+        bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().height(),
+                new FxProperty.SimpleFxProperty<>(divider.positionProperty(),valueChanging),
+                new PropertyBridge.Iso<>() {
+                    @Override
+                    public Number to(Integer libHeight) {
+                        return libHeight.doubleValue() / patchSplit.getHeight();
+                    }
+
+                    @Override
+                    public Integer from(Number fxHeight) {
+                        return (int) (fxHeight.doubleValue() * patchSplit.getHeight());
+                    }
+                });
+
+        VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box");
 
         VBox.setVgrow(patchSplit,Priority.ALWAYS);
         return patchBox;
