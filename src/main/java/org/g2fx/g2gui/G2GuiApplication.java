@@ -248,7 +248,7 @@ public class G2GuiApplication extends Application {
             String morphCtl = SettingsModules.MORPH_LABELS[i];
             ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
-            bindSlotControl(tf.textProperty(),s -> {
+            bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
                 bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
@@ -501,7 +501,7 @@ public class G2GuiApplication extends Application {
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        bridge(perfName.textProperty(),d -> d.getPerf().perfName());
+        bridge(FXUtil.mkTextFieldCommitProperty(perfName),d -> d.getPerf().perfName());
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         bridge(clockSpinner.getValueFactory().valueProperty(),
@@ -548,7 +548,7 @@ public class G2GuiApplication extends Application {
                         n == null ? null : (Integer) n.getUserData()));
 
         TextField synthName = new TextField("synth name");
-        bridge(synthName.textProperty(),d -> d.getSynthSettings().deviceName());
+        bridge(FXUtil.mkTextFieldCommitProperty(synthName),d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
         bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
@@ -658,8 +658,11 @@ public class G2GuiApplication extends Application {
     }
 
     private HBox mkPatchBar(Slot slot) {
+
         TextField patchName = new TextField("slot" + slot);
-        bridge(patchName.textProperty(),d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
+        bridge(FXUtil.mkTextFieldCommitProperty(patchName),
+                d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
+
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
                 "No Cat",
                 "Acoustic",

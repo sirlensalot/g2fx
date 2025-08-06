@@ -5,12 +5,15 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.Popup;
-import javafx.util.StringConverter;
+import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModuleType;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -28,8 +31,9 @@ public class ModuleSelector {
     public ModuleSelector(int id, String name, ModuleType type) {
         this.id = id;
         this.type = type;
-        this.name = new SimpleStringProperty(name);
-        pane = mkControl();
+        TextField tf = new TextField(name);
+        this.name = FXUtil.mkTextFieldCommitProperty(tf);
+        pane = mkControl(tf);
     }
 
     public Pane getPane() {
@@ -44,43 +48,14 @@ public class ModuleSelector {
     }
 
 
-    /**
-     * Only fires on same-module name change, allowing `name`
-     * to function as a simple bridge property.
-     */
-    private void moduleNameChanged(String n) {
-        name.set(n);
-    }
-
     public Property<String> name() {
         return name;
     }
 
+    private Pane mkControl(TextField textField) {
 
-    private Pane mkControl() {
-
-
-        // TextField with transparent background
-        TextField textField = new TextField(name.get()); //TODO not bridged
-        //textField.setEditable(false);
         textField.setFocusTraversable(false);
-        textField.setTextFormatter(new TextFormatter<String>(new StringConverter<>() {
-            @Override public String toString(String object) { return object; }
-            @Override public String fromString(String string) { return string; }
-        },
-                name.get()));
-        textField.getTextFormatter().valueProperty().addListener((c,o,n) -> {
-            if (n != null && !n.equals(o)) {
-                if (!isModuleChange) {
-                    moduleNameChanged((String) n);
-                }
-            }
-        });
         textField.getStyleClass().add("modsel-text-field");
-        name.addListener((v,o,n) -> {
-            textField.setText(n);
-        });
-
 
         // ListView for dropdown items
         ObservableList<ModTypeShortName> items = FXCollections.observableArrayList(
