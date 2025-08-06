@@ -683,23 +683,18 @@ public class G2GuiApplication extends Application {
         ));
         bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
             new FxProperty<>(patchCategory.getSelectionModel().selectedIndexProperty()) {
-                @Override
-                public void setValue(Number value) {
+                @Override public void setValue(Number value) {
                     patchCategory.getSelectionModel().select(value.intValue());
                 }
             },
             new PropertyBridge.Iso<>() {
-                @Override
-                public Number to(Integer integer) {
+                @Override public Number to(Integer integer) {
                     return integer;
                 }
-
-                @Override
-                public Integer from(Number number) {
+                @Override public Integer from(Number number) {
                     return number.intValue();
                 }
-            }
-        );
+            });
 
         Spinner<VoiceMode> voicesSpinner = mkVoicesSpinner(slot);
 
@@ -882,6 +877,7 @@ public class G2GuiApplication extends Application {
 
     private static Label label(String text) {
         Label l = new Label(text);
+        l.setWrapText(true);
         l.setLineSpacing(-3);
         return l;
     }

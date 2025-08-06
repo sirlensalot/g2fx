@@ -12,6 +12,7 @@
     -fx-border-color: #666666;
     -fx-border-style: solid;
     -fx-spacing: 2px;
+    -fx-min-height: 28px;
 }
 
 .editor-bar {
