@@ -14,8 +14,8 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class ModulePane {
 
-    public static final int MODULE_WIDTH = 260;
-    public static final int MODULE_Y_MULT = 20;
+    public static final int MODULE_WIDTH = 255;
+    public static final int MODULE_Y_MULT = 15;
 
 
     /**
