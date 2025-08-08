@@ -30,7 +30,11 @@ public class FXUtil {
         return children.toArray(new Node[] {});
     }
 
-    public static SimpleStringProperty mkTextFieldCommitProperty(TextField textField) {
+    public interface TextFieldFocusListener {
+        void focusChange(boolean acquired);
+    }
+
+    public static SimpleStringProperty mkTextFieldCommitProperty(TextField textField, TextFieldFocusListener focusListener) {
         SimpleStringProperty p = new SimpleStringProperty();
         textField.setTextFormatter(new TextFormatter<>(new StringConverter<>() {
             @Override public String toString(String object) { return object; }
@@ -47,6 +51,24 @@ public class FXUtil {
             if (!committing.get()) {
                 textField.setText(n);
             }});
+
+        textField.setEditable(false);
+        textField.setFocusTraversable(false);
+
+        textField.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                textField.setEditable(true);
+                textField.requestFocus();
+                focusListener.focusChange(true);
+            }
+        });
+
+        textField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                textField.setEditable(false);
+                focusListener.focusChange(false);
+            }
+        });
         return p;
     }
 }

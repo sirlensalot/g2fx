@@ -28,11 +28,12 @@ public class ModuleSelector {
     private boolean isModuleChange = false;
 
 
-    public ModuleSelector(int id, String name, ModuleType type) {
+    public ModuleSelector(int id, String name, ModuleType type,
+                          FXUtil.TextFieldFocusListener textFocusListener) {
         this.id = id;
         this.type = type;
         TextField tf = new TextField(name);
-        this.name = FXUtil.mkTextFieldCommitProperty(tf);
+        this.name = FXUtil.mkTextFieldCommitProperty(tf,textFocusListener);
         pane = mkControl(tf);
     }
 

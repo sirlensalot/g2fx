@@ -37,12 +37,13 @@ public class ModulePane {
     private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
 
 
-    public ModulePane(UIModule<UIElement> ui, ModuleSpec m) {
+    public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
+                      FXUtil.TextFieldFocusListener textFocusListener) {
         int x = m.horiz;
         int y = m.vert;
         int h = ui.Height();
         int w = MODULE_WIDTH;
-        moduleSelector = new ModuleSelector(m.index, "", m.type);
+        moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
 
         List<Node> children = List.of(moduleSelector.getPane());
         pane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");

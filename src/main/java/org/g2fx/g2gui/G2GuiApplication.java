@@ -7,12 +7,14 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -61,6 +63,7 @@ public class G2GuiApplication extends Application {
     private TabPane slotTabs;
 
     private final Undos undos = new Undos();
+    private FXUtil.TextFieldFocusListener textFocusListener;
 
 
     public static class RebindableControl<T,P> {
@@ -94,7 +97,7 @@ public class G2GuiApplication extends Application {
 
     private Map<ModuleType, UIModule<UIElement>> uiModules;
 
-    record PatchModulePanes(Slot slot, Pane voicePane, Pane fxPane) {}
+    record PatchModulePanes(Slot slot, Pane voicePane, Pane fxPane, SplitPane.Divider divider, SplitPane patchSplit) {}
 
     private final List<PatchModulePanes> patchModulePanes = new ArrayList<>();
 
@@ -162,7 +165,7 @@ public class G2GuiApplication extends Application {
 
     private void renderModule(Pane pane, ModulePane.ModuleSpec m, PatchModule pm, Device d) {
         UIModule<UIElement> ui = uiModules.get(m.type());
-        ModulePane modulePane = new ModulePane(ui,m);
+        ModulePane modulePane = new ModulePane(ui,m, textFocusListener);
         pane.getChildren().add(modulePane.getPane());
         modulePane.addBridge(bridge(modulePane.getModuleSelector().name(),dd -> pm.name()),d);
     }
@@ -186,6 +189,7 @@ public class G2GuiApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
+        setupKeyBindings();
         Scene scene = mkScene();
 
         stage.setTitle(TITLE);
@@ -197,6 +201,39 @@ public class G2GuiApplication extends Application {
         fxQueue.startPolling();
         devices.start();
 
+        textFocusListener.focusChange(false);
+
+
+    }
+
+    private void setupKeyBindings() {
+        EventHandler<? super KeyEvent> globalKeyListener = event -> {
+            switch (event.getCode()) {
+                case F:
+                    maximizeAreaPane(AreaId.Fx);
+                    event.consume();
+                    return;
+                case V:
+                    maximizeAreaPane(AreaId.Voice);
+                    event.consume();
+                    return;
+            }
+        };
+
+        textFocusListener = acquired -> {
+            if (acquired) {
+                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, globalKeyListener);
+            } else {
+                stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, globalKeyListener);
+            }
+        };
+    }
+
+    private void maximizeAreaPane(AreaId area) {
+        PatchModulePanes p = patchModulePanes.get(getSelectedSlot());
+        p.divider().setPosition(
+                area == AreaId.Fx ? 0 : p.patchSplit().getHeight()
+        );
     }
 
     private Scene mkScene() {
@@ -248,7 +285,7 @@ public class G2GuiApplication extends Application {
             String morphCtl = SettingsModules.MORPH_LABELS[i];
             ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
-            bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf), s -> {
+            bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
                 bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
@@ -501,7 +538,7 @@ public class G2GuiApplication extends Application {
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        bridge(FXUtil.mkTextFieldCommitProperty(perfName),d -> d.getPerf().perfName());
+        bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener),d -> d.getPerf().perfName());
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         bridge(clockSpinner.getValueFactory().valueProperty(),
@@ -548,7 +585,7 @@ public class G2GuiApplication extends Application {
                         n == null ? null : (Integer) n.getUserData()));
 
         TextField synthName = new TextField("synth name");
-        bridge(FXUtil.mkTextFieldCommitProperty(synthName),d -> d.getSynthSettings().deviceName());
+        bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener),d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
         bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
@@ -595,7 +632,7 @@ public class G2GuiApplication extends Application {
     }
 
     private void updateMorphBinds() {
-        int slot = slotTabs.getSelectionModel().getSelectedIndex();
+        int slot = getSelectedSlot();
         Toggle varToggle = selectedVars.get(slot).getValue();
         if (varToggle == null) { return; }
         int var = (Integer) varToggle.getUserData();
@@ -604,6 +641,9 @@ public class G2GuiApplication extends Application {
         }
     }
 
+    private int getSelectedSlot() {
+        return slotTabs.getSelectionModel().getSelectedIndex();
+    }
 
 
     private VBox mkPatchBox(Slot slot) {
@@ -620,7 +660,6 @@ public class G2GuiApplication extends Application {
         ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
         fxScroll.setMinHeight(0);
 
-        patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane));
 
         SplitPane patchSplit =
                 withClass(new SplitPane(voiceScroll,fxScroll),"patch-split");
@@ -628,6 +667,8 @@ public class G2GuiApplication extends Application {
 
         SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
         SplitPane.Divider divider = patchSplit.getDividers().getFirst();
+
+        patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane,divider,patchSplit));
 
         Platform.runLater(() -> {
             //have to hack to get unexposed target for commit listener
@@ -660,7 +701,7 @@ public class G2GuiApplication extends Application {
     private HBox mkPatchBar(Slot slot) {
 
         TextField patchName = new TextField("slot" + slot);
-        bridge(FXUtil.mkTextFieldCommitProperty(patchName),
+        bridge(FXUtil.mkTextFieldCommitProperty(patchName,textFocusListener),
                 d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
 
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
