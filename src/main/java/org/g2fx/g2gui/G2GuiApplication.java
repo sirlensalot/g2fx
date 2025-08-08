@@ -14,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -64,6 +65,7 @@ public class G2GuiApplication extends Application {
 
     private final Undos undos = new Undos();
     private FXUtil.TextFieldFocusListener textFocusListener;
+    private SegmentedButton slotBar;
 
 
     public static class RebindableControl<T,P> {
@@ -208,15 +210,22 @@ public class G2GuiApplication extends Application {
 
     private void setupKeyBindings() {
         EventHandler<? super KeyEvent> globalKeyListener = event -> {
-            switch (event.getCode()) {
+            KeyCode code = event.getCode();
+            switch (code) {
                 case F:
-                    maximizeAreaPane(AreaId.Fx);
-                    event.consume();
-                    return;
                 case V:
-                    maximizeAreaPane(AreaId.Voice);
+                    maximizeAreaPane(code == KeyCode.F ? AreaId.Fx : AreaId.Voice);
                     event.consume();
                     return;
+                case A:
+                case B:
+                case C:
+                case D:
+                    slotBar.getToggleGroup().getToggles().get(
+                            code.getCode() - KeyCode.A.getCode()).setSelected(true);
+                    event.consume();
+                    return;
+
             }
         };
 
@@ -577,10 +586,10 @@ public class G2GuiApplication extends Application {
         }).toList();
         sbs.getFirst().setSelected(true);
 
-        SegmentedButton slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})),"slot-bar");
-        bridgeSegmentedButton(slotBar,d -> d.getPerf().getPerfSettings().selectedSlot());
+        slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})),"slot-bar");
+        bridgeSegmentedButton(slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
 
-        slotBar.getToggleGroup().selectedToggleProperty().addListener((v,o,n) ->
+        slotBar.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
                 slotChanged(o == null ? null : (Integer) o.getUserData(),
                         n == null ? null : (Integer) n.getUserData()));
 
