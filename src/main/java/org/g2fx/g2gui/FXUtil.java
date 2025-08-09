@@ -3,8 +3,10 @@ package org.g2fx.g2gui;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.css.Styleable;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.ToggleButton;
 import javafx.util.StringConverter;
 
 import java.net.URL;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FXUtil {
+
+    public static final int UI_MAX_VARIATIONS = 8;
 
     public static <T extends Styleable> T withClass(T node, String... classes) {
         node.getStyleClass().addAll(classes);
@@ -28,6 +32,19 @@ public class FXUtil {
 
     public static Node[] toArray(List<? extends Node> children) {
         return children.toArray(new Node[] {});
+    }
+
+    static Label label(String text) {
+        Label l = new Label(text);
+        l.setWrapText(true);
+        l.setLineSpacing(-3);
+        return l;
+    }
+
+    static ToggleButton radioToToggle(ToggleButton b) {
+        b.getStyleClass().remove("radio-button");
+        b.getStyleClass().add("toggle-button");
+        return b;
     }
 
     public interface TextFieldFocusListener {

@@ -1,44 +1,40 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.beans.property.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.controls.*;
+import org.g2fx.g2gui.controls.Knob;
+import org.g2fx.g2gui.controls.LoadMeter;
+import org.g2fx.g2gui.controls.UIElement;
+import org.g2fx.g2gui.controls.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.state.Devices;
+import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -49,8 +45,6 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class G2GuiApplication extends Application {
 
-    public static final int UI_MAX_VARIATIONS = 8;
-
     private final Logger log = Logger.getLogger(getClass().getName());
 
     public static final String TITLE = "g2fx nord modular g2 editor";
@@ -60,7 +54,7 @@ public class G2GuiApplication extends Application {
 
     private FXQueue fxQueue;
 
-    private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
+    private Bridges bridges;
     private TabPane slotTabs;
 
     private final Undos undos = new Undos();
@@ -68,40 +62,18 @@ public class G2GuiApplication extends Application {
     private SegmentedButton slotBar;
 
 
-    public static class RebindableControl<T,P> {
-        private final Property<P> control;
-        private final Function<T,Property<P>> targetProps;
-        private Property<P> last;
-        public RebindableControl(Property<P> control, Function<T,Property<P>> targetProps) {
-            this.control = control;
-            this.targetProps = targetProps;
-        }
-        public void bind(T target) {
-            if (last != null) { control.unbindBidirectional(last); }
-            control.bindBidirectional(last = targetProps.apply(target));
-        }
-    }
     private final List<RebindableControl<Integer,?>> slotControls = new ArrayList<>();
 
-    private final EnumMap<Slot,List<RebindableControl<Integer,?>>> varControls = initVarControls();
 
     public record SlotAndVar(Slot slot,Integer var) {}
 
     private final List<RebindableControl<SlotAndVar,?>> morphControls = new ArrayList<>();
 
-    private static EnumMap<Slot, List<RebindableControl<Integer,?>>> initVarControls() {
-        EnumMap<Slot, List<RebindableControl<Integer,?>>> m = new EnumMap<>(Slot.class);
-        Arrays.stream(Slot.values()).forEach(s -> m.put(s,new ArrayList<>()));
-        return m;
-    }
 
-    private final List<ObservableValue<Toggle>> selectedVars = new ArrayList<>();
 
     private Map<ModuleType, UIModule<UIElement>> uiModules;
 
-    record PatchModulePanes(Slot slot, Pane voicePane, Pane fxPane, SplitPane.Divider divider, SplitPane patchSplit) {}
-
-    private final List<PatchModulePanes> patchModulePanes = new ArrayList<>();
+    private final List<SlotPane> slotPanes = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -109,6 +81,7 @@ public class G2GuiApplication extends Application {
         uiModules = UIModule.readModuleUIs();
         fxQueue = new FXQueue();
         devices = new Devices();
+        bridges = new Bridges(devices,fxQueue,undos);
         devices.addListener(new Devices.DeviceListener() {
                     @Override
                     public void onDeviceInitialized(Device d) throws Exception {
@@ -123,10 +96,10 @@ public class G2GuiApplication extends Application {
 
     private void onDeviceInitialized(Device d) throws Exception {
         //on lib thread: finalize bridges to get fx init updates
-        List<Runnable> fxUpdates = new ArrayList<>();
-        fxUpdates.addAll(bridges.stream().map(b -> b.finalizeInit(d)).toList());
-        fxUpdates.addAll(initModules(d));
-        initModules(d);
+        List<Runnable> fxUpdates = new ArrayList<>(bridges.initialize(d));
+        for (SlotPane slotPane : slotPanes) {
+            slotPane.initModules(d,uiModules,fxUpdates);
+        }
 
         //run all updates on fx thread
         fxQueue.execute(() -> {
@@ -137,7 +110,7 @@ public class G2GuiApplication extends Application {
 
     private void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners, get fx disposals
-        List<Runnable> fxDisposals = bridges.stream().map(PropertyBridge::dispose).toList();
+        List<Runnable> fxDisposals = bridges.dispose();
         //run all disposals on fx thread
         fxQueue.execute(() -> fxDisposals.forEach(Runnable::run));
     }
@@ -145,48 +118,6 @@ public class G2GuiApplication extends Application {
 
 
 
-    private List<Runnable> initModules(Device d) {
-        //on device thread, create module inits for FX thread
-        List<Runnable> l = new ArrayList<>();
-        for (Slot s : Slot.values()) {
-            for (AreaId a : AreaId.USER_AREAS) {
-                for (PatchModule m : d.getPerf().getSlot(s).getArea(a).getModules()) {
-                    UserModuleData md = m.getUserModuleData();
-                    ModulePane.ModuleSpec spec = new ModulePane.ModuleSpec(md.getIndex(), md.getType(),
-                            md.horiz().get(), md.vert().get(),
-                            md.color().get(), md.uprate().get(),
-                            md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
-                    PatchModulePanes pmp = patchModulePanes.get(s.ordinal());
-                    l.add(() -> renderModule(a == AreaId.Voice ? pmp.voicePane : pmp.fxPane, spec, m, d));
-                }
-            }
-        }
-        return l;
-    }
-
-
-    private void renderModule(Pane pane, ModulePane.ModuleSpec m, PatchModule pm, Device d) {
-        UIModule<UIElement> ui = uiModules.get(m.type());
-        ModulePane modulePane = new ModulePane(ui,m, textFocusListener);
-        pane.getChildren().add(modulePane.getPane());
-        modulePane.addBridge(bridge(modulePane.getModuleSelector().name(),dd -> pm.name()),d);
-    }
-
-
-    private <T> PropertyBridge<T, T> bridge(Property<T> fxProperty,
-                                            Function<Device,LibProperty<T>> libProperty) {
-        return bridge(libProperty,
-                new FxProperty.SimpleFxProperty<>(fxProperty),PropertyBridge.id());
-    }
-
-    private <T,F> PropertyBridge<T, F> bridge(Function<Device,LibProperty<T>> libProperty,
-                                              FxProperty<F> fxProperty,
-                                              PropertyBridge.Iso<T,F> iso) {
-        PropertyBridge<T, F> bridge =
-                new PropertyBridge<>(libProperty, devices, fxProperty, fxQueue, iso, undos);
-        bridges.add(bridge);
-        return bridge;
-    }
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -214,7 +145,8 @@ public class G2GuiApplication extends Application {
             switch (code) {
                 case F:
                 case V:
-                    maximizeAreaPane(code == KeyCode.F ? AreaId.Fx : AreaId.Voice);
+                    AreaId area = code == KeyCode.F ? AreaId.Fx : AreaId.Voice;
+                    getSelectedSlotPane().maximizeAreaPane(area);
                     event.consume();
                     return;
                 case A:
@@ -223,6 +155,18 @@ public class G2GuiApplication extends Application {
                 case D:
                     slotBar.getToggleGroup().getToggles().get(
                             code.getCode() - KeyCode.A.getCode()).setSelected(true);
+                    event.consume();
+                    return;
+                case KeyCode.DIGIT1:
+                case KeyCode.DIGIT2:
+                case KeyCode.DIGIT3:
+                case KeyCode.DIGIT4:
+                case KeyCode.DIGIT5:
+                case KeyCode.DIGIT6:
+                case KeyCode.DIGIT7:
+                case KeyCode.DIGIT8:
+                    getSelectedSlotPane().selectVar(
+                            code.getCode() - KeyCode.DIGIT1.getCode());
                     event.consume();
                     return;
 
@@ -238,11 +182,8 @@ public class G2GuiApplication extends Application {
         };
     }
 
-    private void maximizeAreaPane(AreaId area) {
-        PatchModulePanes p = patchModulePanes.get(getSelectedSlot());
-        p.divider().setPosition(
-                area == AreaId.Fx ? 0 : p.patchSplit().getHeight()
-        );
+    private SlotPane getSelectedSlotPane() {
+        return slotPanes.get(slotTabs.getSelectionModel().getSelectedIndex());
     }
 
     private Scene mkScene() {
@@ -289,14 +230,14 @@ public class G2GuiApplication extends Application {
 
     private VBox mkMorphsBox() {
         List<VBox> morphs = new ArrayList<>();
-        for (int i = 0; i < UI_MAX_VARIATIONS; i++) {
+        for (int i = 0; i < FXUtil.UI_MAX_VARIATIONS; i++) {
             final int ii = i;
             String morphCtl = SettingsModules.MORPH_LABELS[i];
             ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
             bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
-                bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
+                bridges.bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
             });
 
@@ -304,7 +245,7 @@ public class G2GuiApplication extends Application {
             Knob dial = withClass(new Knob("Morph" + i), "morph-knob");
             bindMorphControl(dial.getValueProperty(),sv -> {
                 SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(dial,"morphDial:"+sv,0);
-                bridge(d -> d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
+                bridges.bridge(d -> d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                                 .getParamValueProperty(sv.var,ii),
                         new FxProperty.SimpleFxProperty<>(p,dial.valueChangingProperty()),
                         PropertyBridge.id());
@@ -317,7 +258,7 @@ public class G2GuiApplication extends Application {
             ),"morph-box"));
         }
         VBox morphsBox = withClass(new VBox(
-                label("Morph Groups"),
+                FXUtil.label("Morph Groups"),
                 withClass(new HBox(morphs.toArray(new VBox[]{})),"morphs-bar")
         ),"morphs-box");
         return morphsBox;
@@ -334,7 +275,7 @@ public class G2GuiApplication extends Application {
         btn.setFocusTraversable(false);
         bindMorphControl(state,sv -> {
             Property<Integer> p = new SimpleObjectProperty<>(btn,"morphMode:"+sv,1);
-            bridge(p,d->d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
+            bridges.bridge(p,d->d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                     .getParamValueProperty(sv.var,index+ 8));
             return p;
         });
@@ -360,14 +301,9 @@ public class G2GuiApplication extends Application {
         slotControls.add(new RebindableControl<>(control, l::get));
     }
 
-    private <T> void bindVarControl(Slot slot, Property<T> control, IntFunction<Property<T>> varPropBuilder) {
-        List<Property<T>> l = IntStream.range(0, UI_MAX_VARIATIONS).mapToObj(varPropBuilder).toList();
-        varControls.get(slot).add(new RebindableControl<>(control, l::get));
-    }
-
     private <T> void bindMorphControl(Property<T> control, Function<SlotAndVar,Property<T>> propBuilder) {
         List<List<Property<T>>> props = Arrays.stream(Slot.values()).map(s ->
-                IntStream.range(0, UI_MAX_VARIATIONS).mapToObj(v -> propBuilder.apply(new SlotAndVar(s,v))).toList()).toList();
+                IntStream.range(0, FXUtil.UI_MAX_VARIATIONS).mapToObj(v -> propBuilder.apply(new SlotAndVar(s,v))).toList()).toList();
         morphControls.add(new RebindableControl<>(control,sv -> props.get(sv.slot.ordinal()).get(sv.var)));
     }
 
@@ -375,7 +311,7 @@ public class G2GuiApplication extends Application {
         bindSlotControl(m.getValueProperty(), s -> {
             Property<Double> p = new SimpleObjectProperty<>((double) 0);
             Function<Device, LibProperty<Double>> b = slotPropBuilder.apply(s);
-            bridge(p, b);
+            bridges.bridge(p, b);
             return p;
         });
     }
@@ -402,21 +338,21 @@ public class G2GuiApplication extends Application {
         VBox loadMeterBox = withClass(new VBox(
                withClass(new HBox(
                        withClass(new Pane(),"load-meter-empty-0"),
-                       withClass(label("Patch Load"),"load-label-patch-load")
+                       withClass(FXUtil.label("Patch Load"),"load-label-patch-load")
                        ),"load-meter-bar"),
                 withClass(new HBox(
                         withClass(new Pane(),"load-meter-empty-1"),
-                        withClass(label("Cycles"),"load-label-cols"),
-                        withClass(label("Memory"),"load-label-cols")
+                        withClass(FXUtil.label("Cycles"),"load-label-cols"),
+                        withClass(FXUtil.label("Memory"),"load-label-cols")
                         ),"load-meter-bar"),
                 withClass(new HBox(
-                        withClass(label("VA"),"load-label-rows"),
+                        withClass(FXUtil.label("VA"),"load-label-rows"),
                         voiceCycles,
                         voiceMem
                         ),"load-meter-bar"),
                 withClass(new Pane(),"load-meter-empty-2"),
                 withClass(new HBox(
-                        withClass(label("FX"),"load-label-rows"),
+                        withClass(FXUtil.label("FX"),"load-label-rows"),
                         fxCycles,
                         fxMem
                         ),"load-meter-bar")
@@ -481,7 +417,7 @@ public class G2GuiApplication extends Application {
 
         VBox undoRedoModColorBox = withClass(new VBox(
                 undoRedoBar,
-                label("Module Color"),
+                FXUtil.label("Module Color"),
                 moduleColorsCombo
         ),"undo-redo-mod-colors-box");
         return undoRedoModColorBox;
@@ -506,7 +442,7 @@ public class G2GuiApplication extends Application {
         StackPane modsPane = new StackPane(modBars.values().toArray(new HBox[]{}));
 
         List<ToggleButton> moduleSectButtons = Stream.of(ModuleType.ModPage.values()).map(n -> {
-                    ToggleButton tb = radioToToggle(withClass(new RadioButton(n.name()),
+                    ToggleButton tb = FXUtil.radioToToggle(withClass(new RadioButton(n.name()),
                             "module-sect-toggle", "module-sect-" + n));
                     tb.setOnAction(e -> modBars.forEach((p, b) -> b.setVisible(p == n)));
                     tb.setToggleGroup(moduleSectionSelector);
@@ -528,10 +464,11 @@ public class G2GuiApplication extends Application {
     private TabPane mkSlotTabs() {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
-
+            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot,morphControls);
+            slotPanes.add(slotPane);
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());
-            VBox pb = mkPatchBox(slot);
+            VBox pb = slotPane.mkPatchBox();
             t.setContent(pb);
             t.setClosable(false);
             slots.add(t);
@@ -547,21 +484,21 @@ public class G2GuiApplication extends Application {
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener),d -> d.getPerf().perfName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener),d -> d.getPerf().perfName());
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
-        bridge(clockSpinner.getValueFactory().valueProperty(),
+        bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
                 d -> d.getPerf().getPerfSettings().masterClock());
 
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
-        bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
+        bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
 
         List<ToggleButton> sbs = Arrays.stream(Slot.values()).map(s -> {
-            ToggleButton b = radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));
+            ToggleButton b = FXUtil.radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));
             b.setFocusTraversable(false);
             b.setUserData(s.ordinal());
             BooleanProperty keyboard = new SimpleBooleanProperty(false);
-            bridge(keyboard,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
+            bridges.bridge(keyboard,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
             keyboard.addListener((v,o,n) -> {
                 if (n) {
                     b.getStyleClass().remove("slot-none");
@@ -572,7 +509,7 @@ public class G2GuiApplication extends Application {
                 }
             });
             BooleanProperty enabled = new SimpleBooleanProperty(false);
-            bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).enabled());
+            bridges.bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).enabled());
             enabled.addListener((v,o,n) -> {
                 if (n) {
                     b.getStyleClass().remove("slot-disabled");
@@ -587,17 +524,17 @@ public class G2GuiApplication extends Application {
         sbs.getFirst().setSelected(true);
 
         slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})),"slot-bar");
-        bridgeSegmentedButton(slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
+        bridges.bridgeSegmentedButton(slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
 
         slotBar.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
                 slotChanged(o == null ? null : (Integer) o.getUserData(),
                         n == null ? null : (Integer) n.getUserData()));
 
         TextField synthName = new TextField("synth name");
-        bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener),d -> d.getSynthSettings().deviceName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener),d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
-        bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
+        bridges.bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
 
         Button testFileButton = new Button("Test file");
         String testFile = "data/perf-20240802.prf2";
@@ -605,9 +542,9 @@ public class G2GuiApplication extends Application {
         testFileButton.setOnAction(e ->
                 devices.invoke(true,() -> devices.loadFile(testFile)));
         HBox globalBar = withClass(new HBox(
-                label("Perf\nName"),
+                FXUtil.label("Perf\nName"),
                 perfName,
-                label("Master\nClock"),
+                FXUtil.label("Master\nClock"),
                 clockSpinner,
                 runClockButton,
                 slotBar,
@@ -619,318 +556,14 @@ public class G2GuiApplication extends Application {
     }
 
 
-    private static ToggleButton radioToToggle(ToggleButton b) {
-        b.getStyleClass().remove("radio-button");
-        b.getStyleClass().add("toggle-button");
-        return b;
-    }
-
     private void slotChanged(Integer oldSlot, Integer newSlot) {
         slotTabs.getSelectionModel().select(newSlot);
         for (RebindableControl<Integer,?> control : slotControls) {
             control.bind(newSlot);
         }
-        updateMorphBinds();
+        getSelectedSlotPane().updateMorphBinds();
     }
 
-    private void varChanged(Slot slot, Integer oldVar, Integer newVar) {
-        for (RebindableControl<Integer,?> vc : varControls.get(slot)) {
-            vc.bind(newVar);
-        }
-        updateMorphBinds();
-    }
-
-    private void updateMorphBinds() {
-        int slot = getSelectedSlot();
-        Toggle varToggle = selectedVars.get(slot).getValue();
-        if (varToggle == null) { return; }
-        int var = (Integer) varToggle.getUserData();
-        for (RebindableControl<SlotAndVar, ?> mc : morphControls) {
-            mc.bind(new SlotAndVar(Slot.fromIndex(slot),var));
-        }
-    }
-
-    private int getSelectedSlot() {
-        return slotTabs.getSelectionModel().getSelectedIndex();
-    }
-
-
-    private VBox mkPatchBox(Slot slot) {
-
-        HBox patchBar = mkPatchBar(slot);
-
-        Pane voicePane = withClass(
-                new Pane(new Label("voice")),"voice-pane","area-pane","gfont");
-        ScrollPane voiceScroll =
-                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll");
-        voiceScroll.setMinHeight(0);
-
-        Pane fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
-        ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
-        fxScroll.setMinHeight(0);
-
-
-        SplitPane patchSplit =
-                withClass(new SplitPane(voiceScroll,fxScroll),"patch-split");
-        patchSplit.setOrientation(Orientation.VERTICAL);
-
-        SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
-        SplitPane.Divider divider = patchSplit.getDividers().getFirst();
-
-        patchModulePanes.add(new PatchModulePanes(slot,voicePane,fxPane,divider,patchSplit));
-
-        Platform.runLater(() -> {
-            //have to hack to get unexposed target for commit listener
-            patchSplit.lookupAll(".split-pane-divider").forEach(d -> {
-                d.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> valueChanging.set(false));
-                d.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> valueChanging.set(true));
-            });
-        });
-
-        bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().height(),
-                new FxProperty.SimpleFxProperty<>(divider.positionProperty(),valueChanging),
-                new PropertyBridge.Iso<>() {
-                    @Override
-                    public Number to(Integer libHeight) {
-                        return libHeight.doubleValue() / patchSplit.getHeight();
-                    }
-
-                    @Override
-                    public Integer from(Number fxHeight) {
-                        return (int) (fxHeight.doubleValue() * patchSplit.getHeight());
-                    }
-                });
-
-        VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box");
-
-        VBox.setVgrow(patchSplit,Priority.ALWAYS);
-        return patchBox;
-    }
-
-    private HBox mkPatchBar(Slot slot) {
-
-        TextField patchName = new TextField("slot" + slot);
-        bridge(FXUtil.mkTextFieldCommitProperty(patchName,textFocusListener),
-                d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
-
-        ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
-                "No Cat",
-                "Acoustic",
-                "Sequencer",
-                "Bass",
-                "Classic",
-                "Drum",
-                "Fantasy",
-                "FX",
-                "Lead",
-                "Organ",
-                "Pad",
-                "Piano",
-                "Synth",
-                "Audio in",
-                "User1",
-                "User2"
-        ));
-        bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
-            new FxProperty<>(patchCategory.getSelectionModel().selectedIndexProperty()) {
-                @Override public void setValue(Number value) {
-                    patchCategory.getSelectionModel().select(value.intValue());
-                }
-            },
-            new PropertyBridge.Iso<>() {
-                @Override public Number to(Integer integer) {
-                    return integer;
-                }
-                @Override public Integer from(Number number) {
-                    return number.intValue();
-                }
-            });
-
-        Spinner<VoiceMode> voicesSpinner = mkVoicesSpinner(slot);
-
-        SegmentedButton varSelector = mkVarSelector(slot);
-
-
-        Button initVar = new Button("Init");
-
-
-        SVGPath powerGraphic = withClass(new SVGPath(),"power-graphic");
-        powerGraphic.setContent("M -3 -3 A 4.5 4.5 0 1 0 3 -3 M 0 0 L 0 -4");
-        ToggleButton patchEnable = withClass(new ToggleButton("", powerGraphic),"power-button");
-
-        CheckBox redCable = cableCheckbox(slot,"red",PatchSettings::red);
-        CheckBox blueCable = cableCheckbox(slot,"blue",PatchSettings::blue);
-        CheckBox yellowCable = cableCheckbox(slot,"yellow",PatchSettings::yellow);
-        CheckBox orangeCable = cableCheckbox(slot,"orange",PatchSettings::orange);
-        CheckBox purpleCable = cableCheckbox(slot,"purple",PatchSettings::purple);
-        CheckBox whiteCable = cableCheckbox(slot,"white",PatchSettings::white);
-        ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button");
-        Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
-
-
-        Knob patchVolume = withClass(new Knob("patch-volume"),"patch-volume");
-        bindVarControl(slot,patchVolume.getValueProperty(), v -> {
-            SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+ slot +":"+v,0);
-            bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
-                        .getSettingsValueProperty(ModParam.GainVolume,v),
-                    new FxProperty.SimpleFxProperty<>(p,patchVolume.valueChangingProperty()),
-                    PropertyBridge.id());
-            return p;
-        });
-
-        bindVarControl(slot,patchEnable.selectedProperty(), v -> {
-            SimpleBooleanProperty p = new SimpleBooleanProperty(patchEnable,"patchEnable:"+ slot +":"+v,false);
-            bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
-                            .getSettingsValueProperty(ModParam.GainActiveMuted,v),
-                    new FxProperty.SimpleFxProperty<>(p),
-                    new PropertyBridge.Iso<>() {
-                        @Override
-                        public Boolean to(Integer a) {
-                            return a == 1;
-                        }
-                        @Override
-                        public Integer from(Boolean b) {
-                            return b ? 1 : 0;
-                        }
-                    });
-            return p;
-        });
-        HBox patchBar = withClass(new HBox(
-                label("Patch\nName"),
-                patchName,
-                patchCategory,
-                label("Voice\nMode"),
-                voicesSpinner,
-                new Label("Variation"),
-                varSelector,
-                initVar,
-                label("Patch\nLevel"),
-                patchVolume,
-                patchEnable,
-                label("Visible\nLabels"),
-                redCable, blueCable, yellowCable, orangeCable, purpleCable, whiteCable,
-                hideCables, shakeCables
-        ),"patch-bar","bar","gfont");
-        return patchBar;
-    }
-
-    private SegmentedButton mkVarSelector(Slot slot) {
-        List<ToggleButton> varButtons = new ArrayList<>();
-        for (int i = 1; i < 9; i++) {
-            RadioButton b = new RadioButton(Integer.toString(i));
-            b.setSelected(i==1);
-            b.setFocusTraversable(false);
-            varButtons.add(withClass(b,"var-button"));
-            b.setUserData(i - 1);
-            radioToToggle(b);
-        }
-        SegmentedButton varSelector = new SegmentedButton(varButtons.toArray(new ToggleButton[] {}));
-        bridgeSegmentedButton(varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
-
-        varSelector.getToggleGroup().selectedToggleProperty().addListener((v,o,n) ->
-                varChanged(slot,o == null ? null : (Integer) o.getUserData(),
-                        n == null ? null : (Integer) n.getUserData()));
-        selectedVars.add(varSelector.getToggleGroup().selectedToggleProperty());
-        return varSelector;
-    }
-
-    private Spinner<VoiceMode> mkVoicesSpinner(Slot slot) {
-        SimpleObjectProperty<Integer> monoPoly = new SimpleObjectProperty<>(0);
-        bridge(monoPoly,d->d.getPerf().getSlot(slot).getPatchSettings().monoPoly());
-
-        SimpleObjectProperty<Integer> voices = new SimpleObjectProperty<>(2);
-        bridge(voices,d->d.getPerf().getSlot(slot).getPatchSettings().voices());
-
-        SimpleObjectProperty<Integer> assignedVoices = new SimpleObjectProperty<>(0);
-        bridge(assignedVoices,d->d.getPerf().getSlot(slot).assignedVoices());
-
-        ObservableList<VoiceMode> items = FXCollections.observableArrayList(VoiceMode.values());
-        Spinner<VoiceMode> spinner = withClass(new Spinner<>(),"voice-spinner");
-        SpinnerValueFactory.ListSpinnerValueFactory<VoiceMode> valueFactory =
-                new SpinnerValueFactory.ListSpinnerValueFactory<>(items);
-        spinner.setValueFactory(valueFactory);
-        // Set converter to format display in editable area
-        valueFactory.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(VoiceMode voiceMode) {
-                return voiceMode.getDisplayName(assignedVoices.get());
-            }
-            @Override public VoiceMode fromString(String s) { return null; }
-        });
-
-        AtomicBoolean skipUpdate = new AtomicBoolean(false);
-        spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                skipUpdate.set(true);
-                try { monoPoly.set(newVal.getMonoPoly()); }
-                finally { skipUpdate.set(false); }
-                voices.set(newVal.getVoices());
-            }
-        });
-
-        ChangeListener<Number> syncSpinner = (obs, oldVal, newVal) -> {
-            if (skipUpdate.get()) { return; }
-            VoiceMode updated = VoiceMode.fromMonoPolyAndVoices(monoPoly.get(), voices.get());
-            if (updated != spinner.getValue()) {
-                spinner.getValueFactory().setValue(updated);
-                // Force a UI update on assignedVoices change
-                spinner.getEditor().setText(valueFactory.getConverter().toString(updated));
-            }
-        };
-        monoPoly.addListener(syncSpinner);
-        voices.addListener(syncSpinner);
-
-        assignedVoices.addListener((obs, old, val) -> {
-            VoiceMode current = spinner.getValue();
-            if (current != null) {
-                spinner.getEditor().setText(valueFactory.getConverter().toString(current));
-            }
-        });
-
-        spinner.getValueFactory().setValue(VoiceMode.P2);
-
-        return spinner;
-    }
-
-    private void bridgeSegmentedButton(SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
-        bridge(libPropBuilder,
-                new FxProperty<>(button.getToggleGroup().selectedToggleProperty()) {
-                    @Override
-                    public void setValue(Toggle value) {
-                        value.setSelected(true);
-                    }
-                },
-                new PropertyBridge.Iso<>() {
-                    @Override
-                    public Toggle to(Integer integer) {
-                        return button.getToggleGroup().getToggles().get(integer);
-                    }
-
-                    @Override
-                    public Integer from(Toggle tab) {
-                        return (Integer) tab.getUserData();
-                    }
-                });
-    }
-
-
-    private CheckBox cableCheckbox(Slot slot, String color,Function<PatchSettings,LibProperty<Boolean>> libProp) {
-        CheckBox cb = withClass(new CheckBox(),"cable-" + color,"cable-checkbox");
-        cb.setSelected(true);
-        bindVarControl(slot,cb.selectedProperty(),v -> {
-            BooleanProperty p = new SimpleBooleanProperty(cb,color + " cable",true);
-            bridge(p,d->libProp.apply(d.getPerf().getSlot(slot).getPatchSettings()));
-            return p;
-        });
-        return cb;
-    }
-
-    private static Label label(String text) {
-        Label l = new Label(text);
-        l.setWrapText(true);
-        l.setLineSpacing(-3);
-        return l;
-    }
 
     @Override
     public void stop() throws Exception {
