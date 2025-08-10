@@ -11,9 +11,11 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
@@ -45,10 +47,10 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class G2GuiApplication extends Application {
 
+    public static final String PREF_RECENT_FILES = "recentFiles";
     private final Logger log = Logger.getLogger(getClass().getName());
 
     public static final String TITLE = "g2fx nord modular g2 editor";
-    private Stage stage;
 
     private Devices devices;
 
@@ -61,15 +63,11 @@ public class G2GuiApplication extends Application {
     private FXUtil.TextFieldFocusListener textFocusListener;
     private SegmentedButton slotBar;
 
-
     private final List<RebindableControl<Integer,?>> slotControls = new ArrayList<>();
-
 
     public record SlotAndVar(Slot slot,Integer var) {}
 
     private final List<RebindableControl<SlotAndVar,?>> morphControls = new ArrayList<>();
-
-
 
     private Map<ModuleType, UIModule<UIElement>> uiModules;
 
@@ -122,15 +120,15 @@ public class G2GuiApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
-        setupKeyBindings();
-        Scene scene = mkScene();
+
+        setupKeyBindings(stage);
+        Scene scene = mkScene(stage);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
         scene.getStylesheets().add(FXUtil.getResource("g2fx.css").toExternalForm());
         stage.show();
 
-        this.stage = stage;
         fxQueue.startPolling();
         devices.start();
 
@@ -139,7 +137,76 @@ public class G2GuiApplication extends Application {
 
     }
 
-    private void setupKeyBindings() {
+    private MenuBar setupMenu(Stage stage) {
+
+        Set<File> recentFiles = new LinkedHashSet<>();
+
+        String recentFilesString = FXUtil.getPrefs().get(PREF_RECENT_FILES, "");
+        if (!recentFilesString.isEmpty()) {
+            for (String path : recentFilesString.split("\n")) {
+                recentFiles.add(new File(path));
+            }
+        }
+
+        MenuBar menuBar = new MenuBar();
+        menuBar.setUseSystemMenuBar(true);
+        Menu fileMenu = new Menu("File");
+
+        Menu recentFilesMenu = new Menu("Recent Files");
+        populateRecentFiles(recentFiles,recentFilesMenu);
+        
+        MenuItem openItem = new MenuItem("Open...");
+        fileMenu.getItems().addAll(openItem,recentFilesMenu);
+        openItem.setAccelerator(KeyCombination.keyCombination("Shortcut+O"));
+        openItem.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Open File");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
+            );
+            File f = fileChooser.showOpenDialog(stage);
+            if (f != null) { loadFile(recentFiles,recentFilesMenu,f); }
+
+        });
+        menuBar.getMenus().add(fileMenu);
+        return menuBar;
+    }
+
+    private StringBuilder populateRecentFiles(Set<File> recentFiles, Menu recentFilesMenu) {
+        int i = 0;
+        StringBuilder sb = new StringBuilder();
+        for (File rf : new ArrayList<>(recentFiles).reversed()) {
+            MenuItem mi = new MenuItem(rf.getName());
+            recentFilesMenu.getItems().add(mi);
+            if (i==0) {
+                mi.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+O"));
+            }
+            mi.setOnAction(e -> {
+                loadFile(recentFiles,recentFilesMenu,rf);
+            });
+            if (!sb.isEmpty()) { sb.append("\n"); }
+            sb.append(rf.getAbsolutePath());
+
+            if (i++>15) { break; }
+        }
+        return sb;
+    }
+
+    private void loadFile(Set<File> recentFiles, Menu recentFilesMenu, File f) {
+        //TODO close old
+
+        recentFiles.remove(f);
+        recentFiles.add(f);
+
+        recentFilesMenu.getItems().clear();
+
+        StringBuilder sb = populateRecentFiles(recentFiles, recentFilesMenu);
+        FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
+
+        devices.invoke(true,() -> devices.loadFile(f.getAbsolutePath()));
+    }
+
+    private void setupKeyBindings(Stage stage) {
         EventHandler<? super KeyEvent> globalKeyListener = event -> {
             KeyCode code = event.getCode();
             switch (code) {
@@ -186,7 +253,10 @@ public class G2GuiApplication extends Application {
         return slotPanes.get(slotTabs.getSelectionModel().getSelectedIndex());
     }
 
-    private Scene mkScene() {
+    private Scene mkScene(Stage stage) {
+
+        MenuBar menuBar = setupMenu(stage);
+
         TabPane slotTabs = mkSlotTabs();
 
         HBox editorBar = mkEditorBar();
@@ -194,7 +264,7 @@ public class G2GuiApplication extends Application {
         HBox globalBar = mkGlobalBar();
 
         VBox topBox = withClass(
-                new VBox(globalBar,editorBar,slotTabs),"top-box");
+                new VBox(menuBar,globalBar,editorBar,slotTabs),"top-box");
         VBox.setVgrow(slotTabs, Priority.ALWAYS);
 
         return new Scene(topBox, 1280, 775);
@@ -536,11 +606,6 @@ public class G2GuiApplication extends Application {
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
         bridges.bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
 
-        Button testFileButton = new Button("Test file");
-        String testFile = "data/perf-20240802.prf2";
-        //String testFile = "data/begintomind.prf2";
-        testFileButton.setOnAction(e ->
-                devices.invoke(true,() -> devices.loadFile(testFile)));
         HBox globalBar = withClass(new HBox(
                 FXUtil.label("Perf\nName"),
                 perfName,
@@ -549,8 +614,7 @@ public class G2GuiApplication extends Application {
                 runClockButton,
                 slotBar,
                 synthName,
-                perfModeButton,
-                testFileButton
+                perfModeButton
         ),"global-bar","bar","gfont");
         return globalBar;
     }

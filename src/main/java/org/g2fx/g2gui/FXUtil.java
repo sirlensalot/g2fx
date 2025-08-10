@@ -12,6 +12,7 @@ import javafx.util.StringConverter;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.prefs.Preferences;
 
 public class FXUtil {
 
@@ -45,6 +46,10 @@ public class FXUtil {
         b.getStyleClass().remove("radio-button");
         b.getStyleClass().add("toggle-button");
         return b;
+    }
+
+    public static Preferences getPrefs() {
+        return Preferences.userNodeForPackage(FXUtil.class);
     }
 
     public interface TextFieldFocusListener {
