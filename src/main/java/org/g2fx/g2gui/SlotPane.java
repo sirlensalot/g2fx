@@ -53,6 +53,10 @@ public class SlotPane {
 
     private final List<RebindableControl<Integer,?>> varControls = new ArrayList<>();
 
+    private final Map<AreaId,List<ModulePane>> modulePanes = Map.of(
+            AreaId.Fx,new ArrayList<>(),
+            AreaId.Voice,new ArrayList<>());
+
     private SegmentedButton varSelector;
 
 
@@ -65,13 +69,19 @@ public class SlotPane {
     }
 
     private void renderModule(AreaId a, ModulePane.ModuleSpec m, PatchModule pm, Device d, UIModule<UIElement> ui) {
-        Pane pane = a == AreaId.Voice ? voicePane : fxPane;
+        // on fx thread
         ModulePane modulePane = new ModulePane(ui,m, textFocusListener);
-        pane.getChildren().add(modulePane.getPane());
+        modulePanes.get(a).add(modulePane);
+        getAreaPane(a).getChildren().add(modulePane.getPane());
         modulePane.addBridge(bridges.bridge(modulePane.getModuleSelector().name(),dd -> pm.name()),d);
     }
 
+    private Pane getAreaPane(AreaId a) {
+        return a == AreaId.Voice ? voicePane : fxPane;
+    }
+
     public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
+        // on device thread
         for (AreaId a : AreaId.USER_AREAS) {
             for (PatchModule m : d.getPerf().getSlot(slot).getArea(a).getModules()) {
                 UserModuleData md = m.getUserModuleData();
@@ -85,6 +95,18 @@ public class SlotPane {
     }
 
 
+    public void clearModules() {
+        //on fx thread, and assumes bridges are already disposed
+        for (AreaId a : AreaId.USER_AREAS) {
+            Pane areaPane = getAreaPane(a);
+            List<ModulePane> panes = modulePanes.get(a);
+            for (ModulePane m : panes) {
+                areaPane.getChildren().remove(m.getPane());
+                bridges.remove(m.getBridges());
+            }
+            panes.clear();
+        }
+    }
 
 
 
@@ -376,4 +398,5 @@ public class SlotPane {
     public void selectVar(int i) {
         varSelector.getToggleGroup().getToggles().get(i).setSelected(true);
     }
+
 }

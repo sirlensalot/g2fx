@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class UsbReadThread implements Runnable {
@@ -53,7 +54,20 @@ public class UsbReadThread implements Runnable {
     @Override
     public void run() {
         while (go.get()) {
-            UsbMessage r = usb.readInterrupt(500);
+            UsbMessage r;
+            try {
+                r = usb.readInterrupt(500);
+            } catch (Exception e) {
+                if (!go.get()) { continue; }
+                if (usb.deviceInvalid()) {
+                    log.info("interrupt, invalid device: exiting read loop");
+                    go.set(false);
+                    continue;
+                }
+                log.log(Level.SEVERE,"Error in readInterrupt, exiting read loop",e);
+                go.set(false);
+                continue;
+            }
             if (!r.success()) {
                 continue;
             }

@@ -214,7 +214,7 @@ public class Usb {
 
         readThread.shutdown();
 
-
+        if (deviceInvalid()) { return; }
 
         log.info("Releasing handle");
         UsbService.retcode(LibUsb.releaseInterface(device.handle(),
@@ -223,6 +223,10 @@ public class Usb {
         log.info("Closing handle");
         LibUsb.close(device.handle());
 
+    }
+
+    public boolean deviceInvalid() {
+        return device.handle().getPointer() == 0;
     }
     /*
 S_SET_PARAM :

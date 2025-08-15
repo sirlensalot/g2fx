@@ -68,4 +68,9 @@ public class Bridges {
                     }
                 });
     }
+
+    public void remove(List<PropertyBridge<?,?>> bridges) {
+        //must be on fx thread, and does NOT dispose
+        this.bridges.removeAll(bridges);
+    }
 }

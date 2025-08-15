@@ -9,11 +9,16 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import org.controlsfx.control.SegmentedButton;
+import org.g2fx.g2gui.controls.UIElement;
+import org.g2fx.g2gui.controls.UIModule;
+import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Slot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -28,6 +33,10 @@ public class Slots {
     private final List<RebindableControl<Integer,?>> slotControls = new ArrayList<>();
 
 
+    private final Map<ModuleType, UIModule<UIElement>> uiModules;
+
+
+
     public record SlotAndVar(Slot slot,Integer var) {}
 
     private final List<RebindableControl<SlotAndVar,?>> morphControls = new ArrayList<>();
@@ -35,10 +44,25 @@ public class Slots {
     private final Bridges bridges;
 
 
-    public Slots(Bridges bridges) {
+    public Slots(Bridges bridges) throws Exception {
+        uiModules = UIModule.readModuleUIs();
         this.bridges = bridges;
     }
 
+
+    public List<Runnable> initModules(Device d) {
+        List<Runnable> fxUpdates = new ArrayList<>();
+        slotPanes.forEach(s -> s.initModules(d,uiModules,fxUpdates));
+        return fxUpdates;
+    }
+
+
+    public Runnable clearModules() {
+        // on device thread, return fx action
+        return () -> {
+            slotPanes.forEach(s -> s.clearModules());
+        };
+    }
 
 
     public TabPane mkSlotTabs(FXUtil.TextFieldFocusListener textFocusListener) {

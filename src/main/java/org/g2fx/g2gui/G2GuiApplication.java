@@ -18,8 +18,6 @@ import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
-import org.g2fx.g2gui.controls.UIElement;
-import org.g2fx.g2gui.controls.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
@@ -44,7 +42,7 @@ import java.util.stream.Stream;
 import static org.g2fx.g2gui.FXUtil.withClass;
 
 
-public class G2GuiApplication extends Application {
+public class G2GuiApplication extends Application implements Devices.DeviceListener {
 
     private final Logger log = Logger.getLogger(getClass().getName());
 
@@ -62,37 +60,30 @@ public class G2GuiApplication extends Application {
 
     private FXUtil.TextFieldFocusListener textFocusListener;
 
-    private Map<ModuleType, UIModule<UIElement>> uiModules;
-
     private Slots slots;
 
     @Override
     public void init() throws Exception {
         Util.configureLogging(Level.WARNING);
-        uiModules = UIModule.readModuleUIs();
+
         fxQueue = new FXQueue();
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);
         slots = new Slots(bridges);
         commands = new Commands(devices, slots);
-        devices.addListener(new Devices.DeviceListener() {
-                    @Override
-                    public void onDeviceInitialized(Device d) throws Exception {
-                        G2GuiApplication.this.onDeviceInitialized(d);
-                    }
-                    @Override
-                    public void onDeviceDisposal(Device d) throws Exception {
-                        G2GuiApplication.this.onDeviceDisposal(d);
-                    }});
+        devices.addListener(this);
 
     }
 
-    private void onDeviceInitialized(Device d) throws Exception {
+    @Override
+    public void onDeviceInitialized(Device d) throws Exception {
+
+        slots.clearModules();
+
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = new ArrayList<>(bridges.initialize(d));
-        for (SlotPane slotPane : slots.getAll()) {
-            slotPane.initModules(d,uiModules,fxUpdates);
-        }
+        fxUpdates.addAll(slots.initModules(d));
+
 
         //run all updates on fx thread
         fxQueue.execute(() -> {
@@ -101,7 +92,8 @@ public class G2GuiApplication extends Application {
         d.sendStartStopComm(true);
     }
 
-    private void onDeviceDisposal(Device d) throws Exception {
+    @Override
+    public void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners, get fx disposals
         List<Runnable> fxDisposals = bridges.dispose();
         //run all disposals on fx thread

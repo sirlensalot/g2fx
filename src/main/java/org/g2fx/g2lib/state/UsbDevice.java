@@ -432,12 +432,13 @@ public class UsbDevice extends Device implements Dispatcher {
     }
 
 
-    public void shutdown() {
-        if (!online()) { return; }
-        try {
-            sendStartStopComm(false);
-        } catch (Exception e) {
-            log.log(Level.SEVERE,"could not send stop message",e);
+    public void shutdown(boolean sendStopComms) {
+        if (sendStopComms) {
+            try {
+                sendStartStopComm(false);
+            } catch (Exception e) {
+                log.log(Level.SEVERE, "could not send stop message", e);
+            }
         }
         usb.shutdown();
     }

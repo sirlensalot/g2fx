@@ -50,6 +50,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     }
 
     private void connected(UsbService.UsbDevice ud) {
+
+        if (current != null && !current.online()) {
+            notifyDeviceDispose(current);
+        }
+
         Usb usb = new Usb(ud);
         final UsbDevice d = new UsbDevice(usb);
         usb.setThreadsafeDispatcher(msg -> {
@@ -78,7 +83,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     private void disconnected(UsbService.UsbDevice ud) {
         UsbDevice d = devices.remove(ud.address());
         notifyDeviceDispose(d);
-        d.shutdown();
+        d.shutdown(false);
     }
 
     private void notifyDeviceInit(Device d) {
@@ -101,6 +106,10 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
                     log.log(Level.SEVERE,"Error in device disposal listener",e);
                 }
             });
+        }
+
+        if (current == d) {
+            current = null;
         }
     }
 
@@ -125,7 +134,9 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
         //blocking shutdown of devices
         Future<Boolean> f = executorService.submit(() -> {
-            devices.values().forEach(this::notifyDeviceDispose);
+            for (UsbDevice d : devices.values()) {
+                d.shutdown(true);
+            }
             return true;
         });
         f.get();

@@ -66,4 +66,8 @@ public class ModulePane {
     public ModuleSelector getModuleSelector() {
         return moduleSelector;
     }
+
+    public List<PropertyBridge<?, ?>> getBridges() {
+        return bridges;
+    }
 }
