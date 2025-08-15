@@ -1,21 +1,18 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Application;
-import javafx.beans.property.*;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
@@ -35,11 +32,13 @@ import org.g2fx.g2lib.util.Util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -47,7 +46,6 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class G2GuiApplication extends Application {
 
-    public static final String PREF_RECENT_FILES = "recentFiles";
     private final Logger log = Logger.getLogger(getClass().getName());
 
     public static final String TITLE = "g2fx nord modular g2 editor";
@@ -57,21 +55,16 @@ public class G2GuiApplication extends Application {
     private FXQueue fxQueue;
 
     private Bridges bridges;
-    private TabPane slotTabs;
+
+    private Commands commands;
 
     private final Undos undos = new Undos();
+
     private FXUtil.TextFieldFocusListener textFocusListener;
-    private SegmentedButton slotBar;
-
-    private final List<RebindableControl<Integer,?>> slotControls = new ArrayList<>();
-
-    public record SlotAndVar(Slot slot,Integer var) {}
-
-    private final List<RebindableControl<SlotAndVar,?>> morphControls = new ArrayList<>();
 
     private Map<ModuleType, UIModule<UIElement>> uiModules;
 
-    private final List<SlotPane> slotPanes = new ArrayList<>();
+    private Slots slots;
 
     @Override
     public void init() throws Exception {
@@ -80,6 +73,8 @@ public class G2GuiApplication extends Application {
         fxQueue = new FXQueue();
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);
+        slots = new Slots(bridges);
+        commands = new Commands(devices, slots);
         devices.addListener(new Devices.DeviceListener() {
                     @Override
                     public void onDeviceInitialized(Device d) throws Exception {
@@ -95,7 +90,7 @@ public class G2GuiApplication extends Application {
     private void onDeviceInitialized(Device d) throws Exception {
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = new ArrayList<>(bridges.initialize(d));
-        for (SlotPane slotPane : slotPanes) {
+        for (SlotPane slotPane : slots.getAll()) {
             slotPane.initModules(d,uiModules,fxUpdates);
         }
 
@@ -121,7 +116,7 @@ public class G2GuiApplication extends Application {
     public void start(Stage stage) throws IOException {
 
 
-        setupKeyBindings(stage);
+        textFocusListener = commands.setupKeyBindings(stage);
         Scene scene = mkScene(stage);
 
         stage.setTitle(TITLE);
@@ -137,127 +132,12 @@ public class G2GuiApplication extends Application {
 
     }
 
-    private MenuBar setupMenu(Stage stage) {
-
-        Set<File> recentFiles = new LinkedHashSet<>();
-
-        String recentFilesString = FXUtil.getPrefs().get(PREF_RECENT_FILES, "");
-        if (!recentFilesString.isEmpty()) {
-            for (String path : recentFilesString.split("\n")) {
-                recentFiles.add(new File(path));
-            }
-        }
-
-        MenuBar menuBar = new MenuBar();
-        menuBar.setUseSystemMenuBar(true);
-        Menu fileMenu = new Menu("File");
-
-        Menu recentFilesMenu = new Menu("Recent Files");
-        populateRecentFiles(recentFiles,recentFilesMenu);
-        
-        MenuItem openItem = new MenuItem("Open...");
-        fileMenu.getItems().addAll(openItem,recentFilesMenu);
-        openItem.setAccelerator(KeyCombination.keyCombination("Shortcut+O"));
-        openItem.setOnAction(event -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open File");
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
-            );
-            File f = fileChooser.showOpenDialog(stage);
-            if (f != null) { loadFile(recentFiles,recentFilesMenu,f); }
-
-        });
-        menuBar.getMenus().add(fileMenu);
-        return menuBar;
-    }
-
-    private StringBuilder populateRecentFiles(Set<File> recentFiles, Menu recentFilesMenu) {
-        int i = 0;
-        StringBuilder sb = new StringBuilder();
-        for (File rf : new ArrayList<>(recentFiles).reversed()) {
-            MenuItem mi = new MenuItem(rf.getName());
-            recentFilesMenu.getItems().add(mi);
-            if (i==0) {
-                mi.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+O"));
-            }
-            mi.setOnAction(e -> {
-                loadFile(recentFiles,recentFilesMenu,rf);
-            });
-            if (!sb.isEmpty()) { sb.append("\n"); }
-            sb.append(rf.getAbsolutePath());
-
-            if (i++>15) { break; }
-        }
-        return sb;
-    }
-
-    private void loadFile(Set<File> recentFiles, Menu recentFilesMenu, File f) {
-        //TODO close old
-
-        recentFiles.remove(f);
-        recentFiles.add(f);
-
-        recentFilesMenu.getItems().clear();
-
-        StringBuilder sb = populateRecentFiles(recentFiles, recentFilesMenu);
-        FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
-
-        devices.invoke(true,() -> devices.loadFile(f.getAbsolutePath()));
-    }
-
-    private void setupKeyBindings(Stage stage) {
-        EventHandler<? super KeyEvent> globalKeyListener = event -> {
-            KeyCode code = event.getCode();
-            switch (code) {
-                case F:
-                case V:
-                    AreaId area = code == KeyCode.F ? AreaId.Fx : AreaId.Voice;
-                    getSelectedSlotPane().maximizeAreaPane(area);
-                    event.consume();
-                    return;
-                case A:
-                case B:
-                case C:
-                case D:
-                    slotBar.getToggleGroup().getToggles().get(
-                            code.getCode() - KeyCode.A.getCode()).setSelected(true);
-                    event.consume();
-                    return;
-                case KeyCode.DIGIT1:
-                case KeyCode.DIGIT2:
-                case KeyCode.DIGIT3:
-                case KeyCode.DIGIT4:
-                case KeyCode.DIGIT5:
-                case KeyCode.DIGIT6:
-                case KeyCode.DIGIT7:
-                case KeyCode.DIGIT8:
-                    getSelectedSlotPane().selectVar(
-                            code.getCode() - KeyCode.DIGIT1.getCode());
-                    event.consume();
-                    return;
-
-            }
-        };
-
-        textFocusListener = acquired -> {
-            if (acquired) {
-                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, globalKeyListener);
-            } else {
-                stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, globalKeyListener);
-            }
-        };
-    }
-
-    private SlotPane getSelectedSlotPane() {
-        return slotPanes.get(slotTabs.getSelectionModel().getSelectedIndex());
-    }
 
     private Scene mkScene(Stage stage) {
 
-        MenuBar menuBar = setupMenu(stage);
+        MenuBar menuBar = commands.setupMenu(stage);
 
-        TabPane slotTabs = mkSlotTabs();
+        TabPane slotTabs = slots.mkSlotTabs(textFocusListener);
 
         HBox editorBar = mkEditorBar();
 
@@ -305,7 +185,7 @@ public class G2GuiApplication extends Application {
             String morphCtl = SettingsModules.MORPH_LABELS[i];
             ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
-            bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener), s -> {
+            slots.bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
                 bridges.bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
@@ -313,10 +193,10 @@ public class G2GuiApplication extends Application {
 
             tf.setPadding(new Insets(1));
             Knob dial = withClass(new Knob("Morph" + i), "morph-knob");
-            bindMorphControl(dial.getValueProperty(),sv -> {
+            slots.bindMorphControl(dial.getValueProperty(),sv -> {
                 SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(dial,"morphDial:"+sv,0);
-                bridges.bridge(d -> d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
-                                .getParamValueProperty(sv.var,ii),
+                bridges.bridge(d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
+                                .getParamValueProperty(sv.var(),ii),
                         new FxProperty.SimpleFxProperty<>(p,dial.valueChangingProperty()),
                         PropertyBridge.id());
                 return p;
@@ -343,10 +223,10 @@ public class G2GuiApplication extends Application {
         statuses.addAll(g2Controls);
         ToggleButton btn = withClass(new ToggleButton(statuses.get(1)),"morph-mode-toggle");
         btn.setFocusTraversable(false);
-        bindMorphControl(state,sv -> {
+        slots.bindMorphControl(state,sv -> {
             Property<Integer> p = new SimpleObjectProperty<>(btn,"morphMode:"+sv,1);
-            bridges.bridge(p,d->d.getPerf().getSlot(sv.slot).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
-                    .getParamValueProperty(sv.var,index+ 8));
+            bridges.bridge(p,d->d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
+                    .getParamValueProperty(sv.var(),index+ 8));
             return p;
         });
 
@@ -366,19 +246,10 @@ public class G2GuiApplication extends Application {
     }
 
 
-    private <T> void bindSlotControl(Property<T> control, Function<Slot,Property<T>> slotPropBuilder) {
-        List<Property<T>> l = Arrays.stream(Slot.values()).map(slotPropBuilder).toList();
-        slotControls.add(new RebindableControl<>(control, l::get));
-    }
 
-    private <T> void bindMorphControl(Property<T> control, Function<SlotAndVar,Property<T>> propBuilder) {
-        List<List<Property<T>>> props = Arrays.stream(Slot.values()).map(s ->
-                IntStream.range(0, FXUtil.UI_MAX_VARIATIONS).mapToObj(v -> propBuilder.apply(new SlotAndVar(s,v))).toList()).toList();
-        morphControls.add(new RebindableControl<>(control,sv -> props.get(sv.slot.ordinal()).get(sv.var)));
-    }
 
     private void bindLoadMeter(LoadMeter m, Function<Slot, Function<Device, LibProperty<Double>>> slotPropBuilder) {
-        bindSlotControl(m.getValueProperty(), s -> {
+        slots.bindSlotControl(m.getValueProperty(), s -> {
             Property<Double> p = new SimpleObjectProperty<>((double) 0);
             Function<Device, LibProperty<Double>> b = slotPropBuilder.apply(s);
             bridges.bridge(p, b);
@@ -531,27 +402,6 @@ public class G2GuiApplication extends Application {
         return moduleSelectBox;
     }
 
-    private TabPane mkSlotTabs() {
-        List<Tab> slots = new ArrayList<>();
-        for (Slot slot : Slot.values()) {
-            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot,morphControls);
-            slotPanes.add(slotPane);
-            Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
-            t.setUserData(slot.ordinal());
-            VBox pb = slotPane.mkPatchBox();
-            t.setContent(pb);
-            t.setClosable(false);
-            slots.add(t);
-
-        }
-
-        slotTabs = withClass(new TabPane(slots.toArray(new Tab[]{})), "slot-tabs","gfont");
-
-
-        return slotTabs;
-    }
-
-
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
         bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener),d -> d.getPerf().perfName());
@@ -563,42 +413,7 @@ public class G2GuiApplication extends Application {
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
         bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
 
-        List<ToggleButton> sbs = Arrays.stream(Slot.values()).map(s -> {
-            ToggleButton b = FXUtil.radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));
-            b.setFocusTraversable(false);
-            b.setUserData(s.ordinal());
-            BooleanProperty keyboard = new SimpleBooleanProperty(false);
-            bridges.bridge(keyboard,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
-            keyboard.addListener((v,o,n) -> {
-                if (n) {
-                    b.getStyleClass().remove("slot-none");
-                    b.getStyleClass().add("slot-keyb");
-                } else {
-                    b.getStyleClass().remove("slot-keyb");
-                    b.getStyleClass().add("slot-none");
-                }
-            });
-            BooleanProperty enabled = new SimpleBooleanProperty(false);
-            bridges.bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).enabled());
-            enabled.addListener((v,o,n) -> {
-                if (n) {
-                    b.getStyleClass().remove("slot-disabled");
-                    b.getStyleClass().add("slot-enabled");
-                } else {
-                    b.getStyleClass().remove("slot-enabled");
-                    b.getStyleClass().add("slot-disabled");
-                }
-            });
-            return b;
-        }).toList();
-        sbs.getFirst().setSelected(true);
-
-        slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})),"slot-bar");
-        bridges.bridgeSegmentedButton(slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
-
-        slotBar.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
-                slotChanged(o == null ? null : (Integer) o.getUserData(),
-                        n == null ? null : (Integer) n.getUserData()));
+        SegmentedButton slotBar = slots.mkSlotBar(bridges);
 
         TextField synthName = new TextField("synth name");
         bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener),d -> d.getSynthSettings().deviceName());
@@ -619,14 +434,6 @@ public class G2GuiApplication extends Application {
         return globalBar;
     }
 
-
-    private void slotChanged(Integer oldSlot, Integer newSlot) {
-        slotTabs.getSelectionModel().select(newSlot);
-        for (RebindableControl<Integer,?> control : slotControls) {
-            control.bind(newSlot);
-        }
-        getSelectedSlotPane().updateMorphBinds();
-    }
 
 
     @Override

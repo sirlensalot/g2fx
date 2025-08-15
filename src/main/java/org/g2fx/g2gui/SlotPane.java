@@ -44,7 +44,7 @@ public class SlotPane {
     private final Bridges bridges;
     private final Slot slot;
     private final FXUtil.TextFieldFocusListener textFocusListener;
-    private final List<RebindableControl<G2GuiApplication.SlotAndVar, ?>> morphControls;
+    private final List<RebindableControl<Slots.SlotAndVar, ?>> morphControls;
 
     private Pane voicePane;
     private Pane fxPane;
@@ -57,7 +57,7 @@ public class SlotPane {
 
 
     public SlotPane(Bridges bridges, FXUtil.TextFieldFocusListener textFocusListener,
-                    Slot slot, List<RebindableControl<G2GuiApplication.SlotAndVar, ?>> morphControls) {
+                    Slot slot, List<RebindableControl<Slots.SlotAndVar, ?>> morphControls) {
         this.bridges = bridges;
         this.slot = slot;
         this.textFocusListener = textFocusListener;
@@ -346,8 +346,8 @@ public class SlotPane {
         Toggle varToggle = varSelector.getToggleGroup().selectedToggleProperty().getValue();
         if (varToggle == null) { return; }
         int var = (Integer) varToggle.getUserData();
-        for (RebindableControl<G2GuiApplication.SlotAndVar, ?> mc : morphControls) {
-            mc.bind(new G2GuiApplication.SlotAndVar(slot,var));
+        for (RebindableControl<Slots.SlotAndVar, ?> mc : morphControls) {
+            mc.bind(new Slots.SlotAndVar(slot,var));
         }
     }
 
