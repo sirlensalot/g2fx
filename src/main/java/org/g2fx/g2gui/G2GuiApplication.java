@@ -81,8 +81,9 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         slots.clearModules();
 
         //on lib thread: finalize bridges to get fx init updates
-        List<Runnable> fxUpdates = new ArrayList<>(bridges.initialize(d));
-        fxUpdates.addAll(slots.initModules(d));
+        List<Runnable> fxUpdates = new ArrayList<>();
+        fxUpdates.addAll(slots.initModules(d)); //modules first so var controls will update
+        fxUpdates.addAll(bridges.initialize(d));
 
 
         //run all updates on fx thread
@@ -190,7 +191,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
                 bridges.bridge(d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                                 .getParamValueProperty(sv.var(),ii),
                         new FxProperty.SimpleFxProperty<>(p,dial.valueChangingProperty()),
-                        PropertyBridge.id());
+                        Iso.id());
                 return p;
             });
             morphs.add(withClass(new VBox(

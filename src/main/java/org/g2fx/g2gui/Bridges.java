@@ -27,12 +27,12 @@ public class Bridges {
     public <T> PropertyBridge<T, T> bridge(Property<T> fxProperty,
                                            Function<Device, LibProperty<T>> libProperty) {
         return bridge(libProperty,
-                new FxProperty.SimpleFxProperty<>(fxProperty),PropertyBridge.id());
+                new FxProperty.SimpleFxProperty<>(fxProperty), Iso.id());
     }
 
     public <T,F> PropertyBridge<T, F> bridge(Function<Device,LibProperty<T>> libProperty,
                                               FxProperty<F> fxProperty,
-                                              PropertyBridge.Iso<T,F> iso) {
+                                              Iso<T,F> iso) {
         PropertyBridge<T, F> bridge =
                 new PropertyBridge<>(libProperty, devices, fxProperty, fxQueue, iso, undos);
         bridges.add(bridge);
@@ -56,7 +56,7 @@ public class Bridges {
                         value.setSelected(true);
                     }
                 },
-                new PropertyBridge.Iso<>() {
+                new Iso<>() {
                     @Override
                     public Toggle to(Integer integer) {
                         return button.getToggleGroup().getToggles().get(integer);

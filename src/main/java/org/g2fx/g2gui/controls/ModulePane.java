@@ -1,13 +1,17 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Pane;
-import org.g2fx.g2gui.FXUtil;
-import org.g2fx.g2gui.PropertyBridge;
+import org.g2fx.g2gui.*;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
-import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.model.NamedParam;
+import org.g2fx.g2lib.state.PatchModule;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -16,6 +20,10 @@ public class ModulePane {
 
     public static final int MODULE_WIDTH = 255;
     public static final int MODULE_Y_MULT = 15;
+    private final PatchModule patchModule;
+    private final Bridges bridges;
+    private final UIModule<UIElement> ui;
+    private final SlotPane parent;
 
 
     /**
@@ -33,41 +41,87 @@ public class ModulePane {
 
     private final ModuleSelector moduleSelector;
     private final Pane pane;
+    private final ModuleType type;
 
-    private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
-
-
+    private final List<PropertyBridge<?,?>> moduleBridges = new ArrayList<>();
+    
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
-                      FXUtil.TextFieldFocusListener textFocusListener) {
+                      FXUtil.TextFieldFocusListener textFocusListener,
+                      Bridges bridges, PatchModule pm, SlotPane parent) {
         int x = m.horiz;
         int y = m.vert;
         int h = ui.Height();
         int w = MODULE_WIDTH;
+        type = m.type;
+        this.bridges = bridges;
+        this.patchModule = pm;
+        this.ui = ui;
+        this.parent = parent;
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
 
-        List<Node> children = List.of(moduleSelector.getPane());
+        List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
+        children.addAll(renderControls());
         pane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
         pane.setLayoutX(x * MODULE_WIDTH);
         pane.setLayoutY(y * MODULE_Y_MULT);
         pane.setMinHeight(h * MODULE_Y_MULT);
         pane.setMinWidth(w);
+
+        addBridge(bridges.bridge(moduleSelector.name(),dd -> pm.name()));
+    }
+
+    private Collection<? extends Node> renderControls() {
+        List<Node> cs = new ArrayList<>(ui.Controls().size());
+        for (UIElement e : ui.Controls()) {
+            switch (e) {
+                case UIElements.ButtonText c -> {
+                    IndexParam ip = resolveParam(c.Control());
+                    if (ip.param().param() == ModParam.ActiveMonitor) {
+                        cs.add(mkPowerButton(c, ip));
+                    }
+                }
+                default -> System.out.println("TODO: " + e);
+            }
+        }
+        return cs;
+    }
+
+    private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
+        ToggleButton b = new PowerButton().getButton();
+        b.setLayoutX(c.XPos());
+        b.setLayoutY(c.YPos());
+        parent.bindVarControl(b.selectedProperty(), v -> {
+            SimpleBooleanProperty p = new SimpleBooleanProperty(b,"active:"+ ip.param().name() +":"+v,false);
+            moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
+                    new FxProperty.SimpleFxProperty<>(p),
+                    Iso.BOOL_PARAM_ISO));
+            return p;
+                });
+        return b;
+    }
+
+    record IndexParam(NamedParam param, int index) {}
+    
+    private IndexParam resolveParam(String control) {
+        for (int i = 0; i < type.getParams().size(); i++) {
+            NamedParam p = type.getParams().get(i);
+            if (p.name().equals(control)) {
+                return new IndexParam(p,i);
+            }
+        }
+        throw new IllegalArgumentException("Bad control name: " + control + ", module type: " + type);
     }
 
 
-    public void addBridge(PropertyBridge<?, ?> bridge, Device d) {
-        bridges.add(bridge);
-        bridge.finalizeInit(d).run();
+    public void addBridge(PropertyBridge<?, ?> bridge) {
+        moduleBridges.add(bridge);
     }
 
     public Pane getPane() {
         return pane;
     }
 
-    public ModuleSelector getModuleSelector() {
-        return moduleSelector;
-    }
-
-    public List<PropertyBridge<?, ?>> getBridges() {
-        return bridges;
+    public List<PropertyBridge<?, ?>> getModuleBridges() {
+        return moduleBridges;
     }
 }

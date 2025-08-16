@@ -17,18 +17,6 @@ import java.util.logging.Logger;
 public class PropertyBridge<T,F> {
 
 
-    public interface Iso<A,B> {
-        B to(A a);
-        A from(B b);
-    }
-
-    public static <I> Iso<I,I> id() {
-        return new Iso<>() {
-            @Override public I to(I i) { return i; }
-            @Override public I from(I i) { return i; }
-        };
-    }
-
     private static final Logger log =
             Logger.getLogger(PropertyBridge.class.getName());
 

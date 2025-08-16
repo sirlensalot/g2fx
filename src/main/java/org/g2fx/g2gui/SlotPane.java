@@ -14,13 +14,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.controls.Knob;
-import org.g2fx.g2gui.controls.ModulePane;
-import org.g2fx.g2gui.controls.UIElement;
-import org.g2fx.g2gui.controls.UIModule;
+import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -68,10 +64,10 @@ public class SlotPane {
 
     private void renderModule(AreaId a, ModulePane.ModuleSpec m, PatchModule pm, Device d, UIModule<UIElement> ui) {
         // on fx thread
-        ModulePane modulePane = new ModulePane(ui,m, textFocusListener);
+        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, this);
         modulePanes.get(a).add(modulePane);
         getAreaPane(a).getChildren().add(modulePane.getPane());
-        modulePane.addBridge(bridges.bridge(modulePane.getModuleSelector().name(),dd -> pm.name()),d);
+        modulePane.getModuleBridges().forEach(b -> b.finalizeInit(d).run());
     }
 
     private Pane getAreaPane(AreaId a) {
@@ -100,7 +96,7 @@ public class SlotPane {
             List<ModulePane> panes = modulePanes.get(a);
             for (ModulePane m : panes) {
                 areaPane.getChildren().remove(m.getPane());
-                bridges.remove(m.getBridges());
+                bridges.remove(m.getModuleBridges());
             }
             panes.clear();
         }
@@ -108,7 +104,7 @@ public class SlotPane {
 
 
 
-    private <T> void bindVarControl(Property<T> control, IntFunction<Property<T>> varPropBuilder) {
+    public <T> void bindVarControl(Property<T> control, IntFunction<Property<T>> varPropBuilder) {
         List<Property<T>> l = IntStream.range(0, UI_MAX_VARIATIONS).mapToObj(varPropBuilder).toList();
         varControls.add(new RebindableControl<>(control, l::get));
     }
@@ -146,7 +142,7 @@ public class SlotPane {
 
         bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().height(),
                 new FxProperty.SimpleFxProperty<>(divider.positionProperty(),valueChanging),
-                new PropertyBridge.Iso<>() {
+                new Iso<>() {
                     @Override
                     public Number to(Integer libHeight) {
                         return libHeight.doubleValue() / patchSplit.getHeight();
@@ -195,7 +191,7 @@ public class SlotPane {
                         patchCategory.getSelectionModel().select(value.intValue());
                     }
                 },
-                new PropertyBridge.Iso<>() {
+                new Iso<>() {
                     @Override public Number to(Integer integer) {
                         return integer;
                     }
@@ -211,10 +207,7 @@ public class SlotPane {
 
         Button initVar = new Button("Init");
 
-
-        SVGPath powerGraphic = withClass(new SVGPath(),"power-graphic");
-        powerGraphic.setContent("M -3 -3 A 4.5 4.5 0 1 0 3 -3 M 0 0 L 0 -4");
-        ToggleButton patchEnable = withClass(new ToggleButton("", powerGraphic),"power-button");
+        ToggleButton patchEnable = new PowerButton().getButton();
 
         CheckBox redCable = cableCheckbox("red",PatchSettings::red);
         CheckBox blueCable = cableCheckbox("blue",PatchSettings::blue);
@@ -232,7 +225,7 @@ public class SlotPane {
             bridges.bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
                             .getSettingsValueProperty(ModParam.GainVolume,v),
                     new FxProperty.SimpleFxProperty<>(p,patchVolume.valueChangingProperty()),
-                    PropertyBridge.id());
+                    Iso.id());
             return p;
         });
 
@@ -241,16 +234,7 @@ public class SlotPane {
             bridges.bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
                             .getSettingsValueProperty(ModParam.GainActiveMuted,v),
                     new FxProperty.SimpleFxProperty<>(p),
-                    new PropertyBridge.Iso<>() {
-                        @Override
-                        public Boolean to(Integer a) {
-                            return a == 1;
-                        }
-                        @Override
-                        public Integer from(Boolean b) {
-                            return b ? 1 : 0;
-                        }
-                    });
+                    Iso.BOOL_PARAM_ISO);
             return p;
         });
         HBox patchBar = withClass(new HBox(
@@ -300,7 +284,7 @@ public class SlotPane {
                     @Override public void setValue(VoiceMode value) {
                         spinner.getValueFactory().setValue(value);
                     }
-                },PropertyBridge.id());
+                }, Iso.id());
 
         assignedVoices.addListener((obs, old, val) -> {
             VoiceMode current = spinner.getValue();
