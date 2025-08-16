@@ -288,7 +288,7 @@ public class SlotPane {
         SimpleObjectProperty<Integer> assignedVoices = new SimpleObjectProperty<>(0);
         bridges.bridge(assignedVoices,d->d.getPerf().getSlot(slot).assignedVoices());
 
-        ObservableList<VoiceMode> items = FXCollections.observableArrayList(VoiceMode.values());
+        ObservableList<VoiceMode> items = FXCollections.observableArrayList(VoiceMode.ALL);
         Spinner<VoiceMode> spinner = withClass(new Spinner<>(),"voice-spinner");
         SpinnerValueFactory.ListSpinnerValueFactory<VoiceMode> valueFactory =
                 new SpinnerValueFactory.ListSpinnerValueFactory<>(items);
@@ -331,7 +331,7 @@ public class SlotPane {
             }
         });
 
-        spinner.getValueFactory().setValue(VoiceMode.P2);
+        spinner.getValueFactory().setValue(VoiceMode.ALL[2]);
 
         return spinner;
     }
