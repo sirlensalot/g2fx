@@ -12,9 +12,9 @@ public sealed interface VoiceMode permits VoiceMode.Legato, VoiceMode.Mono, Voic
         return 0;
     }
 
+    // -------- singletons ------------
     VoiceMode MONO = new Mono();
     VoiceMode LEGATO = new Legato();
-
     VoiceMode[] ALL = mkAll();
 
     private static VoiceMode[] mkAll() {
@@ -28,14 +28,17 @@ public sealed interface VoiceMode permits VoiceMode.Legato, VoiceMode.Mono, Voic
     }
 
     static VoiceMode fromMonoPolyAndVoices(int monoPoly, int voices) {
-        if (monoPoly == 1) return MONO;
-        if (monoPoly == 2) return LEGATO;
-        // admit invalid, ephemeral cases where monoPoly == 0 but voices == 1, etc
-        // TODO look at the lib property being a composite
-        if (monoPoly != 0 || voices < 0 || voices > 32) {
-            throw new IllegalArgumentException("fromMonoPolyAndVoices: bad arguments: " + monoPoly + "," + voices);
-        }
-        return ALL[voices];
+        return switch (monoPoly) {
+            case 0 -> {
+                if (voices < 2 || voices > 32) {
+                    throw new IllegalArgumentException("Illegal voices value: " + voices);
+                }
+                yield ALL[voices];
+            }
+            case 1 -> MONO;
+            case 2 -> LEGATO;
+            default -> throw new IllegalArgumentException("Illegal monoPoly value: " + monoPoly);
+        };
     }
 
 

@@ -5,7 +5,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -31,7 +30,6 @@ import org.g2fx.g2lib.state.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
@@ -279,11 +277,6 @@ public class SlotPane {
 
 
     private Spinner<VoiceMode> mkVoicesSpinner() {
-        SimpleObjectProperty<Integer> monoPoly = new SimpleObjectProperty<>(0);
-        bridges.bridge(monoPoly,d->d.getPerf().getSlot(slot).getPatchSettings().monoPoly());
-
-        SimpleObjectProperty<Integer> voices = new SimpleObjectProperty<>(2);
-        bridges.bridge(voices,d->d.getPerf().getSlot(slot).getPatchSettings().voices());
 
         SimpleObjectProperty<Integer> assignedVoices = new SimpleObjectProperty<>(0);
         bridges.bridge(assignedVoices,d->d.getPerf().getSlot(slot).assignedVoices());
@@ -302,27 +295,12 @@ public class SlotPane {
             @Override public VoiceMode fromString(String s) { return null; }
         });
 
-        AtomicBoolean skipUpdate = new AtomicBoolean(false);
-        spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                skipUpdate.set(true);
-                try { monoPoly.set(newVal.getMonoPoly()); }
-                finally { skipUpdate.set(false); }
-                voices.set(newVal.getVoices());
-            }
-        });
-
-        ChangeListener<Number> syncSpinner = (obs, oldVal, newVal) -> {
-            if (skipUpdate.get()) { return; }
-            VoiceMode updated = VoiceMode.fromMonoPolyAndVoices(monoPoly.get(), voices.get());
-            if (updated != spinner.getValue()) {
-                spinner.getValueFactory().setValue(updated);
-                // Force a UI update on assignedVoices change
-                spinner.getEditor().setText(valueFactory.getConverter().toString(updated));
-            }
-        };
-        monoPoly.addListener(syncSpinner);
-        voices.addListener(syncSpinner);
+        bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().voiceMode(),
+                new FxProperty<>(spinner.valueProperty()) {
+                    @Override public void setValue(VoiceMode value) {
+                        spinner.getValueFactory().setValue(value);
+                    }
+                },PropertyBridge.id());
 
         assignedVoices.addListener((obs, old, val) -> {
             VoiceMode current = spinner.getValue();
@@ -331,7 +309,7 @@ public class SlotPane {
             }
         });
 
-        spinner.getValueFactory().setValue(VoiceMode.ALL[2]);
+        spinner.getValueFactory().setValue(VoiceMode.MONO);
 
         return spinner;
     }

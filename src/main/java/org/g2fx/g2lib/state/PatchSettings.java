@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2gui.VoiceMode;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
@@ -21,6 +22,8 @@ public class PatchSettings {
     private final LibProperty<Integer> variation;
     private final LibProperty<Integer> category;
 
+    private final LibProperty<VoiceMode> voiceMode;
+
 
     public PatchSettings(FieldValues fvs) {
         this.fvs = fvs;
@@ -37,6 +40,19 @@ public class PatchSettings {
         variation = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Variation);
         category = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Category);
 
+        voiceMode = new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+            @Override
+            public VoiceMode get() {
+                return VoiceMode.fromMonoPolyAndVoices(monoPoly().get(), voices().get());
+            }
+
+            @Override
+            public void set(VoiceMode newValue) {
+                monoPoly.set(newValue.getMonoPoly());
+                voices.set(newValue.getVoices());
+            }
+        });
+
     }
 
     public LibProperty<Integer> voices() { return voices; }
@@ -52,4 +68,7 @@ public class PatchSettings {
     public LibProperty<Integer> variation() { return variation; }
     public LibProperty<Integer> category() { return category; }
 
+    public LibProperty<VoiceMode> voiceMode() {
+        return voiceMode;
+    }
 }
