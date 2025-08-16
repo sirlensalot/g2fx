@@ -1,5 +1,6 @@
 package org.g2fx.g2gui;
 
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -15,6 +16,7 @@ import org.g2fx.g2lib.state.Devices;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Commands {
@@ -24,6 +26,9 @@ public class Commands {
     private final Devices devices;
 
     private final Slots slots;
+    private MenuBar menuBar;
+    private final Set<File> recentFiles = new LinkedHashSet<>();
+    private Menu recentFilesMenu;
 
     public Commands(Devices devices, Slots slots) {
         this.devices = devices;
@@ -33,24 +38,25 @@ public class Commands {
 
     public MenuBar setupMenu(Stage stage) {
 
-        Set<File> recentFiles = new LinkedHashSet<>();
-
         String recentFilesString = FXUtil.getPrefs().get(PREF_RECENT_FILES, "");
         if (!recentFilesString.isEmpty()) {
-            for (String path : recentFilesString.split("\n")) {
+            for (String path : List.of(recentFilesString.split("\n")).reversed()) {
                 recentFiles.add(new File(path));
             }
         }
 
-        MenuBar menuBar = new MenuBar();
+        menuBar = new MenuBar();
+
         menuBar.setUseSystemMenuBar(true);
         Menu fileMenu = new Menu("File");
 
-        Menu recentFilesMenu = new Menu("Recent Files");
-        populateRecentFiles(recentFiles,recentFilesMenu);
+        recentFilesMenu = new Menu("Recent Files");
+        populateRecentFiles();
 
         MenuItem openItem = new MenuItem("Open...");
-        fileMenu.getItems().addAll(openItem,recentFilesMenu);
+
+        fileMenu.getItems().addAll(openItem, recentFilesMenu);
+
         openItem.setAccelerator(KeyCombination.keyCombination("Shortcut+O"));
         openItem.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
@@ -59,43 +65,47 @@ public class Commands {
                     new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
             );
             File f = fileChooser.showOpenDialog(stage);
-            if (f != null) { loadFile(recentFiles,recentFilesMenu,f); }
+            if (f != null) { loadFile(f); }
 
         });
         menuBar.getMenus().add(fileMenu);
         return menuBar;
     }
 
-    private StringBuilder populateRecentFiles(Set<File> recentFiles, Menu recentFilesMenu) {
+    private StringBuilder populateRecentFiles() {
         int i = 0;
         StringBuilder sb = new StringBuilder();
         for (File rf : new ArrayList<>(recentFiles).reversed()) {
+
             MenuItem mi = new MenuItem(rf.getName());
             recentFilesMenu.getItems().add(mi);
             if (i==0) {
                 mi.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+O"));
             }
             mi.setOnAction(e -> {
-                loadFile(recentFiles,recentFilesMenu,rf);
+                loadFile(rf);
             });
             if (!sb.isEmpty()) { sb.append("\n"); }
             sb.append(rf.getAbsolutePath());
 
             if (i++>15) { break; }
         }
+        menuBar.setUseSystemMenuBar(false);
+        menuBar.setUseSystemMenuBar(true);
         return sb;
     }
 
-    private void loadFile(Set<File> recentFiles, Menu recentFilesMenu, File f) {
-        //TODO close old
+    private void loadFile(File f) {
 
         recentFiles.remove(f);
         recentFiles.add(f);
 
         recentFilesMenu.getItems().clear();
 
-        StringBuilder sb = populateRecentFiles(recentFiles, recentFilesMenu);
-        FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
+        Platform.runLater(() -> {
+            StringBuilder sb = populateRecentFiles();
+            FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
+        });
 
         devices.invoke(true,() -> devices.loadFile(f.getAbsolutePath()));
     }
