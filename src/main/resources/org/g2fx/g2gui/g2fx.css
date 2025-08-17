@@ -90,6 +90,17 @@
     -fx-padding: 0 2 0 2;
 }
 
+.module-line {
+    -fx-stroke: #777777;
+}
+.module-line-Thin {
+    -fx-stroke-width: 1;
+}
+
+.module-line-Thick {
+    -fx-stroke-width: 2;
+}
+
 .cable-checkbox {
     -fx-padding: 0;
 }

@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
 import org.g2fx.g2gui.*;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -91,6 +92,13 @@ public class ModulePane {
                 yield empty(e);
             }
             case UIElements.Text c -> layout(e,label(c.Text()));
+            case UIElements.Line c -> {
+                boolean vertical = "Vertical".equals(c.Orientation());
+                yield withClass(new Line(c.XPos(),c.YPos(),
+                        vertical ? c.XPos() : c.XPos() + c.Length(),
+                        vertical ? c.YPos() + c.Length() : c.YPos()
+                        ),"module-line","module-line-"+c.Weight());
+            }
             default -> empty(e);
         };
     }
