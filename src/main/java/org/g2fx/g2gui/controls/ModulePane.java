@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.g2fx.g2gui.FXUtil.label;
 import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class ModulePane {
@@ -73,23 +74,30 @@ public class ModulePane {
     private Collection<? extends Node> renderControls() {
         List<Node> cs = new ArrayList<>(ui.Controls().size());
         for (UIElement e : ui.Controls()) {
-            switch (e) {
-                case UIElements.ButtonText c -> {
-                    IndexParam ip = resolveParam(c.Control());
-                    if (ip.param().param() == ModParam.ActiveMonitor) {
-                        cs.add(mkPowerButton(c, ip));
-                        continue;
-                    } else if (c.Images() == null) {
-                        cs.add(mkTextToggle(c,ip));
-                        continue;
-                    }
-                    System.out.println("ButtonText TODO: " + c);
-                }
-                default -> e.hashCode();
-            }
-            //System.out.println("TODO: " + e);
+            cs.add(renderControl(e));
         }
         return cs;
+    }
+
+    private Node renderControl(UIElement e) {
+        return switch (e) {
+            case UIElements.ButtonText c -> {
+                IndexParam ip = resolveParam(c.Control());
+                if (ip.param().param() == ModParam.ActiveMonitor) {
+                    yield mkPowerButton(c, ip);
+                } else if (c.Images() == null) {
+                    yield mkTextToggle(c,ip);
+                }
+                yield empty(e);
+            }
+            case UIElements.Text c -> layout(e,label(c.Text()));
+            default -> empty(e);
+        };
+    }
+
+    private Node empty(UIElement e) {
+        System.out.println("TODO: " + e);
+        return new Pane();
     }
 
     private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
@@ -101,8 +109,7 @@ public class ModulePane {
     }
 
     private ToggleButton mkToggle(UIElement c, IndexParam ip, ToggleButton b) {
-        b.setLayoutX(c.XPos());
-        b.setLayoutY(c.YPos());
+        layout(c, b);
         parent.bindVarControl(b.selectedProperty(), v -> {
             SimpleBooleanProperty p =
                     new SimpleBooleanProperty(b,type.shortName + ":" + ip.param().name() +":"+v,false);
@@ -111,6 +118,12 @@ public class ModulePane {
                     Iso.BOOL_PARAM_ISO));
             return p;
                 });
+        return b;
+    }
+
+    private static Node layout(UIElement c, Node b) {
+        b.setLayoutX(c.XPos());
+        b.setLayoutY(c.YPos());
         return b;
     }
 

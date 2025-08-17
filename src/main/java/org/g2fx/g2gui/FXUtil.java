@@ -36,14 +36,14 @@ public class FXUtil {
         return children.toArray(new Node[] {});
     }
 
-    static Label label(String text) {
+    public static Label label(String text) {
         Label l = new Label(text);
         l.setWrapText(true);
         l.setLineSpacing(-3);
         return l;
     }
 
-    static ToggleButton radioToToggle(ToggleButton b) {
+    public static ToggleButton radioToToggle(ToggleButton b) {
         b.getStyleClass().remove("radio-button");
         b.getStyleClass().add("toggle-button");
         return b;
