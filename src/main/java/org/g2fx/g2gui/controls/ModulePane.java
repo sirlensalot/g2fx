@@ -78,20 +78,34 @@ public class ModulePane {
                     IndexParam ip = resolveParam(c.Control());
                     if (ip.param().param() == ModParam.ActiveMonitor) {
                         cs.add(mkPowerButton(c, ip));
+                        continue;
+                    } else if (c.Images() == null) {
+                        cs.add(mkTextToggle(c,ip));
+                        continue;
                     }
+                    System.out.println("ButtonText TODO: " + c);
                 }
-                default -> System.out.println("TODO: " + e);
+                default -> e.hashCode();
             }
+            //System.out.println("TODO: " + e);
         }
         return cs;
     }
 
     private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
-        ToggleButton b = new PowerButton().getButton();
+        return mkToggle(c, ip, new PowerButton().getButton());
+    }
+
+    private ToggleButton mkTextToggle(UIElements.ButtonText c, IndexParam ip) {
+        return mkToggle(c, ip, withClass(new ToggleButton(c.Text()),"text-toggle", FXUtil.G2_TOGGLE));
+    }
+
+    private ToggleButton mkToggle(UIElement c, IndexParam ip, ToggleButton b) {
         b.setLayoutX(c.XPos());
         b.setLayoutY(c.YPos());
         parent.bindVarControl(b.selectedProperty(), v -> {
-            SimpleBooleanProperty p = new SimpleBooleanProperty(b,"active:"+ ip.param().name() +":"+v,false);
+            SimpleBooleanProperty p =
+                    new SimpleBooleanProperty(b,type.shortName + ":" + ip.param().name() +":"+v,false);
             moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
                     new FxProperty.SimpleFxProperty<>(p),
                     Iso.BOOL_PARAM_ISO));

@@ -377,7 +377,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
         List<ToggleButton> moduleSectButtons = Stream.of(ModuleType.ModPage.values()).map(n -> {
                     ToggleButton tb = FXUtil.radioToToggle(withClass(new RadioButton(n.name()),
-                            "module-sect-toggle", "module-sect-" + n));
+                            "module-sect-toggle", "module-sect-" + n, FXUtil.G2_TOGGLE));
                     tb.setOnAction(e -> modBars.forEach((p, b) -> b.setVisible(p == n)));
                     tb.setToggleGroup(moduleSectionSelector);
                     return tb;
@@ -403,7 +403,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
                 d -> d.getPerf().getPerfSettings().masterClock());
 
-        ToggleButton runClockButton = withClass(new ToggleButton("Run"), "g2-toggle");
+        ToggleButton runClockButton = withClass(new ToggleButton("Run"), FXUtil.G2_TOGGLE);
         bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
 
         SegmentedButton slotBar = slots.mkSlotBar(bridges);
@@ -411,7 +411,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         TextField synthName = new TextField("synth name");
         bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener),d -> d.getSynthSettings().deviceName());
 
-        ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), "g2-toggle");
+        ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), FXUtil.G2_TOGGLE);
         bridges.bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
 
         HBox globalBar = withClass(new HBox(

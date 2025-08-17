@@ -215,7 +215,7 @@ public class SlotPane {
         CheckBox orangeCable = cableCheckbox("orange",PatchSettings::orange);
         CheckBox purpleCable = cableCheckbox("purple",PatchSettings::purple);
         CheckBox whiteCable = cableCheckbox("white",PatchSettings::white);
-        ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button");
+        ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button",FXUtil.G2_TOGGLE);
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
 
 
@@ -305,7 +305,7 @@ public class SlotPane {
             RadioButton b = new RadioButton(Integer.toString(i));
             b.setSelected(i==1);
             b.setFocusTraversable(false);
-            varButtons.add(withClass(b,"var-button"));
+            varButtons.add(withClass(b,"var-button",FXUtil.G2_TOGGLE));
             b.setUserData(i - 1);
             FXUtil.radioToToggle(b);
         }

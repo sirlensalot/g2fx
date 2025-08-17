@@ -31,6 +31,10 @@
     -fx-alignment: center-left;
 }
 
+.g2-toggle:selected {
+    -fx-color: -fx-g2-selected;
+}
+
 
 .slot-tabs .tab-header-area {
     -fx-max-height: 0;
@@ -70,14 +74,6 @@
     -fx-pref-height: 10;
 }
 
-.var-button:selected {
-    -fx-color: -fx-g2-selected;
-}
-
-.g2-toggle:selected {
-    -fx-color: -fx-g2-selected;
-}
-
 .power-graphic {
     -fx-fill: none;
     -fx-stroke: #777777;
@@ -89,8 +85,9 @@
 .power-button {
     -fx-padding: 0;
 }
-.power-button:selected {
-    -fx-color: -fx-g2-selected;
+
+.text-toggle {
+    -fx-padding: 0 2 0 2;
 }
 
 .cable-checkbox {
@@ -130,15 +127,9 @@
     -fx-background-color: white;
 }
 
-.hide-cables:selected {
-    -fx-color: -fx-g2-selected;
-}
 
 .module-sect-toggle {
     -fx-min-width: 55px;
-}
-.module-sect-toggle:selected {
-    -fx-color: -fx-g2-selected;
 }
 
 .module-select-button {

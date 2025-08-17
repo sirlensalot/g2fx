@@ -17,6 +17,7 @@ import java.util.prefs.Preferences;
 public class FXUtil {
 
     public static final int UI_MAX_VARIATIONS = 8;
+    public static final String G2_TOGGLE = "g2-toggle";
 
     public static <T extends Styleable> T withClass(T node, String... classes) {
         node.getStyleClass().addAll(classes);
