@@ -43,7 +43,6 @@ public class ModulePane {
             boolean leds,
             List<Integer> modes) {}
 
-    private final ModuleSelector moduleSelector;
     private final Pane pane;
     private final ModuleType type;
 
@@ -61,7 +60,7 @@ public class ModulePane {
         this.patchModule = pm;
         this.ui = ui;
         this.parent = parent;
-        moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
+        ModuleSelector moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
 
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
@@ -71,7 +70,7 @@ public class ModulePane {
         pane.setMinHeight(h * MODULE_Y_MULT);
         pane.setMinWidth(w);
 
-        addBridge(bridges.bridge(moduleSelector.name(),dd -> pm.name()));
+        addBridge(bridges.bridge(moduleSelector.name(), dd -> pm.name()));
     }
 
     private Collection<? extends Node> renderControls() {

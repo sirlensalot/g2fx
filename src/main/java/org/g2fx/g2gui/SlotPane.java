@@ -11,19 +11,25 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.controls.*;
+import org.g2fx.g2gui.controls.Knob;
+import org.g2fx.g2gui.controls.PowerButton;
+import org.g2fx.g2gui.controls.UIElement;
+import org.g2fx.g2gui.controls.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.state.PatchSettings;
+import org.g2fx.g2lib.state.Slot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -40,16 +46,12 @@ public class SlotPane {
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final List<RebindableControl<Slots.SlotAndVar, ?>> morphControls;
 
-    private Pane voicePane;
-    private Pane fxPane;
     private SplitPane.Divider divider;
     private SplitPane patchSplit;
 
     private final List<RebindableControl<Integer,?>> varControls = new ArrayList<>();
 
-    private final Map<AreaId,List<ModulePane>> modulePanes = Map.of(
-            AreaId.Fx,new ArrayList<>(),
-            AreaId.Voice,new ArrayList<>());
+    private final Map<AreaId,AreaPane> areaPanes = new HashMap<>();
 
     private SegmentedButton varSelector;
 
@@ -62,30 +64,9 @@ public class SlotPane {
         this.morphControls = morphControls;
     }
 
-    private void renderModule(AreaId a, ModulePane.ModuleSpec m, PatchModule pm, Device d, UIModule<UIElement> ui) {
-        // on fx thread
-        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, this);
-        modulePanes.get(a).add(modulePane);
-        getAreaPane(a).getChildren().add(modulePane.getPane());
-        modulePane.getModuleBridges().forEach(b -> b.finalizeInit(d).run());
-    }
-
-    private Pane getAreaPane(AreaId a) {
-        return a == AreaId.Voice ? voicePane : fxPane;
-    }
-
     public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
         // on device thread
-        for (AreaId a : AreaId.USER_AREAS) {
-            for (PatchModule m : d.getPerf().getSlot(slot).getArea(a).getModules()) {
-                UserModuleData md = m.getUserModuleData();
-                ModulePane.ModuleSpec spec = new ModulePane.ModuleSpec(md.getIndex(), md.getType(),
-                        md.horiz().get(), md.vert().get(),
-                        md.color().get(), md.uprate().get(),
-                        md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
-                l.add(() -> renderModule(a, spec, m, d, uiModules.get(md.getType())));
-            }
-        }
+        areaPanes.values().forEach(a -> a.initModules(d,uiModules,l));
         // add var rebind, as it will get skipped if the var selector doesn't change.
         l.add(() -> updateVarBinds(getCurrentVar()));
     }
@@ -93,15 +74,7 @@ public class SlotPane {
 
     public void clearModules() {
         //on fx thread, and assumes bridges are already disposed
-        for (AreaId a : AreaId.USER_AREAS) {
-            Pane areaPane = getAreaPane(a);
-            List<ModulePane> panes = modulePanes.get(a);
-            for (ModulePane m : panes) {
-                areaPane.getChildren().remove(m.getPane());
-                bridges.remove(m.getModuleBridges());
-            }
-            panes.clear();
-        }
+        areaPanes.values().forEach(AreaPane::clearModules);
     }
 
 
@@ -116,19 +89,13 @@ public class SlotPane {
 
         HBox patchBar = mkPatchBar();
 
-        voicePane = withClass(
-                new Pane(new Label("voice")),"voice-pane","area-pane","gfont");
-        ScrollPane voiceScroll =
-                withClass(new ScrollPane(voicePane),"voice-scroll","area-scroll");
-        voiceScroll.setMinHeight(0);
-
-        fxPane = withClass(new Pane(new Label("fx")),"fx-pane","area-pane","gfont");
-        ScrollPane fxScroll = withClass(new ScrollPane(fxPane),"fx-scroll","area-scroll");
-        fxScroll.setMinHeight(0);
-
+        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener);
+        areaPanes.put(AreaId.Voice,voicePane);
+        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener);
+        areaPanes.put(AreaId.Fx,fxPane);
 
         patchSplit =
-                withClass(new SplitPane(voiceScroll,fxScroll),"patch-split");
+                withClass(new SplitPane(voicePane.getScrollPane(),fxPane.getScrollPane()),"patch-split");
         patchSplit.setOrientation(Orientation.VERTICAL);
 
         SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
