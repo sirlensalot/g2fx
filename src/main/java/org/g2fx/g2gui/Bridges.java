@@ -50,12 +50,8 @@ public class Bridges {
 
     public void bridgeSegmentedButton(SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
         bridge(libPropBuilder,
-                new FxProperty<>(button.getToggleGroup().selectedToggleProperty()) {
-                    @Override
-                    public void setValue(Toggle value) {
-                        value.setSelected(true);
-                    }
-                },
+                FxProperty.adaptReadOnly(button.getToggleGroup().selectedToggleProperty(),
+                        value -> value.setSelected(true)),
                 new Iso<>() {
                     @Override
                     public Toggle to(Integer integer) {

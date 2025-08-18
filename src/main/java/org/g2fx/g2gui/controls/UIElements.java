@@ -3,6 +3,15 @@ package org.g2fx.g2gui.controls;
 import java.util.List;
 
 public class UIElements {
+
+    public enum ButtonType {
+        Push, Check
+    }
+
+    public enum Orientation {
+        Horizontal, Vertical
+    }
+
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
       , ButtonFlat { @Override public Class<? extends UIElement> getType() { return ButtonFlat.class; } }
@@ -78,7 +87,7 @@ public class UIElements {
       , Integer ImageWidth
       , List<String> Images
       , Integer InfoFunc
-      , String Orientation
+      , Orientation Orientation
       , String Text
       , Integer XPos
       , Integer YPos
@@ -108,7 +117,7 @@ public class UIElements {
       , List<String> Images
       , Integer InfoFunc
       , String Text
-      , String Type
+      , ButtonType Type
       , Integer Width
       , Integer XPos
       , Integer YPos
@@ -181,7 +190,7 @@ public class UIElements {
     public record Line (
         Integer ID
       , Integer Length
-      , String Orientation
+      , Orientation Orientation
       , String Weight
       , Integer XPos
       , Integer YPos
@@ -195,7 +204,7 @@ public class UIElements {
       , Integer GroupId
       , Integer ID
       , Integer InfoFunc
-      , String Orientation
+      , Orientation Orientation
       , Integer XPos
       , Integer YPos
     ) implements UIElement, UIControl {
@@ -258,7 +267,7 @@ public class UIElements {
       , Integer ID
       , Integer InfoFunc
       , String Text
-      , String Type
+      , ButtonType Type
       , Integer Width
       , Integer XPos
       , Integer YPos
@@ -278,4 +287,3 @@ public class UIElements {
         @Override public ElementType elementType() { return ElementType.TextField; }
     }
 }
-

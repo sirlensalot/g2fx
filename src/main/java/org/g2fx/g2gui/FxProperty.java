@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
+import java.util.function.Consumer;
+
 public abstract class FxProperty<T> {
 
     private ChangeListener<T> valueListener;
@@ -27,6 +29,14 @@ public abstract class FxProperty<T> {
 
     public FxProperty(ObservableValue<T> observable) {
         this(observable,null); // never changing
+    }
+
+    public static <T> FxProperty<T> adaptReadOnly(ObservableValue<T> readProperty, Consumer<T> setter) {
+        return new FxProperty<>(readProperty) {
+            @Override public void setValue(T value) {
+                setter.accept(value);
+            }
+        };
     }
 
     public FxProperty(ObservableValue<T> observable, ObservableValue<Boolean> changingArg) {

@@ -1,5 +1,6 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ToggleButton;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import static org.g2fx.g2gui.FXUtil.label;
 import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
 
 public class ModulePane {
 
@@ -86,14 +88,17 @@ public class ModulePane {
                 IndexParam ip = resolveParam(c.Control());
                 if (ip.param().param() == ModParam.ActiveMonitor) {
                     yield mkPowerButton(c, ip);
-                } else if (c.Images() == null) {
-                    yield mkTextToggle(c,ip);
+                } else if (c.Images() != null) {
+                    yield empty(e); //TODO
+                } else if (c.Type() == UIElements.ButtonType.Check) {
+                    yield mkTextToggle(c, ip);
+                } else {
+                    yield mkTextMomentary(c,ip);
                 }
-                yield empty(e);
             }
             case UIElements.Text c -> layout(e,label(c.Text()));
             case UIElements.Line c -> {
-                boolean vertical = "Vertical".equals(c.Orientation());
+                boolean vertical = Vertical == c.Orientation();
                 yield withClass(new Line(c.XPos(),c.YPos(),
                         vertical ? c.XPos() : c.XPos() + c.Length(),
                         vertical ? c.YPos() + c.Length() : c.YPos()
@@ -104,21 +109,28 @@ public class ModulePane {
     }
 
     private Node empty(UIElement e) {
-        System.out.println("TODO: " + e);
+        //System.out.println("TODO: " + e);
         return new Pane();
     }
 
     private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
-        return mkToggle(c, ip, new PowerButton().getButton());
+        final ToggleButton b = new PowerButton().getButton();
+        return mkToggle(c, ip, b, b.selectedProperty());
+    }
+
+    private Node mkTextMomentary(UIElements.ButtonText c, IndexParam ip) {
+        MomentaryButton b = layout(c,withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE));
+        return mkToggle(c,ip,b,b.selectedProperty());
     }
 
     private ToggleButton mkTextToggle(UIElements.ButtonText c, IndexParam ip) {
-        return mkToggle(c, ip, withClass(new ToggleButton(c.Text()),"text-toggle", FXUtil.G2_TOGGLE));
+        ToggleButton b = withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        return mkToggle(c, ip, b, b.selectedProperty());
     }
 
-    private ToggleButton mkToggle(UIElement c, IndexParam ip, ToggleButton b) {
+    private <T extends Node> T mkToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty) {
         layout(c, b);
-        parent.bindVarControl(b.selectedProperty(), v -> {
+        parent.bindVarControl(selectedProperty, v -> {
             SimpleBooleanProperty p =
                     new SimpleBooleanProperty(b,type.shortName + ":" + ip.param().name() +":"+v,false);
             moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
@@ -129,7 +141,7 @@ public class ModulePane {
         return b;
     }
 
-    private static Node layout(UIElement c, Node b) {
+    private static <T extends Node> T layout(UIElement c, T b) {
         b.setLayoutX(c.XPos());
         b.setLayoutY(c.YPos());
         return b;

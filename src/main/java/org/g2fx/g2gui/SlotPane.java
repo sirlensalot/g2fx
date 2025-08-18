@@ -86,6 +86,8 @@ public class SlotPane {
                 l.add(() -> renderModule(a, spec, m, d, uiModules.get(md.getType())));
             }
         }
+        // add var rebind, as it will get skipped if the var selector doesn't change.
+        l.add(() -> updateVarBinds(getCurrentVar()));
     }
 
 
@@ -186,12 +188,9 @@ public class SlotPane {
                 "User2"
         ));
         bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
-                new FxProperty<>(patchCategory.getSelectionModel().selectedIndexProperty()) {
-                    @Override public void setValue(Number value) {
-                        patchCategory.getSelectionModel().select(value.intValue());
-                    }
-                },
-                new Iso<>() {
+                FxProperty.adaptReadOnly(patchCategory.getSelectionModel().selectedIndexProperty(),
+                        value -> patchCategory.getSelectionModel().select(value.intValue())),
+               new Iso<>() {
                     @Override public Number to(Integer integer) {
                         return integer;
                     }
@@ -280,11 +279,9 @@ public class SlotPane {
         });
 
         bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().voiceMode(),
-                new FxProperty<>(spinner.valueProperty()) {
-                    @Override public void setValue(VoiceMode value) {
-                        spinner.getValueFactory().setValue(value);
-                    }
-                }, Iso.id());
+                FxProperty.adaptReadOnly(spinner.valueProperty(),
+                    value -> spinner.getValueFactory().setValue(value)),
+                Iso.id());
 
         assignedVoices.addListener((obs, old, val) -> {
             VoiceMode current = spinner.getValue();
@@ -305,7 +302,7 @@ public class SlotPane {
             RadioButton b = new RadioButton(Integer.toString(i));
             b.setSelected(i==1);
             b.setFocusTraversable(false);
-            varButtons.add(withClass(b,"var-button",FXUtil.G2_TOGGLE));
+            varButtons.add(withClass(b,"var-button","g2-toggle"));
             b.setUserData(i - 1);
             FXUtil.radioToToggle(b);
         }
@@ -313,25 +310,34 @@ public class SlotPane {
         bridges.bridgeSegmentedButton(varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
 
         varSelector.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
-                varChanged(o == null ? null : (Integer) o.getUserData(),
-                        n == null ? null : (Integer) n.getUserData()));
+                varChanged((Integer) n.getUserData()));
     }
 
 
-    private void varChanged(Integer oldVar, Integer newVar) {
-        for (RebindableControl<Integer,?> vc : varControls) {
-            vc.bind(newVar);
-        }
+    private void varChanged(Integer newVar) {
+        updateVarBinds(newVar);
         updateMorphBinds();
     }
 
+    private void updateVarBinds(Integer newVar) {
+        if (newVar == null) { return; }
+        for (RebindableControl<Integer,?> vc : varControls) {
+            vc.bind(newVar);
+        }
+    }
+
+    private Integer getCurrentVar() {
+        Toggle varToggle = varSelector.getToggleGroup().selectedToggleProperty().getValue();
+        if (varToggle == null) { return null; }
+        return (Integer) varToggle.getUserData();
+    }
 
     public void updateMorphBinds() {
-        Toggle varToggle = varSelector.getToggleGroup().selectedToggleProperty().getValue();
-        if (varToggle == null) { return; }
-        int var = (Integer) varToggle.getUserData();
-        for (RebindableControl<Slots.SlotAndVar, ?> mc : morphControls) {
-            mc.bind(new Slots.SlotAndVar(slot,var));
+        Integer var = getCurrentVar();
+        if (var != null) {
+            for (RebindableControl<Slots.SlotAndVar, ?> mc : morphControls) {
+                mc.bind(new Slots.SlotAndVar(slot, var));
+            }
         }
     }
 
