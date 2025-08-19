@@ -147,6 +147,13 @@
     -fx-padding: 1;
 }
 
+
+.selected-rect {
+    -fx-stroke: rgba(50%,50%,50%,.5);
+    -fx-stroke-width: 1;
+    -fx-fill: rgba(0,0,0,0);
+}
+
 .undo-redo-mod-colors-box {
     -fx-alignment: top-center;
 }
@@ -189,6 +196,11 @@
     -fx-border-width: 1 1 1 1;
     -fx-border-color: #666666;
     -fx-border-style: solid;
+}
+
+
+.module-selected {
+    -fx-background-color: white;
 }
 
 

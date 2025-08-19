@@ -24,10 +24,12 @@ public class ModulePane {
 
     public static final int MODULE_WIDTH = 255;
     public static final int MODULE_Y_MULT = 15;
+    public static final String MODULE_SELECTED = "module-selected";
     private final PatchModule patchModule;
     private final Bridges bridges;
     private final UIModule<UIElement> ui;
     private final SlotPane parent;
+    private boolean selected;
 
 
     /**
@@ -71,6 +73,17 @@ public class ModulePane {
         pane.setMinWidth(w);
 
         addBridge(bridges.bridge(moduleSelector.name(), dd -> pm.name()));
+    }
+
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+        if (selected) pane.getStyleClass().add(MODULE_SELECTED);
+        else pane.getStyleClass().remove(MODULE_SELECTED);
+    }
+
+    public boolean isSelected() {
+        return selected;
     }
 
     private Collection<? extends Node> renderControls() {
