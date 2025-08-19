@@ -106,7 +106,6 @@ public class AreaPane {
         for (PatchModule m : d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId).getModules()) {
             UserModuleData md = m.getUserModuleData();
             ModulePane.ModuleSpec spec = new ModulePane.ModuleSpec(md.getIndex(), md.getType(),
-                    md.horiz().get(), md.vert().get(),
                     md.color().get(), md.uprate().get(),
                     md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
             l.add(() -> renderModule(spec, m, d, uiModules.get(md.getType())));

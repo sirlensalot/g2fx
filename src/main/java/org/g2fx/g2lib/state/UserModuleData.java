@@ -15,11 +15,14 @@ public class UserModuleData {
     private final FieldValues fvs;
     private final ModuleType type;
     private final int index;
-    private final LibProperty<Integer> horiz;
-    private final LibProperty<Integer> vert;
+    private final LibProperty<Integer> column;
+    private final LibProperty<Integer> row;
     private final LibProperty<Integer> color;
     private final LibProperty<Integer> uprate;
     private final LibProperty<Boolean> leds;
+
+    public record Coords(int column, int row) {}
+    private final LibProperty<Coords> coords;
 
     /**
      * Modes are module params that cannot be assigned to knobs,
@@ -32,14 +35,25 @@ public class UserModuleData {
         this.fvs = fvs;
         this.type = ModuleType.getById(Protocol.UserModule.Id.intValue(fvs));
         this.index = Protocol.UserModule.Index.intValue(fvs);
-        horiz = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Horiz);
-        vert = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Vert);
+        column = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Column);
+        row = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Row);
         color = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Color);
         uprate = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Uprate);
         leds = LibProperty.booleanFieldProperty(fvs,Protocol.UserModule.Leds);
         modes = Protocol.UserModule.Modes.subfieldsValue(fvs).stream().map(mfs ->
                 LibProperty.intFieldProperty(mfs, Protocol.ModuleModes.Data)).toList();
+        coords = new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+            @Override
+            public Coords get() {
+                return new Coords(column.get(), row.get());
+            }
 
+            @Override
+            public void set(Coords newValue) {
+                column.set(newValue.column());
+                row.set(newValue.row());
+            }
+        });
     }
 
     public ModuleType getType() {
@@ -50,8 +64,8 @@ public class UserModuleData {
         return index;
     }
 
-    public LibProperty<Integer> horiz() { return horiz; }
-    public LibProperty<Integer> vert() { return vert; }
+    public LibProperty<Integer> column() { return column; }
+    public LibProperty<Integer> row() { return row; }
     public LibProperty<Integer> color() { return color; }
     public LibProperty<Integer> uprate() { return uprate; }
     public LibProperty<Boolean> leds() { return leds; }
@@ -63,6 +77,8 @@ public class UserModuleData {
     public List<LibProperty<Integer>> getModes() {
         return modes;
     }
+
+    public LibProperty<Coords> coords() { return coords; }
 
 
 }

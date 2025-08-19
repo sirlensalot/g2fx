@@ -436,8 +436,8 @@ class ProtocolTest {
         module = mods.getFirst();
         assertFieldEquals(module,0x5c, UserModule.Id); //filter classic
         assertFieldEquals(module,0x01, UserModule.Index);
-        assertFieldEquals(module,0x00, UserModule.Horiz);
-        assertFieldEquals(module,0x09, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Column);
+        assertFieldEquals(module,0x09, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x00, UserModule.Uprate);
         assertFieldEquals(module,0x00, UserModule.Leds);
@@ -448,8 +448,8 @@ class ProtocolTest {
         module = mods.get(1);
         assertFieldEquals(module,0x09, UserModule.Id); //osc c
         assertFieldEquals(module,0x02, UserModule.Index);
-        assertFieldEquals(module,0x00, UserModule.Horiz);
-        assertFieldEquals(module,0x06, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Column);
+        assertFieldEquals(module,0x06, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x00, UserModule.Uprate);
         assertFieldEquals(module,0x00, UserModule.Leds);
@@ -461,8 +461,8 @@ class ProtocolTest {
         module = mods.get(2);
         assertFieldEquals(module,0x17, UserModule.Id);  // ModADSR
         assertFieldEquals(module,0x03, UserModule.Index);
-        assertFieldEquals(module,0x00, UserModule.Horiz);
-        assertFieldEquals(module,0x0d, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Column);
+        assertFieldEquals(module,0x0d, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x01, UserModule.Uprate);
         assertFieldEquals(module,0x00, UserModule.Leds);
@@ -474,8 +474,8 @@ class ProtocolTest {
         module = mods.get(3);
         assertFieldEquals(module,0x04, UserModule.Id); // 2-out
         assertFieldEquals(module,0x04, UserModule.Index);
-        assertFieldEquals(module,0x00, UserModule.Horiz);
-        assertFieldEquals(module,0x12, UserModule.Vert);
+        assertFieldEquals(module,0x00, UserModule.Column);
+        assertFieldEquals(module,0x12, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x00, UserModule.Uprate);
         assertFieldEquals(module,0x01, UserModule.Leds);
@@ -490,8 +490,8 @@ class ProtocolTest {
         module = mods.get(indexes[0]);
         assertFieldEquals(module,0x7f, UserModule.Id); // FX Input
         assertFieldEquals(module,0x01, UserModule.Index);
-        assertFieldEquals(module,0x01, UserModule.Horiz);
-        assertFieldEquals(module,0x02, UserModule.Vert);
+        assertFieldEquals(module,0x01, UserModule.Column);
+        assertFieldEquals(module,0x02, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x00, UserModule.Uprate);
         assertFieldEquals(module,0x01, UserModule.Leds);
@@ -504,8 +504,8 @@ class ProtocolTest {
         //dumpFieldValues(module);
         assertFieldEquals(module,0xc2, UserModule.Id);//Mixer 2-1A
         assertFieldEquals(module,0x02, UserModule.Index);
-        assertFieldEquals(module,0x01, UserModule.Horiz);
-        assertFieldEquals(module,0x04, UserModule.Vert);
+        assertFieldEquals(module,0x01, UserModule.Column);
+        assertFieldEquals(module,0x04, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x01, UserModule.Uprate);
         assertFieldEquals(module,0x00, UserModule.Leds);
@@ -517,8 +517,8 @@ class ProtocolTest {
         module = mods.get(indexes[2]);
         assertFieldEquals(module,0x04, UserModule.Id); //2-out
         assertFieldEquals(module,0x03, UserModule.Index);
-        assertFieldEquals(module,0x01, UserModule.Horiz);
-        assertFieldEquals(module,0x09, UserModule.Vert);
+        assertFieldEquals(module,0x01, UserModule.Column);
+        assertFieldEquals(module,0x09, UserModule.Row);
         assertFieldEquals(module,0x00, UserModule.Color);
         assertFieldEquals(module,0x00, UserModule.Uprate);
         assertFieldEquals(module,0x01, UserModule.Leds);

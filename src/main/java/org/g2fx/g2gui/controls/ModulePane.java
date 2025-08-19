@@ -2,6 +2,7 @@ package org.g2fx.g2gui.controls;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Pane;
@@ -11,6 +12,7 @@ import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.PatchModule;
+import org.g2fx.g2lib.state.UserModuleData;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,8 +40,6 @@ public class ModulePane {
     public record ModuleSpec(
             int index,
             ModuleType type,
-            int horiz,
-            int vert,
             int color,
             int uprate,
             boolean leds,
@@ -49,14 +49,14 @@ public class ModulePane {
     private final ModuleType type;
 
     private final List<PropertyBridge<?,?>> moduleBridges = new ArrayList<>();
+
+    private final SimpleObjectProperty<UserModuleData.Coords> coords =
+            new SimpleObjectProperty<>(new UserModuleData.Coords(0,0));
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
                       Bridges bridges, PatchModule pm, SlotPane parent) {
-        int x = m.horiz;
-        int y = m.vert;
         int h = ui.Height();
-        int w = MODULE_WIDTH;
         type = m.type;
         this.bridges = bridges;
         this.patchModule = pm;
@@ -67,12 +67,16 @@ public class ModulePane {
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
         pane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
-        pane.setLayoutX(x * MODULE_WIDTH);
-        pane.setLayoutY(y * MODULE_Y_MULT);
         pane.setMinHeight(h * MODULE_Y_MULT);
-        pane.setMinWidth(w);
+        pane.setMinWidth(MODULE_WIDTH);
 
-        addBridge(bridges.bridge(moduleSelector.name(), dd -> pm.name()));
+        addBridge(bridges.bridge(moduleSelector.name(), dd -> patchModule.name()));
+
+        addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(), new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
+        coords.addListener((c,o,n) -> {
+            pane.setLayoutX(n.column()*MODULE_WIDTH);
+            pane.setLayoutY(n.row()*MODULE_Y_MULT);
+        });
     }
 
 

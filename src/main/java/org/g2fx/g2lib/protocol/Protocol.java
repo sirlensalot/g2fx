@@ -56,8 +56,8 @@ public class Protocol {
 
         Id        (8),
         Index     (8),
-        Horiz     (7),
-        Vert      (7),
+        Column(7),
+        Row(7),
         Color     (8),
         Uprate    (1),
         Leds      (1),
