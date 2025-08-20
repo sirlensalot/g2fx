@@ -63,6 +63,7 @@ public class PropertyBridge<T,F> {
             // on fx thread, so lock read is safe
             if (!active || updatingFx) return;
             //getting here means "real" UI update, not from backend
+            //changing here is ONLY to affect undos, all updates are sent to backend
             if (newVal != null && !newVal.equals(oldVal) && !fxProperty.isChanging()) {
                 undos.push(fxProperty,oldVal,newVal);
             }

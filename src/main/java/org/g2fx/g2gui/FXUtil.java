@@ -60,16 +60,19 @@ public class FXUtil {
         return new Background(new BackgroundFill(Color.web(item), null, null));
     }
 
+    /**
+     * Global listener to disable bare-key accelerators.
+     */
     public interface TextFieldFocusListener {
+        /**
+         * @param acquired true if text field acquired focus, false if released focus.
+         */
         void focusChange(boolean acquired);
     }
 
     public static SimpleStringProperty mkTextFieldCommitProperty(TextField textField, TextFieldFocusListener focusListener, int maxLength) {
         SimpleStringProperty p = new SimpleStringProperty();
-        textField.setTextFormatter(new TextFormatter<>(new StringConverter<>() {
-            @Override public String toString(String object) { return object; }
-            @Override public String fromString(String string) { return string; }
-        }, textField.getText(), c -> { return c.getControlNewText().length() <= maxLength ? c : null; }));
+        setTextFieldMaxLength(textField, maxLength);
         AtomicBoolean committing = new AtomicBoolean(false);
         textField.getTextFormatter().valueProperty().addListener((c,o,n) -> {
             if (n != null && !n.equals(o)) {
@@ -100,5 +103,13 @@ public class FXUtil {
             }
         });
         return p;
+    }
+
+    public static TextField setTextFieldMaxLength(TextField textField, int maxLength) {
+        textField.setTextFormatter(new TextFormatter<>(new StringConverter<>() {
+            @Override public String toString(String object) { return object; }
+            @Override public String fromString(String string) { return string; }
+        }, textField.getText(), c -> { return c.getControlNewText().length() <= maxLength ? c : null; }));
+        return textField;
     }
 }

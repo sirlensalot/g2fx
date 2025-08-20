@@ -10,6 +10,8 @@ import org.g2fx.g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 public class PatchModule {
@@ -21,7 +23,7 @@ public class PatchModule {
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
     private List<FieldValues> values;
-    private List<FieldValues> userLabels;
+    private Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>();
     private LibProperty<String> name;
 
     private final int index;
@@ -104,8 +106,10 @@ public class PatchModule {
         return userModuleData != null;
     }
 
-    public void setUserLabels(List<FieldValues> ls) {
-        this.userLabels = ls;
+    public void setUserLabels(List<FieldValues> uls) {
+        uls.forEach(fvs -> userLabels.put(Protocol.ParamLabels.ParamIndex.intValue(fvs),
+                Protocol.ParamLabels.Labels.subfieldsValue(fvs).stream().map(ls ->
+                        LibProperty.stringFieldProperty(ls, Protocol.ParamLabel.Label)).toList()));
     }
 
     public void setModuleName(FieldValues mn) {
@@ -129,17 +133,8 @@ public class PatchModule {
         return morphLabels.get(index);
     }
 
-    public String getModuleLabel(int paramIndex) {
-        NamedParam p = getNamedParam(paramIndex);
-        if (userLabels != null) {
-            for (FieldValues f : userLabels) {
-                if (paramIndex == Protocol.ParamLabels.ParamIndex.intValue(f)) {
-                    return Protocol.ParamLabels.Labels.stringValue(f);
-                }
-            }
-        }
-        //TODO!!! what about ModuleType.M_Sw8_1 and other multi-label params???
-        return (!p.labels().isEmpty() ? p.labels().getFirst() : null);
+    public List<LibProperty<String>> getModuleLabels(int paramIndex) {
+        return userLabels.get(paramIndex);
     }
 
     private NamedParam getNamedParam(int paramIndex) {

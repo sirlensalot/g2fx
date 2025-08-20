@@ -4,8 +4,10 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import org.g2fx.g2gui.*;
@@ -19,8 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.g2fx.g2gui.FXUtil.label;
-import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
 
 public class ModulePane {
@@ -37,6 +38,7 @@ public class ModulePane {
     private final SlotPane parent;
     private final ModuleSelector moduleSelector;
     private final int height;
+    private final FXUtil.TextFieldFocusListener textFocusListener;
     private boolean selected;
 
     public static String[] MODULE_COLORS = new String[] {
@@ -98,6 +100,7 @@ public class ModulePane {
         this.patchModule = pm;
         this.ui = ui;
         this.parent = parent;
+        this.textFocusListener = textFocusListener;
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
 
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
@@ -115,7 +118,8 @@ public class ModulePane {
             pane.setBackground(FXUtil.rgbFill(MODULE_COLORS[n]));
         });
 
-        addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(), new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
+        addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(),
+                new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
         coords.addListener((c,o,n) -> {
             pane.setLayoutX(n.column()* GRID_X);
             pane.setLayoutY(n.row()* GRID_Y);
@@ -154,6 +158,10 @@ public class ModulePane {
                     yield mkTextMomentary(c,ip);
                 }
             }
+            case UIElements.TextEdit c -> c.Type() == UIElements.ButtonType.Check ?
+                    mkTextEditToggle(c,resolveParam(c.Control())) :
+                    mkTextEditMomentary(c,resolveParam(c.Control()));
+
             case UIElements.Text c -> layout(e,label(c.Text()));
             case UIElements.Line c -> {
                 boolean vertical = Vertical == c.Orientation();
@@ -173,31 +181,120 @@ public class ModulePane {
 
     private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
         final ToggleButton b = new PowerButton().getButton();
-        return mkToggle(c, ip, b, b.selectedProperty());
+        return layout(c,mkToggle(c, ip, b, b.selectedProperty()));
+    }
+
+    private Node mkTextEditMomentary(UIElements.TextEdit c, IndexParam ip) {
+        MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        return layout(c,makeEditable(mkNoUndoToggle(c,ip,b,b.selectedProperty()), ip));
+    }
+
+    private Node mkTextEditToggle(UIElements.TextEdit c, IndexParam ip) {
+        ToggleButton b =withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        return layout(c,makeEditable(mkToggle(c, ip, b, b.selectedProperty()), ip));
     }
 
     private Node mkTextMomentary(UIElements.ButtonText c, IndexParam ip) {
-        MomentaryButton b = layout(c,withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE));
-        return mkToggle(c,ip,b,b.selectedProperty());
+        MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        return layout(c,mkNoUndoToggle(c,ip,b,b.selectedProperty()));
     }
 
     private ToggleButton mkTextToggle(UIElements.ButtonText c, IndexParam ip) {
         ToggleButton b = withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
-        return mkToggle(c, ip, b, b.selectedProperty());
+        return layout(c,mkToggle(c, ip, b, b.selectedProperty()));
     }
 
     private <T extends Node> T mkToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty) {
-        layout(c, b);
+        return mkToggle(c,ip,b,selectedProperty,null);
+    }
+
+    private <T extends Node> T mkNoUndoToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty) {
+        return mkToggle(c,ip,b,selectedProperty,new SimpleBooleanProperty(true));
+    }
+
+
+    private <T extends Node> T mkToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty,
+                                        ObservableValue<Boolean> defeatUndoProperty) {
         parent.bindVarControl(selectedProperty, v -> {
             SimpleBooleanProperty p =
                     new SimpleBooleanProperty(b,type.shortName + ":" + ip.param().name() +":"+v,false);
+            FxProperty.SimpleFxProperty<Boolean> fxProperty = defeatUndoProperty == null ?
+                    new FxProperty.SimpleFxProperty<>(p) : new FxProperty.SimpleFxProperty<>(p,defeatUndoProperty);
             moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
-                    new FxProperty.SimpleFxProperty<>(p),
+                    fxProperty,
                     Iso.BOOL_PARAM_ISO));
             return p;
                 });
         return b;
     }
+
+
+    public  <T extends ButtonBase> Node makeEditable(T button, IndexParam ip) {
+
+        TextField editor = setTextFieldMaxLength(new TextField("-------"),7);
+        editor.setPrefWidth(64);
+        editor.setVisible(false);
+
+        Pane root = new Pane(button,editor);
+
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem editNameItem = new MenuItem("Edit name...");
+        contextMenu.getItems().add(editNameItem);
+
+        button.setOnContextMenuRequested(e -> {
+            contextMenu.show(button, e.getScreenX(), e.getScreenY());
+        });
+
+        // When "Edit name..." is clicked, show text field for editing
+        editNameItem.setOnAction(e -> {
+                    contextMenu.hide();
+                editor.setText(button.getText());
+                editor.setVisible(true);
+                textFocusListener.focusChange(true);
+                //editor.setPrefWidth(button.getWidth());
+                //editor.setLayoutX(button.getLayoutX());
+                //editor.setLayoutY(button.getLayoutY());
+                editor.requestFocus();
+                editor.selectAll();
+                root.requestLayout();
+
+                button.setVisible(false);
+            });
+
+        // Commit edit: apply text on Enter or focus lost
+        editor.setOnAction(e -> commitEdit(button, editor));
+        editor.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                commitEdit(button, editor);
+            }
+        });
+
+        // Cancel edit on ESC
+        editor.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                editor.setVisible(false);
+                button.setVisible(true);
+            }
+        });
+
+        //Platform.runLater(()->editor.setVisible(false));
+
+        addBridge(bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
+                FxProperty.adaptReadOnly(button.textProperty(), button::setText),
+                Iso.id()
+        ));//TODO for sw8-1 and friends
+
+        return root;
+    }
+
+    // Commit changes from editor back to button text
+    private void commitEdit(ButtonBase button, TextField editor) {
+        button.setText(editor.getText());
+        editor.setVisible(false);
+        button.setVisible(true);
+        textFocusListener.focusChange(false);
+    }
+
 
     private static <T extends Node> T layout(UIElement c, T b) {
         b.setLayoutX(c.XPos());
