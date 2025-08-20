@@ -34,6 +34,7 @@ public class Slots {
 
 
     private final Map<ModuleType, UIModule<UIElement>> uiModules;
+    private final Undos undos;
 
 
     public record SlotAndVar(Slot slot,Integer var) {}
@@ -43,7 +44,8 @@ public class Slots {
     private final Bridges bridges;
 
 
-    public Slots(Bridges bridges) throws Exception {
+    public Slots(Undos undos, Bridges bridges) throws Exception {
+        this.undos = undos;
         uiModules = UIModule.readModuleUIs();
         this.bridges = bridges;
     }
@@ -72,7 +74,7 @@ public class Slots {
     public TabPane mkSlotTabs(FXUtil.TextFieldFocusListener textFocusListener) {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
-            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot,morphControls);
+            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot,morphControls,undos);
             slotPanes.add(slotPane);
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());

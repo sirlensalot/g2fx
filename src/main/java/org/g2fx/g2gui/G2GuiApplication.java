@@ -70,7 +70,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         fxQueue = new FXQueue();
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);
-        slots = new Slots(bridges);
+        slots = new Slots(undos,bridges);
         commands = new Commands(devices, slots);
         devices.addListener(this);
 

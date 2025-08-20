@@ -45,6 +45,7 @@ public class SlotPane {
     private final Slot slot;
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final List<RebindableControl<Slots.SlotAndVar, ?>> morphControls;
+    private final Undos undos;
 
     private SplitPane.Divider divider;
     private SplitPane patchSplit;
@@ -57,11 +58,13 @@ public class SlotPane {
 
 
     public SlotPane(Bridges bridges, FXUtil.TextFieldFocusListener textFocusListener,
-                    Slot slot, List<RebindableControl<Slots.SlotAndVar, ?>> morphControls) {
+                    Slot slot, List<RebindableControl<Slots.SlotAndVar, ?>> morphControls,
+                    Undos undos) {
         this.bridges = bridges;
         this.slot = slot;
         this.textFocusListener = textFocusListener;
         this.morphControls = morphControls;
+        this.undos = undos;
     }
 
     public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
@@ -339,7 +342,11 @@ public class SlotPane {
     }
 
     public void updateModuleColor(int index) {
-        //TODO: need batch undo/redo here
-        areaPanes.forEach((a,p) -> p.getSelectedModules().forEach(m -> m.color().setValue(index)));
+        undos.beginMulti();
+        try {
+            areaPanes.forEach((a, p) -> p.getSelectedModules().forEach(m -> m.color().setValue(index)));
+        } finally {
+            undos.commitMulti();
+        }
     }
 }

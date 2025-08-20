@@ -64,7 +64,7 @@ public class PropertyBridge<T,F> {
             if (!active || updatingFx) return;
             //getting here means "real" UI update, not from backend
             if (newVal != null && !newVal.equals(oldVal) && !fxProperty.isChanging()) {
-                undos.push(new Undos.Undo<F>(fxProperty,oldVal,newVal)); //TODO refactor undo creation into Undos::undo
+                undos.push(fxProperty,oldVal,newVal);
             }
             libExecutor.execute(() -> {
                 // on lib thread: lock lib updates
