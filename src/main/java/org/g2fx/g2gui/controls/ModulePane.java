@@ -27,6 +27,10 @@ public class ModulePane {
 
     public static final int GRID_X = 255;
     public static final int GRID_Y = 15;
+    /**
+     * Lib-side module, ONLY ACCESS ON LIB THREAD or
+     * in bridge constructors
+     */
     private final PatchModule patchModule;
     private final Bridges bridges;
     private final UIModule<UIElement> ui;
@@ -71,7 +75,6 @@ public class ModulePane {
     public record ModuleSpec(
             int index,
             ModuleType type,
-            int color,
             int uprate,
             boolean leds,
             List<Integer> modes) {}
