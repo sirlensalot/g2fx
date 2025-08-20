@@ -71,7 +71,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);
         slots = new Slots(undos,bridges);
-        commands = new Commands(devices, slots);
+        commands = new Commands(devices, slots, undos);
         devices.addListener(this);
 
     }
@@ -299,8 +299,8 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     private VBox mkUndoRedoModColorBox() {
         Button undoButton = withClass(new Button("Undo"),"undo-redo-button");
         Button redoButton = withClass(new Button("Redo"),"undo-redo-button");
-        undoButton.setOnAction(e -> { if (undos.canUndo()) undos.undo(); });
-        redoButton.setOnAction(e -> { if (undos.canRedo()) undos.redo(); });
+        undoButton.setOnAction(e -> undos.undo());
+        redoButton.setOnAction(e -> undos.redo());
         HBox undoRedoBar = withClass(new HBox(undoButton,redoButton),"undo-redo-bar");
 
         ObservableList<String> moduleColors =

@@ -26,13 +26,15 @@ public class Commands {
     private final Devices devices;
 
     private final Slots slots;
+    private final Undos undos;
     private MenuBar menuBar;
     private final Set<File> recentFiles = new LinkedHashSet<>();
     private Menu recentFilesMenu;
 
-    public Commands(Devices devices, Slots slots) {
+    public Commands(Devices devices, Slots slots, Undos undos) {
         this.devices = devices;
         this.slots = slots;
+        this.undos = undos;
     }
 
 
@@ -48,8 +50,28 @@ public class Commands {
         menuBar = new MenuBar();
 
         menuBar.setUseSystemMenuBar(true);
-        Menu fileMenu = new Menu("File");
 
+        Menu editMenu = populateEditMenu();
+
+        Menu fileMenu = populateFileMenu(stage);
+        menuBar.getMenus().addAll(fileMenu,editMenu);
+        return menuBar;
+    }
+
+    private Menu populateEditMenu() {
+        Menu editMenu = new Menu("Edit");
+        MenuItem undo = new MenuItem("Undo");
+        undo.setAccelerator(KeyCombination.keyCombination("Shortcut+Z"));
+        undo.setOnAction(e -> undos.undo());
+        MenuItem redo = new MenuItem("Redo");
+        redo.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+Z"));
+        redo.setOnAction(e -> undos.redo());
+        editMenu.getItems().addAll(undo,redo);
+        return editMenu;
+    }
+
+    private Menu populateFileMenu(Stage stage) {
+        Menu fileMenu = new Menu("File");
         recentFilesMenu = new Menu("Recent Files");
         populateRecentFiles();
 
@@ -68,8 +90,7 @@ public class Commands {
             if (f != null) { loadFile(f); }
 
         });
-        menuBar.getMenus().add(fileMenu);
-        return menuBar;
+        return fileMenu;
     }
 
     private StringBuilder populateRecentFiles() {

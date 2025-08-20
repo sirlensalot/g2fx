@@ -46,7 +46,7 @@ public class Undos {
     }
 
     public void undo() {
-        if (undoStack.isEmpty()) return;
+        if (!canUndo()) return;
         inUndoRedo = true;
         List<Undo<?>> action = undoStack.pop();
         try {
@@ -56,7 +56,7 @@ public class Undos {
     }
 
     public void redo() {
-        if (redoStack.isEmpty()) return;
+        if (!canRedo()) return;
         inUndoRedo = true;
         List<Undo<?>> action = redoStack.pop();
         try {

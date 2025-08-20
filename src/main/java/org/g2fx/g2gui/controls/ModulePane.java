@@ -25,13 +25,14 @@ import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
 
 public class ModulePane {
 
-    public static final int MODULE_WIDTH = 255;
-    public static final int MODULE_Y_MULT = 15;
+    public static final int GRID_X = 255;
+    public static final int GRID_Y = 15;
     private final PatchModule patchModule;
     private final Bridges bridges;
     private final UIModule<UIElement> ui;
     private final SlotPane parent;
     private final ModuleSelector moduleSelector;
+    private final int height;
     private boolean selected;
 
     public static String[] MODULE_COLORS = new String[] {
@@ -88,7 +89,7 @@ public class ModulePane {
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
                       Bridges bridges, PatchModule pm, SlotPane parent) {
-        int h = ui.Height();
+        height = ui.Height();
         type = m.type;
         this.bridges = bridges;
         this.patchModule = pm;
@@ -99,8 +100,8 @@ public class ModulePane {
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
         pane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
-        pane.setMinHeight(h * MODULE_Y_MULT);
-        pane.setMinWidth(MODULE_WIDTH);
+        pane.setMinHeight(height * GRID_Y);
+        pane.setMinWidth(GRID_X);
 
 
 
@@ -113,8 +114,8 @@ public class ModulePane {
 
         addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(), new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
         coords.addListener((c,o,n) -> {
-            pane.setLayoutX(n.column()*MODULE_WIDTH);
-            pane.setLayoutY(n.row()*MODULE_Y_MULT);
+            pane.setLayoutX(n.column()* GRID_X);
+            pane.setLayoutY(n.row()* GRID_Y);
         });
     }
 
@@ -228,4 +229,9 @@ public class ModulePane {
 
     public Property<Integer> color() { return color; }
 
+    public Property<UserModuleData.Coords> coords() { return coords; }
+
+    public int getHeight() {
+        return height;
+    }
 }

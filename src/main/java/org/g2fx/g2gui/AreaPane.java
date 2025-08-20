@@ -19,6 +19,8 @@ import org.g2fx.g2lib.state.UserModuleData;
 import java.util.*;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.controls.ModulePane.GRID_X;
+import static org.g2fx.g2gui.controls.ModulePane.GRID_Y;
 
 public class AreaPane {
 
@@ -27,13 +29,14 @@ public class AreaPane {
     private final SlotPane slotPane;
     private final Pane areaPane;
     private final FXUtil.TextFieldFocusListener textFocusListener;
+    private final Undos undos;
     private final ScrollPane scrollPane;
 
     private final List<ModulePane> modulePanes = new ArrayList<>();
 
     private final Set<ModulePane> selectedModules = new HashSet<>();
     private final Rectangle selectedRect;
-    private List<Rectangle> dragGhosts = new ArrayList<>();
+    private final List<Rectangle> dragGhosts = new ArrayList<>();
     private Point2D dragOrigin;
     private Runnable selectionListener;
 
@@ -45,13 +48,15 @@ public class AreaPane {
     }
 
 
-    public AreaPane(AreaId areaId, Bridges bridges, SlotPane slotPane, FXUtil.TextFieldFocusListener textFocusListener) {
+    public AreaPane(AreaId areaId, Bridges bridges, SlotPane slotPane,
+                    FXUtil.TextFieldFocusListener textFocusListener, Undos undos) {
         this.areaId = areaId;
         this.bridges = bridges;
         this.slotPane = slotPane;
         areaPane = withClass(
                 new Pane(new Label(areaId.name())),"area-pane","gfont");
         this.textFocusListener = textFocusListener;
+        this.undos = undos;
         scrollPane = withClass(new ScrollPane(areaPane),"area-scroll");
         scrollPane.setMinHeight(0);
         selectedRect = withClass(new Rectangle(),"selected-rect");
@@ -166,12 +171,121 @@ public class AreaPane {
         });
         pane.setOnMouseReleased(e -> {
             if (dragOrigin != null && !dragGhosts.isEmpty()) {
-                System.out.println("end drag");
+                undos.beginMulti();
+                moveSelectedModules(new UserModuleData.Coords(
+                        (int) Math.round((e.getSceneX() - dragOrigin.getX()) / GRID_X),
+                        (int) Math.round((e.getSceneY() - dragOrigin.getY()) / GRID_Y)));
+                undos.commitMulti();
             }
             areaPane.getChildren().removeAll(dragGhosts);
             dragGhosts.clear();
             dragOrigin = null;
         });
+    }
+
+    public void moveSelectedModules(UserModuleData.Coords delta) {
+        if (selectedModules.isEmpty()) { return; }
+        for (ModulePane pane : selectedModules) {
+            UserModuleData.Coords oldCoords = pane.coords().getValue();
+            pane.coords().setValue(new UserModuleData.Coords(
+                    oldCoords.column() + delta.column(),
+                    oldCoords.row() + delta.row()));
+        }
+        resolveCollisions();
+    }
+
+    private void resolveCollisions() {
+
+        Map<Integer, List<ModulePane>> modulesByColumn = new TreeMap<>();
+        // Group modules by column
+        for (ModulePane pane : modulePanes) {
+            modulesByColumn.computeIfAbsent(pane.coords().getValue().column(),
+                    k -> new ArrayList<>()).add(pane);
+        }
+
+        // Comparator to sort panes by their row value ascending
+        Comparator<ModulePane> rowComparator = Comparator.comparingInt(p -> p.coords().getValue().row());
+
+        for (List<ModulePane> columnModules : modulesByColumn.values()) {
+
+            // Sort column modules by row ascending for consistent order
+            columnModules.sort(rowComparator);
+
+            // Separate selected and non-selected modules into TreeSets sorted by row
+            Set<ModulePane> selectedInCol = new TreeSet<>(rowComparator);
+            Set<ModulePane> nonSelectedInCol = new TreeSet<>(rowComparator);
+            Set<Integer> selectedRows = new HashSet<>();
+
+            for (ModulePane pane : columnModules) {
+                if (pane.isSelected()) {
+                    selectedInCol.add(pane);
+                    // Add all rows occupied by the selected module (multi-row height)
+                    int startRow = pane.coords().getValue().row();
+                    int height = pane.getHeight();
+                    for (int r = startRow; r < startRow + height; r++) {
+                        selectedRows.add(r);
+                    }
+                } else {
+                    nonSelectedInCol.add(pane);
+                }
+            }
+
+            // For each moved selected module in this column (top-down),
+            // move non-selected modules down to resolve collisions
+            for (ModulePane selPane : selectedInCol) {
+                int selStartRow = selPane.coords().getValue().row();
+                int selHeight = selPane.getHeight();
+                int currentRow = selStartRow + selHeight; // start just below the bottom of selected module
+
+                for (ModulePane nonSelPane : nonSelectedInCol) {
+                    int nonSelStartRow = nonSelPane.coords().getValue().row();
+                    int nonSelHeight = nonSelPane.getHeight();
+
+                    // Detect vertical overlap between selected module and non-selected module
+                    boolean overlapsVertically =
+                            !(nonSelStartRow + nonSelHeight <= selStartRow || nonSelStartRow >= selStartRow + selHeight);
+
+                    // Only act on non-selected modules that overlap vertically with the selected module's original position
+                    if (overlapsVertically) {
+                        // Move non-selected module down until no collision with selected modules or other non-selected modules
+                        while (isOccupiedRange(selectedRows, currentRow, nonSelHeight)
+                                || isOccupiedRange(nonSelectedInCol, currentRow, nonSelHeight)) {
+                            currentRow++;
+                        }
+                        nonSelPane.coords().setValue(new UserModuleData.Coords(
+                                nonSelPane.coords().getValue().column(), currentRow));
+                        currentRow += nonSelHeight;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if any rows in the range [startRow, startRow + height) are occupied in the given set of row ints.
+     */
+    private boolean isOccupiedRange(Set<Integer> occupiedRows, int startRow, int height) {
+        for (int r = startRow; r < startRow + height; r++) {
+            if (occupiedRows.contains(r)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if any ModulePane rows in the vertical range [startRow, startRow + height) are occupied by any pane in the collection.
+     */
+    private boolean isOccupiedRange(Collection<ModulePane> modules, int startRow, int height) {
+        for (ModulePane pane : modules) {
+            int paneStartRow = pane.coords().getValue().row();
+            int paneHeight = pane.getHeight();
+            // Check vertical overlap between the pane's occupied rows and [startRow, startRow + height)
+            if (!(paneStartRow + paneHeight <= startRow || paneStartRow >= startRow + height)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void selectModule(ModulePane modulePane) {

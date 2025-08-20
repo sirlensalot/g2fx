@@ -92,9 +92,9 @@ public class SlotPane {
 
         HBox patchBar = mkPatchBar();
 
-        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener);
+        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener, undos);
         areaPanes.put(AreaId.Voice,voicePane);
-        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener);
+        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos);
         areaPanes.put(AreaId.Fx,fxPane);
 
         voicePane.addSelectionListener(fxPane::clearModuleSelection);
