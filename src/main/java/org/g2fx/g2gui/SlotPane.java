@@ -94,6 +94,10 @@ public class SlotPane {
         AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener);
         areaPanes.put(AreaId.Fx,fxPane);
 
+        voicePane.addSelectionListener(fxPane::clearModuleSelection);
+        fxPane.addSelectionListener(voicePane::clearModuleSelection);
+
+
         patchSplit =
                 withClass(new SplitPane(voicePane.getScrollPane(),fxPane.getScrollPane()),"patch-split");
         patchSplit.setOrientation(Orientation.VERTICAL);
@@ -133,7 +137,7 @@ public class SlotPane {
     private HBox mkPatchBar() {
 
         TextField patchName = new TextField("slot" + slot);
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(patchName,textFocusListener),
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(patchName,textFocusListener, 16),
                 d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
 
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
@@ -334,4 +338,8 @@ public class SlotPane {
         varSelector.getToggleGroup().getToggles().get(i).setSelected(true);
     }
 
+    public void updateModuleColor(int index) {
+        //TODO: need batch undo/redo here
+        areaPanes.forEach((a,p) -> p.getSelectedModules().forEach(m -> m.color().setValue(index)));
+    }
 }

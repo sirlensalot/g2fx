@@ -199,11 +199,6 @@
 }
 
 
-.module-selected {
-    -fx-background-color: white;
-}
-
-
 /* ========== KNOB CONTROL =========== */
 
 .knob {
@@ -272,18 +267,27 @@
 }
 
 .modsel-text-field {
-    -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: black;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-padding: 0 0 0 0; /* 2px left padding, adjust as needed */
-        -fx-margin: 0;       /* usually not needed for text field */
-        -fx-translate-x: -2;
+    -fx-margin: 0;       /* usually not needed for text field */
+    -fx-translate-x: -2;
+    -fx-max-width: 126px;
+}
+
+.modsel-text-field-unselected {
+    -fx-background-color: transparent;
+}
+.modsel-text-field-selected {
+    -fx-background-color: white;
 }
 
 .modsel-text-field-name {
     -fx-pref-width: 260px;
+}
+.modsel-text-field-mod {
 }
 
 .modsel-list {

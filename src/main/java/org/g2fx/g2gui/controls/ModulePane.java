@@ -1,6 +1,7 @@
 package org.g2fx.g2gui.controls;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
@@ -26,12 +27,41 @@ public class ModulePane {
 
     public static final int MODULE_WIDTH = 255;
     public static final int MODULE_Y_MULT = 15;
-    public static final String MODULE_SELECTED = "module-selected";
     private final PatchModule patchModule;
     private final Bridges bridges;
     private final UIModule<UIElement> ui;
     private final SlotPane parent;
+    private final ModuleSelector moduleSelector;
     private boolean selected;
+
+    public static String[] MODULE_COLORS = new String[] {
+            "#EEEEEE", // JavaFX default-ish, as opposed to "#C0C0C0" from o/s editor
+            "#BABACC", // 1
+            "#BACCBA", // 2
+            "#CCBAB0", // 3
+            "#AACBD0", // 4
+            "#D4A074", // 5
+            "#7A77E5", // 6 R
+            "#BDC17B", // 7
+            "#80B982", // 8
+            "#48D1E7", // 9
+            "#62D193", // 10
+            "#7DC7DE", // 11
+            "#C29A8F", // 12
+            "#817DBA", // 13
+            "#8D8DCA", // 14
+            "#A5D1DE", // 15
+            "#9CCF94", // 16
+            "#C7D669", // 17
+            "#C8D2A0", // 18
+            "#D2D2BE", // 19
+            "#C08C80", // 20
+            "#C773D6", // 21
+            "#BE82BE", // 22
+            "#D2A0CD", // 23
+            "#D2BED2" // 24
+    };
+
 
 
     /**
@@ -52,6 +82,8 @@ public class ModulePane {
 
     private final SimpleObjectProperty<UserModuleData.Coords> coords =
             new SimpleObjectProperty<>(new UserModuleData.Coords(0,0));
+
+    private final SimpleObjectProperty<Integer> color = new SimpleObjectProperty<>();
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
@@ -62,7 +94,7 @@ public class ModulePane {
         this.patchModule = pm;
         this.ui = ui;
         this.parent = parent;
-        ModuleSelector moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
+        moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
 
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
@@ -70,7 +102,14 @@ public class ModulePane {
         pane.setMinHeight(h * MODULE_Y_MULT);
         pane.setMinWidth(MODULE_WIDTH);
 
+
+
         addBridge(bridges.bridge(moduleSelector.name(), dd -> patchModule.name()));
+
+        addBridge(bridges.bridge(color,d -> patchModule.getUserModuleData().color()));
+        color.addListener((c,o,n) -> {
+            pane.setBackground(FXUtil.rgbFill(MODULE_COLORS[n]));
+        });
 
         addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(), new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
         coords.addListener((c,o,n) -> {
@@ -82,8 +121,7 @@ public class ModulePane {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
-        if (selected) pane.getStyleClass().add(MODULE_SELECTED);
-        else pane.getStyleClass().remove(MODULE_SELECTED);
+        moduleSelector.setSelected(selected);
     }
 
     public boolean isSelected() {
@@ -187,4 +225,7 @@ public class ModulePane {
     public List<PropertyBridge<?, ?>> getModuleBridges() {
         return moduleBridges;
     }
+
+    public Property<Integer> color() { return color; }
+
 }

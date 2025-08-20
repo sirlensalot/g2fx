@@ -36,7 +36,6 @@ public class Slots {
     private final Map<ModuleType, UIModule<UIElement>> uiModules;
 
 
-
     public record SlotAndVar(Slot slot,Integer var) {}
 
     private final List<RebindableControl<SlotAndVar,?>> morphControls = new ArrayList<>();
@@ -47,6 +46,11 @@ public class Slots {
     public Slots(Bridges bridges) throws Exception {
         uiModules = UIModule.readModuleUIs();
         this.bridges = bridges;
+    }
+
+
+    public void updateModuleColor(int index) {
+        getSelectedSlotPane().updateModuleColor(index);
     }
 
 

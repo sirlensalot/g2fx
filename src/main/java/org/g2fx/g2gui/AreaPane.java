@@ -35,6 +35,8 @@ public class AreaPane {
     private final Rectangle selectedRect;
     private List<Rectangle> dragGhosts = new ArrayList<>();
     private Point2D dragOrigin;
+    private Runnable selectionListener;
+
 
     enum SelectionStatus {
         IN_MODULE,
@@ -86,7 +88,7 @@ public class AreaPane {
             if (selectedRect.isVisible()) { // e.g. DRAGGING
                 Bounds selBounds = selectedRect.getBoundsInParent();
                 if (!e.isShiftDown()) {
-                    clearSelectedModules();
+                    clearModuleSelection();
                 }
                 for (ModulePane mp : modulePanes) {
                     if (mp.getPane().getBoundsInParent().intersects(selBounds)) {
@@ -95,7 +97,7 @@ public class AreaPane {
                 }
                 selectedRect.setVisible(false);
             } else if (selectedRect.getUserData() == SelectionStatus.IN_PANEL) {
-                clearSelectedModules();
+                clearModuleSelection();
             }
             selectedRect.setUserData(null);
         });
@@ -133,7 +135,7 @@ public class AreaPane {
                     selectModule(modulePane);
                 }
             } else {
-                clearSelectedModules();
+                clearModuleSelection();
                 selectModule(modulePane);
             }
             e.consume();
@@ -175,11 +177,16 @@ public class AreaPane {
     private void selectModule(ModulePane modulePane) {
         selectedModules.add(modulePane);
         modulePane.setSelected(true);
+        selectionListener.run();
     }
 
-    private void clearSelectedModules() {
+    public void clearModuleSelection() {
         selectedModules.forEach(p -> p.setSelected(false));
         selectedModules.clear();
+    }
+
+    public Set<ModulePane> getSelectedModules() {
+        return selectedModules;
     }
 
     public void clearModules() {
@@ -198,5 +205,10 @@ public class AreaPane {
 
     public ScrollPane getScrollPane() {
         return scrollPane;
+    }
+
+
+    public void addSelectionListener(Runnable r) {
+        this.selectionListener = r;
     }
 }

@@ -24,6 +24,7 @@ public class ModuleSelector {
     private final ModuleType type;
     private final SimpleStringProperty name;
     private final Pane pane;
+    private final TextField nameTextField;
 
     private boolean isModuleChange = false;
 
@@ -32,13 +33,18 @@ public class ModuleSelector {
                           FXUtil.TextFieldFocusListener textFocusListener) {
         this.id = id;
         this.type = type;
-        TextField tf = new TextField(name);
-        this.name = FXUtil.mkTextFieldCommitProperty(tf,textFocusListener);
-        pane = mkControl(tf);
+        nameTextField = new TextField(name);
+        this.name = FXUtil.mkTextFieldCommitProperty(nameTextField,textFocusListener, 16);
+        pane = mkControl();
     }
 
     public Pane getPane() {
         return pane;
+    }
+
+    public void setSelected(boolean selected) {
+        nameTextField.getStyleClass().remove(!selected ? "modsel-text-field-selected" : "modsel-text-field-unselected");
+        nameTextField.getStyleClass().add(selected ? "modsel-text-field-selected" : "modsel-text-field-unselected");
     }
 
     record ModTypeShortName (ModuleType type) {
@@ -53,10 +59,10 @@ public class ModuleSelector {
         return name;
     }
 
-    private Pane mkControl(TextField textField) {
+    private Pane mkControl() {
 
-        textField.setFocusTraversable(false);
-        textField.getStyleClass().add("modsel-text-field");
+        nameTextField.setFocusTraversable(false);
+        nameTextField.getStyleClass().addAll("modsel-text-field", "modsel-text-field-unselected");
 
         // ListView for dropdown items
         ObservableList<ModTypeShortName> items = FXCollections.observableArrayList(
@@ -106,7 +112,7 @@ public class ModuleSelector {
             ModTypeShortName selected = listView.getSelectionModel().getSelectedItem();
             if (selected != null) {
                 isModuleChange = true;
-                textField.setText(selected + "1");
+                nameTextField.setText(selected + "1");
                 popup.hide();
                 arrowButton.setVisible(true);
             }
@@ -118,14 +124,16 @@ public class ModuleSelector {
         // Layout: HBox with arrow button on left, text field on right
         HBox hbox = withClass(new HBox(),"modsel-box");
         if (type == ModuleType.M_Name) {
-            hbox.getChildren().add(textField);
+            hbox.getChildren().add(nameTextField);
             hbox.setAlignment(Pos.CENTER);
             hbox.getStyleClass().add("modsel-text-field-name");
-            textField.setAlignment(Pos.CENTER);
+            nameTextField.setAlignment(Pos.CENTER);
         } else {
-            hbox.getChildren().addAll(arrowButton,textField);
+            hbox.getStyleClass().add("modsel-text-field-mod");
+            hbox.getChildren().addAll(arrowButton,nameTextField);
             hbox.setAlignment(Pos.CENTER_LEFT);
         }
+        hbox.setLayoutY(1);
         return hbox;
     }
 

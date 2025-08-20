@@ -1,6 +1,7 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -12,12 +13,12 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
+import org.g2fx.g2gui.controls.ModulePane;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
@@ -178,7 +179,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
             String morphCtl = SettingsModules.MORPH_LABELS[i];
             ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
-            slots.bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener), s -> {
+            slots.bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener, 16), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
                 bridges.bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
@@ -302,51 +303,29 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         redoButton.setOnAction(e -> { if (undos.canRedo()) undos.redo(); });
         HBox undoRedoBar = withClass(new HBox(undoButton,redoButton),"undo-redo-bar");
 
-        ObservableList<String> moduleColors = FXCollections.observableArrayList(
-                "#C0C0C0",
-                "#BABACC", // 1
-                "#BACCBA", // 2
-                "#CCBAB0", // 3
-                "#AACBD0", // 4
-                "#D4A074", // 5
-                "#7A77E5", // 6 R
-                "#BDC17B", // 7
-                "#80B982", // 8
-                "#48D1E7", // 9
-                "#62D193", // 10
-                "#7DC7DE", // 11
-                "#C29A8F", // 12
-                "#817DBA", // 13
-                "#8D8DCA", // 14
-                "#A5D1DE", // 15
-                "#9CCF94", // 16
-                "#C7D669", // 17
-                "#C8D2A0", // 18
-                "#D2D2BE", // 19
-                "#C08C80", // 20
-                "#C773D6", // 21
-                "#BE82BE", // 22
-                "#D2A0CD", // 23
-                "#D2BED2" // 24
-        );
+        ObservableList<String> moduleColors =
+                FXCollections.observableArrayList(ModulePane.MODULE_COLORS);
         ComboBox<String> moduleColorsCombo = FXUtil.withClass(
                 new ComboBox<>(moduleColors),"module-colors-combo");
+        Platform.runLater(() -> {
+            moduleColorsCombo.getSelectionModel().select(0);
+            moduleColorsCombo.showingProperty().addListener((c,o,n) -> {
+                if (!n) {
+                    slots.updateModuleColor(moduleColorsCombo.getSelectionModel().getSelectedIndex());
+                }
+            });
+        });
 
         Callback<ListView<String>, ListCell<String>> cf = e -> new ListCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item != null) {
-                    setBackground(new Background(new BackgroundFill(Color.web(item),null,null)));
+                    setBackground(FXUtil.rgbFill(item));
                 }
             }
         };
-        moduleColorsCombo.setCellFactory(e -> new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-            }
-        });
+        moduleColorsCombo.setCellFactory(cf);
         moduleColorsCombo.setButtonCell(cf.call(null));
 
         VBox undoRedoModColorBox = withClass(new VBox(
@@ -397,7 +376,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener),d -> d.getPerf().perfName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener, 16), d -> d.getPerf().perfName());
 
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
@@ -409,7 +388,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         SegmentedButton slotBar = slots.mkSlotBar(bridges);
 
         TextField synthName = new TextField("synth name");
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener),d -> d.getSynthSettings().deviceName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener, 16), d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), FXUtil.G2_TOGGLE);
         bridges.bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());

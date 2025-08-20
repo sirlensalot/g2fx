@@ -7,6 +7,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 import java.net.URL;
@@ -53,16 +56,20 @@ public class FXUtil {
         return Preferences.userNodeForPackage(FXUtil.class);
     }
 
+    public static Background rgbFill(String item) {
+        return new Background(new BackgroundFill(Color.web(item), null, null));
+    }
+
     public interface TextFieldFocusListener {
         void focusChange(boolean acquired);
     }
 
-    public static SimpleStringProperty mkTextFieldCommitProperty(TextField textField, TextFieldFocusListener focusListener) {
+    public static SimpleStringProperty mkTextFieldCommitProperty(TextField textField, TextFieldFocusListener focusListener, int maxLength) {
         SimpleStringProperty p = new SimpleStringProperty();
         textField.setTextFormatter(new TextFormatter<>(new StringConverter<>() {
             @Override public String toString(String object) { return object; }
             @Override public String fromString(String string) { return string; }
-        }, textField.getText()));
+        }, textField.getText(), c -> { return c.getControlNewText().length() <= maxLength ? c : null; }));
         AtomicBoolean committing = new AtomicBoolean(false);
         textField.getTextFormatter().valueProperty().addListener((c,o,n) -> {
             if (n != null && !n.equals(o)) {
