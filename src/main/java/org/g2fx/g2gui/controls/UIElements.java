@@ -12,6 +12,22 @@ public class UIElements {
         Horizontal, Vertical
     }
 
+    public enum KnobType {
+        Big(true,false),
+        Medium(true,false),
+        Reset(true,true),
+        ResetMedium(true,true),
+        SeqSlider(false,false),
+        Slider(false,false),
+        Small(true,false);
+        public final boolean isKnob;
+        public final boolean isReset;
+        KnobType(boolean isKnob, boolean isReset) {
+            this.isKnob = isKnob;
+            this.isReset = isReset;
+        }
+    }
+
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
       , ButtonFlat { @Override public Class<? extends UIElement> getType() { return ButtonFlat.class; } }
@@ -155,7 +171,7 @@ public class UIElements {
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , String Type
+      , KnobType Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement, UIControl {

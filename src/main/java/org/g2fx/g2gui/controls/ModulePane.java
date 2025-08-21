@@ -108,6 +108,8 @@ public class ModulePane {
         pane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
         pane.setMinHeight(height * GRID_Y);
         pane.setMinWidth(GRID_X);
+        pane.setMaxHeight(height * GRID_Y);
+        pane.setMaxWidth(GRID_X);
 
 
 
@@ -146,32 +148,74 @@ public class ModulePane {
 
     private Node renderControl(UIElement e) {
         return switch (e) {
-            case UIElements.ButtonText c -> {
-                IndexParam ip = resolveParam(c.Control());
-                if (ip.param().param() == ModParam.ActiveMonitor) {
-                    yield mkPowerButton(c, ip);
-                } else if (c.Images() != null) {
-                    yield empty(e); //TODO
-                } else if (c.Type() == UIElements.ButtonType.Check) {
-                    yield mkTextToggle(c, ip);
-                } else {
-                    yield mkTextMomentary(c,ip);
-                }
-            }
-            case UIElements.TextEdit c -> c.Type() == UIElements.ButtonType.Check ?
-                    mkTextEditToggle(c,resolveParam(c.Control())) :
-                    mkTextEditMomentary(c,resolveParam(c.Control()));
+
+            case UIElements.ButtonText c -> mkButtonText(e, c);
+
+            case UIElements.TextEdit c -> mkTextEdit(c);
+
+            case UIElements.Knob c -> mkKnob(c,resolveParam(c.Control()));
 
             case UIElements.Text c -> layout(e,label(c.Text()));
-            case UIElements.Line c -> {
-                boolean vertical = Vertical == c.Orientation();
-                yield withClass(new Line(c.XPos(),c.YPos(),
-                        vertical ? c.XPos() : c.XPos() + c.Length(),
-                        vertical ? c.YPos() + c.Length() : c.YPos()
-                        ),"module-line","module-line-"+c.Weight());
-            }
+
+            case UIElements.Line c -> mkLine(c);
+
             default -> empty(e);
         };
+    }
+
+    private Node mkButtonText(UIElement e, UIElements.ButtonText c) {
+        IndexParam ip = resolveParam(c.Control());
+        if (ip.param().param() == ModParam.ActiveMonitor) {
+            return mkPowerButton(c, ip);
+        } else if (c.Images() != null) {
+            return empty(e);
+        } else if (c.Type() == UIElements.ButtonType.Check) {
+            return mkTextToggle(c, ip);
+        } else {
+            return mkTextMomentary(c, ip);
+        }
+    }
+
+    private Node mkTextEdit(UIElements.TextEdit c) {
+        return c.Type() == UIElements.ButtonType.Check ?
+                mkTextEditToggle(c, resolveParam(c.Control())) :
+                mkTextEditMomentary(c, resolveParam(c.Control()));
+    }
+
+    private static Line mkLine(UIElements.Line c) {
+        boolean vertical = Vertical == c.Orientation();
+        Line line = withClass(new Line(c.XPos(), c.YPos(),
+                vertical ? c.XPos() : c.XPos() + c.Length(),
+                vertical ? c.YPos() + c.Length() : c.YPos()
+        ), "module-line", "module-line-" + c.Weight());
+        line.setViewOrder(5);
+        return line;
+    }
+
+    private Node mkKnob(UIElements.Knob c, IndexParam ip) {
+        if (c.Type().isKnob) {
+            double scale = switch (c.Type()) {
+                case Small -> 0.8;
+                case Medium, ResetMedium -> 0.9;
+                default -> 1.0;
+            };
+            Knob knob = new Knob(ip.param.name(), scale);
+            layout(c, knob);
+            parent.bindVarControl(knob.getValueProperty(), v -> {
+                Property<Integer> p =
+                        new SimpleObjectProperty<>(knob, varPropName(ip, v), null);
+                moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
+                        new FxProperty.SimpleFxProperty<>(p,knob.valueChangingProperty()),
+                        Iso.id()));
+                return p;
+            });
+            return knob;
+        }
+        return empty(c);
+    }
+
+    private String varPropName(IndexParam ip, int v) {
+        return type.shortName + ":" + ip.param().name() + ":" + v;
     }
 
     private Node empty(UIElement e) {
@@ -217,7 +261,7 @@ public class ModulePane {
                                         ObservableValue<Boolean> defeatUndoProperty) {
         parent.bindVarControl(selectedProperty, v -> {
             SimpleBooleanProperty p =
-                    new SimpleBooleanProperty(b,type.shortName + ":" + ip.param().name() +":"+v,false);
+                    new SimpleBooleanProperty(b, varPropName(ip, v),false);
             FxProperty.SimpleFxProperty<Boolean> fxProperty = defeatUndoProperty == null ?
                     new FxProperty.SimpleFxProperty<>(p) : new FxProperty.SimpleFxProperty<>(p,defeatUndoProperty);
             moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),

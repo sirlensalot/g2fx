@@ -186,7 +186,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
             });
 
             tf.setPadding(new Insets(1));
-            Knob dial = withClass(new Knob("Morph" + i), "morph-knob");
+            Knob dial = withClass(new Knob("Morph" + i, 1.0), "morph-knob");
             slots.bindMorphControl(dial.getValueProperty(),sv -> {
                 SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(dial,"morphDial:"+sv,0);
                 bridges.bridge(d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)

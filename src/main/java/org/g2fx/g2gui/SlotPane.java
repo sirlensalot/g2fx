@@ -192,7 +192,7 @@ public class SlotPane {
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
 
 
-        Knob patchVolume = withClass(new Knob("patch-volume"),"patch-volume");
+        Knob patchVolume = withClass(new Knob("patch-volume", 1.0),"patch-volume");
         bindVarControl(patchVolume.getValueProperty(), v -> {
             SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+ slot +":"+v,0);
             bridges.bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)

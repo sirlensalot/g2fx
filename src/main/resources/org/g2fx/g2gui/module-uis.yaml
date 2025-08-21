@@ -7792,7 +7792,7 @@ FltComb:
     YPos: 5
     CodeRef: 3
     InfoFunc: 17
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FB"
   - Class: "Graph"
     ID: 14
@@ -8728,7 +8728,7 @@ FltPhase:
     YPos: 15
     CodeRef: 3
     InfoFunc: 17
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FB"
   - Class: "Text"
     ID: 29
@@ -9054,7 +9054,7 @@ FltVoice:
     YPos: 29
     CodeRef: 6
     InfoFunc: 17
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "Freq"
   - Class: "Input"
     ID: 12
@@ -9091,7 +9091,7 @@ FltVoice:
     YPos: 29
     CodeRef: 8
     InfoFunc: 17
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "Res"
   - Class: "Text"
     ID: 18
@@ -16502,7 +16502,7 @@ OscA:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "ButtonRadio"
     ID: 7
@@ -16721,7 +16721,7 @@ OscB:
     YPos: 44
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Text"
     ID: 22
@@ -16883,7 +16883,7 @@ OscC:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Input"
     ID: 4
@@ -17270,7 +17270,7 @@ OscDual:
     YPos: 44
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Text"
     ID: 23
@@ -17511,7 +17511,7 @@ OscMaster:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Output"
     ID: 6
@@ -17681,7 +17681,7 @@ OscNoise:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "TextField"
     ID: 11
@@ -17772,7 +17772,7 @@ OscPM:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Input"
     ID: 4
@@ -17998,7 +17998,7 @@ OscPerc:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Knob"
     ID: 13
@@ -18241,7 +18241,7 @@ OscShpA:
     YPos: 44
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Text"
     ID: 22
@@ -18513,7 +18513,7 @@ OscShpB:
     YPos: 29
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Input"
     ID: 12
@@ -18677,7 +18677,7 @@ OscString:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "FreqFine"
   - Class: "Text"
     ID: 8
@@ -19021,7 +19021,7 @@ PShift:
     YPos: 14
     CodeRef: 0
     InfoFunc: 61
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "ShiftSemi"
   - Class: "Input"
     ID: 1
@@ -19047,7 +19047,7 @@ PShift:
     YPos: 14
     CodeRef: 1
     InfoFunc: 59
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "ShiftFine"
   - Class: "Input"
     ID: 6
@@ -20981,7 +20981,7 @@ Scratch:
     YPos: 14
     CodeRef: 0
     InfoFunc: 209
-    Type: "Reset/medium"
+    Type: "ResetMedium"
     Control: "Ratio"
   - Class: "Input"
     ID: 1

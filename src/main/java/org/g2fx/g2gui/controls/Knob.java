@@ -25,7 +25,7 @@ public class Knob extends Control {
 
     private final SVGPath thumb;
 
-    public Knob(String name) {
+    public Knob(String name, double scale) {
         super();
         value = new SimpleObjectProperty<>(this,name,0);
         value.addListener((v,o,n) ->
@@ -33,7 +33,6 @@ public class Knob extends Control {
         getStyleClass().add("knob");
         setWidth(SIZE);
         setHeight(SIZE);
-
 
         double cx=0,cy=0;
 
@@ -58,6 +57,8 @@ public class Knob extends Control {
         thumb.getStyleClass().add("knob-thumb");
 
         getChildren().addAll(l1,l2,edge,center,thumb);
+        setScaleX(scale);
+        setScaleY(scale);
 
         setOnMouseDragged(this::mouseDragged);
         setOnMouseReleased(event -> valueChanging.set(false));
