@@ -196,10 +196,10 @@ public class ModulePane {
         if (c.Type().isKnob) {
             double scale = switch (c.Type()) {
                 case Small -> 0.8;
-                case Medium, ResetMedium -> 0.9;
+                case Medium, ResetMedium -> 0.89;
                 default -> 1.0;
             };
-            Knob knob = new Knob(ip.param.name(), scale);
+            Knob knob = new Knob(ip.param.name(), scale, c.Type().isReset);
             layout(c, knob);
             parent.bindVarControl(knob.getValueProperty(), v -> {
                 Property<Integer> p =

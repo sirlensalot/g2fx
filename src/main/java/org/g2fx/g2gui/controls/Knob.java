@@ -8,9 +8,11 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SkinBase;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Knob extends Control {
 
@@ -26,6 +28,9 @@ public class Knob extends Control {
     private final SVGPath thumb;
 
     public Knob(String name, double scale) {
+        this(name,scale,false);
+    }
+    public Knob(String name, double scale, boolean reset) {
         super();
         value = new SimpleObjectProperty<>(this,name,0);
         value.addListener((v,o,n) ->
@@ -56,7 +61,26 @@ public class Knob extends Control {
         thumb.setContent("M 0,-19 v -1 z M 0,0 v -10 z");
         thumb.getStyleClass().add("knob-thumb");
 
-        getChildren().addAll(l1,l2,edge,center,thumb);
+        List<Shape> cs = new ArrayList<>(List.of(l1, l2, edge, center, thumb));
+        if (reset) {
+            int size = 11;
+            int bottom = 6;
+            Polygon triangle = new Polygon(
+                    0.0, 0.0,
+                    size, 0.0,
+                    size/2, bottom
+            );
+            triangle.setFill(Color.GREEN);
+            triangle.setStroke(Color.BLACK);
+            //triangle.setTranslateX(2);
+            triangle.setTranslateY(-12.5);
+            value.addListener((c,o,n) -> {
+                triangle.setFill(n == MAX/2 ? Color.LIGHTGREEN : Color.GREEN);
+            });
+            cs.addFirst(triangle);
+            setTranslateY(bottom-1);
+        }
+        getChildren().addAll(cs);
         setScaleX(scale);
         setScaleY(scale);
 

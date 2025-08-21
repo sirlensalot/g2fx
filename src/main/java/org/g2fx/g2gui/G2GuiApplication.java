@@ -66,7 +66,6 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     @Override
     public void init() throws Exception {
         Util.configureLogging(Level.WARNING);
-        System.out.println(System.getProperty("javafx.runtime.version"));
         fxQueue = new FXQueue();
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);
