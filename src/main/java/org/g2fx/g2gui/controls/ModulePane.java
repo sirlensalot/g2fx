@@ -185,8 +185,8 @@ public class ModulePane {
     private static Line mkLine(UIElements.Line c) {
         boolean vertical = Vertical == c.Orientation();
         Line line = withClass(new Line(c.XPos(), c.YPos(),
-                vertical ? c.XPos() : c.XPos() + c.Length(),
-                vertical ? c.YPos() + c.Length() : c.YPos()
+                vertical ? c.XPos() : c.XPos() + c.Length() - 1,
+                vertical ? c.YPos() + c.Length() - 1 : c.YPos()
         ), "module-line", "module-line-" + c.Weight());
         line.setViewOrder(5);
         return line;

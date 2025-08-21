@@ -94,7 +94,7 @@
     -fx-stroke: #777777;
 }
 .module-line-Thin {
-    -fx-stroke-width: 1;
+    -fx-stroke-width: 1.2;
 }
 
 .module-line-Thick {
