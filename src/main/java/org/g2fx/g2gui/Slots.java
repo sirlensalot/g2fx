@@ -3,6 +3,8 @@ package org.g2fx.g2gui;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -94,7 +96,7 @@ public class Slots {
 
     public SegmentedButton mkSlotBar(Bridges bridges) {
 
-        List<ToggleButton> sbs = Arrays.stream(Slot.values()).map(s -> {
+        ObservableList<ToggleButton> sbs = FXCollections.observableArrayList(Arrays.stream(Slot.values()).map(s -> {
             ToggleButton b = FXUtil.radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));
             b.setFocusTraversable(false);
             b.setUserData(s.ordinal());
@@ -121,12 +123,12 @@ public class Slots {
                 }
             });
             return b;
-        }).toList();
+        }).toList());
         sbs.getFirst().setSelected(true);
 
 
 
-        slotBar = withClass(new SegmentedButton(sbs.toArray(new ToggleButton[]{})), "slot-bar");
+        slotBar = withClass(new SegmentedButton(sbs), "slot-bar");
         bridges.bridgeSegmentedButton(slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
 
         slotBar.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->

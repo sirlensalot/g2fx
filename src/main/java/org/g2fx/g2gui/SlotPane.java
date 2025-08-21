@@ -271,7 +271,7 @@ public class SlotPane {
 
 
     private void mkVarSelector() {
-        List<ToggleButton> varButtons = new ArrayList<>();
+        ObservableList<ToggleButton> varButtons = FXCollections.observableArrayList();
         for (int i = 1; i < 9; i++) {
             RadioButton b = new RadioButton(Integer.toString(i));
             b.setSelected(i==1);
@@ -280,7 +280,7 @@ public class SlotPane {
             b.setUserData(i - 1);
             FXUtil.radioToToggle(b);
         }
-        varSelector = new SegmentedButton(varButtons.toArray(new ToggleButton[] {}));
+        varSelector = new SegmentedButton(varButtons);
         bridges.bridgeSegmentedButton(varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
 
         varSelector.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->

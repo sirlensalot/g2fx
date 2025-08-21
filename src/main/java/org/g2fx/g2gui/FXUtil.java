@@ -9,10 +9,12 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
@@ -103,6 +105,11 @@ public class FXUtil {
             }
         });
         return p;
+    }
+
+    public static <T extends Pane> T addChildren(T parent, Collection<? extends Node> children) {
+        parent.getChildren().addAll(children);
+        return parent;
     }
 
     public static TextField setTextFieldMaxLength(TextField textField, int maxLength) {

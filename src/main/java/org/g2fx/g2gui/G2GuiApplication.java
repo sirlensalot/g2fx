@@ -40,7 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.FXUtil.*;
 
 
 public class G2GuiApplication extends Application implements Devices.DeviceListener {
@@ -66,7 +66,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     @Override
     public void init() throws Exception {
         Util.configureLogging(Level.WARNING);
-
+        System.out.println(System.getProperty("javafx.runtime.version"));
         fxQueue = new FXQueue();
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);
@@ -202,8 +202,8 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
             ),"morph-box"));
         }
         VBox morphsBox = withClass(new VBox(
-                FXUtil.label("Morph Groups"),
-                withClass(new HBox(morphs.toArray(new VBox[]{})),"morphs-bar")
+                label("Morph Groups"),
+                withClass(addChildren(new HBox(),morphs),"morphs-bar")
         ),"morphs-box");
         return morphsBox;
     }
@@ -350,9 +350,9 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         }).toList()));
 
         Map<ModuleType.ModPage,HBox> modBars = new TreeMap<>();
-        modsByType.forEach((mp,mbis) -> modBars.put(mp,new HBox(mbis.stream().map(
-                ModuleButtonInfo::button).toList().toArray(new Button[]{}))));
-        StackPane modsPane = new StackPane(modBars.values().toArray(new HBox[]{}));
+        modsByType.forEach((mp,mbis) -> modBars.put(mp,addChildren(new HBox(),
+                mbis.stream().map(ModuleButtonInfo::button).toList())));
+        StackPane modsPane = addChildren(new StackPane(),modBars.values());
 
         List<ToggleButton> moduleSectButtons = Stream.of(ModuleType.ModPage.values()).map(n -> {
                     ToggleButton tb = FXUtil.radioToToggle(withClass(new RadioButton(n.name()),
@@ -367,7 +367,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
             modulePairs.add(withClass(new VBox(moduleSectButtons.get(i*2),moduleSectButtons.get(i*2+1)),
                     "module-sect-pair"));
         }
-        HBox moduleSectPairsBar = withClass(new HBox(modulePairs.toArray(new VBox[] {})),"module-sect-bar");
+        HBox moduleSectPairsBar = withClass(addChildren(new HBox(),modulePairs),"module-sect-bar");
 
         VBox moduleSelectBox = withClass(new VBox(moduleSectPairsBar,modsPane),"module-select-box");
         modBars.forEach((p,b) -> b.setVisible(false));
