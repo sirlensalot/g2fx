@@ -39,6 +39,7 @@ public class ModulePane {
     private final ModuleSelector moduleSelector;
     private final int height;
     private final FXUtil.TextFieldFocusListener textFocusListener;
+    private final int index;
     private boolean selected;
 
     public static String[] MODULE_COLORS = new String[] {
@@ -96,6 +97,7 @@ public class ModulePane {
                       Bridges bridges, PatchModule pm, SlotPane parent) {
         height = ui.Height();
         type = m.type;
+        this.index = m.index;
         this.bridges = bridges;
         this.patchModule = pm;
         this.ui = ui;
@@ -195,8 +197,8 @@ public class ModulePane {
     private Node mkKnob(UIElements.Knob c, IndexParam ip) {
         if (c.Type().isKnob) {
             double scale = switch (c.Type()) {
-                case Small -> 0.8;
-                case Medium, ResetMedium -> 0.89;
+                case Small, Reset -> 0.78;
+                case Medium, ResetMedium -> 0.88;
                 default -> 1.0;
             };
             Knob knob = new Knob(ip.param.name(), scale, c.Type().isReset);
@@ -377,5 +379,10 @@ public class ModulePane {
 
     public int getHeight() {
         return height;
+    }
+
+    @Override
+    public String toString() {
+        return type + ":" + index + ":" + moduleSelector.name().getValue();
     }
 }
