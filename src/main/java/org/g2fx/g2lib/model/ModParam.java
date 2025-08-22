@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.model;
 
+import org.g2fx.g2lib.util.Util;
+
 import java.util.List;
 import java.util.function.Function;
 
@@ -25,7 +27,7 @@ public enum ModParam {
     FreqFine
     (0,127,64),
     Level_100
-    (0,127,0, ParamFormatter.ID), //TODO!! not sure this is really 0-127 (FltClassic Res yes, Reverb brightness???)
+    (0,127,0, ParamFormatter.ID), //TODO!! not sure this is really 0-127 (FltClassic Res yes, Reverb brightness???, RndClkA StepProb BZZT)
     FreqMode_3
     (0,
      "Semi", "Freq", "Fac", "Part"),
@@ -67,11 +69,10 @@ public enum ModParam {
     (0,
      "LogExp", "LinExp", "ExpExp", "LinLin"),
     EnvTime
-    (0,127,0,intF(n -> {
-        double v = ParamConstants.ENV_TIMES[n];
-        return v < 0.001 ? String.format("%.01fm",v*1000) :
-                v < 1 ? String.format("%.00fm",v*1000) : String.format("%.01fs",v);
-    })),
+    (0,127,0,intF(n -> aref(n,ParamConstants.ENV_TIMES,v ->
+            v < 0.001 ? String.format("%.01fm",v*1000) :
+                v < 1 ? String.format("%.00fm",v*1000) :
+                        String.format("%.01fs",v)))),
     EnvLevel
     (0,127,0),
     PosNegInvBipInv
@@ -110,7 +111,7 @@ public enum ModParam {
     LfoShpAPW
     (0,127,0),
     Phase
-    (0,127,0),
+    (0,127,0,ParamFormatter.intMapper(359)),
     LfoShpA__Waveform
     (0,
      "Sine", "CosBell", "TriBell", "Saw2Tri", "Sqr2Tri", "Sqr"),
@@ -173,7 +174,8 @@ public enum ModParam {
     (0,
      "GC Off", "GC On"),
     Res_1
-    (0,127,0),
+    (0,127,0,intF(n->aref(n,ParamConstants.FILTER_RESONANCE,v->
+            String.format(v < 10 ? "%.02f" : "%.00f",v)))),
     FltSlope_1
     (1,
      "6 dB/Oct", "12 dB/Oct"),
@@ -434,9 +436,9 @@ public enum ModParam {
     OpRateScale
     (0,7,0),
     OpTime
-    (0,99,0),
+    (0,99,0, ParamFormatter.intMapper(99)),
     OpLevel
-    (0,99,0),
+    (0,99,0, ParamFormatter.intMapper(99)),
     OpAmod
     (0,7,0),
     OpBrPpoint
@@ -454,17 +456,13 @@ public enum ModParam {
     (0,
      "Sine", "Tri"),
     Threshold_127
-    (0,127,0, intF(n -> {
-        double v = ParamConstants.NOISEGATE_PITCHTRACK_THRESHOLD[n];
-        return v == 0 ? "Inf." : String.format("%.01fdB",v);
-    })),
+    (0,127,0, intF(n -> aref(n,ParamConstants.NOISEGATE_PITCHTRACK_THRESHOLD, v ->
+         v == 0 ? "Inf." : String.format("%.01fdB",v)))),
     NoiseGateAttack
     (0,127,0, intF(n -> String.format("%.01fm",ParamConstants.NOISE_GATE_ATTACK[n]))),
     NoiseGateRelease
-    (0,127,64, intF(n -> {
-        double v = ParamConstants.NOISE_GATE_RELEASE[n];
-        return v == 1000 ? "1s" : String.format(v >= 100 ? "%.00fm" : "%.01fm",v);
-    })),
+    (0,127,64, intF(n -> aref(n,ParamConstants.NOISE_GATE_RELEASE, v ->
+         v == 1000 ? "1s" : String.format(v >= 100 ? "%.00fm" : "%.01fm",v)))),
     LfoB_Waveform
     (0,
      "Sine", "Tri", "Saw", "Square"),
@@ -485,6 +483,8 @@ public enum ModParam {
     RndEdge
     (0,
      "0%", "25%", "50%", "75%", "100%"),
+    RndProb
+    (0,100,50,intF(n->String.format("%d%%",Util.mapRange(n,0,127,1,100)))),
     RandomAStepProb
     (0,
      "25%", "50%", "75%", "100%"),
@@ -554,6 +554,10 @@ public enum ModParam {
                 String.format("%.01fHz", f);
     }
 
+    private static <T> T aref(int idx, double[] vals, Function<Double,T> f) {
+        return f.apply(vals[idx]);
+    }
+
 
     public final int min;
     public final int max;
@@ -607,6 +611,10 @@ public enum ModParam {
         }
         public static ParamFormatter ID =
                 new ParamFormatter(n -> Integer.toString(n),n -> Boolean.toString(n));
+
+        public static ParamFormatter intMapper(int max) {
+            return intF(n -> String.format("%d", Util.mapRange(n,0,127,0,max)));
+        }
     }
     /**
      * Can't access constants in enum constructor calls, but can access a static class ...
@@ -721,6 +729,23 @@ public enum ModParam {
                 616, 638, 659, 682, 705, 728, 752, 777,
                 802, 828, 855, 883, 911, 940, 970, 1000};
 
+        double[] FILTER_RESONANCE = new double[] {
+                0.50, 0.51, 0.51, 0.52, 0.53, 0.54, 0.55, 0.55,
+                0.56, 0.57, 0.58, 0.59, 0.60, 0.61, 0.62, 0.63,
+                0.64, 0.64, 0.66, 0.67, 0.68, 0.69, 0.70, 0.71,
+                0.73, 0.74, 0.75, 0.76, 0.78, 0.79, 0.81, 0.82,
+                0.84, 0.84, 0.87, 0.88, 0.90, 0.92, 0.94, 0.95,
+                0.97, 0.99, 1.01, 1.03, 1.06, 1.08, 1.10, 1.12,
+                1.15, 1.17, 1.20, 1.23, 1.25, 1.28, 1.31, 1.34,
+                1.37, 1.41, 1.44, 1.48, 1.51, 1.55, 1.59, 1.63,
+                1.67, 1.72, 1.76, 1.81, 1.86, 1.91, 1.97, 2.03,
+                2.08, 2.15, 2.21, 2.28, 2.35, 2.42, 2.50, 2.58,
+                2.67, 2.76, 2.85, 2.95, 3.05, 3.16, 3.28, 3.40,
+                3.53, 3.67, 3.81, 3.96, 4.13, 4.30, 4.49, 4.68,
+                4.89, 5.12, 5.36, 5.61, 5.89, 6.19, 6.51, 6.85,
+                7.23, 7.64, 8.08, 8.56, 9.08, 9.66, 10, 11,
+                12, 13, 14, 15, 16, 17, 19, 20,
+                22, 25, 27, 30, 34, 38, 44, 50};
 
     }
 

@@ -256,4 +256,16 @@ public class Util {
         f.accept(m);
         return m;
     }
+
+    public static int mapRange(int value, int fromMin, int fromMax, int toMin, int toMax) {
+        if (value < fromMin) {
+            return toMin;
+        }
+        if (value > fromMax) {
+            return toMax;
+        }
+        // Scale value from old range to new range
+        return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
+    }
+
 }
