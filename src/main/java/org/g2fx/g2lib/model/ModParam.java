@@ -22,7 +22,7 @@ public enum ModParam {
     FreqFine
     (0,127,64),
     Level_100
-    (0,127,0),
+    (0,127,0, ParamConstants.ID),
     FreqMode_3
     (0,
      "Semi", "Freq", "Fac", "Part"),
@@ -158,7 +158,8 @@ public enum ModParam {
     (0,
      "A", "E", "I", "O", "U", "Y", "AA", "AE", "OE"),
     FltFreq
-    (0,127,75),
+    (0,127,75, n ->
+            formatHz(440.0 * Math.pow(2, (double) (n - 60) / 12))), //TODO lo shd be 13.76hz but is 13.8hz
     Level_200
     (0,127,0),
     GcOffOn
@@ -618,6 +619,8 @@ public enum ModParam {
                 "4.59s", "4.76s", "4.92s", "5.10s", "5.28s", "5.46s", "5.66s", "5.86s",
                 "6.06s", "6.28s", "6.50s", "6.73s", "6.96s", "7.21s", "7.46s", "7.73s",
                 "8.00s", "8.28s", "8.57s", "8.88s", "9.19s", "9.51s", "9.85s", "10.2s"};
+
+        Function<Integer, String> ID = n -> Integer.toString(n);
     }
 
 
