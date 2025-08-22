@@ -187,7 +187,7 @@ public class ModulePane {
         if (p != null && f != null) {
             formatParam(l,p,f);
         } else {
-            //TODO warn on unimplemented control
+            System.out.println("TextField TODO: " + this + ":" + ip);
         }
 
         return l;
