@@ -34,6 +34,8 @@ public record UIModule<C> (
                 UIElement e = mapper.convertValue(c,et.getType());
                 cs.add(e);
             }
+            //sort controls so dependency-having controls go last
+            cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
         return m;

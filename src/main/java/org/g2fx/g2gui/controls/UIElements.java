@@ -35,7 +35,6 @@ public class UIElements {
       , ButtonRadio { @Override public Class<? extends UIElement> getType() { return ButtonRadio.class; } }
       , ButtonRadioEdit { @Override public Class<? extends UIElement> getType() { return ButtonRadioEdit.class; } }
       , ButtonText { @Override public Class<? extends UIElement> getType() { return ButtonText.class; } }
-      , Graph { @Override public Class<? extends UIElement> getType() { return Graph.class; } }
       , Input { @Override public Class<? extends UIElement> getType() { return Input.class; } }
       , Knob { @Override public Class<? extends UIElement> getType() { return Knob.class; } }
       , Led { @Override public Class<? extends UIElement> getType() { return Led.class; } }
@@ -47,8 +46,10 @@ public class UIElements {
       , Symbol { @Override public Class<? extends UIElement> getType() { return Symbol.class; } }
       , Text { @Override public Class<? extends UIElement> getType() { return Text.class; } }
       , TextEdit { @Override public Class<? extends UIElement> getType() { return TextEdit.class; } }
+      //dependencies sort last
       , TextField { @Override public Class<? extends UIElement> getType() { return TextField.class; } }
-        ;
+      , Graph { @Override public Class<? extends UIElement> getType() { return Graph.class; } }
+      ;
         public abstract Class<? extends UIElement> getType();
     }
 

@@ -101,6 +101,13 @@
     -fx-stroke-width: 2;
 }
 
+.module-text-label {
+    -fx-background-color: #787878;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+    -fx-text-fill: #FFFFFF;
+}
+
 .cable-checkbox {
     -fx-padding: 0;
 }

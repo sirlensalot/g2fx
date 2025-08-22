@@ -5,6 +5,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -17,9 +18,9 @@ import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
@@ -70,6 +71,8 @@ public class ModulePane {
             "#D2BED2" // 24
     };
 
+    private final Map<Integer,Property<Integer>> intProps = new TreeMap<>();
+    private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
 
 
     /**
@@ -157,12 +160,51 @@ public class ModulePane {
 
             case UIElements.Knob c -> mkKnob(c,resolveParam(c.Control()));
 
-            case UIElements.Text c -> layout(e,label(c.Text()));
+            case UIElements.Text c -> mkText(c);
 
             case UIElements.Line c -> mkLine(c);
 
+            case UIElements.TextField c -> mkTextField(c);
+
             default -> empty(e);
         };
+    }
+
+    private static Label mkText(UIElements.Text c) {
+        Label b = label(c.Text());
+        b.setLayoutX(c.XPos());
+        b.setLayoutY(c.YPos()-2.5);
+        return b;
+    }
+
+    private Node mkTextField(UIElements.TextField c) {
+        IndexParam ip = resolveParam(c.MasterRef());
+        Property<Integer> p = intProps.get(ip.index);
+        Label l = layout(c,withClass(new Label("0"),"module-text-label"));
+        l.setAlignment(Pos.CENTER);
+        l.setPrefWidth(c.Width());
+        if (p != null) {
+            switch (ip.param.param()) {
+                case EqdB -> formatParam(l,p,n -> String.format("%.01fdB",
+                        (n == 127 ? 64 : n - 64) / 3.55555));
+                case EqMidFreq ->
+                        formatParam(l,p,n -> {
+                    double f = 20 * Math.pow(2, n / 13.169);
+                    return f >= 1000 ?
+                            String.format("%.01fkHz", f / 1000) :
+                            String.format("%.01fHz", f);
+                });
+                default -> System.out.println("mkTextField: TODO: " + ip);
+            }
+        } else {
+            //TODO warn on unimplemented control
+        }
+
+        return l;
+    }
+
+    private <T> void formatParam(Label l, Property<T> p, Function<T,String> f) {
+        p.addListener((c,o,n) -> l.setText(n != null ? f.apply(n) : ""));
     }
 
     private Node mkButtonText(UIElement e, UIElements.ButtonText c) {
@@ -203,7 +245,7 @@ public class ModulePane {
             };
             Knob knob = new Knob(ip.param.name(), scale, c.Type().isReset);
             layout(c, knob);
-            parent.bindVarControl(knob.getValueProperty(), v -> {
+            bindVarControl(ip,intProps,knob.getValueProperty(), v -> {
                 Property<Integer> p =
                         new SimpleObjectProperty<>(knob, varPropName(ip, v), null);
                 moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
@@ -261,7 +303,7 @@ public class ModulePane {
 
     private <T extends Node> T mkToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty,
                                         ObservableValue<Boolean> defeatUndoProperty) {
-        parent.bindVarControl(selectedProperty, v -> {
+        bindVarControl(ip,boolProps,selectedProperty, v -> {
             SimpleBooleanProperty p =
                     new SimpleBooleanProperty(b, varPropName(ip, v),false);
             FxProperty.SimpleFxProperty<Boolean> fxProperty = defeatUndoProperty == null ?
@@ -357,7 +399,19 @@ public class ModulePane {
                 return new IndexParam(p,i);
             }
         }
-        throw new IllegalArgumentException("Bad control name: " + control + ", module type: " + type);
+        throw new IllegalArgumentException("Bad control name: " + control + ", module: " + this);
+    }
+
+    private IndexParam resolveParam(int index) {
+        if (index > type.getParams().size()) {
+            throw new IllegalArgumentException("Bad param index: " + index + ", module: " + this);
+        }
+        return new IndexParam(type.getParams().get(index),index);
+    }
+
+    private <T> void bindVarControl(IndexParam ip, Map<Integer,Property<T>> coll, Property<T> control, IntFunction<Property<T>> varPropBuilder) {
+        parent.bindVarControl(control,varPropBuilder);
+        coll.put(ip.index,control);
     }
 
 
