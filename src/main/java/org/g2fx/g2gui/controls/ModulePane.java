@@ -183,19 +183,9 @@ public class ModulePane {
         Label l = layout(c,withClass(new Label("0"),"module-text-label"));
         l.setAlignment(Pos.CENTER);
         l.setPrefWidth(c.Width());
-        if (p != null) {
-            switch (ip.param.param()) {
-                case EqdB -> formatParam(l,p,n -> String.format("%.01fdB",
-                        (n == 127 ? 64 : n - 64) / 3.55555));
-                case EqMidFreq ->
-                        formatParam(l,p,n -> {
-                    double f = 20 * Math.pow(2, n / 13.169);
-                    return f >= 1000 ?
-                            String.format("%.01fkHz", f / 1000) :
-                            String.format("%.01fHz", f);
-                });
-                default -> System.out.println("mkTextField: TODO: " + ip);
-            }
+        Function<Integer, String> f = ip.param.param().formatter;
+        if (p != null && f != null) {
+            formatParam(l,p,f);
         } else {
             //TODO warn on unimplemented control
         }

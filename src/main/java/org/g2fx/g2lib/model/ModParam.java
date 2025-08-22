@@ -1,6 +1,7 @@
 package org.g2fx.g2lib.model;
 
 import java.util.List;
+import java.util.function.Function;
 
 public enum ModParam {
 
@@ -118,7 +119,8 @@ public enum ModParam {
     NoiseColor
     (0,127,0),
     EqdB
-    (0,127,64),
+    (0,127,64, n -> String.format("%.01fdB",
+            (n == 127 ? 64 : n - 64) / 3.55555)),
     EqLoFreq
     (0,
      "80 Hz", "110 Hz", "160 Hz"),
@@ -126,7 +128,7 @@ public enum ModParam {
     (0,
      "6 kHz", "8 kHz", "12 kHz"),
     EqMidFreq
-    (0,127,93),
+    (0,127,93, n -> formatHz(100 * Math.pow(2, n / 20.089))),
     ShpExpCurve
     (0,
      "x2", "x3", "x4", "x5"),
@@ -288,7 +290,7 @@ public enum ModParam {
     (0,
      "Notch", "Peak", "Deep"),
     Freq_3
-    (0,127,60),
+    (0,127,60, n -> formatHz(20 * Math.pow(2, n / 13.169))),
     EqPeakBandwidth
     (0,127,64),
     VocoderBand
@@ -524,16 +526,27 @@ public enum ModParam {
 
     ;
 
+    private static String formatHz(double f) {
+        return f >= 1000 ?
+                String.format("%.01fkHz", f / 1000) :
+                String.format("%.01fHz", f);
+    }
+
 
     public final int min;
     public final int max;
     public final int def;
+    public final Function<Integer, String> formatter;
     public final List<String> enums;
 
     ModParam(int min, int max, int def) {
+        this(min,max,def,null);
+    }
+    ModParam(int min, int max, int def, Function<Integer,String> formatter) {
         this.min = min;
         this.max = max;
         this.def = def;
+        this.formatter = formatter;
         this.enums = null;
         if (def < min || def > max) {
             throw new IllegalArgumentException("Invalid default: " + def);
@@ -548,6 +561,7 @@ public enum ModParam {
         if (def < min || def > max) {
             throw new IllegalArgumentException("Invalid default: " + def);
         }
+        formatter = null;
     }
 
     public NamedParam mk(String name) {
