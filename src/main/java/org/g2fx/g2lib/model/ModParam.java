@@ -3,6 +3,8 @@ package org.g2fx.g2lib.model;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.g2fx.g2lib.model.ModParam.ParamFormatter.intF;
+
 public enum ModParam {
 
     Dst_2
@@ -10,6 +12,7 @@ public enum ModParam {
      "Out", "Fx", "Bus"),
     OffOn
     (0,
+     ParamFormatter.boolF(b -> b ? "4" : "0"),
      "Off", "On"),
     Pad_1
     (0,
@@ -22,7 +25,7 @@ public enum ModParam {
     FreqFine
     (0,127,64),
     Level_100
-    (0,127,0, ParamConstants.ID),
+    (0,127,0, ParamFormatter.ID),
     FreqMode_3
     (0,
      "Semi", "Freq", "Fac", "Part"),
@@ -119,8 +122,8 @@ public enum ModParam {
     NoiseColor
     (0,127,0),
     EqdB
-    (0,127,64, n -> String.format("%.01fdB",
-            (n == 127 ? 64 : n - 64) / 3.55555)),
+    (0,127,64, intF(n -> String.format("%.01fdB",
+            (n == 127 ? 64 : n - 64) / 3.55555))),
     EqLoFreq
     (0,
      "80 Hz", "110 Hz", "160 Hz"),
@@ -128,7 +131,7 @@ public enum ModParam {
     (0,
      "6 kHz", "8 kHz", "12 kHz"),
     EqMidFreq
-    (0,127,93, n -> formatHz(100 * Math.pow(2, n / 20.089))),
+    (0,127,93, intF(n -> formatHz(100 * Math.pow(2, n / 20.089)))),
     ShpExpCurve
     (0,
      "x2", "x3", "x4", "x5"),
@@ -158,8 +161,8 @@ public enum ModParam {
     (0,
      "A", "E", "I", "O", "U", "Y", "AA", "AE", "OE"),
     FltFreq
-    (0,127,75, n ->
-            formatHz(440.0 * Math.pow(2, (double) (n - 60) / 12))), //TODO lo shd be 13.76hz but is 13.8hz
+    (0,127,75, intF(n ->
+            formatHz(440.0 * Math.pow(2, (double) (n - 60) / 12)))), //TODO lo shd be 13.76hz but is 13.8hz
     Level_200
     (0,127,0),
     GcOffOn
@@ -291,7 +294,7 @@ public enum ModParam {
     (0,
      "Notch", "Peak", "Deep"),
     Freq_3
-    (0,127,60, n -> formatHz(20 * Math.pow(2, n / 13.169))),
+    (0,127,60, intF(n -> formatHz(20 * Math.pow(2, n / 13.169)))),
     EqPeakBandwidth
     (0,127,64),
     VocoderBand
@@ -345,21 +348,22 @@ public enum ModParam {
     (0,
      "Notes Only", "Note+Ctrls"),
     Threshold_42
-    (0,42,18,n -> n == 42 ? "Off" : (n-30)+"dB"),
+    (0,42,18, intF(n -> n == 42 ? "Off" : (n-30)+"dB")),
     CompressorRatio
-    (0,66,20, n -> String.format("%.01f:1",
+    (0,66,20,
+            intF(n -> String.format("%.01f:1",
             n < 10 ? 1 + n/10 :
                     n < 25 ? n/5 :
                             n < 35 ? 5 + (n-25)/2 :
                                     n < 45 ? (float) 10 + (n-35) :
                                             n < 60 ? 20 + (n-45)*2 :
-                                                    50 + (n-60)*5)),
+                                                    50 + (n-60)*5))),
     CompressorAttack
-    (0,127,1, n -> ParamConstants.COMPR_ATTACK_TIMES[n]),
+    (0,127,1, intF(n -> ParamConstants.COMPR_ATTACK_TIMES[n])),
     CompressorRelease
-    (0,127,20, n -> ParamConstants.COMPR_RELEASE_TIMES[n]),
+    (0,127,20, intF(n -> ParamConstants.COMPR_RELEASE_TIMES[n])),
     CompressorRefLevel
-    (0,42,30, n -> (n - 30) + "dB"),
+    (0,42,30, intF(n -> (n - 30) + "dB")),
     KeyQuantCapture
     (0,
      "Closest", "Evenly"),
@@ -543,13 +547,13 @@ public enum ModParam {
     public final int min;
     public final int max;
     public final int def;
-    public final Function<Integer, String> formatter;
+    public final ParamFormatter formatter;
     public final List<String> enums;
 
     ModParam(int min, int max, int def) {
         this(min,max,def,null);
     }
-    ModParam(int min, int max, int def, Function<Integer,String> formatter) {
+    ModParam(int min, int max, int def, ParamFormatter formatter) {
         this.min = min;
         this.max = max;
         this.def = def;
@@ -561,6 +565,10 @@ public enum ModParam {
     }
 
     ModParam(int def,String... enums) {
+        this(def, null, enums);
+    }
+
+    ModParam(int def,ParamFormatter formatter,String... enums) {
         this.min = 0;
         this.max = enums.length - 1;
         this.def = def;
@@ -568,7 +576,7 @@ public enum ModParam {
         if (def < min || def > max) {
             throw new IllegalArgumentException("Invalid default: " + def);
         }
-        formatter = null;
+        this.formatter = formatter;
     }
 
     public NamedParam mk(String name) {
@@ -579,8 +587,18 @@ public enum ModParam {
         return new NamedParam(this,name(),List.of());
     }
 
+    public record ParamFormatter(Function<Integer,String> intFmt,Function<Boolean,String> boolFmt) {
+        public static ParamFormatter intF(Function<Integer,String> f) {
+            return new ParamFormatter(f,null);
+        }
+        public static ParamFormatter boolF(Function<Boolean,String> f) {
+            return new ParamFormatter(null,f);
+        }
+        public static ParamFormatter ID =
+                new ParamFormatter(n -> Integer.toString(n),n -> Boolean.toString(n));
+    }
     /**
-     * Can't access constants in constructors, but can access a static class ...
+     * Can't access constants in enum constructor calls, but can access a static class ...
      */
     interface ParamConstants {
 
@@ -620,7 +638,7 @@ public enum ModParam {
                 "6.06s", "6.28s", "6.50s", "6.73s", "6.96s", "7.21s", "7.46s", "7.73s",
                 "8.00s", "8.28s", "8.57s", "8.88s", "9.19s", "9.51s", "9.85s", "10.2s"};
 
-        Function<Integer, String> ID = n -> Integer.toString(n);
+
     }
 
 

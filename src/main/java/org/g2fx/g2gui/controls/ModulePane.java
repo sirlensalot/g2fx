@@ -178,14 +178,17 @@ public class ModulePane {
     }
 
     private Node mkTextField(UIElements.TextField c) {
-        IndexParam ip = resolveParam(c.MasterRef());
-        Property<Integer> p = intProps.get(ip.index);
         Label l = layout(c,withClass(new Label("0"),"module-text-label"));
         l.setAlignment(Pos.CENTER);
         l.setPrefWidth(c.Width());
-        Function<Integer, String> f = ip.param.param().formatter;
-        if (p != null && f != null) {
-            formatParam(l,p,f);
+        IndexParam ip = resolveParam(c.MasterRef());
+        ModParam.ParamFormatter f = ip.param.param().formatter;
+        Property<Integer> p = intProps.get(ip.index);
+        Property<Boolean> pb = boolProps.get(ip.index);
+        if (p != null && f != null && f.intFmt() != null) {
+            formatParam(l,p,f.intFmt());
+        } else if (pb != null && f != null && f.boolFmt() != null) {
+            formatParam(l,pb,f.boolFmt());
         } else {
             System.out.println("TextField TODO: " + this + ":" + ip);
         }
