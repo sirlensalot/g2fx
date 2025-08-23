@@ -1,5 +1,7 @@
 package org.g2fx.g2gui.controls;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.List;
 
 public class UIElements {
@@ -75,11 +77,12 @@ public class UIElements {
       , Integer ImageWidth
       , List<String> Images
       , Integer InfoFunc
-      , String Text
+      , @JsonDeserialize(using = UIModule.StringToListDesz.class)
+        List<String> Text
       , Integer Width
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.ButtonFlat; }
     }
 
@@ -91,7 +94,7 @@ public class UIElements {
       , String Type
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.ButtonIncDec; }
     }
 
@@ -108,7 +111,7 @@ public class UIElements {
       , String Text
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.ButtonRadio; }
     }
 
@@ -122,7 +125,7 @@ public class UIElements {
       , String Text
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.ButtonRadioEdit; }
     }
 
@@ -138,7 +141,7 @@ public class UIElements {
       , Integer Width
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.ButtonText; }
     }
 
@@ -163,7 +166,7 @@ public class UIElements {
       , String Type
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement {
         @Override public ElementType elementType() { return ElementType.Input; }
     }
 
@@ -175,7 +178,7 @@ public class UIElements {
       , KnobType Type
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.Knob; }
     }
 
@@ -189,7 +192,7 @@ public class UIElements {
       , String Type
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement {
         @Override public ElementType elementType() { return ElementType.Led; }
     }
 
@@ -200,7 +203,7 @@ public class UIElements {
       , Integer InfoFunc
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.LevelShift; }
     }
 
@@ -224,7 +227,7 @@ public class UIElements {
       , Orientation Orientation
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement {
         @Override public ElementType elementType() { return ElementType.MiniVU; }
     }
 
@@ -237,7 +240,7 @@ public class UIElements {
       , String Type
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement {
         @Override public ElementType elementType() { return ElementType.Output; }
     }
 
@@ -254,7 +257,7 @@ public class UIElements {
       , Integer Width
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement {
         @Override public ElementType elementType() { return ElementType.PartSelector; }
     }
 
@@ -288,7 +291,7 @@ public class UIElements {
       , Integer Width
       , Integer XPos
       , Integer YPos
-    ) implements UIElement, UIControl {
+    ) implements UIElement, UIParamControl {
         @Override public ElementType elementType() { return ElementType.TextEdit; }
     }
 

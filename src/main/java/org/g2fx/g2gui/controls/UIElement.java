@@ -20,6 +20,7 @@ public sealed interface UIElement permits
         , UIElements.Text
         , UIElements.TextEdit
         , UIElements.TextField
+        , UIParamControl
 {
 
     Integer ID();

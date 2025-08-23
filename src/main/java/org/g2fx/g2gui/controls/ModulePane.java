@@ -121,9 +121,7 @@ public class ModulePane {
         addBridge(bridges.bridge(moduleSelector.name(), dd -> patchModule.name()));
 
         addBridge(bridges.bridge(color,d -> patchModule.getUserModuleData().color()));
-        color.addListener((c,o,n) -> {
-            pane.setBackground(FXUtil.rgbFill(MODULE_COLORS[n]));
-        });
+        color.addListener((c,o,n) -> pane.setBackground(FXUtil.rgbFill(MODULE_COLORS[n])));
 
         addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(),
                 new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
@@ -146,28 +144,50 @@ public class ModulePane {
     private Collection<? extends Node> renderControls() {
         List<Node> cs = new ArrayList<>(ui.Controls().size());
         for (UIElement e : ui.Controls()) {
-            cs.add(renderControl(e));
+            cs.add(renderElement(e));
         }
         return cs;
     }
 
-    private Node renderControl(UIElement e) {
+    private Node renderElement(UIElement e) {
         return switch (e) {
 
-            case UIElements.ButtonText c -> mkButtonText(e, c);
+            case UIParamControl uc -> renderParamControl(uc);
 
-            case UIElements.TextEdit c -> mkTextEdit(c);
-
-            case UIElements.Knob c -> mkKnob(c,resolveParam(c.Control()));
+            case UIElements.TextField c -> mkTextField(c);
 
             case UIElements.Text c -> mkText(c);
 
             case UIElements.Line c -> mkLine(c);
 
-            case UIElements.TextField c -> mkTextField(c);
+            default -> empty(e, "renderElement");
 
-            default -> empty(e);
         };
+    }
+
+    private Node renderParamControl(UIParamControl uc) {
+
+        IndexParam ip = resolveParam(uc);
+
+        return switch (uc) {
+
+            case UIElements.ButtonText c -> mkButtonText(c,ip);
+
+            case UIElements.ButtonFlat c -> mkButtonFlat(c,ip);
+
+            case UIElements.TextEdit c -> mkTextEdit(c,ip);
+
+            case UIElements.Knob c -> mkKnob(c,ip);
+
+            default -> empty(uc, "renderParamControl");
+        };
+
+    }
+
+
+
+    private Node mkButtonFlat(UIElements.ButtonFlat c, IndexParam ip) {
+        return empty(c, "mkButtonFlat");
     }
 
     private static Label mkText(UIElements.Text c) {
@@ -190,7 +210,7 @@ public class ModulePane {
         } else if (pb != null && f != null && f.boolFmt() != null) {
             formatParam(l,pb,f.boolFmt());
         } else {
-            System.out.println("TextField TODO: " + this + ":" + ip);
+            return empty(c,"mkTextField");
         }
 
         return l;
@@ -200,12 +220,11 @@ public class ModulePane {
         p.addListener((c,o,n) -> l.setText(n != null ? f.apply(n) : ""));
     }
 
-    private Node mkButtonText(UIElement e, UIElements.ButtonText c) {
-        IndexParam ip = resolveParam(c.Control());
+    private Node mkButtonText(UIElements.ButtonText c, IndexParam ip) {
         if (ip.param().param() == ModParam.ActiveMonitor) {
             return mkPowerButton(c, ip);
         } else if (c.Images() != null) {
-            return empty(e);
+            return empty(c, "mkButtonText+Images");
         } else if (c.Type() == UIElements.ButtonType.Check) {
             return mkTextToggle(c, ip);
         } else {
@@ -213,10 +232,10 @@ public class ModulePane {
         }
     }
 
-    private Node mkTextEdit(UIElements.TextEdit c) {
+    private Node mkTextEdit(UIElements.TextEdit c, IndexParam ip) {
         return c.Type() == UIElements.ButtonType.Check ?
-                mkTextEditToggle(c, resolveParam(c.Control())) :
-                mkTextEditMomentary(c, resolveParam(c.Control()));
+                mkTextEditToggle(c, ip) :
+                mkTextEditMomentary(c, ip);
     }
 
     private static Line mkLine(UIElements.Line c) {
@@ -248,53 +267,53 @@ public class ModulePane {
             });
             return knob;
         }
-        return empty(c);
+        return empty(c, "Slider/Knob");
     }
 
     private String varPropName(IndexParam ip, int v) {
         return type.shortName + ":" + ip.param().name() + ":" + v;
     }
 
-    private Node empty(UIElement e) {
-        //System.out.println("TODO: " + e);
+    private Node empty(UIElement e, String msg) {
+        System.out.println(msg + " TODO: " + e);
         return new Pane();
     }
 
     private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
         final ToggleButton b = new PowerButton().getButton();
-        return layout(c,mkToggle(c, ip, b, b.selectedProperty()));
+        return layout(c,mkToggle(ip, b, b.selectedProperty()));
     }
 
     private Node mkTextEditMomentary(UIElements.TextEdit c, IndexParam ip) {
         MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
-        return layout(c,makeEditable(mkNoUndoToggle(c,ip,b,b.selectedProperty()), ip));
+        return layout(c,makeEditable(mkNoUndoToggle(ip,b,b.selectedProperty()), ip));
     }
 
     private Node mkTextEditToggle(UIElements.TextEdit c, IndexParam ip) {
         ToggleButton b =withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
-        return layout(c,makeEditable(mkToggle(c, ip, b, b.selectedProperty()), ip));
+        return layout(c,makeEditable(mkToggle(ip, b, b.selectedProperty()), ip));
     }
 
     private Node mkTextMomentary(UIElements.ButtonText c, IndexParam ip) {
         MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
-        return layout(c,mkNoUndoToggle(c,ip,b,b.selectedProperty()));
+        return layout(c,mkNoUndoToggle(ip,b,b.selectedProperty()));
     }
 
     private ToggleButton mkTextToggle(UIElements.ButtonText c, IndexParam ip) {
         ToggleButton b = withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
-        return layout(c,mkToggle(c, ip, b, b.selectedProperty()));
+        return layout(c,mkToggle(ip, b, b.selectedProperty()));
     }
 
-    private <T extends Node> T mkToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty) {
-        return mkToggle(c,ip,b,selectedProperty,null);
+    private <T extends Node> T mkToggle(IndexParam ip, T b, BooleanProperty selectedProperty) {
+        return mkToggle(ip,b,selectedProperty,null);
     }
 
-    private <T extends Node> T mkNoUndoToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty) {
-        return mkToggle(c,ip,b,selectedProperty,new SimpleBooleanProperty(true));
+    private <T extends Node> T mkNoUndoToggle(IndexParam ip, T b, BooleanProperty selectedProperty) {
+        return mkToggle(ip,b,selectedProperty,new SimpleBooleanProperty(true));
     }
 
 
-    private <T extends Node> T mkToggle(UIElement c, IndexParam ip, T b, BooleanProperty selectedProperty,
+    private <T extends Node> T mkToggle(IndexParam ip, T b, BooleanProperty selectedProperty,
                                         ObservableValue<Boolean> defeatUndoProperty) {
         bindVarControl(ip,boolProps,selectedProperty, v -> {
             SimpleBooleanProperty p =
@@ -322,9 +341,8 @@ public class ModulePane {
         MenuItem editNameItem = new MenuItem("Edit name...");
         contextMenu.getItems().add(editNameItem);
 
-        button.setOnContextMenuRequested(e -> {
-            contextMenu.show(button, e.getScreenX(), e.getScreenY());
-        });
+        button.setOnContextMenuRequested(e ->
+                contextMenu.show(button, e.getScreenX(), e.getScreenY()));
 
         // When "Edit name..." is clicked, show text field for editing
         editNameItem.setOnAction(e -> {
@@ -383,16 +401,14 @@ public class ModulePane {
         return b;
     }
 
-    record IndexParam(NamedParam param, int index) {}
+    public record IndexParam(NamedParam param, int index) {}
     
-    private IndexParam resolveParam(String control) {
-        for (int i = 0; i < type.getParams().size(); i++) {
-            NamedParam p = type.getParams().get(i);
-            if (p.name().equals(control)) {
-                return new IndexParam(p,i);
-            }
-        }
-        throw new IllegalArgumentException("Bad control name: " + control + ", module: " + this);
+    private IndexParam resolveParam(UIParamControl uc) {
+        int cr = uc.CodeRef();
+        if (cr > type.getParams().size()) { throw new IllegalArgumentException("resolveParam: bad index: " + uc); }
+        NamedParam p = type.getParams().get(cr);
+        if (!p.name().equals(uc.Control())) { throw new IllegalArgumentException("resolveParam: bad name: " + uc); }
+        return new IndexParam(p,cr);
     }
 
     private IndexParam resolveParam(int index) {

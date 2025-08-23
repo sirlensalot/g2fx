@@ -1,6 +1,9 @@
 package org.g2fx.g2gui.controls;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -8,6 +11,7 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModuleType;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public record UIModule<C> (
@@ -52,4 +56,18 @@ public record UIModule<C> (
         return new ObjectMapper(
                 new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
     }
+
+    public static class StringToListDesz extends JsonDeserializer<List<String>> {
+
+        public StringToListDesz() {
+            super();
+        }
+
+        @Override
+        public List<String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            return value == null ? Collections.emptyList() : Arrays.asList(value.split("\\s*,\\s*"));
+        }
+    }
+
 }
