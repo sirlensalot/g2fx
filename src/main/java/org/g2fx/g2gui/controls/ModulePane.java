@@ -4,6 +4,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -24,6 +25,7 @@ import java.util.function.IntFunction;
 
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
+import static org.g2fx.g2lib.model.ModParam.*;
 
 public class ModulePane {
 
@@ -208,26 +210,108 @@ public class ModulePane {
     }
 
     private Node mkTextField(UIElements.TextField c) {
+
         Label l = layout(c,withClass(new Label("0"),"module-text-label"));
         l.setAlignment(Pos.CENTER);
         l.setPrefWidth(c.Width());
+
         IndexParam ip = resolveParam(c.MasterRef());
-        ModParam.ParamFormatter f = ip.param.param().formatter;
-        Property<Integer> p = intProps.get(ip.index);
+
+        ModParam.ParamFormatter pf = ip.param.param().formatter;
+
         Property<Boolean> pb = boolProps.get(ip.index);
-        if (p != null && f != null && f.intFmt() != null) {
-            formatParam(l,p,f.intFmt());
-        } else if (pb != null && f != null && f.boolFmt() != null) {
-            formatParam(l,pb,f.boolFmt());
-        } else {
-            return empty(c,"mkTextField");
+        if (pb != null && pf != null && pf.boolFmt() != null) {
+            return formatParam(l,pb,pf.boolFmt());
         }
 
+        Property<Integer> p = intProps.get(ip.index);
+        if (p != null && pf != null && pf.intFmt() != null) {
+            return formatParam(l,p,pf.intFmt());
+        }
+
+        if (c.TextFunc() == 60) {
+            return formatOscFreq(c, l);
+        }
+
+        return empty(c,"mkTextField");
+
+    }
+
+    private Label formatOscFreq(UIElements.TextField c, Label l) {
+        List<UIElements.Dependency> deps = c.Dependencies();
+        Property<Integer> pCoarse = resolveDepParam(deps, 0, FreqCoarse);
+        Property<Integer> pFine = resolveDepParam(deps, 1, FreqFine);
+        Property<Integer> pMode = resolveDepParam(deps, 2, FreqMode_3);
+        ChangeListener<Integer> listener = (cc, o, n) -> {
+            StringBuilder result = new StringBuilder();
+            final int coarse = pCoarse.getValue();
+            final int fine = pFine.getValue();
+            switch (pMode.getValue()) {
+                case 0 -> { // Semi
+                    formatFreq(coarse - 64, result);
+                    result.append("  ");
+                    formatFreq((fine - 64) * 100 / 128, result);
+                }
+                case 1 -> { // Freq
+                    double exponent = (double) ((coarse - 69) + (fine - 64) / 128) / 12;
+                    result.append(formatHz(440.0 * Math.pow(2, exponent)));
+                }
+                case 2 -> { // Fac
+                    double exponent = (double) ((coarse - 64) + (fine - 64) / 128) / 12;
+                    result.append(String.format("x%.03f", Math.pow(2, exponent)));
+                }
+                case 3 -> { // Part
+                    if (coarse <= 32) {
+                        double Exponent = (double) -(((32 - coarse) * 4) + 77 - (fine - 64) / 128) / 12;
+                        result.append(String.format("x%.02fHz", 440.0 * Math.pow(2, Exponent)));
+                    } else if (coarse <= 64) {
+                        result.append("1:").append(64 - coarse + 1);
+                    } else {
+                        result.append(coarse - 64 + 1).append(":1");
+                    }
+                    result.append("  ");
+                    formatFreq((fine - 64) * 100 / 128, result);
+                }
+                case 4 -> { // Semi PShift
+                    int cv = coarse - 64;
+                    if (cv < 0) {
+                        result.append(String.format("%.01f", (double) cv / 4));
+                    } else {
+                        result.append("+").append(String.format("%.01f", (double) cv / 4));
+                    }
+                    result.append("  ");
+                    formatFreq((fine - 64) * 100 / 128, result);
+                }
+            }
+            l.setText(result.toString());
+        };
+        pCoarse.addListener(listener);
+        pFine.addListener(listener);
+        pMode.addListener(listener);
         return l;
     }
 
-    private <T> void formatParam(Label l, Property<T> p, Function<T,String> f) {
+    private static void formatFreq(int iValue1, StringBuilder result) {
+        if (iValue1 < 0) {
+            result.append(iValue1);
+        } else {
+            result.append("+").append(iValue1);
+        }
+    }
+
+    private Property<Integer> resolveDepParam(List<UIElements.Dependency> deps, int ix, ModParam type) {
+        IndexParam ip = resolveParam(deps.get(ix).index());
+        if (ip.param().param() != type) {
+            throw new IllegalArgumentException("resolveDepParam: type mismatch: " + type + ", " + ip);
+        }
+        Property<Integer> p = intProps.get(ip.index());
+        if (p == null) { throw new IllegalArgumentException("resoveDepParam: no property found " + ip); }
+        return p;
+    }
+
+    private <T> Label formatParam(Label l, Property<T> p, Function<T,String> f) {
         p.addListener((c,o,n) -> l.setText(n != null ? f.apply(n) : ""));
+        return l;
     }
 
     private Node mkButtonText(UIElements.ButtonText c, IndexParam ip) {

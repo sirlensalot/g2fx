@@ -4124,7 +4124,7 @@ DlyEight:
     YPos: 11
     Width: 40
     MasterRef: 0
-    Dependencies: "0,s0"
+    Dependencies: "0,S0"
     TextFunc: 145
   - Class: "Text"
     ID: 12
@@ -4491,7 +4491,7 @@ DlyStereo:
     YPos: 29
     Width: 40
     MasterRef: 0
-    Dependencies: "0,6,s0"
+    Dependencies: "0,6,S0"
     TextFunc: 146
   - Class: "Knob"
     ID: 3
@@ -4533,7 +4533,7 @@ DlyStereo:
     YPos: 53
     Width: 40
     MasterRef: 0
-    Dependencies: "1,6,s0"
+    Dependencies: "1,6,S0"
     TextFunc: 146
   - Class: "Knob"
     ID: 9

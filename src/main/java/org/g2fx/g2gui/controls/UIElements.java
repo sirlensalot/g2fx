@@ -29,6 +29,10 @@ public class UIElements {
             this.isReset = isReset;
         }
     }
+    public enum DepType {
+        Param, Mode;
+    }
+    public record Dependency(DepType type, int index) {}
 
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
@@ -146,7 +150,8 @@ public class UIElements {
     }
 
     public record Graph (
-        String Dependencies
+        @JsonDeserialize(using = UIModule.DependecyDesz.class)
+        List<Dependency> Dependencies
       , Integer GraphFunc
       , Integer Height
       , Integer ID
@@ -296,7 +301,8 @@ public class UIElements {
     }
 
     public record TextField (
-        String Dependencies
+        @JsonDeserialize(using = UIModule.DependecyDesz.class)
+        List<Dependency> Dependencies
       , Integer ID
       , Integer MasterRef
       , Integer TextFunc

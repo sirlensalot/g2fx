@@ -59,15 +59,33 @@ public record UIModule<C> (
 
     public static class StringToListDesz extends JsonDeserializer<List<String>> {
 
-        public StringToListDesz() {
-            super();
-        }
-
         @Override
         public List<String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             String value = p.getValueAsString();
             return (value == null || value.isEmpty()) ? Collections.emptyList() :
                     Arrays.asList(value.split("\\s*,\\s*"));
+        }
+    }
+
+    public static class DependecyDesz extends JsonDeserializer<List<UIElements.Dependency>> {
+
+        StringToListDesz delegate = new StringToListDesz();
+
+        private int parseInt(String s) {
+            try {
+                return Integer.parseInt(s);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failure deserializing Dependency int value: " + s,e);
+            }
+        }
+        @Override
+        public List<UIElements.Dependency> deserialize(
+                JsonParser p, DeserializationContext ctxt) throws IOException {
+            return delegate.deserialize(p,ctxt).stream().map(s ->
+                    s.charAt(0) == 'S' ?
+                            new UIElements.Dependency(UIElements.DepType.Mode,parseInt(s.substring(1))) :
+                            new UIElements.Dependency(UIElements.DepType.Param,parseInt(s)))
+                    .toList();
         }
     }
 

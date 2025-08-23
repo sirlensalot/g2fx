@@ -548,7 +548,7 @@ public enum ModParam {
      "Knob","Morph")
     ;
 
-    private static String formatHz(double f) {
+    public static String formatHz(double f) {
         return f >= 1000 ?
                 String.format("%.01fkHz", f / 1000) :
                 String.format("%.01fHz", f);
