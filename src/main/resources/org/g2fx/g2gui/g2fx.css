@@ -193,7 +193,6 @@
 }
 .morph-mode-toggle {
     -fx-min-width: 40px;
-    -fx-padding: 0px;
 }
 .morphs-box {
     -fx-alignment: top-center;
@@ -203,6 +202,10 @@
     -fx-border-width: 1 1 1 1;
     -fx-border-color: #666666;
     -fx-border-style: solid;
+}
+
+.multi-toggle {
+    -fx-padding: 0px;
 }
 
 

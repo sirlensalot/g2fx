@@ -17,6 +17,11 @@ public abstract class FxProperty<T> {
         public SimpleFxProperty(Property<T> p) {
             this(p,null);
         }
+
+        /**
+         * @param p target property
+         * @param changing boolean prop for commit undos, can be null.
+         */
         public SimpleFxProperty(Property<T> p, ObservableValue<Boolean> changing) {
             super(p,changing);
             this.p = p;

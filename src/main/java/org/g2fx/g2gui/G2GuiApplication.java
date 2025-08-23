@@ -19,6 +19,7 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.ModulePane;
+import org.g2fx.g2gui.controls.MultiStateToggle;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
@@ -208,34 +209,19 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     }
 
     public ToggleButton mkMorphToggle(int index, List<String> g2Controls) {
-        var state = new SimpleObjectProperty<>(1);
-
 
         List<String> statuses = new ArrayList<>();
         statuses.add("Knob");
         statuses.addAll(g2Controls);
-        ToggleButton btn = withClass(new ToggleButton(statuses.get(1)),"morph-mode-toggle");
-        btn.setFocusTraversable(false);
-        slots.bindMorphControl(state,sv -> {
-            Property<Integer> p = new SimpleObjectProperty<>(btn,"morphMode:"+sv,1);
+        MultiStateToggle mst = new MultiStateToggle(statuses, 1, "morph-mode-toggle");
+        slots.bindMorphControl(mst.state(),sv -> {
+            Property<Integer> p = new SimpleObjectProperty<>(mst.getToggle(),"morphMode:"+sv,1);
             bridges.bridge(p,d->d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                     .getParamValueProperty(sv.var(),index+ 8));
             return p;
         });
 
-        btn.setOnAction(event -> {
-            int next = (state.get() + 1) % statuses.size();
-            state.set(next);
-            btn.setText(statuses.get(next));
-            btn.setSelected(false); // Always unselected UI
-        });
-
-        state.addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && newVal >= 0 && newVal < statuses.size())
-                btn.setText(statuses.get(newVal));
-        });
-
-        return btn;
+        return mst.getToggle();
     }
 
 

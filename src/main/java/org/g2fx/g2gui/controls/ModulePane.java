@@ -187,6 +187,16 @@ public class ModulePane {
 
 
     private Node mkButtonFlat(UIElements.ButtonFlat c, IndexParam ip) {
+        if (!c.Text().isEmpty()) {
+            MultiStateToggle mst = new MultiStateToggle(c.Text(),
+                    ip.param().param().def, // using values from yaml but default from ModParam ... sketchy?
+                    "module-multi-toggle");
+            ToggleButton toggle = mst.getToggle();
+            bindIntParam(ip, toggle,mst.state(),null);
+            layout(c, toggle);
+            toggle.setPrefWidth(c.Width());
+            return toggle;
+        }
         return empty(c, "mkButtonFlat");
     }
 
@@ -257,17 +267,21 @@ public class ModulePane {
             };
             Knob knob = new Knob(ip.param.name(), scale, c.Type().isReset);
             layout(c, knob);
-            bindVarControl(ip,intProps,knob.getValueProperty(), v -> {
-                Property<Integer> p =
-                        new SimpleObjectProperty<>(knob, varPropName(ip, v), null);
-                moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
-                        new FxProperty.SimpleFxProperty<>(p,knob.valueChangingProperty()),
-                        Iso.id()));
-                return p;
-            });
+            bindIntParam(ip, knob, knob.getValueProperty(), knob.valueChangingProperty());
             return knob;
         }
         return empty(c, "Slider/Knob");
+    }
+
+    private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
+        bindVarControl(ip,intProps, property, v -> {
+            Property<Integer> p =
+                    new SimpleObjectProperty<>(ctl, varPropName(ip, v), null);
+            moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
+                    new FxProperty.SimpleFxProperty<>(p, changing),
+                    Iso.id()));
+            return p;
+        });
     }
 
     private String varPropName(IndexParam ip, int v) {
@@ -286,21 +300,25 @@ public class ModulePane {
 
     private Node mkTextEditMomentary(UIElements.TextEdit c, IndexParam ip) {
         MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        b.setPrefWidth(c.Width());
         return layout(c,makeEditable(mkNoUndoToggle(ip,b,b.selectedProperty()), ip));
     }
 
     private Node mkTextEditToggle(UIElements.TextEdit c, IndexParam ip) {
         ToggleButton b =withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        b.setPrefWidth(c.Width());
         return layout(c,makeEditable(mkToggle(ip, b, b.selectedProperty()), ip));
     }
 
     private Node mkTextMomentary(UIElements.ButtonText c, IndexParam ip) {
         MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        b.setPrefWidth(c.Width());
         return layout(c,mkNoUndoToggle(ip,b,b.selectedProperty()));
     }
 
     private ToggleButton mkTextToggle(UIElements.ButtonText c, IndexParam ip) {
         ToggleButton b = withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        b.setPrefWidth(c.Width());
         return layout(c,mkToggle(ip, b, b.selectedProperty()));
     }
 

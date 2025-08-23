@@ -66,7 +66,8 @@ public record UIModule<C> (
         @Override
         public List<String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             String value = p.getValueAsString();
-            return value == null ? Collections.emptyList() : Arrays.asList(value.split("\\s*,\\s*"));
+            return (value == null || value.isEmpty()) ? Collections.emptyList() :
+                    Arrays.asList(value.split("\\s*,\\s*"));
         }
     }
 
