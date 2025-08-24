@@ -94,19 +94,26 @@
     -fx-stroke: #777777;
 }
 .module-line-Thin {
-    -fx-stroke-width: 1.2;
+    -fx-stroke-width: 1.3;
 }
 
 .module-line-Thick {
     -fx-stroke-width: 2;
 }
 
-.module-text-label {
+.module-text-field {
     -fx-background-color: #787878;
     -fx-text-alignment: center;
     -fx-alignment: center;
     -fx-text-fill: #FFFFFF;
 }
+
+/*
+.module-text {
+    -fx-border-width: 1;
+    -fx-border-color: black;
+}
+*/
 
 .cable-checkbox {
     -fx-padding: 0;
