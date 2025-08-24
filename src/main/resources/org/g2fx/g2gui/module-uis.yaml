@@ -4976,13 +4976,6 @@ DrumSynth:
     Height: 21
     Dependencies: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14"
     GraphFunc: 46
-  - Class: "Line"
-    ID: 22
-    XPos: 209
-    YPos: 26
-    Length: 40
-    Orientation: "Horizontal"
-    Weight: "Thin"
   - Class: "Text"
     ID: 44
     XPos: 94
@@ -4995,11 +4988,11 @@ DrumSynth:
     Text: "Dcy"
   - Class: "Line"
     ID: 28
-    XPos: 209
+    XPos: 123
     YPos: 27
-    Length: 40
+    Length: 127
     Orientation: "Horizontal"
-    Weight: "Thin"
+    Weight: "Thick"
   - Class: "Bitmap"
     ID: 35
     XPos: 24
@@ -5008,6 +5001,13 @@ DrumSynth:
     Height: 11
     Text: "MasterOsc"
     CustomText: true
+  - Class: "Line"
+    ID: 100
+    XPos: 24
+    YPos: 15
+    Length: 91
+    Orientation: "Horizontal"
+    Weight: "Thick"
   - Class: "Bitmap"
     ID: 43
     XPos: 24
@@ -5016,6 +5016,13 @@ DrumSynth:
     Height: 11
     Text: "SlaveOsc"
     CustomText: true
+  - Class: "Line"
+    ID: 101
+    XPos: 24
+    YPos: 68
+    Length: 91
+    Orientation: "Horizontal"
+    Weight: "Thick"
   - Class: "Bitmap"
     ID: 33
     XPos: 123
@@ -5032,6 +5039,14 @@ DrumSynth:
     Height: 11
     Text: "Bend"
     CustomText: true
+  - Class: "Line"
+    ID: 104
+    XPos: 125
+    YPos: 73
+    Length: 49
+    Orientation: "Horizontal"
+    Weight: "Thick"
+
 EnvADDSR:
   Name: "EnvADDSR"
   Tooltip: "Envelope ADBDSR"
@@ -16426,6 +16441,13 @@ Operator:
     Height: 12
     Text: "Envelope"
     CustomText: true
+  - Class: "Line"
+    ID: 1000
+    XPos: 34
+    YPos: 40
+    Length: 215
+    Orientation: "Horizontal"
+    Weight: "Thick"
   - Class: "Bitmap"
     ID: 25
     XPos: 35
@@ -16434,6 +16456,13 @@ Operator:
     Height: 12
     Text: "KBLevScale"
     CustomText: true
+  - Class: "Line"
+    ID: 1001
+    XPos: 34
+    YPos: 124
+    Length: 215
+    Orientation: "Horizontal"
+    Weight: "Thick"
   - Class: "Text"
     ID: 49
     XPos: 34

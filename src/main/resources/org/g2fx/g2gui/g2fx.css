@@ -209,6 +209,12 @@
 }
 
 
+.custom-text {
+    -fx-font-weight: Bold;
+    -fx-text-fill: #777777;
+}
+
+
 /* ========== KNOB CONTROL =========== */
 
 .knob {

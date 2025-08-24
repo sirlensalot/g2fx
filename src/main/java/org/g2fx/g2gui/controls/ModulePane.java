@@ -138,9 +138,23 @@ public class ModulePane {
 
             case UIElements.Line c -> mkLine(c);
 
+            case UIElements.Bitmap c -> mkBitmap(c);
+
             default -> empty(e, "renderElement");
 
         };
+    }
+
+    private Node mkBitmap(UIElements.Bitmap c) {
+        if (c.CustomText() != null && c.CustomText()) {
+            Label l = label(c.Text());
+            l.getStyleClass().addAll("custom-text","custom-text-" + c.Text().replace(' ','-'));
+            l.setPrefWidth(c.Width());
+            layout(c,l);
+            return l;
+        } else {
+            return empty(c,"Bitmap");
+        }
     }
 
     private Node renderParamControl(UIParamControl uc) {
