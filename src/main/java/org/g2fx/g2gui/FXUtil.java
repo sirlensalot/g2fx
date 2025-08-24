@@ -17,7 +17,9 @@ import javafx.util.StringConverter;
 
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
 
@@ -39,8 +41,11 @@ public class FXUtil {
         return r;
     }
 
+    private static final Map<String,ImageView> imageCache = new HashMap<>();
+
     public static ImageView getImageResource(String file) {
-        return new ImageView(new Image(getResource(file).toExternalForm()));
+        return imageCache.computeIfAbsent(file,
+                f -> new ImageView(new Image(getResource(file).toExternalForm())));
     }
 
     public static Node[] toArray(List<? extends Node> children) {
