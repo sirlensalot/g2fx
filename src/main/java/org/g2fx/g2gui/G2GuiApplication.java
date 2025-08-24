@@ -10,7 +10,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -19,6 +18,7 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.MultiStateToggle;
+import org.g2fx.g2gui.controls.TextOrImage;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
@@ -31,7 +31,6 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -213,7 +212,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         List<String> statuses = new ArrayList<>();
         statuses.add("Knob");
         statuses.addAll(g2Controls);
-        MultiStateToggle mst = new MultiStateToggle(statuses, 1, "morph-mode-toggle");
+        MultiStateToggle mst = new MultiStateToggle(TextOrImage.mkTexts(statuses), 1, "morph-mode-toggle");
         slots.bindMorphControl(mst.state(),sv -> {
             Property<Integer> p = new SimpleObjectProperty<>(mst.getToggle(),"morphMode:"+sv,1);
             bridges.bridge(p,d->d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
@@ -326,11 +325,9 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
         ModuleType.BY_PAGE.forEach((mp,l) -> modsByType.put(mp,l.stream().map(mt -> {
-            URL icon = FXUtil.getResource("module-icons" +
+            ImageView iv = FXUtil.getImageResource("module-icons" +
                     File.separator + String.format("%03d.png", mt.ix));
-            Button tb = withClass(new Button("",
-                            new ImageView(new Image(icon.toExternalForm())))
-                    ,"module-select-button");
+            Button tb = withClass(new Button("",iv),"module-select-button");
             return new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb);
         }).toList()));
 

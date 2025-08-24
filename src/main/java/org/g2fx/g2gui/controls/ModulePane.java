@@ -149,22 +149,6 @@ public class ModulePane {
         };
     }
 
-    private Node mkBitmap(UIElements.Bitmap c) {
-        if (c.CustomText() != null && c.CustomText()) {
-            Label l = label(c.Text());
-            l.getStyleClass().addAll("custom-text","custom-text-" + c.Text().replace(' ','-'));
-            l.setPrefWidth(c.Width());
-            layout(c,l);
-            return l;
-        } else {
-            URL icon = FXUtil.getResource("img" +
-                    File.separator + c.ImageFile());;
-            ImageView iv = new ImageView(new Image(icon.toExternalForm()));
-            layout(c,iv);
-            return iv;
-        }
-    }
-
     private Node renderParamControl(UIParamControl uc) {
 
         IndexParam ip = resolveParam(uc);
@@ -184,20 +168,36 @@ public class ModulePane {
 
     }
 
+    private Node mkBitmap(UIElements.Bitmap c) {
+        if (c.CustomText() != null && c.CustomText()) {
+            Label l = label(c.Text());
+            l.getStyleClass().addAll("custom-text","custom-text-" + c.Text().replace(' ','-'));
+            l.setPrefWidth(c.Width());
+            layout(c,l);
+            return l;
+        } else {
+            URL icon = FXUtil.getResource("img" +
+                    File.separator + c.ImageFile());;
+            ImageView iv = new ImageView(new Image(icon.toExternalForm()));
+            layout(c,iv);
+            return iv;
+        }
+    }
+
 
 
     private Node mkButtonFlat(UIElements.ButtonFlat c, IndexParam ip) {
-        if (!c.Text().isEmpty()) {
-            MultiStateToggle mst = new MultiStateToggle(c.Text(),
-                    ip.param().param().def, // using values from yaml but default from ModParam ... sketchy?
-                    "module-multi-toggle");
-            ToggleButton toggle = mst.getToggle();
-            bindIntParam(ip, toggle,mst.state(),null);
-            layout(c, toggle);
-            toggle.setPrefWidth(c.Width());
-            return toggle;
-        }
-        return empty(c, "mkButtonFlat");
+        List<TextOrImage> ss = c.Text().isEmpty() ?
+                TextOrImage.mkImages(c.Images()) : TextOrImage.mkTexts(c.Text());
+
+        MultiStateToggle mst = new MultiStateToggle(ss,
+                ip.param().param().def, // using values from yaml but default from ModParam ... sketchy?
+                "module-multi-toggle");
+        ToggleButton toggle = mst.getToggle();
+        bindIntParam(ip, toggle,mst.state(),null);
+        layout(c, toggle);
+        toggle.setPrefWidth(c.Width());
+        return toggle;
     }
 
     private static Label mkText(UIElements.Text c) {

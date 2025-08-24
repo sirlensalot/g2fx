@@ -133,7 +133,7 @@ public class ModuleSelector {
             hbox.getChildren().addAll(arrowButton,nameTextField);
             hbox.setAlignment(Pos.CENTER_LEFT);
         }
-        hbox.setLayoutY(1);
+        hbox.setLayoutY(0);
         return hbox;
     }
 

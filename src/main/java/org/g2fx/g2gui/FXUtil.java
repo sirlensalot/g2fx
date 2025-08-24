@@ -7,6 +7,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
@@ -35,6 +37,10 @@ public class FXUtil {
             throw new IllegalArgumentException("getResource failed: " + file);
         }
         return r;
+    }
+
+    public static ImageView getImageResource(String file) {
+        return new ImageView(new Image(getResource(file).toExternalForm()));
     }
 
     public static Node[] toArray(List<? extends Node> children) {
