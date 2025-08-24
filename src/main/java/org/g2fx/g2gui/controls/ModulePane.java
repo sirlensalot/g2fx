@@ -7,8 +7,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
@@ -22,7 +20,6 @@ import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
 
 import java.io.File;
-import java.net.URL;
 import java.util.*;
 import java.util.function.IntFunction;
 
@@ -176,11 +173,7 @@ public class ModulePane {
             layout(c,l);
             return l;
         } else {
-            URL icon = FXUtil.getResource("img" +
-                    File.separator + c.ImageFile());;
-            ImageView iv = new ImageView(new Image(icon.toExternalForm()));
-            layout(c,iv);
-            return iv;
+            return layout(c, getImageResource("img" + File.separator + c.ImageFile()));
         }
     }
 
@@ -225,8 +218,6 @@ public class ModulePane {
     private Node mkButtonText(UIElements.ButtonText c, IndexParam ip) {
         if (ip.param().param() == ModParam.ActiveMonitor) {
             return mkPowerButton(c, ip);
-        } else if (c.Images() != null) {
-            return empty(c, "mkButtonText+Images");
         } else if (c.Type() == UIElements.ButtonType.Check) {
             return mkTextToggle(c, ip);
         } else {
@@ -291,7 +282,7 @@ public class ModulePane {
     }
 
     private Node mkTextEditMomentary(UIElements.TextEdit c, IndexParam ip) {
-        MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        MomentaryButton b = withClass(new MomentaryButton(c.Text(),null), "text-toggle", FXUtil.G2_TOGGLE);
         b.setPrefWidth(c.Width());
         return layout(c,makeEditable(mkNoUndoToggle(ip,b,b.selectedProperty()), ip));
     }
@@ -303,13 +294,21 @@ public class ModulePane {
     }
 
     private Node mkTextMomentary(UIElements.ButtonText c, IndexParam ip) {
-        MomentaryButton b = withClass(new MomentaryButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        MomentaryButton b = withClass(
+                c.Images() == null ?
+                    new MomentaryButton(c.Text(),null) :
+                        new MomentaryButton(null,FXUtil.getImageResource(c.Images().getFirst())),
+                "text-toggle", FXUtil.G2_TOGGLE);
         b.setPrefWidth(c.Width());
         return layout(c,mkNoUndoToggle(ip,b,b.selectedProperty()));
     }
 
     private ToggleButton mkTextToggle(UIElements.ButtonText c, IndexParam ip) {
-        ToggleButton b = withClass(new ToggleButton(c.Text()), "text-toggle", FXUtil.G2_TOGGLE);
+        ToggleButton b = withClass(
+                MultiStateToggle.mkTextOrImageToggle(
+                        c.Images() == null ? new TextOrImage.IsText(c.Text()) :
+                                TextOrImage.mkImages(c.Images()).getFirst()),
+                "text-toggle", FXUtil.G2_TOGGLE);
         b.setPrefWidth(c.Width());
         return layout(c,mkToggle(ip, b, b.selectedProperty()));
     }
