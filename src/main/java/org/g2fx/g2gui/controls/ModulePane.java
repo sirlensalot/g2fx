@@ -230,18 +230,41 @@ public class ModulePane {
             return formatParam(l,pb,pf.boolFmt());
         }
 
-        Property<Integer> p = intProps.get(ip.index);
-        if (p != null && pf != null && pf.intFmt() != null) {
-            return formatParam(l,p,pf.intFmt());
+        Property<Integer> pi = intProps.get(ip.index);
+        if (pi != null && pf != null && pf.intFmt() != null) {
+            return formatParam(l,pi,pf.intFmt());
         }
 
         switch (c.TextFunc()) {
             case TF_OSC_FREQ: return formatOscFreq(c, l);
             case TF_LFO_FREQ: return formatLfoFreq(c, l);
+            case TF_OPERATOR_FREQ: return formatOperatorFreq(c,l);
         }
 
+        System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
         return empty(c,"mkTextField");
 
+    }
+
+    private Node formatOperatorFreq(UIElements.TextField c, Label l) {
+        Property<Integer> pCoarse = resolveDepParam(c,0);
+        Property<Integer> pFine = resolveDepParam(c,1);
+        Property<Integer> pRatio = resolveDepParam(c,2);
+        ChangeListener<Integer> listener = (cc, o, n) -> {
+            int aValue = pCoarse.getValue();
+            int iValue1 = pFine.getValue();
+            // TODO these are both bananas, port logic anew
+            if (pRatio.getValue()==0) {
+                double Fact = aValue == 0 ? 0.5 : aValue;
+                l.setText(String.format("x%.01f",Fact + Fact * iValue1 / 100));
+            } else {
+                l.setText(formatHz(Math.pow(10, Math.divideExact(aValue,4))));
+            }
+        };
+        pCoarse.addListener(listener);
+        pFine.addListener(listener);
+        pRatio.addListener(listener);
+        return l;
     }
 
     private Label formatLfoFreq(UIElements.TextField c, Label l) {

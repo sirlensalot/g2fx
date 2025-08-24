@@ -182,4 +182,5 @@ public interface ParamConstants {
 
     int TF_OSC_FREQ = 60;
     int TF_LFO_FREQ = 103;
+    int TF_OPERATOR_FREQ = 198;
 }
