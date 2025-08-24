@@ -17,6 +17,7 @@ import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.ParamFormatter;
+import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
 
@@ -45,6 +46,7 @@ public class ModulePane {
     private final ModuleSelector moduleSelector;
     private final int height;
     private final FXUtil.TextFieldFocusListener textFocusListener;
+    private final AreaId area;
     private final int index;
     private boolean selected;
 
@@ -102,7 +104,7 @@ public class ModulePane {
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges bridges, PatchModule pm, SlotPane parent) {
+                      Bridges bridges, PatchModule pm, SlotPane parent, AreaId area) {
         height = ui.Height();
         type = m.type;
         this.index = m.index;
@@ -111,6 +113,7 @@ public class ModulePane {
         this.ui = ui;
         this.parent = parent;
         this.textFocusListener = textFocusListener;
+        this.area = area;
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
 
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
@@ -399,7 +402,7 @@ public class ModulePane {
     }
 
     private Node empty(UIElement e, String msg) {
-        System.out.println(msg + " TODO: " + e + ": " + type);
+        System.out.println(msg + " TODO: " + e + ": " + this);
         return new Pane();
     }
 
@@ -574,6 +577,6 @@ public class ModulePane {
 
     @Override
     public String toString() {
-        return type + ":" + index + ":" + moduleSelector.name().getValue();
+        return String.format("%s:%d:%s [%s:%s]",type,index,moduleSelector.name().getValue(),parent.getSlot(),area);
     }
 }

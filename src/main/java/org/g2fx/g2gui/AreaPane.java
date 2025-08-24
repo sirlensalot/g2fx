@@ -122,7 +122,7 @@ public class AreaPane {
 
     private void renderModule(ModulePane.ModuleSpec m, PatchModule pm, Device d, UIModule<UIElement> ui) {
         // on fx thread
-        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, slotPane);
+        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, slotPane, areaId);
         modulePanes.add(modulePane);
         areaPane.getChildren().add(modulePane.getPane());
         setupModuleMouseHandling(modulePane);

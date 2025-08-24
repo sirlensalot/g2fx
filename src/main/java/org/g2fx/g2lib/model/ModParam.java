@@ -5,6 +5,8 @@ import org.g2fx.g2lib.util.Util;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.g2fx.g2lib.model.ParamConstants.GLIDE_TIME;
+import static org.g2fx.g2lib.model.ParamFormatter.boolF;
 import static org.g2fx.g2lib.model.ParamFormatter.intF;
 
 public enum ModParam {
@@ -281,6 +283,7 @@ public enum ModParam {
     (0,127,64),
     Sw_1
     (0,
+     boolF(b -> b ? "0" : "4"), //Non-toggles TODO
      "sw1", "sw2"),
     FlipFlopMode
     (0,
@@ -385,7 +388,9 @@ public enum ModParam {
     (0,
      "Bip", "Pos", "Neg"),
     GlideTime
-    (0,127,64),
+    (0,127,64, intF(n->aref(n,GLIDE_TIME,v ->
+            v <1000 ? String.format("%.01fm",v) :
+                    String.format("%.01fs",v/1000)))),
     Freq_1
     (0,127,64),
     CombType
