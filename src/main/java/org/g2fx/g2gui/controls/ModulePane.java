@@ -16,6 +16,7 @@ import org.g2fx.g2gui.*;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
+import org.g2fx.g2lib.model.ParamFormatter;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
 
@@ -25,12 +26,14 @@ import java.util.function.IntFunction;
 
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
-import static org.g2fx.g2lib.model.ModParam.*;
+import static org.g2fx.g2lib.model.ModParam.formatHz;
+import static org.g2fx.g2lib.model.ParamConstants.*;
 
 public class ModulePane {
 
     public static final int GRID_X = 255;
     public static final int GRID_Y = 15;
+
     /**
      * Lib-side module, ONLY ACCESS ON LIB THREAD or
      * in bridge constructors
@@ -217,7 +220,7 @@ public class ModulePane {
 
         IndexParam ip = resolveParam(c.MasterRef());
 
-        ModParam.ParamFormatter pf = ip.param.param().formatter;
+        ParamFormatter pf = ip.param.param().formatter;
 
         Property<Boolean> pb = boolProps.get(ip.index);
         if (pb != null && pf != null && pf.boolFmt() != null) {
@@ -229,19 +232,45 @@ public class ModulePane {
             return formatParam(l,p,pf.intFmt());
         }
 
-        if (c.TextFunc() == 60) {
-            return formatOscFreq(c, l);
+        switch (c.TextFunc()) {
+            case TF_OSC_FREQ: return formatOscFreq(c, l);
+            case TF_LFO_FREQ: return formatLfoFreq(c, l);
         }
 
         return empty(c,"mkTextField");
 
     }
 
+    private Label formatLfoFreq(UIElements.TextField c, Label l) {
+        Property<Integer> pRate = resolveDepParam(c,0);
+        Property<Integer> pRange = resolveDepParam(c,1);
+        ChangeListener<Integer> listener = (cc, o, n) -> {
+            int r = pRate.getValue();
+            l.setText(switch (pRange.getValue()) {
+                case 0 -> String.format("%.02f",699/(double)(r+1)); //Rate Sub
+                case 1 -> r < 32 ? // Rate Lo
+                        String.format("%.02fs",1/(0.0159 * Math.pow(2, (double) r / 12))) :
+                        String.format("%.02fHz",0.0159 * Math.pow(2, (double) r / 12));
+                case 2 -> String.format("%.01fHz",0.2555 * Math.pow(2, (double) r / 12)); // Rate Hi
+                case 3 -> Integer.toString(g2BPM(r));
+                default -> LFO_CLOCK_VALS[r/4];
+            });
+        };
+        pRange.addListener(listener);
+        pRate.addListener(listener);
+        return l;
+    }
+
+    private static int g2BPM(int rateParam) {
+        return rateParam <= 32 ? 24 + 2 * rateParam :
+                rateParam <= 96 ? 88 + rateParam - 32 :
+                        152 + (rateParam - 96) * 2;
+    }
+
     private Label formatOscFreq(UIElements.TextField c, Label l) {
-        List<UIElements.Dependency> deps = c.Dependencies();
-        Property<Integer> pCoarse = resolveDepParam(deps, 0, FreqCoarse);
-        Property<Integer> pFine = resolveDepParam(deps, 1, FreqFine);
-        Property<Integer> pMode = resolveDepParam(deps, 2, FreqMode_3);
+        Property<Integer> pCoarse = resolveDepParam(c, 0);
+        Property<Integer> pFine = resolveDepParam(c, 1);
+        Property<Integer> pMode = resolveDepParam(c, 2);
         ChangeListener<Integer> listener = (cc, o, n) -> {
             StringBuilder result = new StringBuilder();
             final int coarse = pCoarse.getValue();
@@ -299,11 +328,8 @@ public class ModulePane {
         }
     }
 
-    private Property<Integer> resolveDepParam(List<UIElements.Dependency> deps, int ix, ModParam type) {
-        IndexParam ip = resolveParam(deps.get(ix).index());
-        if (ip.param().param() != type) {
-            throw new IllegalArgumentException("resolveDepParam: type mismatch: " + type + ", " + ip);
-        }
+    private Property<Integer> resolveDepParam(ControlDependencies c, int ix) {
+        IndexParam ip = resolveParam(c.Dependencies().get(ix).index());
         Property<Integer> p = intProps.get(ip.index());
         if (p == null) { throw new IllegalArgumentException("resoveDepParam: no property found " + ip); }
         return p;
@@ -373,7 +399,7 @@ public class ModulePane {
     }
 
     private Node empty(UIElement e, String msg) {
-        System.out.println(msg + " TODO: " + e);
+        System.out.println(msg + " TODO: " + e + ": " + type);
         return new Pane();
     }
 

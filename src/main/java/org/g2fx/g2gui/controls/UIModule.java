@@ -67,7 +67,7 @@ public record UIModule<C> (
         }
     }
 
-    public static class DependecyDesz extends JsonDeserializer<List<UIElements.Dependency>> {
+    public static class DependecyDesz extends JsonDeserializer<List<ControlDependencies.Dependency>> {
 
         StringToListDesz delegate = new StringToListDesz();
 
@@ -79,12 +79,12 @@ public record UIModule<C> (
             }
         }
         @Override
-        public List<UIElements.Dependency> deserialize(
+        public List<ControlDependencies.Dependency> deserialize(
                 JsonParser p, DeserializationContext ctxt) throws IOException {
             return delegate.deserialize(p,ctxt).stream().map(s ->
                     s.charAt(0) == 'S' ?
-                            new UIElements.Dependency(UIElements.DepType.Mode,parseInt(s.substring(1))) :
-                            new UIElements.Dependency(UIElements.DepType.Param,parseInt(s)))
+                            new ControlDependencies.Dependency(UIElements.DepType.Mode,parseInt(s.substring(1))) :
+                            new ControlDependencies.Dependency(UIElements.DepType.Param,parseInt(s)))
                     .toList();
         }
     }

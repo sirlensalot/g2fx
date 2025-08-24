@@ -32,7 +32,6 @@ public class UIElements {
     public enum DepType {
         Param, Mode;
     }
-    public record Dependency(DepType type, int index) {}
 
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
@@ -158,7 +157,7 @@ public class UIElements {
       , Integer Width
       , Integer XPos
       , Integer YPos
-    ) implements UIElement {
+    ) implements UIElement, ControlDependencies {
         @Override public ElementType elementType() { return ElementType.Graph; }
     }
 
@@ -309,7 +308,7 @@ public class UIElements {
       , Integer Width
       , Integer XPos
       , Integer YPos
-    ) implements UIElement {
+    ) implements UIElement, ControlDependencies {
         @Override public ElementType elementType() { return ElementType.TextField; }
     }
 }
