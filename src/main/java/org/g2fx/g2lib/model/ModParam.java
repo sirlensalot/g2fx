@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import static org.g2fx.g2lib.model.ParamConstants.GLIDE_TIME;
+import static org.g2fx.g2lib.model.ParamConstants.PHASER_FREQ;
 import static org.g2fx.g2lib.model.ParamFormatter.boolF;
 import static org.g2fx.g2lib.model.ParamFormatter.intF;
 
@@ -475,7 +476,7 @@ public enum ModParam {
     (0,
      "Type I", "Type II"),
     PhaserFreq
-    (0,127,64),
+    (0,127,64, intF(n -> String.format("%.02fHz",PHASER_FREQ[n]))),
     ExpLin_1
     (0,
      "Exp", "Lin"),
