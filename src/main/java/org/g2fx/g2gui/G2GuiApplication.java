@@ -18,10 +18,10 @@ import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.LoadMeter;
-import org.g2fx.g2gui.controls.ModulePane;
 import org.g2fx.g2gui.controls.MultiStateToggle;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
@@ -289,7 +289,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         HBox undoRedoBar = withClass(new HBox(undoButton,redoButton),"undo-redo-bar");
 
         ObservableList<String> moduleColors =
-                FXCollections.observableArrayList(ModulePane.MODULE_COLORS);
+                FXCollections.observableArrayList(ParamConstants.MODULE_COLORS);
         ComboBox<String> moduleColorsCombo = FXUtil.withClass(
                 new ComboBox<>(moduleColors),"module-colors-combo");
         Platform.runLater(() -> {

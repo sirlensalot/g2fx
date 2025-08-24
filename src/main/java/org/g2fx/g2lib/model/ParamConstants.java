@@ -217,13 +217,31 @@ public interface ParamConstants {
             59000, 63600, 68600, 74000, 79800, 86000, 92800, 100000};
 
 
-
-    int TF_OSC_FREQ = 60;
-    int TF_LFO_FREQ = 103;
-    int TF_OPERATOR_FREQ = 198; // TODO very wrong
-    int TF_CONSTANT = 96; // TODO doesn't honor BiP switch, has deps though
-    int TF_CLK_GEN = 110;
-    int TF_PULSE_TIME = 122;
-    int TF_MIX_LEV = 102; // TODO doesn't handle Exp
-    int TF_PSHIFT_FREQ = 201;
+    String[] MODULE_COLORS = new String[] {
+            "#EEEEEE", // JavaFX default-ish, as opposed to "#C0C0C0" from o/s editor
+            "#BABACC", // 1
+            "#BACCBA", // 2
+            "#CCBAB0", // 3
+            "#AACBD0", // 4
+            "#D4A074", // 5
+            "#7A77E5", // 6 R
+            "#BDC17B", // 7
+            "#80B982", // 8
+            "#48D1E7", // 9
+            "#62D193", // 10
+            "#7DC7DE", // 11
+            "#C29A8F", // 12
+            "#817DBA", // 13
+            "#8D8DCA", // 14
+            "#A5D1DE", // 15
+            "#9CCF94", // 16
+            "#C7D669", // 17
+            "#C8D2A0", // 18
+            "#D2D2BE", // 19
+            "#C08C80", // 20
+            "#C773D6", // 21
+            "#BE82BE", // 22
+            "#D2A0CD", // 23
+            "#D2BED2" // 24
+    };
 }
