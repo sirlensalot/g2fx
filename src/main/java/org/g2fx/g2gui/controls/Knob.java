@@ -75,7 +75,7 @@ public class Knob extends Control {
             //triangle.setTranslateX(2);
             triangle.setTranslateY(-12.5);
             value.addListener((c,o,n) -> {
-                triangle.setFill(n == MAX/2 ? Color.LIGHTGREEN : Color.GREEN);
+                triangle.setFill(n == MAX/2 + 1 ? Color.LIGHTGREEN : Color.GREEN);
             });
             cs.addFirst(triangle);
             setTranslateY(bottom-1);

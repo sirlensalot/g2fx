@@ -28,6 +28,7 @@ import java.util.function.IntFunction;
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
 import static org.g2fx.g2lib.model.ModParam.formatHz;
+import static org.g2fx.g2lib.model.ModParam.formatMillisSecs;
 import static org.g2fx.g2lib.model.ParamConstants.*;
 
 public class ModulePane {
@@ -239,11 +240,54 @@ public class ModulePane {
             case TF_OSC_FREQ: return formatOscFreq(c, l);
             case TF_LFO_FREQ: return formatLfoFreq(c, l);
             case TF_OPERATOR_FREQ: return formatOperatorFreq(c,l);
+            case TF_CLK_GEN: return formatClkTempo(c,l);
+            case TF_PULSE_TIME: return formatPulseTime(c,l);
+            case TF_PSHIFT_FREQ: return formatPshiftFreq(c,l);
         }
 
         System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
         return empty(c,"mkTextField");
 
+    }
+
+    private Node formatPshiftFreq(UIElements.TextField c, Label l) {
+        Property<Integer> pCoarse = resolveDepParam(c, 0);
+        Property<Integer> pFine = resolveDepParam(c, 1);
+        ChangeListener<Integer> listener =
+                mkFreqFormatListener(l, pCoarse, pFine, new SimpleObjectProperty<>(4));
+        pCoarse.addListener(listener);
+        pFine.addListener(listener);
+        return l;
+    }
+
+    private Node formatPulseTime(UIElements.TextField c, Label l) {
+        Property<Integer> pTime = resolveDepParam(c,0);
+        Property<Integer> pRange = resolveDepParam(c,1);
+        ChangeListener<Integer> listener = (cc, o, n) -> {
+            double t = PULSE_DELAY_RANGE[pTime.getValue()];
+            l.setText(formatMillisSecs(switch (pRange.getValue()) {
+                case 0 -> t/100;
+                case 1 -> t/10;
+                default -> t;
+            }));
+        };
+        pTime.addListener(listener);
+        pRange.addListener(listener);
+        return l;
+    }
+
+    private Node formatClkTempo(UIElements.TextField c, Label l) {
+        Property<Integer> pRateBpm = resolveDepParam(c,0);
+        Property<Boolean> pActive = resolveBoolDepParam(c,1);
+        Property<Integer> pSource = resolveDepParam(c,2);
+        ChangeListener<Integer> listener = (cc, o, n) -> {
+            l.setText(!pActive.getValue() ? "--" : pSource.getValue() == 1 ? "MASTER" :
+                    (g2BPM(pRateBpm.getValue()) + " BPM"));
+        };
+        pRateBpm.addListener(listener);
+        pActive.addListener((cc, o, n) -> listener.changed(null,0,0));
+        pSource.addListener(listener);
+        return l;
     }
 
     private Node formatOperatorFreq(UIElements.TextField c, Label l) {
@@ -297,7 +341,16 @@ public class ModulePane {
         Property<Integer> pCoarse = resolveDepParam(c, 0);
         Property<Integer> pFine = resolveDepParam(c, 1);
         Property<Integer> pMode = resolveDepParam(c, 2);
-        ChangeListener<Integer> listener = (cc, o, n) -> {
+        ChangeListener<Integer> listener = mkFreqFormatListener(l, pCoarse, pFine, pMode);
+        pCoarse.addListener(listener);
+        pFine.addListener(listener);
+        pMode.addListener(listener);
+        return l;
+    }
+
+    private static ChangeListener<Integer> mkFreqFormatListener(
+            Label l, Property<Integer> pCoarse, Property<Integer> pFine, Property<Integer> pMode) {
+        return (cc, o, n) -> {
             StringBuilder result = new StringBuilder();
             final int coarse = pCoarse.getValue();
             final int fine = pFine.getValue();
@@ -330,9 +383,9 @@ public class ModulePane {
                 case 4 -> { // Semi PShift
                     int cv = coarse - 64;
                     if (cv < 0) {
-                        result.append(String.format("%.01f", (double) cv / 4));
+                        result.append(String.format("%.02f", (double) cv / 4));
                     } else {
-                        result.append("+").append(String.format("%.01f", (double) cv / 4));
+                        result.append("+").append(String.format("%.02f", (double) cv / 4));
                     }
                     result.append("  ");
                     formatFreq((fine - 64) * 100 / 128, result);
@@ -340,10 +393,6 @@ public class ModulePane {
             }
             l.setText(result.toString());
         };
-        pCoarse.addListener(listener);
-        pFine.addListener(listener);
-        pMode.addListener(listener);
-        return l;
     }
 
     private static void formatFreq(int iValue1, StringBuilder result) {
@@ -358,6 +407,13 @@ public class ModulePane {
         IndexParam ip = resolveParam(c.Dependencies().get(ix).index());
         Property<Integer> p = intProps.get(ip.index());
         if (p == null) { throw new IllegalArgumentException("resoveDepParam: no property found " + ip); }
+        return p;
+    }
+
+    private Property<Boolean> resolveBoolDepParam(ControlDependencies c, int ix) {
+        IndexParam ip = resolveParam(c.Dependencies().get(ix).index());
+        Property<Boolean> p = boolProps.get(ip.index());
+        if (p == null) { throw new IllegalArgumentException("resoveBoolDepParam: no property found " + ip); }
         return p;
     }
 

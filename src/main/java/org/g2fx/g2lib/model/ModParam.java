@@ -311,7 +311,7 @@ public enum ModParam {
     Freq_3
     (0,127,60, intF(n -> formatHz(20 * Math.pow(2, n / 13.169)))),
     EqPeakBandwidth
-    (0,127,64),
+    (0,127,64, intF(n -> String.format("%.02fOct",((double)(128-n))/64))),
     VocoderBand
     (0,
      "Off", "1", "2", "3", "4", "5", "6", "7", "8",
@@ -389,9 +389,7 @@ public enum ModParam {
     (0,
      "Bip", "Pos", "Neg"),
     GlideTime
-    (0,127,64, intF(n->aref(n,GLIDE_TIME,v ->
-            v <1000 ? String.format("%.01fm",v) :
-                    String.format("%.01fs",v/1000)))),
+    (0,127,64, intF(n->aref(n,GLIDE_TIME, ModParam::formatMillisSecs))),
     Freq_1
     (0,127,64),
     CombType
@@ -554,6 +552,11 @@ public enum ModParam {
      "Knob","Morph")
     ;
 
+    public static String formatMillisSecs(Double v) {
+        return v < 1000 ? String.format("%.01fm", v) :
+                String.format("%.01fs", v / 1000);
+    }
+
     public static String formatHz(double f) {
         return f >= 1000 ?
                 String.format("%.01fkHz", f / 1000) :
@@ -607,6 +610,5 @@ public enum ModParam {
     public NamedParam mk() {
         return new NamedParam(this,name(),List.of());
     }
-
 
 }
