@@ -37,7 +37,7 @@ public class ModuleTextFieldBuilder {
 
     public Node mkTextField(UIElements.TextField c) {
 
-        Label l = layout(c,withClass(new Label("0"),"module-text-field"));
+        Label l = layout(c,withClass(new Label("0"),"module-text-field"),1);
         l.setAlignment(Pos.CENTER);
         l.setPrefWidth(c.Width());
 

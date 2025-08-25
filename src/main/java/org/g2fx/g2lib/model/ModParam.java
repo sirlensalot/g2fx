@@ -434,7 +434,7 @@ public enum ModParam {
     OpFreqFine
     (0,99,0),
     OpFreqDetune
-    (0,14,0),
+    (0,14,0,intF(n -> String.format("%d",n-7))),
     OpVel
     (0,7,0),
     OpRateScale

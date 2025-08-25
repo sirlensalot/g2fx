@@ -94,7 +94,7 @@ public class UIElements {
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , String Type
+      , Orientation Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement, UIParamControl {

@@ -26,6 +26,7 @@ import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.*;
+import static org.g2fx.g2gui.controls.UIElements.Orientation.Horizontal;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
 
 public class ModulePane {
@@ -165,6 +166,8 @@ public class ModulePane {
 
             case UIElements.ButtonFlat c -> mkButtonFlat(c,ip);
 
+            case UIElements.ButtonIncDec c -> mkButtonIncDec(c,ip);
+
             case UIElements.TextEdit c -> mkTextEdit(c,ip);
 
             case UIElements.Knob c -> mkKnob(c,ip);
@@ -174,6 +177,18 @@ public class ModulePane {
             default -> empty(uc, "renderParamControl");
         };
 
+    }
+
+    private Node mkButtonIncDec(UIElements.ButtonIncDec c, IndexParam ip) {
+        ModParam mp = ip.param().param();
+        Spinner<Integer> spinner = layout(c,withClass(new Spinner<>(mp.min, mp.max, mp.def),"module-spinner"),-1);
+        if (c.Type() == Horizontal) {
+            spinner.setRotate(90);
+            spinner.setTranslateX(6);
+            spinner.setTranslateY(-6);
+        }
+        bindIntParam(ip,spinner,spinner.getValueFactory().valueProperty(), null);
+        return spinner;
     }
 
     private Node mkLevelShift(UIElements.LevelShift c, IndexParam ip) {
@@ -186,7 +201,7 @@ public class ModulePane {
             Label l = label(c.Text());
             l.getStyleClass().addAll("custom-text","custom-text-" + c.Text().replace(' ','-'));
             l.setPrefWidth(c.Width());
-            layout(c,l);
+            ModulePane.layout(c,l,.5);
             return l;
         } else {
             return layout(c, getImageViewResource("img" + File.separator + c.ImageFile()));
@@ -426,8 +441,12 @@ public class ModulePane {
 
 
     public static <T extends Node> T layout(UIElement c, T b) {
+        return layout(c,b,0);
+    }
+
+    public static <T extends Node> T layout(UIElement c, T b, double yOffset) {
         b.setLayoutX(c.XPos());
-        b.setLayoutY(c.YPos());
+        b.setLayoutY(c.YPos() + yOffset);
         return b;
     }
 
@@ -448,7 +467,8 @@ public class ModulePane {
         return new IndexParam(type.getParams().get(index),index);
     }
 
-    private <T> void bindVarControl(IndexParam ip, Map<Integer,Property<T>> coll, Property<T> control, IntFunction<Property<T>> varPropBuilder) {
+    private <T> void bindVarControl(IndexParam ip, Map<Integer,Property<T>> coll, Property<T> control,
+                                    IntFunction<Property<T>> varPropBuilder) {
         parent.bindVarControl(control,varPropBuilder);
         coll.put(ip.index,control);
     }

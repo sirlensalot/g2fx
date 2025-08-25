@@ -1015,7 +1015,7 @@ Automate:
     YPos: 5
     CodeRef: 2
     InfoFunc: 108
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ch"
   - Class: "Text"
     ID: 7
@@ -1028,7 +1028,7 @@ Automate:
     YPos: 5
     CodeRef: 0
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ctrl"
   - Class: "Text"
     ID: 10
@@ -1475,7 +1475,7 @@ ClkDiv:
     YPos: 5
     CodeRef: 0
     InfoFunc: 2
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Divider"
   - Class: "Text"
     ID: 8
@@ -1625,7 +1625,7 @@ ClkGen:
     YPos: 35
     CodeRef: 3
     InfoFunc: 166
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "BeatSync"
   - Class: "Text"
     ID: 19
@@ -2406,7 +2406,7 @@ CtrlRcv:
     YPos: 5
     CodeRef: 1
     InfoFunc: 109
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ch"
   - Class: "Text"
     ID: 6
@@ -2419,7 +2419,7 @@ CtrlRcv:
     YPos: 5
     CodeRef: 0
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ctrl"
   - Class: "Output"
     ID: 2
@@ -2506,7 +2506,7 @@ CtrlSend:
     YPos: 5
     CodeRef: 2
     InfoFunc: 108
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ch"
   - Class: "Text"
     ID: 7
@@ -2519,7 +2519,7 @@ CtrlSend:
     YPos: 5
     CodeRef: 0
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ctrl"
   - Class: "Text"
     ID: 10
@@ -2833,7 +2833,7 @@ DXRouter:
     YPos: 37
     CodeRef: 0
     InfoFunc: 2
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Algorithm"
   - Class: "Text"
     ID: 23
@@ -2889,7 +2889,7 @@ DXRouter:
     YPos: 37
     CodeRef: 1
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Feedback"
   - Class: "Text"
     ID: 15
@@ -3892,7 +3892,7 @@ Digitizer:
     YPos: 20
     CodeRef: 0
     InfoFunc: 195
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Bits"
   - Class: "Text"
     ID: 8
@@ -8730,7 +8730,7 @@ FltPhase:
     YPos: 50
     CodeRef: 4
     InfoFunc: 2
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "NotchCount"
   - Class: "Text"
     ID: 27
@@ -9021,7 +9021,7 @@ FltVoice:
     YPos: 12
     CodeRef: 1
     InfoFunc: 78
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Vowel2"
   - Class: "TextField"
     ID: 6
@@ -9037,7 +9037,7 @@ FltVoice:
     YPos: 12
     CodeRef: 2
     InfoFunc: 78
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Vowel3"
   - Class: "TextField"
     ID: 8
@@ -9053,7 +9053,7 @@ FltVoice:
     YPos: 12
     CodeRef: 0
     InfoFunc: 78
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Vowel1"
   - Class: "Knob"
     ID: 10
@@ -10568,7 +10568,7 @@ LevScaler:
     YPos: 20
     CodeRef: 1
     InfoFunc: 13
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "BP"
   - Class: "Input"
     ID: 8
@@ -15436,7 +15436,7 @@ NoteQuant:
     YPos: 5
     CodeRef: 1
     InfoFunc: 11
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Notes"
   - Class: "Text"
     ID: 5
@@ -15541,7 +15541,7 @@ NoteRcv:
     YPos: 5
     CodeRef: 1
     InfoFunc: 109
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ch"
   - Class: "Output"
     ID: 11
@@ -15648,7 +15648,7 @@ NoteSend:
     YPos: 5
     CodeRef: 2
     InfoFunc: 108
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ch"
   - Class: "Text"
     ID: 8
@@ -15753,7 +15753,7 @@ NoteZone:
     YPos: 20
     CodeRef: 0
     InfoFunc: 109
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "RcvCh"
   - Class: "TextField"
     ID: 2
@@ -15774,7 +15774,7 @@ NoteZone:
     YPos: 20
     CodeRef: 1
     InfoFunc: 13
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "RcvMin"
   - Class: "TextField"
     ID: 6
@@ -15795,7 +15795,7 @@ NoteZone:
     YPos: 20
     CodeRef: 2
     InfoFunc: 13
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "RcvMax"
   - Class: "Text"
     ID: 10
@@ -15821,7 +15821,7 @@ NoteZone:
     YPos: 20
     CodeRef: 3
     InfoFunc: 17
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "SendTrans"
   - Class: "Text"
     ID: 14
@@ -15847,7 +15847,7 @@ NoteZone:
     YPos: 20
     CodeRef: 4
     InfoFunc: 108
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "SendCh"
   - Class: "ButtonFlat"
     ID: 19
@@ -16130,7 +16130,7 @@ Operator:
     YPos: 16
     CodeRef: 5
     InfoFunc: 196
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "FreqDetune"
   - Class: "Input"
     ID: 40
@@ -16165,7 +16165,7 @@ Operator:
     YPos: 51
     CodeRef: 6
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Vel"
   - Class: "TextField"
     ID: 45
@@ -16181,7 +16181,7 @@ Operator:
     YPos: 51
     CodeRef: 7
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "RateScale"
   - Class: "Text"
     ID: 47
@@ -16230,7 +16230,7 @@ Operator:
     YPos: 123
     CodeRef: 16
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "AMod"
   - Class: "Text"
     ID: 57
@@ -16289,7 +16289,7 @@ Operator:
     YPos: 155
     CodeRef: 21
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "RDepth"
   - Class: "Text"
     ID: 65
@@ -16321,7 +16321,7 @@ Operator:
     YPos: 155
     CodeRef: 19
     InfoFunc: 179
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "LDepth"
   - Class: "Text"
     ID: 69
@@ -16353,7 +16353,7 @@ Operator:
     YPos: 155
     CodeRef: 17
     InfoFunc: 197
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "BrPoint"
   - Class: "Text"
     ID: 73
@@ -18995,7 +18995,7 @@ PCSend:
     YPos: 5
     CodeRef: 1
     InfoFunc: 108
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Ch"
   - Class: "Text"
     ID: 8
@@ -20505,7 +20505,7 @@ RndPattern:
     YPos: 30
     CodeRef: 3
     InfoFunc: 2
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "LoopCount"
   - Class: "TextField"
     ID: 10
@@ -20583,7 +20583,7 @@ RndPattern:
     YPos: 15
     CodeRef: 0
     InfoFunc: 17
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "PatternA"
   - Class: "ButtonIncDec"
     ID: 24
@@ -20591,7 +20591,7 @@ RndPattern:
     YPos: 30
     CodeRef: 1
     InfoFunc: 17
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "PatternB"
   - Class: "TextField"
     ID: 8
@@ -22551,7 +22551,7 @@ SeqEvent:
     YPos: 4
     CodeRef: 33
     InfoFunc: 2
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "Length"
   - Class: "TextField"
     ID: 81
@@ -23204,7 +23204,7 @@ SeqLev:
     YPos: 4
     CodeRef: 33
     InfoFunc: 2
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "Length"
   - Class: "TextField"
     ID: 80
@@ -24038,7 +24038,7 @@ SeqNote:
     YPos: 4
     CodeRef: 33
     InfoFunc: 2
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "Length"
   - Class: "TextField"
     ID: 80
@@ -24894,7 +24894,7 @@ SeqVal:
     YPos: 4
     CodeRef: 33
     InfoFunc: 2
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "Length"
   - Class: "TextField"
     ID: 80
@@ -24976,7 +24976,7 @@ SeqVal:
     YPos: 79
     CodeRef: 0
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step1"
   - Class: "ButtonIncDec"
     ID: 14
@@ -24984,7 +24984,7 @@ SeqVal:
     YPos: 79
     CodeRef: 1
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step2"
   - Class: "ButtonIncDec"
     ID: 15
@@ -24992,7 +24992,7 @@ SeqVal:
     YPos: 79
     CodeRef: 2
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step3"
   - Class: "ButtonIncDec"
     ID: 16
@@ -25000,7 +25000,7 @@ SeqVal:
     YPos: 79
     CodeRef: 3
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step4"
   - Class: "ButtonIncDec"
     ID: 17
@@ -25008,7 +25008,7 @@ SeqVal:
     YPos: 79
     CodeRef: 4
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step5"
   - Class: "ButtonIncDec"
     ID: 18
@@ -25016,7 +25016,7 @@ SeqVal:
     YPos: 79
     CodeRef: 5
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step6"
   - Class: "ButtonIncDec"
     ID: 19
@@ -25024,7 +25024,7 @@ SeqVal:
     YPos: 79
     CodeRef: 6
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step7"
   - Class: "ButtonIncDec"
     ID: 20
@@ -25032,7 +25032,7 @@ SeqVal:
     YPos: 79
     CodeRef: 7
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step8"
   - Class: "ButtonIncDec"
     ID: 21
@@ -25040,7 +25040,7 @@ SeqVal:
     YPos: 79
     CodeRef: 8
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step9"
   - Class: "ButtonIncDec"
     ID: 22
@@ -25048,7 +25048,7 @@ SeqVal:
     YPos: 79
     CodeRef: 9
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step10"
   - Class: "ButtonIncDec"
     ID: 23
@@ -25056,7 +25056,7 @@ SeqVal:
     YPos: 79
     CodeRef: 10
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step11"
   - Class: "ButtonIncDec"
     ID: 24
@@ -25064,7 +25064,7 @@ SeqVal:
     YPos: 79
     CodeRef: 11
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step12"
   - Class: "ButtonIncDec"
     ID: 25
@@ -25072,7 +25072,7 @@ SeqVal:
     YPos: 79
     CodeRef: 12
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step13"
   - Class: "ButtonIncDec"
     ID: 27
@@ -25080,7 +25080,7 @@ SeqVal:
     YPos: 79
     CodeRef: 13
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step14"
   - Class: "ButtonIncDec"
     ID: 61
@@ -25088,7 +25088,7 @@ SeqVal:
     YPos: 79
     CodeRef: 14
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step15"
   - Class: "ButtonIncDec"
     ID: 63
@@ -25096,7 +25096,7 @@ SeqVal:
     YPos: 79
     CodeRef: 15
     InfoFunc: 0
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Seq1Step16"
   - Class: "TextField"
     ID: 85
@@ -26985,7 +26985,7 @@ ValSw1-2:
     YPos: 15
     CodeRef: 0
     InfoFunc: 114
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "Val"
   - Class: "Text"
     ID: 13
@@ -27051,7 +27051,7 @@ ValSw2-1:
     YPos: 15
     CodeRef: 0
     InfoFunc: 114
-    Type: "Left/Right"
+    Type: "Horizontal"
     Control: "Val"
   - Class: "Text"
     ID: 12
@@ -27281,7 +27281,7 @@ Vocoder:
     YPos: 75
     CodeRef: 0
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band1"
   - Class: "ButtonIncDec"
     ID: 28
@@ -27289,7 +27289,7 @@ Vocoder:
     YPos: 75
     CodeRef: 1
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band2"
   - Class: "ButtonIncDec"
     ID: 29
@@ -27297,7 +27297,7 @@ Vocoder:
     YPos: 75
     CodeRef: 2
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band3"
   - Class: "ButtonIncDec"
     ID: 30
@@ -27305,7 +27305,7 @@ Vocoder:
     YPos: 75
     CodeRef: 3
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band4"
   - Class: "ButtonIncDec"
     ID: 31
@@ -27313,7 +27313,7 @@ Vocoder:
     YPos: 75
     CodeRef: 4
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band5"
   - Class: "ButtonIncDec"
     ID: 32
@@ -27321,7 +27321,7 @@ Vocoder:
     YPos: 75
     CodeRef: 5
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band6"
   - Class: "ButtonIncDec"
     ID: 33
@@ -27329,7 +27329,7 @@ Vocoder:
     YPos: 75
     CodeRef: 6
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band7"
   - Class: "ButtonIncDec"
     ID: 34
@@ -27337,7 +27337,7 @@ Vocoder:
     YPos: 75
     CodeRef: 7
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band8"
   - Class: "ButtonIncDec"
     ID: 36
@@ -27345,7 +27345,7 @@ Vocoder:
     YPos: 75
     CodeRef: 8
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band9"
   - Class: "ButtonIncDec"
     ID: 37
@@ -27353,7 +27353,7 @@ Vocoder:
     YPos: 75
     CodeRef: 9
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band10"
   - Class: "ButtonIncDec"
     ID: 38
@@ -27361,7 +27361,7 @@ Vocoder:
     YPos: 75
     CodeRef: 10
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band11"
   - Class: "ButtonIncDec"
     ID: 39
@@ -27369,7 +27369,7 @@ Vocoder:
     YPos: 75
     CodeRef: 11
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band12"
   - Class: "ButtonIncDec"
     ID: 40
@@ -27377,7 +27377,7 @@ Vocoder:
     YPos: 75
     CodeRef: 12
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band13"
   - Class: "ButtonIncDec"
     ID: 41
@@ -27385,7 +27385,7 @@ Vocoder:
     YPos: 75
     CodeRef: 13
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band14"
   - Class: "ButtonIncDec"
     ID: 42
@@ -27393,7 +27393,7 @@ Vocoder:
     YPos: 75
     CodeRef: 14
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band15"
   - Class: "ButtonIncDec"
     ID: 43
@@ -27401,7 +27401,7 @@ Vocoder:
     YPos: 75
     CodeRef: 15
     InfoFunc: 79
-    Type: "Up/Down"
+    Type: "Vertical"
     Control: "Band16"
   - Class: "Line"
     ID: 35

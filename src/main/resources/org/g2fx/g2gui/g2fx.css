@@ -221,6 +221,25 @@
     -fx-text-fill: #777777;
 }
 
+.module-spinner {
+    -fx-scale-x: .8;
+    -fx-scale-y: .8;
+}
+
+.module-spinner .text-field {
+    visibility: hidden;
+    -fx-pref-width: 8px;
+    -fx-pref-height: 2.5em;
+}
+
+.module-spinner .increment-arrow-button,
+.module-spinner .decrement-arrow-button {
+    /*-fx-pref-width: 30px;*/
+    /*-fx-min-width: 16px;
+    -fx-max-width: 16px;*/
+    -fx-padding: 0 3px 0 3px;
+}
+
 
 /* ========== KNOB CONTROL =========== */
 
