@@ -22,6 +22,7 @@ import org.g2fx.g2lib.state.UserModuleData;
 import java.io.File;
 import java.util.*;
 import java.util.function.IntFunction;
+import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
@@ -30,6 +31,14 @@ public class ModulePane {
 
     public static final int GRID_X = 255;
     public static final int GRID_Y = 15;
+    public static final List<TextOrImage> LEVEL_SHIFT_IMAGES = Stream.of(
+            "LS-0-Pos.png",
+            "LS-1-PosInv.png",
+            "LS-2-Neg.png",
+            "LS-3-NegInv.png",
+            "LS-4-Bip.png",
+            "LS-5-BipInv.png").map(s -> (TextOrImage)
+              new TextOrImage.IsImage("img" + File.separator + s)).toList();
 
     /**
      * Lib-side module, ONLY ACCESS ON LIB THREAD or
@@ -160,9 +169,15 @@ public class ModulePane {
 
             case UIElements.Knob c -> mkKnob(c,ip);
 
+            case UIElements.LevelShift c -> mkLevelShift(c,ip);
+
             default -> empty(uc, "renderParamControl");
         };
 
+    }
+
+    private Node mkLevelShift(UIElements.LevelShift c, IndexParam ip) {
+        return mkButtonFlat(c,ip,LEVEL_SHIFT_IMAGES,15);
     }
 
     private Node mkBitmap(UIElements.Bitmap c) {
@@ -182,14 +197,19 @@ public class ModulePane {
     private Node mkButtonFlat(UIElements.ButtonFlat c, IndexParam ip) {
         List<TextOrImage> ss = c.Text().isEmpty() ?
                 TextOrImage.mkImages(c.Images()) : TextOrImage.mkTexts(c.Text());
+        int width = c.Width();
 
+        return mkButtonFlat(c, ip, ss, width);
+    }
+
+    private ToggleButton mkButtonFlat(UIElement c, IndexParam ip, List<TextOrImage> ss, int width) {
         MultiStateToggle mst = new MultiStateToggle(ss,
                 ip.param().param().def, // using values from yaml but default from ModParam ... sketchy?
                 "module-multi-toggle");
         ToggleButton toggle = mst.getToggle();
         bindIntParam(ip, toggle,mst.state(),null);
+        toggle.setPrefWidth(width);
         layout(c, toggle);
-        toggle.setPrefWidth(c.Width());
         return toggle;
     }
 
@@ -259,7 +279,7 @@ public class ModulePane {
     private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
         bindVarControl(ip,intProps, property, v -> {
             Property<Integer> p =
-                    new SimpleObjectProperty<>(ctl, varPropName(ip, v), null);
+                    new SimpleObjectProperty<>(ip.param().param(), varPropName(ip, v), null);
             moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
                     new FxProperty.SimpleFxProperty<>(p, changing),
                     Iso.id()));

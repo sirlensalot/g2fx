@@ -18,10 +18,22 @@ public sealed interface TextOrImage permits TextOrImage.IsText, TextOrImage.IsIm
         }
     }
 
-    record IsImage(ImageView image) implements TextOrImage {
+    final class IsImage implements TextOrImage {
+        private final ImageView image;
+        private final String file;
+        public IsImage(String file) {
+            this.file = file;
+            this.image = FXUtil.getImageResource(file);
+        }
         @Override
         public boolean isImage() {
             return true;
+        }
+        public ImageView image() { return image; }
+
+        @Override
+        public String toString() {
+            return "IsImage: " + file;
         }
     }
 
@@ -29,8 +41,7 @@ public sealed interface TextOrImage permits TextOrImage.IsText, TextOrImage.IsIm
         return ss.stream().map(s -> (TextOrImage) new IsText(s)).toList();
     }
     static List<TextOrImage> mkImages(List<String> files) {
-        return files.stream().map(s -> (TextOrImage) new IsImage(FXUtil.getImageResource(
-             "img" + File.separator + s))).toList();
+        return files.stream().map(s -> (TextOrImage) new IsImage("img" + File.separator + s)).toList();
     }
 
 }
