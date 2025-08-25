@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
@@ -31,14 +32,13 @@ public class ModulePane {
 
     public static final int GRID_X = 255;
     public static final int GRID_Y = 15;
-    public static final List<TextOrImage> LEVEL_SHIFT_IMAGES = Stream.of(
+    public static final List<Image> LEVEL_SHIFT_IMAGES = Stream.of(
             "LS-0-Pos.png",
             "LS-1-PosInv.png",
             "LS-2-Neg.png",
             "LS-3-NegInv.png",
             "LS-4-Bip.png",
-            "LS-5-BipInv.png").map(s -> (TextOrImage)
-              new TextOrImage.IsImage("img" + File.separator + s)).toList();
+            "LS-5-BipInv.png").map(s -> FXUtil.getImageResource("img" + File.separator + s)).toList();
 
     /**
      * Lib-side module, ONLY ACCESS ON LIB THREAD or
@@ -177,7 +177,8 @@ public class ModulePane {
     }
 
     private Node mkLevelShift(UIElements.LevelShift c, IndexParam ip) {
-        return mkButtonFlat(c,ip,LEVEL_SHIFT_IMAGES,15);
+        return mkButtonFlat(c,ip,LEVEL_SHIFT_IMAGES.stream().map(
+                i -> (TextOrImage) new TextOrImage.IsImage(i)).toList(),15);
     }
 
     private Node mkBitmap(UIElements.Bitmap c) {
@@ -188,7 +189,7 @@ public class ModulePane {
             layout(c,l);
             return l;
         } else {
-            return layout(c, getImageResource("img" + File.separator + c.ImageFile()));
+            return layout(c, getImageViewResource("img" + File.separator + c.ImageFile()));
         }
     }
 
@@ -317,7 +318,7 @@ public class ModulePane {
         MomentaryButton b = withClass(
                 c.Images() == null ?
                     new MomentaryButton(c.Text(),null) :
-                        new MomentaryButton(null,FXUtil.getImageResource(c.Images().getFirst())),
+                        new MomentaryButton(null,FXUtil.getImageViewResource(c.Images().getFirst())),
                 "text-toggle", FXUtil.G2_TOGGLE);
         b.setPrefWidth(c.Width());
         return layout(c,mkNoUndoToggle(ip,b,b.selectedProperty()));

@@ -1,5 +1,6 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.g2fx.g2gui.FXUtil;
 
@@ -23,7 +24,11 @@ public sealed interface TextOrImage permits TextOrImage.IsText, TextOrImage.IsIm
         private final String file;
         public IsImage(String file) {
             this.file = file;
-            this.image = FXUtil.getImageResource(file);
+            this.image = FXUtil.getImageViewResource(file);
+        }
+        public IsImage(Image image) {
+            this.file = image.getUrl();
+            this.image = new ImageView(image);
         }
         @Override
         public boolean isImage() {

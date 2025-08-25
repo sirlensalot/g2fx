@@ -41,11 +41,15 @@ public class FXUtil {
         return r;
     }
 
-    private static final Map<String,ImageView> imageCache = new HashMap<>();
+    public static ImageView getImageViewResource(String file) {
+        return new ImageView(getImageResource(file));
+    }
 
-    public static ImageView getImageResource(String file) {
+    private static final Map<String,Image> imageCache = new HashMap<>();
+
+    public static Image getImageResource(String file) {
         return imageCache.computeIfAbsent(file,
-                f -> new ImageView(new Image(getResource(file).toExternalForm())));
+                f -> new Image(getResource(file).toExternalForm()));
     }
 
     public static Node[] toArray(List<? extends Node> children) {

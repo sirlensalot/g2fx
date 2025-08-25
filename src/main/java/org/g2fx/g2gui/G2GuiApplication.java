@@ -325,7 +325,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
         ModuleType.BY_PAGE.forEach((mp,l) -> modsByType.put(mp,l.stream().map(mt -> {
-            ImageView iv = FXUtil.getImageResource("module-icons" +
+            ImageView iv = FXUtil.getImageViewResource("module-icons" +
                     File.separator + String.format("%03d.png", mt.ix));
             Button tb = withClass(new Button("",iv),"module-select-button");
             return new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb);
