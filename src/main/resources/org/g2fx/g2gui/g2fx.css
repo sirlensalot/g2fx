@@ -213,6 +213,7 @@
 
 .multi-toggle {
     -fx-padding: 0px;
+    -fx-font-size: 10px;
 }
 
 
@@ -238,6 +239,11 @@
     /*-fx-min-width: 16px;
     -fx-max-width: 16px;*/
     -fx-padding: 0 3px 0 3px;
+}
+
+.button-radio-button {
+    -fx-padding: 0px;
+    -fx-font-size: 10px;
 }
 
 

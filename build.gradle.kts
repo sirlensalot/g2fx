@@ -46,6 +46,9 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.1")
     implementation("org.jline:jline:3.26.2")
 
+    implementation("com.google.guava:guava:33.4.8-jre")
+
+
     implementation("org.controlsfx:controlsfx:11.1.2")
 
 }

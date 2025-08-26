@@ -111,7 +111,8 @@ public class UIElements {
       , List<String> Images
       , Integer InfoFunc
       , Orientation Orientation
-      , String Text
+      , @JsonDeserialize(using = UIModule.StringToListDesz.class)
+        List<String> Text
       , Integer XPos
       , Integer YPos
     ) implements UIElement, UIParamControl {
@@ -125,7 +126,8 @@ public class UIElements {
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , String Text
+      , @JsonDeserialize(using = UIModule.StringToListDesz.class)
+        List<String> Text
       , Integer XPos
       , Integer YPos
     ) implements UIElement, UIParamControl {
