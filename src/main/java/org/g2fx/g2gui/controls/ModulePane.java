@@ -1,22 +1,16 @@
 package org.g2fx.g2gui.controls;
 
-import com.google.common.collect.Streams;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
-import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.*;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
@@ -188,59 +182,16 @@ public class ModulePane {
 
     }
 
+    private Node mkButtonRadio(UIElements.ButtonRadio c, IndexParam ip) {
+        ButtonRadio br = new ButtonRadio(this,c,ip);
+        bindIntParam(ip,br.getButton(), br.selectedToggleIndexProperty(), null);
+        return br.getButton();
+    }
+
     private Node mkButtonRadioEdit(UIElements.ButtonRadioEdit c, IndexParam ip) {
         return empty(c,"ButtonRadioEdit");
     }
 
-    private Node mkButtonRadio(UIElements.ButtonRadio c, IndexParam ip) {
-        List<TextOrImage> ss = c.Text().isEmpty() ?
-                TextOrImage.mkImages(c.Images()) : TextOrImage.mkTexts(c.Text());
-        ObservableList<ToggleButton> buttons =
-                FXCollections.observableArrayList(Streams.mapWithIndex(ss.stream(),(si,ix) -> {
-                    ToggleButton tb = withClass(new ToggleButton(),"button-radio-button","g2-toggle");
-                    assert si != null; // sigh ... idea doesn't bug me for normal map?!?
-                    Node g = withClass(switch (si) {
-                        case TextOrImage.IsText t -> new Label(t.text());
-                        case TextOrImage.IsImage i -> i.image();
-                    },"button-radio-graphic");
-                    if (c.Orientation()==Vertical) {
-                        g.setRotate(-90);
-                        tb.setPrefHeight(c.ButtonWidth()-1);
-                        tb.setMaxWidth(13);
-                    } else {
-                        tb.setPrefWidth(c.ButtonWidth()-1);
-                    }
-                    tb.setGraphic(g);
-                    tb.setUserData(Long.valueOf(ix).intValue());
-                    tb.setPrefWidth(c.ButtonWidth()-1);
-                    return tb;
-                }).toList());
-
-        SegmentedButton sb = layout(c,withClass(new SegmentedButton(buttons), "module-button-radio"));
-        if (c.Orientation() == Vertical) {
-            sb.setRotate(90);
-            Platform.runLater(()-> {
-                Bounds bs = sb.getBoundsInParent(); // run later to get actual location
-                sb.setTranslateX(c.XPos()-bs.getMinX());
-                sb.setTranslateY(c.YPos()-bs.getMinY());
-            });
-        }
-        Property<Integer> selectedToggleIndexProperty =
-                new SimpleObjectProperty<>(sb, type + ":" + index + ":" + ip.index + ":" + ip.param().param().name(),
-                        ip.param().param().def);
-        sb.getToggleGroup().selectToggle(
-                buttons.get(selectedToggleIndexProperty.getValue()));
-        Platform.runLater(()-> {
-            sb.getToggleGroup().selectToggle(
-                    buttons.get(selectedToggleIndexProperty.getValue())); //TODO, this could potentially overlap with init value set?
-        });
-        sb.getToggleGroup().selectedToggleProperty().addListener((cc, o, n) ->
-                selectedToggleIndexProperty.setValue((Integer) n.getUserData()));
-        selectedToggleIndexProperty.addListener((cc, o, n) ->
-                buttons.get(n).setSelected(true));
-        bindIntParam(ip,sb,selectedToggleIndexProperty,null);
-        return sb;
-    }
 
     private Node mkButtonIncDec(UIElements.ButtonIncDec c, IndexParam ip) {
         ModParam mp = ip.param().param();
@@ -565,4 +516,12 @@ public class ModulePane {
 
     public Property<Boolean> getBoolProp(int idx) { return boolProps.get(idx); }
     public Property<Integer> getIntProp(int idx) { return intProps.get(idx); }
+
+    public ModuleType getType() {
+        return type;
+    }
+
+    public int getIndex() {
+        return index;
+    }
 }
