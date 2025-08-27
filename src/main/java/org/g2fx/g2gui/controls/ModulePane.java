@@ -184,12 +184,14 @@ public class ModulePane {
 
     private Node mkButtonRadio(UIElements.ButtonRadio c, IndexParam ip) {
         ButtonRadio br = new ButtonRadio(this,c,ip);
-        bindIntParam(ip,br.getButton(), br.selectedToggleIndexProperty(), null);
-        return br.getButton();
+        bindIntParam(ip,br.getControl(), br.selectedToggleIndexProperty(), null);
+        return br.getControl();
     }
 
     private Node mkButtonRadioEdit(UIElements.ButtonRadioEdit c, IndexParam ip) {
-        return empty(c,"ButtonRadioEdit");
+        ButtonRadio br = new ButtonRadio(this,c,ip);
+        bindIntParam(ip,br.getControl(), br.selectedToggleIndexProperty(), null);
+        return br.getControl();
     }
 
 
