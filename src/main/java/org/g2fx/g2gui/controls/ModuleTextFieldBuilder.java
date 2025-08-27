@@ -1,5 +1,6 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -43,6 +44,7 @@ public class ModuleTextFieldBuilder {
         l.setPrefWidth(c.Width());
 
         ModulePane.IndexParam ip = parent.resolveParam(c.MasterRef());
+        l.setUserData(parent.paramId(ip));
 
         ParamFormatter pf = ip.param().param().formatter;
 
@@ -223,7 +225,10 @@ public class ModuleTextFieldBuilder {
         }
     }
     private <T> Label formatParam(Label l, Property<T> p, Function<T,String> f) {
-        p.addListener((c,o,n) -> l.setText(n != null ? f.apply(n) : ""));
+        ChangeListener<T> cl = (c, o, n) ->
+            l.setText(n != null ? f.apply(n) : "");
+        p.addListener(cl);
+        Platform.runLater(() -> cl.changed(null,null,p.getValue())); //force UI update
         return l;
     }
 

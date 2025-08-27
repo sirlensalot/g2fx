@@ -115,7 +115,7 @@ public class ButtonRadio {
     private Property<Integer> setupProperty(ModulePane parent, ModulePane.IndexParam ip, ToggleGroup toggleGroup,
                                             List<ToggleButton> buttons) {
         Property<Integer> property = new SimpleObjectProperty<>(control,
-                parent.getType() + ":" + parent.getIndex() + ":" + ip.index() + ":" + ip.param().param().name(),
+                parent.paramId(ip),
                 ip.param().param().def);
         toggleGroup.selectToggle(
                 buttons.get(property.getValue()));

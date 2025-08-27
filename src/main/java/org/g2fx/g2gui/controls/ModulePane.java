@@ -198,7 +198,8 @@ public class ModulePane {
 
     private Node mkButtonIncDec(UIElements.ButtonIncDec c, IndexParam ip) {
         ModParam mp = ip.param().param();
-        Spinner<Integer> spinner = layout(c,withClass(new Spinner<>(mp.min, mp.max, mp.def),"module-spinner"),new Point2D(0,-1));
+        Spinner<Integer> spinner = layout(c,withClass(
+                new Spinner<>(mp.min, mp.max, mp.def),"module-spinner"),new Point2D(0,-1));
         if (c.Type() == Horizontal) {
             spinner.setRotate(90);
             spinner.setTranslateX(6);
@@ -510,7 +511,7 @@ public class ModulePane {
 
     @Override
     public String toString() {
-        return String.format("%s:%d:%s [%s:%s]",type,index,moduleSelector.name().getValue(),parent.getSlot(),area);
+        return String.format("%s:%s:%s:%s",parent.getSlot(),area,type,index);
     }
 
     public Property<Boolean> getBoolProp(int idx) { return boolProps.get(idx); }
@@ -530,5 +531,9 @@ public class ModulePane {
 
     public Bridges getBridges() {
         return bridges;
+    }
+
+    public String paramId(IndexParam ip) {
+        return this.toString() + ":" + ip.index() + ":" + ip.param().param().name();
     }
 }

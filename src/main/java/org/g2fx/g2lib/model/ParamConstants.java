@@ -244,4 +244,8 @@ public interface ParamConstants {
             "#D2A0CD", // 23
             "#D2BED2" // 24
     };
+
+
+    ParamFormatter SELF_AREF_SENTINEL = new ParamFormatter(null, null);
+
 }

@@ -5,9 +5,7 @@ import org.g2fx.g2lib.util.Util;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.g2fx.g2lib.model.ParamConstants.GLIDE_TIME;
-import static org.g2fx.g2lib.model.ParamConstants.PHASER_FREQ;
-import static org.g2fx.g2lib.model.ParamFormatter.boolF;
+import static org.g2fx.g2lib.model.ParamConstants.*;
 import static org.g2fx.g2lib.model.ParamFormatter.intF;
 
 public enum ModParam {
@@ -54,7 +52,7 @@ public enum ModParam {
     (0,
      "Small", "Medium", "Large", "Hall"),
     Sw_3
-    (0,
+    (0,intF(i -> Integer.toString(i*4)),
      "sw1", "sw2", "sw3", "sw4", "sw5", "sw6", "sw7", "sw8"),
     ValSwVal
     (0,63,0),
@@ -201,8 +199,9 @@ public enum ModParam {
     (0,127,0, ParamFormatter.ID),
     MidiCh_20
     (0,
-     "ch1", "ch 2", "ch3", "ch4", "ch5", "ch6", "ch7", "ch8",
-     "ch9", "ch10","ch11", "ch12", "ch13", "ch14", "ch15", "ch16",
+     SELF_AREF_SENTINEL,
+     "1", " 2", "3", "4", "5", "6", "7", "8",
+     "9", "10","11", "12", "13", "14", "15", "16",
      "This", "Slot A", "Slot B", "Slot C", "Slot D"),
     DrumSynthFreq
     (0,127,42,intF(n->String.format("%.01fHz",20.02 * Math.pow(2, (double) n /24)))),
@@ -284,7 +283,7 @@ public enum ModParam {
     (0,127,64),
     Sw_1
     (0,
-     boolF(b -> b ? "0" : "4"), //Non-toggles TODO
+     new ParamFormatter(i -> Integer.toString(i*4),b -> b ? "0" : "4"),
      "sw1", "sw2"),
     FlipFlopMode
     (0,
@@ -328,7 +327,7 @@ public enum ModParam {
     LevModAmRm
     (0,127,64),
     DigitizerBits
-    (11,
+    (11,SELF_AREF_SENTINEL,
      "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "Off"),
     DigitizerRate
     (0,127,64, intF(n -> formatHz(440 * Math.pow(2, (double) (n - 45) /12)))),
@@ -552,6 +551,7 @@ public enum ModParam {
      "Knob","Morph")
     ;
 
+
     public static String formatMillisSecs(Double v) {
         return v < 1000 ? String.format("%.01fm", v) :
                 String.format("%.01fs", v / 1000);
@@ -600,7 +600,8 @@ public enum ModParam {
         if (def < min || def > max) {
             throw new IllegalArgumentException("Invalid default: " + def);
         }
-        this.formatter = formatter;
+        this.formatter = formatter == SELF_AREF_SENTINEL ?
+                intF(i -> enums[i]) : formatter;
     }
 
     public NamedParam mk(String name) {
