@@ -3,6 +3,7 @@ package org.g2fx.g2gui.controls;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -37,7 +38,7 @@ public class ModuleTextFieldBuilder {
 
     public Node mkTextField(UIElements.TextField c) {
 
-        Label l = layout(c,withClass(new Label("0"),"module-text-field"),1);
+        Label l = layout(c,withClass(new Label("0"),"module-text-field"),new Point2D(0,1));
         l.setAlignment(Pos.CENTER);
         l.setPrefWidth(c.Width());
 

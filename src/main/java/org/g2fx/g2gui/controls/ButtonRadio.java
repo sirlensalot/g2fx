@@ -7,13 +7,16 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.Pane;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2gui.FxProperty;
+import org.g2fx.g2gui.Iso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +27,14 @@ import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
 
 public class ButtonRadio {
 
+    public static final int EDIT_WIDTH = 41;
+    public static final int EDIT_HEIGHT = 12;
     private final Node control;
     private final Property<Integer> selectedToggleIndexProperty;
 
+    /**
+     * Ctor for "ButtonRadio": not editable, image or text, single row
+     */
     public ButtonRadio(ModulePane parent, UIElements.ButtonRadio c, ModulePane.IndexParam ip) {
         List<TextOrImage> ss = c.Text().isEmpty() ?
                 TextOrImage.mkImages(c.Images()) : TextOrImage.mkTexts(c.Text());
@@ -65,45 +73,47 @@ public class ButtonRadio {
         selectedToggleIndexProperty = setupProperty(parent, ip, toggleGroup, buttons);
     }
 
+    /**
+     * Ctor for "ButtonRadioEdit": text only, editable, multiple rows
+     */
     public ButtonRadio(ModulePane parent, UIElements.ButtonRadioEdit c, ModulePane.IndexParam ip) {
 
-        ObservableList<ToggleButton> buttons =
-                FXCollections.observableArrayList(Streams.mapWithIndex(c.Text().stream(),(si, ix) -> {
-                    ToggleButton tb = withClass(new ToggleButton(si),"button-radio-button","g2-toggle");
-                    tb.setUserData(Long.valueOf(ix).intValue());
-                    tb.setMinWidth(40);
-                    return tb;
-                }).toList());
-
-        //editable TODO
-
-        ToggleGroup toggleGroup;
-        if (c.ButtonRows() == 1) {
-            SegmentedButton button = layout(c, withClass(new SegmentedButton(buttons), "module-button-radio"));
-            control = button;
-            toggleGroup = button.getToggleGroup();
-        } else {
-            List<SegmentedButton> sbs = new ArrayList<>();
-            toggleGroup = new ToggleGroup();
-            for (int row = 0; row < c.ButtonRows(); row++) {
-                ObservableList<ToggleButton> tbs = FXCollections.observableArrayList();
-                for (int col = 0; col < c.ButtonColumns(); col++) {
-                    ToggleButton tb = buttons.get(row * c.ButtonColumns() + col);
-                    tbs.add(tb);
-                    toggleGroup.getToggles().add(tb);
-                }
-                SegmentedButton sb = layout(c, withClass(new SegmentedButton(tbs), "module-button-radio"));
-                sb.setToggleGroup(toggleGroup);
-                sbs.add(sb);
+        ToggleGroup toggleGroup = new ToggleGroup();
+        Pane box = new Pane();
+        List<ToggleButton> buttons = new ArrayList<>(c.Text().size());
+        for (int row = 0; row < c.ButtonRows(); row++) {
+            for (int col = 0; col < c.ButtonColumns(); col++) {
+                int ix = row * c.ButtonColumns() + col;
+                String text = c.Text().get(ix);
+                ToggleButton tb = withClass(new ToggleButton(text), "button-radio-button", "g2-toggle",
+                        col == 0 ? "left-pill" : col + 1 < c.ButtonColumns() ? "center-pill" : "right-pill");
+                tb.setUserData(Long.valueOf(ix).intValue());
+                tb.setPrefWidth(EDIT_WIDTH);
+                tb.setToggleGroup(toggleGroup);
+                tb.setViewOrder(5);
+                buttons.add(tb);
+                TextField editor = parent.makeButtonEditField(tb);
+                double x = EDIT_WIDTH * col;
+                tb.setLayoutX(x);
+                editor.setLayoutX(x);
+                double y = EDIT_HEIGHT * row;
+                tb.setLayoutY(y);
+                editor.setLayoutY(y);
+                box.getChildren().addAll(tb,editor);
+                parent.addBridge(parent.getBridges().bridge(d ->
+                                parent.getPatchModule().getModuleLabels(ip.index()).get(ix),
+                        FxProperty.adaptReadOnly(tb.textProperty(), tb::setText),
+                        Iso.id()
+                ));
             }
-            control = withClass(FXUtil.addChildren(new VBox(),sbs),"module-button-radio-box");
         }
-        layout(c,control);
+        layout(c,box,new Point2D(1,2));
+        control = box;
         selectedToggleIndexProperty = setupProperty(parent, ip, toggleGroup, buttons);
     }
 
     private Property<Integer> setupProperty(ModulePane parent, ModulePane.IndexParam ip, ToggleGroup toggleGroup,
-                                            ObservableList<ToggleButton> buttons) {
+                                            List<ToggleButton> buttons) {
         Property<Integer> property = new SimpleObjectProperty<>(control,
                 parent.getType() + ":" + parent.getIndex() + ":" + ip.index() + ":" + ip.param().param().name(),
                 ip.param().param().def);

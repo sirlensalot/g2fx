@@ -5,6 +5,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -197,7 +198,7 @@ public class ModulePane {
 
     private Node mkButtonIncDec(UIElements.ButtonIncDec c, IndexParam ip) {
         ModParam mp = ip.param().param();
-        Spinner<Integer> spinner = layout(c,withClass(new Spinner<>(mp.min, mp.max, mp.def),"module-spinner"),-1);
+        Spinner<Integer> spinner = layout(c,withClass(new Spinner<>(mp.min, mp.max, mp.def),"module-spinner"),new Point2D(0,-1));
         if (c.Type() == Horizontal) {
             spinner.setRotate(90);
             spinner.setTranslateX(6);
@@ -217,7 +218,7 @@ public class ModulePane {
             Label l = label(c.Text());
             l.getStyleClass().addAll("custom-text","custom-text-" + c.Text().replace(' ','-'));
             l.setPrefWidth(c.Width());
-            ModulePane.layout(c,l,.5);
+            ModulePane.layout(c,l,new Point2D(0,.5));
             return l;
         } else {
             return layout(c, getImageViewResource("img" + File.separator + c.ImageFile()));
@@ -391,13 +392,22 @@ public class ModulePane {
     }
 
 
-    public  <T extends ButtonBase> Node makeEditable(T button, IndexParam ip) {
+    public <T extends ButtonBase> Node makeEditable(T button, IndexParam ip) {
 
+        TextField editor = makeButtonEditField(button);
+
+        addBridge(bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
+                FxProperty.adaptReadOnly(button.textProperty(), button::setText),
+                Iso.id()
+        ));
+
+        return new Pane(button,editor);
+    }
+
+    public <T extends ButtonBase> TextField makeButtonEditField(T button) {
         TextField editor = setTextFieldMaxLength(new TextField("-------"),7);
         editor.setPrefWidth(64);
         editor.setVisible(false);
-
-        Pane root = new Pane(button,editor);
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem editNameItem = new MenuItem("Edit name...");
@@ -412,13 +422,8 @@ public class ModulePane {
                 editor.setText(button.getText());
                 editor.setVisible(true);
                 textFocusListener.focusChange(true);
-                //editor.setPrefWidth(button.getWidth());
-                //editor.setLayoutX(button.getLayoutX());
-                //editor.setLayoutY(button.getLayoutY());
                 editor.requestFocus();
                 editor.selectAll();
-                root.requestLayout();
-
                 button.setVisible(false);
             });
 
@@ -437,15 +442,7 @@ public class ModulePane {
                 button.setVisible(true);
             }
         });
-
-        //Platform.runLater(()->editor.setVisible(false));
-
-        addBridge(bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
-                FxProperty.adaptReadOnly(button.textProperty(), button::setText),
-                Iso.id()
-        ));//TODO for sw8-1 and friends
-
-        return root;
+        return editor;
     }
 
     // Commit changes from editor back to button text
@@ -458,12 +455,12 @@ public class ModulePane {
 
 
     public static <T extends Node> T layout(UIElement c, T b) {
-        return layout(c,b,0);
+        return layout(c,b,Point2D.ZERO);
     }
 
-    public static <T extends Node> T layout(UIElement c, T b, double yOffset) {
-        b.setLayoutX(c.XPos());
-        b.setLayoutY(c.YPos() + yOffset);
+    public static <T extends Node> T layout(UIElement c, T b, Point2D offset) {
+        b.setLayoutX(c.XPos() + offset.getX());
+        b.setLayoutY(c.YPos() + offset.getY());
         return b;
     }
 
@@ -525,5 +522,13 @@ public class ModulePane {
 
     public int getIndex() {
         return index;
+    }
+
+    public PatchModule getPatchModule() {
+        return patchModule;
+    }
+
+    public Bridges getBridges() {
+        return bridges;
     }
 }
