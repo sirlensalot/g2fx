@@ -226,9 +226,14 @@ public class ModulePane {
             });
         }
         Property<Integer> selectedToggleIndexProperty =
-                new SimpleObjectProperty<>(ip.param().param().def);
+                new SimpleObjectProperty<>(sb, type + ":" + index + ":" + ip.index + ":" + ip.param().param().name(),
+                        ip.param().param().def);
         sb.getToggleGroup().selectToggle(
                 buttons.get(selectedToggleIndexProperty.getValue()));
+        Platform.runLater(()-> {
+            sb.getToggleGroup().selectToggle(
+                    buttons.get(selectedToggleIndexProperty.getValue())); //TODO, this could potentially overlap with init value set?
+        });
         sb.getToggleGroup().selectedToggleProperty().addListener((cc, o, n) ->
                 selectedToggleIndexProperty.setValue((Integer) n.getUserData()));
         selectedToggleIndexProperty.addListener((cc, o, n) ->
@@ -353,8 +358,9 @@ public class ModulePane {
     private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
         bindVarControl(ip,intProps, property, v -> {
             Property<Integer> p =
-                    new SimpleObjectProperty<>(ip.param().param(), varPropName(ip, v), null);
-            moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
+                    new SimpleObjectProperty<>(ctl, property.getName(), null);
+            moduleBridges.add(bridges.bridge(d ->
+                            patchModule.getParamValueProperty(v, ip.index),
                     new FxProperty.SimpleFxProperty<>(p, changing),
                     Iso.id()));
             return p;
