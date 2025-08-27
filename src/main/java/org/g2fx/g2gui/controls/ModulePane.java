@@ -302,7 +302,7 @@ public class ModulePane {
                 case Medium, ResetMedium -> 0.88;
                 default -> 1.0;
             };
-            Knob knob = new Knob(ip.param.name(), scale, c.Type().isReset);
+            Knob knob = new Knob(paramId(ip), scale, c.Type().isReset,ip.param().param().min,ip.param().param().max);
             layout(c, knob);
             bindIntParam(ip, knob, knob.getValueProperty(), knob.valueChangingProperty());
             return knob;

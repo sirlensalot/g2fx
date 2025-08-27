@@ -237,7 +237,7 @@ public enum ModParam {
     (0,
      "Internal", "Master"),
     ClkGenBeatSync
-    (2,
+    (2,SELF_AREF_SENTINEL,
      "1", "2", "4", "8", "16", "32"),
     ClkGenSwing
     (0,127,0),
@@ -338,7 +338,7 @@ public enum ModParam {
     (1,
      "Once", "Loop"),
     SeqLen
-    (0,
+    (0,SELF_AREF_SENTINEL,
      "1", "2", "3", "4", "5", "6", "7", "8",
      "9", "10", "11", "12", "13", "14", "15", "16"),
     Pad_2
@@ -351,13 +351,13 @@ public enum ModParam {
     (1,
      "-12 dB", "-6 dB", "0 dB","+6 dB"), //TODO reversed from 2-In yaml
     MidiCh_16
-    (0,
-     "ch1", "ch 2", "ch3", "ch4", "ch5", "ch6", "ch7", "ch8",
-     "ch9", "ch10", "ch11", "ch12", "ch13", "ch14", "ch15", "ch16", "This"),
+    (0,SELF_AREF_SENTINEL,
+     "1", " 2", "3", "4", "5", "6", "7", "8",
+     "9", "10", "11", "12", "13", "14", "15", "16", "This"),
     MidiCh_17
-    (0,
-     "ch1", "ch2", "ch3", "ch4", "ch5", "ch6", "ch7", "ch8",
-     "ch9", "ch10", "ch11", "ch12", "ch13", "ch14", "ch15", "ch16", "This", "keyb"),
+    (0,SELF_AREF_SENTINEL,
+     "1", "2", "3", "4", "5", "6", "7", "8",
+     "9", "10", "11", "12", "13", "14", "15", "16", "This", "keyb"),
     NoteZoneThru
     (0,
      "Notes Only", "Note+Ctrls"),
@@ -398,9 +398,9 @@ public enum ModParam {
     (0,
      "Sine1", "Sine2", "Sine3", "Sine4", "TriSaw", "SymPulse"),
     DxAlgorithm
-    (0,31,0),
+    (0,31,0, intF(i -> Integer.toString(i+1))),
     DxFeedback
-    (0,
+    (0,SELF_AREF_SENTINEL,
      "0", "1", "2", "3", "4", "5", "6", "7"),
     PShiftCoarse
     (0,127,64),
@@ -435,21 +435,24 @@ public enum ModParam {
     OpFreqDetune
     (0,14,0,intF(n -> String.format("%d",n-7))),
     OpVel
-    (0,7,0),
+    (0,7,0,ParamFormatter.ID),
     OpRateScale
-    (0,7,0),
+    (0,7,0,ParamFormatter.ID),
     OpTime
-    (0,99,0, ParamFormatter.intMapper(99)),
+    (0,99,0, ParamFormatter.ID),
     OpLevel
-    (0,99,0, ParamFormatter.intMapper(99)),
+    (0,99,0, ParamFormatter.ID),
     OpAmod
-    (0,7,0),
+    (0,7,0,ParamFormatter.ID),
     OpBrPpoint
-    (0,99,0),
+    (0,99,0,intF(i -> {
+        int k = i+9;
+        return KEY_NAMES[k % 12] + (k/12-1);
+    })),
     OpDepthMode
     (0,3,0),
     OpDepth
-    (0,99,0),
+    (0,99,0, ParamFormatter.ID),
     DelayTime_1
     (0,127,0),
     DelayRange_1
@@ -487,7 +490,7 @@ public enum ModParam {
     (0,
      "0%", "25%", "50%", "75%", "100%"),
     RndProb
-    (0,100,50,intF(n->String.format("%d%%",Util.mapRange(n,0,127,1,100)))),
+    (0,127,64,intF(n->String.format("%d%%",Util.mapRange(n,0,127,1,100)))),
     RandomAStepProb
     (0,
      "25%", "50%", "75%", "100%"),

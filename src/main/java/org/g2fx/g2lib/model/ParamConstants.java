@@ -245,6 +245,7 @@ public interface ParamConstants {
             "#D2BED2" // 24
     };
 
+    String[] KEY_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
 
     ParamFormatter SELF_AREF_SENTINEL = new ParamFormatter(null, null);
 

@@ -18,9 +18,11 @@ public class Knob extends Control {
 
     public static final double SIZE = 20;
 
-    public static final int MIN=0;
-    public static final int MAX=127;
+    public final int min;
+    public final int max;
     private final SimpleObjectProperty<Integer> value;
+    private final String name;
+
     private record Drag(double start,int value) {}
     private Drag drag;
     private final SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
@@ -28,10 +30,13 @@ public class Knob extends Control {
     private final SVGPath thumb;
 
     public Knob(String name, double scale) {
-        this(name,scale,false);
+        this(name,scale,false,0,127);
     }
-    public Knob(String name, double scale, boolean reset) {
+    public Knob(String name, double scale, boolean reset,int min,int max) {
         super();
+        this.max= max;
+        this.min=min;
+        this.name = name;
         value = new SimpleObjectProperty<>(this,name,0);
         value.addListener((v,o,n) ->
                 setValue(n));
@@ -75,7 +80,7 @@ public class Knob extends Control {
             //triangle.setTranslateX(2);
             triangle.setTranslateY(-12.5);
             value.addListener((c,o,n) -> {
-                triangle.setFill(n == MAX/2 + 1 ? Color.LIGHTGREEN : Color.GREEN);
+                triangle.setFill(n == max /2 + 1 ? Color.LIGHTGREEN : Color.GREEN);
             });
             cs.addFirst(triangle);
             setTranslateY(bottom-1);
@@ -100,7 +105,7 @@ public class Knob extends Control {
         }
         double dist = (drag.start() - e.getY()) / 2;
         int v = (int) (drag.value() + dist);
-        v = Math.max(MIN,Math.min(v, MAX));
+        v = Math.max(min,Math.min(v, max));
         value.set(v);
     }
 
@@ -113,7 +118,7 @@ public class Knob extends Control {
         a = a < 0 ? (360 + a) : a;
         a = Math.max(45,(Math.min(315,a)));
         double pctg = (a - 45) / 270;
-        int v = (int) (pctg * MAX);
+        int v = (int) (pctg * max);
         value.set(v);
     }
 
@@ -122,10 +127,10 @@ public class Knob extends Control {
     }
 
     public void setValue(int value) {
-        if (value < MIN || value > MAX) {
-            throw new IllegalArgumentException("Invalid knob value: " + value);
+        if (value < min || value > max) {
+            throw new IllegalArgumentException("setValue [" + name + "]: Invalid knob value: " + value);
         }
-        double pctg = ((double) value) / ((double) MAX);
+        double pctg = ((double) value) / ((double) max);
         double angle = pctg * 270 + 45;
         //System.out.format("setValue: value=%s, pctg=%s, angle=%s",value,pctg,angle);
         thumb.setRotate(angle);
