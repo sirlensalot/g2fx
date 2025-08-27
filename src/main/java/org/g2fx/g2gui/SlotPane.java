@@ -164,14 +164,7 @@ public class SlotPane {
         bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
                 FxProperty.adaptReadOnly(patchCategory.getSelectionModel().selectedIndexProperty(),
                         value -> patchCategory.getSelectionModel().select(value.intValue())),
-               new Iso<>() {
-                    @Override public Number to(Integer integer) {
-                        return integer;
-                    }
-                    @Override public Integer from(Number number) {
-                        return number.intValue();
-                    }
-                });
+                Iso.INTEGER_NUMBER_ISO);
 
         Spinner<VoiceMode> voicesSpinner = mkVoicesSpinner();
 

@@ -10838,7 +10838,7 @@ LfoB:
     Orientation: "Horizontal"
     ButtonCount: 4
     ButtonWidth: 18
-    Text: "1,2,3,4,5,"
+    Text: ""
     ImageWidth: 15
     Control: "Waveform"
     Images:

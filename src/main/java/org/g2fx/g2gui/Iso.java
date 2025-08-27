@@ -18,6 +18,19 @@ public interface Iso<A, B> {
         }
     };
 
+    Iso<Integer, Number> INTEGER_NUMBER_ISO = new Iso<>() {
+        @Override
+        public Number to(Integer integer) {
+            return integer;
+        }
+
+        @Override
+        public Integer from(Number number) {
+            return number.intValue();
+        }
+    };
+
+
     static <I> Iso<I,I> id() {
         return new Iso<>() {
             @Override public I to(I i) { return i; }

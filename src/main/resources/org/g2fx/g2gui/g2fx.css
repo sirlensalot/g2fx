@@ -246,6 +246,37 @@
     -fx-font-size: 10px;
 }
 
+.module-mode-combo {
+    -fx-padding: 0;
+    -fx-font-size: 10px;
+}
+
+.module-mode-combo .list-cell {
+    -fx-padding: 0;
+}
+
+.module-mode-combo .arrow-button {
+    -fx-padding: 0 2 0 2;
+    min-width: 12px;
+    max-width: 12px;
+}
+
+.module-mode-list {
+    -fx-padding: 0px;
+    -fx-font-size: 10px;
+}
+
+.module-mode-box {
+    -fx-padding: 0px;
+}
+
+.module-mode-arrow-button {
+    -fx-font-size: 10px;
+    -fx-padding: 0 0 0 1;
+    -fx-text-fill: black;
+    -fx-pref-height: 20;
+}
+
 
 /* ========== KNOB CONTROL =========== */
 

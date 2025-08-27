@@ -5,6 +5,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -152,9 +153,82 @@ public class ModulePane {
 
             case UIElements.Bitmap c -> mkBitmap(c);
 
+            case UIElements.PartSelector c -> mkPartSelector(c);
+
             default -> empty(e, "renderElement");
 
         };
+    }
+
+    private Node mkPartSelector(UIElements.PartSelector c) {
+        IndexParam mip = new IndexParam(type.modes.get(c.CodeRef()),c.CodeRef());
+        if (c.Images()==null) {
+            ComboBox<String> combo = withClass(
+                    new ComboBox<>(FXCollections.observableArrayList(mip.param().param().enums)),"module-mode-combo");
+            addBridge(bridges.bridge(d -> patchModule.getUserModuleData().mode(mip.index()),
+                    FxProperty.adaptReadOnly(combo.getSelectionModel().selectedIndexProperty(),n ->
+                            combo.getSelectionModel().select(n.intValue())),Iso.INTEGER_NUMBER_ISO));
+            combo.setPrefWidth(c.Width());
+            combo.setMaxHeight(c.Height());
+            layout(c,combo);
+            return combo;
+        } else {
+            ModeSelector ms = new ModeSelector(mip, c);
+            return ms.getPane();
+            /*
+            ComboBox<Image> combo = withClass(
+                    new ComboBox<>(FXCollections.observableArrayList(c.Images().stream().map(f ->
+                            FXUtil.getImageResource("img" + File.separator + f)).toList())),
+                    "module-mode-combo","module-mode-combo-images");
+            combo.setUserData(paramId(mip));
+            System.out.println("mkPartSelector: " + paramId(mip));
+            combo.setCellFactory(lv -> new ListCell<>() {
+                private final ImageView view = new ImageView();
+                {
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                    //setMaxWidth(c.ImageWidth());
+                    //setPrefWidth(c.ImageWidth());
+                }
+                @Override
+                protected void updateItem(Image item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setGraphic(empty || item == null ? null : view);
+                    if (item != null && !empty) {
+                        view.setImage(item);
+                        view.setFitWidth(c.ImageWidth());   // change size as needed
+                        //view.setFitHeight(c.Height()*2);
+                    }
+                }
+
+            });
+            combo.setButtonCell(new ListCell<>() {
+                private final ImageView view = new ImageView();
+                {
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                    setPadding(new Insets(0,0,0,0));
+                    //setMaxWidth(c.ImageWidth());
+                    //setPrefWidth(c.ImageWidth());
+                    setBorder(Border.stroke(Color.BLACK));
+                }
+                @Override
+                protected void updateItem(Image item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setGraphic(empty || item == null ? null : view);
+                    if (item != null && !empty) {
+                        view.setImage(item);
+                        view.setFitWidth(c.ImageWidth());
+                        //view.setFitHeight(c.Height()*2);
+                        //view.setFitHeight(32);
+                    }
+                }
+
+            });
+            cb = combo;
+
+             */
+        }
+
+
     }
 
     private Node renderParamControl(UIParamControl uc) {
