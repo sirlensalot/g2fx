@@ -14,10 +14,8 @@ import java.util.function.Function;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.controls.ModulePane.layout;
-import static org.g2fx.g2lib.model.ModParam.formatHz;
-import static org.g2fx.g2lib.model.ModParam.formatMillisSecs;
-import static org.g2fx.g2lib.model.ParamConstants.LFO_CLOCK_VALS;
-import static org.g2fx.g2lib.model.ParamConstants.PULSE_DELAY_RANGE;
+import static org.g2fx.g2lib.model.ModParam.*;
+import static org.g2fx.g2lib.model.ParamConstants.*;
 
 public class ModuleTextFieldBuilder {
 
@@ -25,6 +23,7 @@ public class ModuleTextFieldBuilder {
     private static final int TF_LFO_FREQ = 103;
     private static final int TF_OPERATOR_FREQ = 198; // TODO very wrong
     private static final int TF_CONSTANT = 96; // TODO doesn't honor BiP switch, has deps though
+    private static final int TF_LEV_AMP = 147;
     private static final int TF_CLK_GEN = 110;
     private static final int TF_PULSE_TIME = 122;
     private static final int TF_MIX_LEV = 102; // TODO doesn't handle Exp
@@ -42,6 +41,7 @@ public class ModuleTextFieldBuilder {
         Label l = layout(c,withClass(new Label("0"),"module-text-field"),new Point2D(0,1));
         l.setAlignment(Pos.CENTER);
         l.setPrefWidth(c.Width());
+
 
         ModulePane.IndexParam ip = parent.resolveParam(c.MasterRef());
         l.setUserData(parent.paramId(ip));
@@ -65,11 +65,27 @@ public class ModuleTextFieldBuilder {
             case TF_CLK_GEN: return formatClkTempo(c,l);
             case TF_PULSE_TIME: return formatPulseTime(c,l);
             case TF_PSHIFT_FREQ: return formatPshiftFreq(c,l);
+            case TF_LEV_AMP: return formatLevAmp(c,l);
         }
 
         System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
         return parent.empty(c,"mkTextField");
 
+    }
+
+    private Node formatLevAmp(UIElements.TextField c, Label l) {
+        Property<Integer> pLevAmp = parent.resolveDepParam(c, 0);
+        Property<Integer> pType = parent.resolveDepParam(c, 1);
+        ChangeListener<Integer> listener = (cc,oo,nn) -> {
+            int n = pLevAmp.getValue();
+            l.setText(pType.getValue() == 0 ?
+                    String.format("x%.02f",4*((double) n)/127) :
+                    aref(n,LEV_AMP_DB,v ->
+                            v == Double.NEGATIVE_INFINITY ? "-∞" : String.format("%.01f",v)));
+        };
+        pLevAmp.addListener(listener);
+        pType.addListener(listener);
+        return l;
     }
 
     private Node formatPshiftFreq(UIElements.TextField c, Label l) {

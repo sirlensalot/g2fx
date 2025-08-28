@@ -16936,8 +16936,8 @@ OscC:
     YPos: 4
     CodeRef: 0
     InfoFunc: 0
-    Width: 31
-    Height: 22
+    Width: 22
+    Height: 20
     ImageCount: 6
     ImageWidth: 22
     MenuOffset: 0

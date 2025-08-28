@@ -566,7 +566,7 @@ public enum ModParam {
                 String.format("%.01fHz", f);
     }
 
-    private static <T> T aref(int idx, double[] vals, Function<Double,T> f) {
+    public static <T> T aref(int idx, double[] vals, Function<Double,T> f) {
         return f.apply(vals[idx]);
     }
 
