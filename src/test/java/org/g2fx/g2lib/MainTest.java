@@ -3,7 +3,7 @@ package org.g2fx.g2lib;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.g2fx.g2gui.controls.UIModule;
+import org.g2fx.g2gui.controls.ui.UIModule;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;

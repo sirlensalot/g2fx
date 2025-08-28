@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.Popup;
 import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2gui.controls.ui.UIElements;
 
 import java.io.File;
 

@@ -8,6 +8,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import org.g2fx.g2gui.controls.ui.UIElements;
 import org.g2fx.g2lib.model.ParamFormatter;
 
 import java.util.function.Function;

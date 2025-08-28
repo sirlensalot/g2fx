@@ -1,4 +1,4 @@
-package org.g2fx.g2gui.controls;
+package org.g2fx.g2gui.controls.ui;
 
 public sealed interface UIElement permits
         UIElements.Bitmap
