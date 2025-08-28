@@ -287,6 +287,35 @@
     -fx-text-fill: lightgrey;
 }
 
+.module-slider {
+    -fx-padding: 0;
+    /*-fx-border-color: black;
+    -fx-border-width: 1;*/
+    -fx-max-height: 54px;
+}
+
+.module-slider .thumb {
+    -fx-pref-width: 10px;
+    -fx-pref-height: 10px;
+}
+
+.module-slider:vertical .track {
+    -fx-pref-width: 12px; /* Increase width of the vertical track */
+}
+
+.module-slider-box {
+    /*-fx-max-height: 60px;*/
+    /*-fx-border-color: black;
+        -fx-border-width: 1;*/
+    -fx-padding: 0;
+}
+.module-slider-button {
+    -fx-padding: 0;
+    -fx-max-height: 5;
+    -fx-max-width: 10;
+    -fx-font-size: 6pt;
+}
+
 
 /* ========== KNOB CONTROL =========== */
 

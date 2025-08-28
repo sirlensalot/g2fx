@@ -30,6 +30,18 @@ public interface Iso<A, B> {
         }
     };
 
+    Iso<Integer, Double> INTEGER_DOUBLE_ISO = new Iso<>() {
+        @Override
+        public Double to(Integer integer) {
+            return integer.doubleValue();
+        }
+
+        @Override
+        public Integer from(Double number) {
+            return number.intValue();
+        }
+    };
+
 
     static <I> Iso<I,I> id() {
         return new Iso<>() {

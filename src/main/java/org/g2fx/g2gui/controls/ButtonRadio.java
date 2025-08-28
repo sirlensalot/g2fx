@@ -17,8 +17,8 @@ import javafx.scene.layout.Pane;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
-import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.panel.ModulePane;
+import org.g2fx.g2gui.ui.UIElements;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -131,6 +131,8 @@ public class ButtonRadio {
                 buttons.get(n).setSelected(true));
         return property;
     }
+
+
 
     public Node getControl() {
         return control;

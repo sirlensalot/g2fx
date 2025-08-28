@@ -13,24 +13,22 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
-import org.g2fx.g2gui.*;
+import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.bridge.PropertyBridge;
 import org.g2fx.g2gui.controls.*;
-import org.g2fx.g2gui.controls.ui.*;
 import org.g2fx.g2gui.ui.*;
-import org.g2fx.g2lib.model.ModParam;
-import org.g2fx.g2lib.model.ModuleType;
-import org.g2fx.g2lib.model.NamedParam;
-import org.g2fx.g2lib.model.ParamConstants;
+import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
@@ -344,17 +342,22 @@ public class ModulePane {
             bindIntParam(ip, knob, knob.getValueProperty(), knob.valueChangingProperty());
             return knob;
         } else if (c.Type() == UIElements.KnobType.Slider) {
-            return empty(c,"Knob-Slider");
+            var ms = Sliders.mkSlider(c,ip,this);
+            bindIntParam(ip,ms.control(),ms.property(),ms.slider().valueChangingProperty());
+            return ms.control();
         }
         return empty(c, "Knob-SeqSlider");
+    }
+
+    private Function<Device, LibProperty<Integer>> mkParamIntProp(IndexParam ip, int v) {
+        return d -> patchModule.getParamValueProperty(v, ip.index);
     }
 
     private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
         bindVarControl(ip,intProps, property, v -> {
             Property<Integer> p =
                     new SimpleObjectProperty<>(ctl, property.getName(), null);
-            moduleBridges.add(bridges.bridge(d ->
-                            patchModule.getParamValueProperty(v, ip.index),
+            moduleBridges.add(bridges.bridge(mkParamIntProp(ip, v),
                     new FxProperty.SimpleFxProperty<>(p, changing),
                     Iso.id()));
             return p;
@@ -423,7 +426,7 @@ public class ModulePane {
                     new SimpleBooleanProperty(b, varPropName(ip, v),false);
             FxProperty.SimpleFxProperty<Boolean> fxProperty = defeatUndoProperty == null ?
                     new FxProperty.SimpleFxProperty<>(p) : new FxProperty.SimpleFxProperty<>(p,defeatUndoProperty);
-            moduleBridges.add(bridges.bridge(d -> patchModule.getParamValueProperty(v, ip.index),
+            moduleBridges.add(bridges.bridge(mkParamIntProp(ip, v),
                     fxProperty,
                     Iso.BOOL_PARAM_ISO));
             return p;
