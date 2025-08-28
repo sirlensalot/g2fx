@@ -51,7 +51,7 @@ public class ModulePane {
     private final PatchModule patchModule;
     private final Bridges bridges;
     private final UIModule<UIElement> ui;
-    private final SlotPane parent;
+    private final SlotPane slotPane;
     private final ModuleSelector moduleSelector;
     private final int height;
     private final FXUtil.TextFieldFocusListener textFocusListener;
@@ -63,6 +63,8 @@ public class ModulePane {
 
     private final Map<Integer,Property<Integer>> intProps = new TreeMap<>();
     private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
+    private List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
+
 
 
     /**
@@ -87,14 +89,14 @@ public class ModulePane {
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges bridges, PatchModule pm, SlotPane parent, AreaId area) {
+                      Bridges bridges, PatchModule pm, SlotPane slotPane, AreaId area) {
         height = ui.Height();
         type = m.type;
         this.index = m.index;
         this.bridges = bridges;
         this.patchModule = pm;
         this.ui = ui;
-        this.parent = parent;
+        this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
         this.area = area;
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
@@ -334,8 +336,10 @@ public class ModulePane {
             layout(c, knob);
             bindIntParam(ip, knob, knob.getValueProperty(), knob.valueChangingProperty());
             return knob;
+        } else if (c.Type() == UIElements.KnobType.Slider) {
+            return empty(c,"Knob-Slider");
         }
-        return empty(c, "Slider/Knob");
+        return empty(c, "Knob-SeqSlider");
     }
 
     private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
@@ -512,7 +516,7 @@ public class ModulePane {
 
     private <T> void bindVarControl(IndexParam ip, Map<Integer,Property<T>> coll, Property<T> control,
                                     IntFunction<Property<T>> varPropBuilder) {
-        parent.bindVarControl(control,varPropBuilder);
+        varBindings.add(slotPane.bindVarControl(control,varPropBuilder));
         coll.put(ip.index,control);
     }
 
@@ -539,7 +543,7 @@ public class ModulePane {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s",parent.getSlot(),area,type,index);
+        return String.format("%s:%s:%s:%s", slotPane.getSlot(),area,type,index);
     }
 
     public Property<Boolean> getBoolProp(int idx) { return boolProps.get(idx); }
@@ -563,5 +567,9 @@ public class ModulePane {
 
     public String paramId(IndexParam ip) {
         return this.toString() + ":" + ip.index() + ":" + ip.param().param().name();
+    }
+
+    public void unbindVarControls() {
+        slotPane.unbindVarControls(varBindings);
     }
 }

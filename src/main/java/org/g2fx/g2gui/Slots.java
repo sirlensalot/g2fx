@@ -67,9 +67,7 @@ public class Slots {
 
     public Runnable clearModules() {
         // on device thread, return fx action
-        return () -> {
-            slotPanes.forEach(s -> s.clearModules());
-        };
+        return () -> slotPanes.forEach(SlotPane::clearModules);
     }
 
 

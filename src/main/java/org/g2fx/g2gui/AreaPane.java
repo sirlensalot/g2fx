@@ -37,6 +37,7 @@ public class AreaPane {
     private final Set<ModulePane> selectedModules = new HashSet<>();
     private final Rectangle selectedRect;
     private final List<Rectangle> dragGhosts = new ArrayList<>();
+    private final Label areaLabel;
     private Point2D dragOrigin;
     private Runnable selectionListener;
 
@@ -53,8 +54,8 @@ public class AreaPane {
         this.areaId = areaId;
         this.bridges = bridges;
         this.slotPane = slotPane;
-        areaPane = withClass(
-                new Pane(new Label(areaId.name())),"area-pane","gfont");
+        areaLabel = withClass(new Label(areaId == AreaId.Voice ? "VA" : "FX"),"area-label");
+        areaPane = withClass(new Pane(areaLabel),"area-pane","gfont");
         this.textFocusListener = textFocusListener;
         this.undos = undos;
         scrollPane = withClass(new ScrollPane(areaPane),"area-scroll");
@@ -304,9 +305,11 @@ public class AreaPane {
     }
 
     public void clearModules() {
+        areaPane.getChildren().clear();
+        areaPane.getChildren().add(areaLabel);
         for (ModulePane m : modulePanes) {
-            areaPane.getChildren().remove(m.getPane());
             bridges.remove(m.getModuleBridges());
+            m.unbindVarControls();
         }
         modulePanes.clear();
     }

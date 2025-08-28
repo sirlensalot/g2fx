@@ -15,9 +15,13 @@ public class RebindableControl<T, P> {
     }
 
     public void bind(T target) {
+        unbind();
+        control.bindBidirectional(last = targetProps.apply(target));
+    }
+
+    public void unbind() {
         if (last != null) {
             control.unbindBidirectional(last);
         }
-        control.bindBidirectional(last = targetProps.apply(target));
     }
 }

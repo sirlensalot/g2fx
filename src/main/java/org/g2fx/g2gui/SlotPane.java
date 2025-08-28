@@ -82,9 +82,11 @@ public class SlotPane {
 
 
 
-    public <T> void bindVarControl(Property<T> control, IntFunction<Property<T>> varPropBuilder) {
+    public <T> RebindableControl<Integer, T> bindVarControl(Property<T> control, IntFunction<Property<T>> varPropBuilder) {
         List<Property<T>> l = IntStream.range(0, UI_MAX_VARIATIONS).mapToObj(varPropBuilder).toList();
-        varControls.add(new RebindableControl<>(control, l::get));
+        RebindableControl<Integer, T> c = new RebindableControl<>(control, l::get);
+        varControls.add(c);
+        return c;
     }
 
 
@@ -341,5 +343,10 @@ public class SlotPane {
         } finally {
             undos.commitMulti();
         }
+    }
+
+    public void unbindVarControls(List<RebindableControl<Integer,?>> bs) {
+        bs.forEach(RebindableControl::unbind);
+        varControls.removeAll(bs);
     }
 }

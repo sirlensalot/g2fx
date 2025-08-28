@@ -78,10 +78,10 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     @Override
     public void onDeviceInitialized(Device d) throws Exception {
 
-        slots.clearModules();
 
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = new ArrayList<>();
+        fxUpdates.add(slots.clearModules());
         fxUpdates.addAll(slots.initModules(d)); //modules first so var controls will update
         fxUpdates.addAll(bridges.initialize(d));
 
