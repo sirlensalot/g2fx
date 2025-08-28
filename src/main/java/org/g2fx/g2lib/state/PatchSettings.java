@@ -1,6 +1,6 @@
 package org.g2fx.g2lib.state;
 
-import org.g2fx.g2gui.VoiceMode;
+import org.g2fx.g2gui.controls.VoiceMode;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;

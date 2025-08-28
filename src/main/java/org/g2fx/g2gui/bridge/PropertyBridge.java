@@ -1,6 +1,7 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.bridge;
 
 import javafx.beans.value.ChangeListener;
+import org.g2fx.g2gui.Undos;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.LibProperty.LibPropertyListener;
 import org.g2fx.g2lib.state.Device;

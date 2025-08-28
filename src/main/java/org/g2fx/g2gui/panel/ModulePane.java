@@ -1,4 +1,4 @@
-package org.g2fx.g2gui.controls;
+package org.g2fx.g2gui.panel;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -14,7 +14,13 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import org.g2fx.g2gui.*;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
+import org.g2fx.g2gui.bridge.PropertyBridge;
+import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.controls.ui.*;
+import org.g2fx.g2gui.ui.*;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
@@ -30,8 +36,8 @@ import java.util.stream.Stream;
 
 import static org.controlsfx.control.CheckComboBox.COMBO_BOX_ROWS_TO_MEASURE_WIDTH_KEY;
 import static org.g2fx.g2gui.FXUtil.*;
-import static org.g2fx.g2gui.controls.ui.UIElements.Orientation.Horizontal;
-import static org.g2fx.g2gui.controls.ui.UIElements.Orientation.Vertical;
+import static org.g2fx.g2gui.ui.UIElements.Orientation.Horizontal;
+import static org.g2fx.g2gui.ui.UIElements.Orientation.Vertical;
 
 public class ModulePane {
 
@@ -119,7 +125,7 @@ public class ModulePane {
         color.addListener((c,o,n) -> pane.setBackground(FXUtil.rgbFill(ParamConstants.MODULE_COLORS[n])));
 
         addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(),
-                new FxProperty.SimpleFxProperty<>(coords),Iso.id()));
+                new FxProperty.SimpleFxProperty<>(coords), Iso.id()));
         coords.addListener((c,o,n) -> {
             pane.setLayoutX(n.column()* GRID_X);
             pane.setLayoutY(n.row()* GRID_Y);

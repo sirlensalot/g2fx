@@ -15,16 +15,17 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.FxProperty;
-import org.g2fx.g2gui.Iso;
-import org.g2fx.g2gui.controls.ui.UIElements;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
+import org.g2fx.g2gui.ui.UIElements;
+import org.g2fx.g2gui.panel.ModulePane;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
-import static org.g2fx.g2gui.controls.ModulePane.layout;
-import static org.g2fx.g2gui.controls.ui.UIElements.Orientation.Vertical;
+import static org.g2fx.g2gui.panel.ModulePane.layout;
+import static org.g2fx.g2gui.ui.UIElements.Orientation.Vertical;
 
 public class ButtonRadio {
 

@@ -8,13 +8,14 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import org.g2fx.g2gui.controls.ui.UIElements;
+import org.g2fx.g2gui.ui.UIElements;
+import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2lib.model.ParamFormatter;
 
 import java.util.function.Function;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
-import static org.g2fx.g2gui.controls.ModulePane.layout;
+import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.ModParam.*;
 import static org.g2fx.g2lib.model.ParamConstants.*;
 

@@ -1,5 +1,7 @@
 package org.g2fx.g2gui;
 
+import org.g2fx.g2gui.bridge.FxProperty;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;

@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.bridge;
 
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;

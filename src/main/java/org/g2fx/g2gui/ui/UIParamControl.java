@@ -1,4 +1,4 @@
-package org.g2fx.g2gui.controls.ui;
+package org.g2fx.g2gui.ui;
 
 public sealed interface UIParamControl extends UIElement permits
         UIElements.ButtonFlat,

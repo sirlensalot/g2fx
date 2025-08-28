@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.controls;
 
 import javafx.beans.property.Property;
 

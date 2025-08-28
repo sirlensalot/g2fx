@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.panel;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -15,10 +15,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
+import org.g2fx.g2gui.*;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.controls.PowerButton;
-import org.g2fx.g2gui.controls.ui.UIElement;
-import org.g2fx.g2gui.controls.ui.UIModule;
+import org.g2fx.g2gui.controls.RebindableControl;
+import org.g2fx.g2gui.controls.VoiceMode;
+import org.g2fx.g2gui.ui.UIElement;
+import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;

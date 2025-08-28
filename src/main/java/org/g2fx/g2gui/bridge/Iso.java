@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.bridge;
 
 public interface Iso<A, B> {
 

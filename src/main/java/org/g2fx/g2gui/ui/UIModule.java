@@ -1,4 +1,4 @@
-package org.g2fx.g2gui.controls.ui;
+package org.g2fx.g2gui.ui;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;

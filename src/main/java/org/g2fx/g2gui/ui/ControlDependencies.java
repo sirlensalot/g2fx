@@ -1,4 +1,4 @@
-package org.g2fx.g2gui.controls.ui;
+package org.g2fx.g2gui.ui;
 
 import java.util.List;
 

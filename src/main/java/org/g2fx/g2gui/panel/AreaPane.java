@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.panel;
 
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -6,9 +6,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
-import org.g2fx.g2gui.controls.ModulePane;
-import org.g2fx.g2gui.controls.ui.UIElement;
-import org.g2fx.g2gui.controls.ui.UIModule;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2gui.Undos;
+import org.g2fx.g2gui.ui.UIElement;
+import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
@@ -19,8 +21,8 @@ import org.g2fx.g2lib.state.UserModuleData;
 import java.util.*;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
-import static org.g2fx.g2gui.controls.ModulePane.GRID_X;
-import static org.g2fx.g2gui.controls.ModulePane.GRID_Y;
+import static org.g2fx.g2gui.panel.ModulePane.GRID_X;
+import static org.g2fx.g2gui.panel.ModulePane.GRID_Y;
 
 public class AreaPane {
 

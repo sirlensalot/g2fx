@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.panel;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -11,8 +11,12 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.controls.ui.UIElement;
-import org.g2fx.g2gui.controls.ui.UIModule;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2gui.controls.RebindableControl;
+import org.g2fx.g2gui.Undos;
+import org.g2fx.g2gui.ui.UIElement;
+import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Slot;

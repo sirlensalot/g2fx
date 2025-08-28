@@ -10,6 +10,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Devices;
 
