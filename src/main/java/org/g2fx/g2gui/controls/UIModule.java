@@ -11,7 +11,9 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModuleType;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public record UIModule<C> (
@@ -42,7 +44,28 @@ public record UIModule<C> (
             cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
+        //doQuery(m,"PartSelector","Images");
         return m;
+    }
+
+    private static void doQuery(Map<ModuleType, UIModule<UIElement>> m, String cls, String... params) throws Exception {
+        String fn = String.format("data/uiqry-%s-%s.txt", cls, String.join("-", params));
+        try (PrintWriter bw = new PrintWriter(new FileWriter(fn))) {
+            for (Map.Entry<ModuleType, UIModule<UIElement>> e : m.entrySet()) {
+                for (UIElement ctl : e.getValue().Controls()) {
+                    if (cls.equals(ctl.elementType().name())) {
+                        for (String param : params) {
+                            var f = ctl.getClass().getDeclaredMethod(param);
+                            if (f != null) {
+                                bw.printf("%s:%s=%s\n", e.getKey(), param, f.invoke(ctl));
+                            }
+                        }
+                    }
+                }
+            }
+            System.out.println("Query written to " + fn);
+        }
+        System.exit(0);
     }
 
     public static void main(String[] args) throws Exception {

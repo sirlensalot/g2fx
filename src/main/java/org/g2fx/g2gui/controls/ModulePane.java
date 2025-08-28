@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
+import static org.controlsfx.control.CheckComboBox.COMBO_BOX_ROWS_TO_MEASURE_WIDTH_KEY;
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Horizontal;
 import static org.g2fx.g2gui.controls.UIElements.Orientation.Vertical;
@@ -163,69 +164,22 @@ public class ModulePane {
     private Node mkPartSelector(UIElements.PartSelector c) {
         IndexParam mip = new IndexParam(type.modes.get(c.CodeRef()),c.CodeRef());
         if (c.Images()==null) {
+            //TODO this is probably going away as it is too wide, adapt ModeSelector to handle text
             ComboBox<String> combo = withClass(
                     new ComboBox<>(FXCollections.observableArrayList(mip.param().param().enums)),"module-mode-combo");
             addBridge(bridges.bridge(d -> patchModule.getUserModuleData().mode(mip.index()),
                     FxProperty.adaptReadOnly(combo.getSelectionModel().selectedIndexProperty(),n ->
                             combo.getSelectionModel().select(n.intValue())),Iso.INTEGER_NUMBER_ISO));
-            combo.setPrefWidth(c.Width());
+            combo.setPrefWidth(c.ImageWidth());
             combo.setMaxHeight(c.Height());
+            combo.setFocusTraversable(false);
+            combo.getProperties().put(COMBO_BOX_ROWS_TO_MEASURE_WIDTH_KEY,1);
             layout(c,combo);
             return combo;
         } else {
-            ModeSelector ms = new ModeSelector(mip, c);
+            ModeSelector ms = new ModeSelector(mip, c, this);
+            addBridge(bridges.bridge(ms.selectedProperty(),d -> patchModule.getUserModuleData().mode(mip.index())));
             return ms.getPane();
-            /*
-            ComboBox<Image> combo = withClass(
-                    new ComboBox<>(FXCollections.observableArrayList(c.Images().stream().map(f ->
-                            FXUtil.getImageResource("img" + File.separator + f)).toList())),
-                    "module-mode-combo","module-mode-combo-images");
-            combo.setUserData(paramId(mip));
-            System.out.println("mkPartSelector: " + paramId(mip));
-            combo.setCellFactory(lv -> new ListCell<>() {
-                private final ImageView view = new ImageView();
-                {
-                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    //setMaxWidth(c.ImageWidth());
-                    //setPrefWidth(c.ImageWidth());
-                }
-                @Override
-                protected void updateItem(Image item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setGraphic(empty || item == null ? null : view);
-                    if (item != null && !empty) {
-                        view.setImage(item);
-                        view.setFitWidth(c.ImageWidth());   // change size as needed
-                        //view.setFitHeight(c.Height()*2);
-                    }
-                }
-
-            });
-            combo.setButtonCell(new ListCell<>() {
-                private final ImageView view = new ImageView();
-                {
-                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setPadding(new Insets(0,0,0,0));
-                    //setMaxWidth(c.ImageWidth());
-                    //setPrefWidth(c.ImageWidth());
-                    setBorder(Border.stroke(Color.BLACK));
-                }
-                @Override
-                protected void updateItem(Image item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setGraphic(empty || item == null ? null : view);
-                    if (item != null && !empty) {
-                        view.setImage(item);
-                        view.setFitWidth(c.ImageWidth());
-                        //view.setFitHeight(c.Height()*2);
-                        //view.setFitHeight(32);
-                    }
-                }
-
-            });
-            cb = combo;
-
-             */
         }
 
 
