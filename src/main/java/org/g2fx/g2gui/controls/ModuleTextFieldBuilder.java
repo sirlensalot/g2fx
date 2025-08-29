@@ -19,6 +19,7 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.ModParam.*;
 import static org.g2fx.g2lib.model.ParamConstants.*;
+import static org.g2fx.g2lib.model.ParamFormatter.fmt01f;
 
 public class ModuleTextFieldBuilder {
 
@@ -79,26 +80,32 @@ public class ModuleTextFieldBuilder {
     }
 
     private Node formatMixLev(UIElements.TextField c, Label l) {
-        return formatSimpleTypeSwitch(l,c,0,1,(t,n) -> {
-            return "TODO-MixLev";
-        });
+        return fmtIntInt(l,c,0,1,(t, n) ->
+                t == 2 ? aref(n,MIX_LEV_DB, this::fmtNegInf) :
+                        fmt01f(n==127?100:((double) n * 100) / 128));
     }
 
     private Node formatConstBip(UIElements.TextField c, Label l) {
-        return formatSimpleTypeSwitch(l,c,0,1,(t,n) -> {
-            return "TODO-ConstBip";
-        });
+        return fmtIntInt(l,c,0,1,(t, n) ->
+                t == 0 ? (Integer.toString(n==127?64:n-64)) :
+                        fmt01f(n==127?64.0:((double) n) / 2));
     }
 
     private Node formatLevAmp(UIElements.TextField c, Label l) {
-        return formatSimpleTypeSwitch(l,c,0,1, (t, n) ->
+        return fmtIntInt(l,c,0,1, (t, n) ->
                 t == 0 ? String.format("x%.02f", 4 * ((double) n) / 127) :
-                        aref(n, LEV_AMP_DB, v ->
-                                v == Double.NEGATIVE_INFINITY ? "-∞" : String.format("%.01f", v)));
+                        aref(n, LEV_AMP_DB, this::fmtNegInf));
     }
 
-    private Node formatSimpleTypeSwitch(Label l, UIElements.TextField tf, int valDep, int typeDep,
-                                        BiFunction<Integer, Integer, String> f) {
+    private String fmtNegInf(Double v) {
+        return v == Double.NEGATIVE_INFINITY ? "-∞" : fmt01f(v);
+    }
+
+    /**
+     * parameterized as "val" and "type" but really an int bifunction
+     */
+    private Node fmtIntInt(Label l, UIElements.TextField tf, int valDep, int typeDep,
+                           BiFunction<Integer, Integer, String> f) {
         Property<Integer> pValue = parent.resolveDepParam(tf,valDep);
         Property<Integer> pType = parent.resolveDepParam(tf,typeDep);
         ChangeListener<Integer> listener = (cc,oo,nn) -> {

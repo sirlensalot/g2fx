@@ -19,4 +19,11 @@ public record ParamFormatter(Function<Integer, String> intFmt, Function<Boolean,
     public static ParamFormatter intMapper(int max) {
         return intF(n -> String.format("%d", Util.mapRange(n, 0, 127, 0, max)));
     }
+
+    public static String fmt01f(Double d) {
+        return fmtPrec(1,d);
+    }
+    public static String fmtPrec(int prec,double d) {
+        return String.format("%.0" + prec + "f", d);
+    }
 }
