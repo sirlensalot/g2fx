@@ -48,7 +48,7 @@ public record UIModule<C> (
         }
         //doQuery(m,"PartSelector","Images");
         //doBipUniQry(m);
-        //doTf102(m);
+        //doTf(m,141);
         return m;
     }
 
@@ -63,12 +63,12 @@ public record UIModule<C> (
             return null;
         });
     }
-    private static void doTf102(Map<ModuleType, UIModule<UIElement>> m) throws Exception {
-        doQuery(m,"Tf102",(mt, ctl) -> {
-            if (ctl instanceof UIElements.TextField tf) {
-                if (tf.TextFunc()==102) {
-                    ModParam param = mt.getParams().get(tf.MasterRef()).param();
-                    return String.format("%s:%s", mt, param);
+    private static void doTf(Map<ModuleType, UIModule<UIElement>> m,int tf) throws Exception {
+        doQuery(m,"Tf"+tf,(mt, ctl) -> {
+            if (ctl instanceof UIElements.TextField f) {
+                if (f.TextFunc()==tf) {
+                    ModParam param = mt.getParams().get(f.MasterRef()).param();
+                    return String.format("%s:%s,%s", mt, param,f.Dependencies());
                 }
             }
             return null;

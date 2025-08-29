@@ -67,6 +67,7 @@ public class ModulePane {
     private final ModuleTextFieldBuilder textFieldBuilder;
 
     private final Map<Integer,Property<Integer>> intProps = new TreeMap<>();
+    private final Map<Integer,ObservableValue<Integer>> modeProps = new TreeMap<>();
     private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
     private List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
 
@@ -177,15 +178,22 @@ public class ModulePane {
             addBridge(bridges.bridge(d -> patchModule.getUserModuleData().mode(mip.index()),
                     FxProperty.adaptReadOnly(combo.getSelectionModel().selectedIndexProperty(),n ->
                             combo.getSelectionModel().select(n.intValue())),Iso.INTEGER_NUMBER_ISO));
+
             combo.setPrefWidth(c.ImageWidth());
             combo.setMaxHeight(c.Height());
             combo.setFocusTraversable(false);
             combo.getProperties().put(COMBO_BOX_ROWS_TO_MEASURE_WIDTH_KEY,1);
             layout(c,combo);
+            SimpleObjectProperty<Integer> selectedReadOnlyProperty = new SimpleObjectProperty<>();
+            combo.getSelectionModel().selectedIndexProperty().addListener((cc,oo,n) -> {
+                selectedReadOnlyProperty.setValue(n.intValue());
+            });
+            addModeProp(mip,selectedReadOnlyProperty);
             return combo;
         } else {
             ModeSelector ms = new ModeSelector(mip, c, this);
             addBridge(bridges.bridge(ms.selectedProperty(),d -> patchModule.getUserModuleData().mode(mip.index())));
+            addModeProp(mip,ms.selectedProperty());
             return ms.getPane();
         }
 
@@ -290,9 +298,13 @@ public class ModulePane {
         return b;
     }
 
-    public Property<Integer> resolveDepParam(ControlDependencies c, int ix) {
-        IndexParam ip = resolveParam(c.Dependencies().get(ix).index());
-        Property<Integer> p = intProps.get(ip.index());
+    public ObservableValue<Integer> resolveDepParam(ControlDependencies c, int ix) {
+        ControlDependencies.Dependency d = c.Dependencies().get(ix);
+        boolean isParam = d.type() == UIElements.DepType.Param;
+        IndexParam ip = isParam ?
+                resolveParam(d.index()) :
+                resolveMode(d.index());
+        ObservableValue<Integer> p = (isParam?intProps:modeProps).get(ip.index());
         if (p == null) { throw new IllegalArgumentException("resoveDepParam: no property found " + ip); }
         return p;
     }
@@ -524,10 +536,22 @@ public class ModulePane {
         return new IndexParam(type.getParams().get(index),index);
     }
 
+
+    public IndexParam resolveMode(int index) {
+        if (index > type.modes.size()) {
+            throw new IllegalArgumentException("Bad param index: " + index + ", module: " + this);
+        }
+        return new IndexParam(type.modes.get(index),index);
+    }
+
     private <T> void bindVarControl(IndexParam ip, Map<Integer,Property<T>> coll, Property<T> control,
                                     IntFunction<Property<T>> varPropBuilder) {
         varBindings.add(slotPane.bindVarControl(control,varPropBuilder));
         coll.put(ip.index,control);
+    }
+
+    public void addModeProp(IndexParam ip,ObservableValue<Integer> prop) {
+        modeProps.put(ip.index,prop);
     }
 
 
