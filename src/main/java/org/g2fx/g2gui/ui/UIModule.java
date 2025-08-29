@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 
 import java.io.File;
@@ -15,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.function.BiFunction;
 
 public record UIModule<C> (
         String Name,
@@ -45,27 +47,69 @@ public record UIModule<C> (
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
         //doQuery(m,"PartSelector","Images");
+        //doBipUniQry(m);
+        //doTf102(m);
         return m;
     }
 
+    private static void doBipUniQry(Map<ModuleType, UIModule<UIElement>> m) throws Exception {
+        doQuery(m,"BipUni",(mt, ctl) -> {
+            if (ctl instanceof UIElements.TextField tf) {
+                if (mt.getParams().get(tf.MasterRef()).param() == ModParam.LevBipUni) {
+                    return String.format("%s:BipUni.TextFunc=%s, %s", mt, tf.TextFunc(),
+                            tf.Dependencies().stream().map(d->mt.getParams().get(d.index())).toList());
+                }
+            }
+            return null;
+        });
+    }
+    private static void doTf102(Map<ModuleType, UIModule<UIElement>> m) throws Exception {
+        doQuery(m,"Tf102",(mt, ctl) -> {
+            if (ctl instanceof UIElements.TextField tf) {
+                if (tf.TextFunc()==102) {
+                    ModParam param = mt.getParams().get(tf.MasterRef()).param();
+                    return String.format("%s:%s", mt, param);
+                }
+            }
+            return null;
+        });
+    }
+
     private static void doQuery(Map<ModuleType, UIModule<UIElement>> m, String cls, String... params) throws Exception {
-        String fn = String.format("data/uiqry-%s-%s.txt", cls, String.join("-", params));
+        doQuery(m,cls + "-" + String.join("-",params),(mt,ctl) -> {
+            if (cls.equals(ctl.elementType().name())) {
+                for (String param : params) {
+                    return String.format("%s:%s=%s\n", mt, param, invoke(ctl, param));
+                }
+            }
+            return null;
+        });
+    }
+
+
+    private static void doQuery(Map<ModuleType, UIModule<UIElement>> m, String name,
+                                BiFunction<ModuleType,UIElement,String> ef) throws Exception {
+        String fn = String.format("data/uiqry-%s.txt", name);
         try (PrintWriter bw = new PrintWriter(new FileWriter(fn))) {
             for (Map.Entry<ModuleType, UIModule<UIElement>> e : m.entrySet()) {
-                for (UIElement ctl : e.getValue().Controls()) {
-                    if (cls.equals(ctl.elementType().name())) {
-                        for (String param : params) {
-                            var f = ctl.getClass().getDeclaredMethod(param);
-                            if (f != null) {
-                                bw.printf("%s:%s=%s\n", e.getKey(), param, f.invoke(ctl));
-                            }
-                        }
+                e.getValue().Controls.forEach(c -> {
+                    String o = ef.apply(e.getKey(),c);
+                    if (o != null) {
+                        bw.println(o);
                     }
-                }
+                });
             }
             System.out.println("Query written to " + fn);
         }
         System.exit(0);
+    }
+
+
+    private static Object invoke(UIElement ctl, String param) {
+        try {
+            Object v = ctl.getClass().getDeclaredMethod(param).invoke(ctl);
+            return v;
+        } catch (Exception e) { throw new RuntimeException(e); }
     }
 
     public static void main(String[] args) throws Exception {

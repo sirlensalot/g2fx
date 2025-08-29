@@ -8,10 +8,11 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.panel.ModulePane;
+import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.ParamFormatter;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -24,7 +25,7 @@ public class ModuleTextFieldBuilder {
     private static final int TF_OSC_FREQ = 60;
     private static final int TF_LFO_FREQ = 103;
     private static final int TF_OPERATOR_FREQ = 198; // TODO very wrong
-    private static final int TF_CONSTANT = 96; // TODO doesn't honor BiP switch, has deps though
+    private static final int TF_CONST_BIP = 96; // TODO doesn't honor BiP switch, has deps though
     private static final int TF_LEV_AMP = 147;
     private static final int TF_CLK_GEN = 110;
     private static final int TF_PULSE_TIME = 122;
@@ -68,6 +69,8 @@ public class ModuleTextFieldBuilder {
             case TF_PULSE_TIME: return formatPulseTime(c,l);
             case TF_PSHIFT_FREQ: return formatPshiftFreq(c,l);
             case TF_LEV_AMP: return formatLevAmp(c,l);
+            case TF_CONST_BIP: return formatConstBip(c,l);
+            case TF_MIX_LEV: return formatMixLev(c,l);
         }
 
         System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
@@ -75,17 +78,35 @@ public class ModuleTextFieldBuilder {
 
     }
 
+    private Node formatMixLev(UIElements.TextField c, Label l) {
+        return formatSimpleTypeSwitch(l,c,0,1,(t,n) -> {
+            return "TODO-MixLev";
+        });
+    }
+
+    private Node formatConstBip(UIElements.TextField c, Label l) {
+        return formatSimpleTypeSwitch(l,c,0,1,(t,n) -> {
+            return "TODO-ConstBip";
+        });
+    }
+
     private Node formatLevAmp(UIElements.TextField c, Label l) {
-        Property<Integer> pLevAmp = parent.resolveDepParam(c, 0);
-        Property<Integer> pType = parent.resolveDepParam(c, 1);
+        return formatSimpleTypeSwitch(l,c,0,1, (t, n) ->
+                t == 0 ? String.format("x%.02f", 4 * ((double) n) / 127) :
+                        aref(n, LEV_AMP_DB, v ->
+                                v == Double.NEGATIVE_INFINITY ? "-∞" : String.format("%.01f", v)));
+    }
+
+    private Node formatSimpleTypeSwitch(Label l, UIElements.TextField tf, int valDep, int typeDep,
+                                        BiFunction<Integer, Integer, String> f) {
+        Property<Integer> pValue = parent.resolveDepParam(tf,valDep);
+        Property<Integer> pType = parent.resolveDepParam(tf,typeDep);
         ChangeListener<Integer> listener = (cc,oo,nn) -> {
-            int n = pLevAmp.getValue();
-            l.setText(pType.getValue() == 0 ?
-                    String.format("x%.02f",4*((double) n)/127) :
-                    aref(n,LEV_AMP_DB,v ->
-                            v == Double.NEGATIVE_INFINITY ? "-∞" : String.format("%.01f",v)));
+            int n = pValue.getValue();
+            int t = pType.getValue();
+            l.setText(f.apply(t, n));
         };
-        pLevAmp.addListener(listener);
+        pValue.addListener(listener);
         pType.addListener(listener);
         return l;
     }
