@@ -17,6 +17,11 @@ public class Util {
 
     private static final Logger log = getLogger(Util.class);
 
+    @FunctionalInterface
+    public interface TriFunction<A, B, C, R> {
+        R apply(A a, B b, C c);
+    }
+
     static class DualConsoleHandler extends StreamHandler {
 
         private final ConsoleHandler stderrHandler = new ConsoleHandler();

@@ -67,7 +67,10 @@ public record UIModule<C> (
         doQuery(m,"Tf-all",(mt, ctl) -> {
             if (ctl instanceof UIElements.TextField f) {
                 ModParam param = mt.getParams().get(f.MasterRef()).param();
-                return String.format("%d:%s:%s,%s", f.TextFunc(), mt, param,f.Dependencies());
+                return String.format("%d:%s:%s,deps=%s", f.TextFunc(), mt, param,f.Dependencies() == null ? "[]" :
+                        f.Dependencies().stream().map(d ->
+                        String.format("%s.%s->%s",d.index(),d.type(),(d.type()== UIElements.DepType.Param ?
+                                mt.getParams().get(d.index()) : mt.modes.get(d.index())).param())).toList());
             }
             return null;
         });

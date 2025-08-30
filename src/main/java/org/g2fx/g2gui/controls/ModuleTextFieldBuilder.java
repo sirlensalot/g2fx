@@ -2,7 +2,6 @@ package org.g2fx.g2gui.controls;
 
 import javafx.application.Platform;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Point2D;
@@ -12,6 +11,7 @@ import javafx.scene.control.Label;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.ParamFormatter;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -34,6 +34,9 @@ public class ModuleTextFieldBuilder {
     private static final int TF_MIX_LEV = 102; // TODO doesn't handle Exp
     private static final int TF_PSHIFT_FREQ = 201;
     private static final int TF_DELAY_TIME = 141;
+    private static final int TF_DELAY_TIME_CLK = 143;
+    private static final int TF_DELAY_TIME_STEREO = 146;
+
     private static final int TF_REVERB_TIME = 107;
 
 
@@ -77,6 +80,8 @@ public class ModuleTextFieldBuilder {
             case TF_CONST_BIP: return formatConstBip(c,l);
             case TF_MIX_LEV: return formatMixLev(c,l);
             case TF_DELAY_TIME: return formatDelayTime(c,l);
+            case TF_DELAY_TIME_CLK: return formatDelayTimeClk(c,l);
+            case TF_DELAY_TIME_STEREO: return formatDelayTimeStereo(c,l);
             case TF_REVERB_TIME: return formatReverbTime(c,l);
         }
 
@@ -86,34 +91,43 @@ public class ModuleTextFieldBuilder {
     }
 
     private Node formatReverbTime(UIElements.TextField c, Label l) {
-        return fmtIntInt(l,c,0,1,(t,n)-> {
+        return fmtInt2(l,c, (n, t)-> {
             double m = (t + 1) * 3.0;
             double v = m / 127 * n;
-            return v < 1 ? fmtDoubleFixed(v*1000, 4) + "ms" :
-                    fmtDoubleFixed(v, 5) + 's';
+            return v < 1 ? ParamTimes.fmtDoubleFixed(v*1000, 4) + "ms" :
+                    ParamTimes.fmtDoubleFixed(v, 5) + 's';
         });
     }
 
-
+    private Node formatDelayTimeStereo(UIElements.TextField c, Label l) {
+        return fmtInt3(l,c,(val,type,range) ->
+                type == 0 ? ParamTimes.fmtDelayRange3(range,val) :
+                        ParamTimes.formatClkDelay(val));
+    }
+    private Node formatDelayTimeClk(UIElements.TextField c, Label l) {
+        return fmtInt3(l,c,(val,type,range) ->
+                type == 0 ? ParamTimes.fmtDelayRange4(range,val) :
+                        ParamTimes.formatClkDelay(val));
+    }
 
     private Node formatDelayTime(UIElements.TextField c, Label l) {
-        return fmtIntInt(l,c,0,1,(t,n) -> delayDispValue(0,t,n));
+        return fmtInt2(l,c, ParamTimes::formatDelayRange7);
     }
 
     private Node formatMixLev(UIElements.TextField c, Label l) {
-        return fmtIntInt(l,c,0,1,(t, n) ->
+        return fmtInt2(l,c, (n, t) ->
                 t == 2 ? aref(n,MIX_LEV_DB, this::fmtNegInf) :
                         fmt01f(n==127?100:((double) n * 100) / 128));
     }
 
     private Node formatConstBip(UIElements.TextField c, Label l) {
-        return fmtIntInt(l,c,0,1,(t, n) ->
+        return fmtInt2(l,c, (n, t) ->
                 t == 0 ? (Integer.toString(n==127?64:n-64)) :
                         fmt01f(n==127?64.0:((double) n) / 2));
     }
 
     private Node formatLevAmp(UIElements.TextField c, Label l) {
-        return fmtIntInt(l,c,0,1, (t, n) ->
+        return fmtInt2(l,c, (n, t) ->
                 t == 0 ? String.format("x%.02f", 4 * ((double) n) / 127) :
                         aref(n, LEV_AMP_DB, this::fmtNegInf));
     }
@@ -122,31 +136,31 @@ public class ModuleTextFieldBuilder {
         return v == Double.NEGATIVE_INFINITY ? "-∞" : fmt01f(v);
     }
 
-    /**
-     * parameterized as "val" and "type" but really an int bifunction
-     */
-    private Node fmtIntInt(Label l, UIElements.TextField tf, int valDep, int typeDep,
-                           BiFunction<Integer, Integer, String> f) {
-        ObservableValue<Integer> pValue = parent.resolveDepParam(tf,valDep);
-        ObservableValue<Integer> pType = parent.resolveDepParam(tf,typeDep);
-        ChangeListener<Integer> listener = (cc,oo,nn) -> {
-            int n = pValue.getValue();
-            int t = pType.getValue();
-            l.setText(f.apply(t, n));
-        };
-        pValue.addListener(listener);
-        pType.addListener(listener);
+    private Node fmtInt2(Label l, UIElements.TextField tf,
+                         BiFunction<Integer, Integer, String> f) {
+        ObservableValue<Integer> p0 = parent.resolveDepParam(tf, 0);
+        ObservableValue<Integer> p1 = parent.resolveDepParam(tf, 1);
+        ChangeListener<Integer> listener = (cc,oo,nn) ->
+                l.setText(f.apply(p0.getValue(), p1.getValue()));
+        p0.addListener(listener);
+        p1.addListener(listener);
         return l;
     }
 
-    private Node formatPshiftFreq(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pCoarse = parent.resolveDepParam(c, 0);
-        ObservableValue<Integer> pFine = parent.resolveDepParam(c, 1);
-        ChangeListener<Integer> listener =
-                mkFreqFormatListener(l, pCoarse, pFine, new SimpleObjectProperty<>(4));
-        pCoarse.addListener(listener);
-        pFine.addListener(listener);
+    private Node fmtInt3(Label l, UIElements.TextField tf,
+                         Util.TriFunction<Integer, Integer, Integer, String> f) {
+        ObservableValue<Integer> p0 = parent.resolveDepParam(tf,0);
+        ObservableValue<Integer> p1 = parent.resolveDepParam(tf,1);
+        ObservableValue<Integer> p2 = parent.resolveDepParam(tf,2);
+        ChangeListener<Integer> listener = (cc,oo,nn) ->
+                l.setText(f.apply(p0.getValue(), p1.getValue(), p2.getValue()));
+        p0.addListener(listener);
+        p1.addListener(listener);
+        p2.addListener(listener);
         return l;
+    }
+    private Node formatPshiftFreq(UIElements.TextField c, Label l) {
+        return fmtInt2(l,c,(coarse,fine) -> formatFreq(4,coarse,fine));
     }
 
     private Node formatPulseTime(UIElements.TextField c, Label l) {
@@ -226,148 +240,55 @@ public class ModuleTextFieldBuilder {
                         152 + (rateParam - 96) * 2;
     }
 
-    private Label formatOscFreq(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pCoarse = parent.resolveDepParam(c, 0);
-        ObservableValue<Integer> pFine = parent.resolveDepParam(c, 1);
-        ObservableValue<Integer> pMode = parent.resolveDepParam(c, 2);
-        ChangeListener<Integer> listener = mkFreqFormatListener(l, pCoarse, pFine, pMode);
-        pCoarse.addListener(listener);
-        pFine.addListener(listener);
-        pMode.addListener(listener);
-        return l;
+    private Node formatOscFreq(UIElements.TextField c, Label l) {
+        return fmtInt3(l,c,(coarse,fine,mode) -> formatFreq(mode,coarse,fine));
     }
 
-    public static String delayDispValue(int aType, int aRange, int aValue) {
-        return switch (aType) {
-            case 0 -> aValue == 0 ? "0.01m" : switch (aRange) {
-                case 0 -> fmtDouble(computeDelay(aValue, 0.05f, 5.3f), 4) + "m";
-                case 1 -> fmtDouble(computeDelay(aValue, 0.21f, 25.1f), 4) + "m";
-                case 2 -> fmtDouble(computeDelay(aValue, 0.8f, 100f), 4) + "m";
-                case 3 -> fmtDouble(computeDelay(aValue, 3.95f, 500f), 4) + "m";
-                case 4 -> aValue == 127 ? "1.000s" :
-                    fmtDouble(computeDelay(aValue, 7.89f, 1000f), 4) + "m";
-                case 5 -> {
-                    double min = 15.8f;
-                    double max = 2000f;
-                    yield aValue >= 64 ?
-                            fmtDouble(computeDelay(aValue,min,max) / 1000, 5) + "s" :
-                            fmtDouble(computeDelay(aValue, min, max), 4) + "m";
-                }
-                default -> {
-                    double min = 21.3f;
-                    double max = 2700f;
-                    yield aValue >= 48 ?
-                            fmtDouble(computeDelay(aValue,min,max) / 1000, 5) + "s" :
-                            fmtDouble(computeDelay(aValue, min, max), 5) + "m";
-                }
-            };
-            case 1 -> {
-                double m = switch (aRange) {
-                    case 0 -> 0.66f;
-                    case 1 -> 3.14f;
-                    case 2 -> 12.6f;
-                    case 3 -> 62.5f;
-                    case 4 -> 125f;
-                    case 5 -> 250f;
-                    case 6 -> 338f;
-                    default -> 0f;
-                };
-                yield fmtDouble(m * aValue / 127, 4) + "m";
+
+    private static String formatFreq(int mode, int coarse, int fine) {
+        StringBuilder result = new StringBuilder();
+        switch (mode) {
+            case 0 -> { // Semi
+                fmtPosNeg(coarse - 64, result);
+                result.append("  ");
+                fmtPosNeg((fine - 64) * 100 / 128, result);
             }
-            case 2 -> aValue == 0 ? "0.01m" : switch (aRange) {
-                case 0 -> fmtDouble(500f * aValue / 127, 4) + "m";
-                case 1 -> aValue == 127 ? "1.00s" : fmtDouble(1000f * aValue / 127, 4) + "m";
-                case 2 -> {
-                    double f = 2000f;
-                    yield aValue >= 64 ? fmtDouble(f * aValue / 127000, 5) + "s" :
-                            fmtDouble(f * aValue / 127, 4) + "m";
-                }
-                default -> {
-                    double f = 2700f;
-                    yield aValue >= 48 ? fmtDouble(f * aValue / 127000, 5) + "s" :
-                            fmtDouble(f * aValue / 127, 4) + "m";
-                }
-            };
-            case 3 -> aValue == 0 ? "0.01m" : switch (aRange) {
-                case 0 -> fmtDouble(500f * aValue / 127, 4) + "m";
-                case 1 -> aValue == 127 ? "1.00s" : fmtDouble(1000f * aValue / 127, 4) + "m";
-                default -> {
-                    double f = 1351f;
-                    yield aValue >= 95 ? fmtDouble(f * aValue / 127000, 5) + "s" :
-                            fmtDouble(f * aValue / 127, 4) + "m";
-                }
-            };
-            default -> DELAY_VALS[aValue/4];
-        };
-    }
-
-    private static double computeDelay(int aValue, double min, double max) {
-        return min + (max - min) * (aValue - 1) / 126;
-    }
-
-
-    public static String fmtDoubleFixed(double v, int totalLen) {
-        if (totalLen < 3) { throw new IllegalArgumentException("fmtDoubleFixed: bad totalLen: " + totalLen); }
-        String s = String.format("%.0" + (totalLen-2) + "f",v);
-        int dot = s.indexOf('.');
-        if (dot >= totalLen) { return s.substring(0,dot); }
-        int declen = totalLen-dot-1;
-        return String.format("%.0"+declen+"f",v);
-    }
-
-    public static String fmtDouble(double v, int totalLen) {
-        return fmtDoubleFixed(v,totalLen).replaceAll("\\.0+$", "");
-    }
-
-
-    private static ChangeListener<Integer> mkFreqFormatListener(
-            Label l, ObservableValue<Integer> pCoarse, ObservableValue<Integer> pFine, ObservableValue<Integer> pMode) {
-        return (cc, o, n) -> {
-            StringBuilder result = new StringBuilder();
-            final int coarse = pCoarse.getValue();
-            final int fine = pFine.getValue();
-            switch (pMode.getValue()) {
-                case 0 -> { // Semi
-                    formatFreq(coarse - 64, result);
-                    result.append("  ");
-                    formatFreq((fine - 64) * 100 / 128, result);
-                }
-                case 1 -> { // Freq
-                    double exponent = (double) ((coarse - 69) + (fine - 64) / 128) / 12;
-                    result.append(formatHz(440.0 * Math.pow(2, exponent)));
-                }
-                case 2 -> { // Fac
-                    double exponent = (double) ((coarse - 64) + (fine - 64) / 128) / 12;
-                    result.append(String.format("x%.03f", Math.pow(2, exponent)));
-                }
-                case 3 -> { // Part
-                    if (coarse <= 32) {
-                        double Exponent = (double) -(((32 - coarse) * 4) + 77 - (fine - 64) / 128) / 12;
-                        result.append(String.format("x%.02fHz", 440.0 * Math.pow(2, Exponent)));
-                    } else if (coarse <= 64) {
-                        result.append("1:").append(64 - coarse + 1);
-                    } else {
-                        result.append(coarse - 64 + 1).append(":1");
-                    }
-                    result.append("  ");
-                    formatFreq((fine - 64) * 100 / 128, result);
-                }
-                case 4 -> { // Semi PShift
-                    int cv = coarse - 64;
-                    if (cv < 0) {
-                        result.append(String.format("%.02f", (double) cv / 4));
-                    } else {
-                        result.append("+").append(String.format("%.02f", (double) cv / 4));
-                    }
-                    result.append("  ");
-                    formatFreq((fine - 64) * 100 / 128, result);
-                }
+            case 1 -> { // Freq
+                double exponent = (double) ((coarse - 69) + (fine - 64) / 128) / 12;
+                result.append(formatHz(440.0 * Math.pow(2, exponent)));
             }
-            l.setText(result.toString());
-        };
+            case 2 -> { // Fac
+                double exponent = (double) ((coarse - 64) + (fine - 64) / 128) / 12;
+                result.append(String.format("x%.03f", Math.pow(2, exponent)));
+            }
+            case 3 -> { // Part
+                if (coarse <= 32) {
+                    double Exponent = (double) -(((32 - coarse) * 4) + 77 - (fine - 64) / 128) / 12;
+                    result.append(String.format("x%.02fHz", 440.0 * Math.pow(2, Exponent)));
+                } else if (coarse <= 64) {
+                    result.append("1:").append(64 - coarse + 1);
+                } else {
+                    result.append(coarse - 64 + 1).append(":1");
+                }
+                result.append("  ");
+                fmtPosNeg((fine - 64) * 100 / 128, result);
+            }
+            case 4 -> { // Semi PShift
+                int cv = coarse - 64;
+                if (cv < 0) {
+                    result.append(String.format("%.02f", (double) cv / 4));
+                } else {
+                    result.append("+").append(String.format("%.02f", (double) cv / 4));
+                }
+                result.append("  ");
+                fmtPosNeg((fine - 64) * 100 / 128, result);
+            }
+        }
+        String s = result.toString();
+        return s;
     }
 
-    private static void formatFreq(int iValue1, StringBuilder result) {
+    private static void fmtPosNeg(int iValue1, StringBuilder result) {
         if (iValue1 < 0) {
             result.append(iValue1);
         } else {
