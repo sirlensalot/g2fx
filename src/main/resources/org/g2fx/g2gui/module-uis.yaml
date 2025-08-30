@@ -19997,9 +19997,9 @@ Reverb:
     Text: "Time"
   - Class: "TextField"
     ID: 2
-    XPos: 56
+    XPos: 55
     YPos: 27
-    Width: 35
+    Width: 36
     MasterRef: 0
     Dependencies: "0,S0"
     TextFunc: 107

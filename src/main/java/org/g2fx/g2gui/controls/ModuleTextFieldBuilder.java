@@ -34,6 +34,8 @@ public class ModuleTextFieldBuilder {
     private static final int TF_MIX_LEV = 102; // TODO doesn't handle Exp
     private static final int TF_PSHIFT_FREQ = 201;
     private static final int TF_DELAY_TIME = 141;
+    private static final int TF_REVERB_TIME = 107;
+
 
 
     private final ModulePane parent;
@@ -75,12 +77,24 @@ public class ModuleTextFieldBuilder {
             case TF_CONST_BIP: return formatConstBip(c,l);
             case TF_MIX_LEV: return formatMixLev(c,l);
             case TF_DELAY_TIME: return formatDelayTime(c,l);
+            case TF_REVERB_TIME: return formatReverbTime(c,l);
         }
 
         System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
         return parent.empty(c,"mkTextField");
 
     }
+
+    private Node formatReverbTime(UIElements.TextField c, Label l) {
+        return fmtIntInt(l,c,0,1,(t,n)-> {
+            double m = (t + 1) * 3.0;
+            double v = m / 127 * n;
+            return v < 1 ? fmtDoubleFixed(v*1000, 4) + "ms" :
+                    fmtDoubleFixed(v, 5) + 's';
+        });
+    }
+
+
 
     private Node formatDelayTime(UIElements.TextField c, Label l) {
         return fmtIntInt(l,c,0,1,(t,n) -> delayDispValue(0,t,n));
@@ -224,201 +238,85 @@ public class ModuleTextFieldBuilder {
     }
 
     public static String delayDispValue(int aType, int aRange, int aValue) {
-        float DlyRange, DlyMin, DlyMax;
-        switch (aType) {
-            case 0:
-                switch (aRange) {
-                    case 0:
-                        DlyMin = 0.05f;
-                        DlyMax = 5.3f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 4) + "m";
-                    case 1:
-                        DlyMin = 0.21f;
-                        DlyMax = 25.1f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 4) + "m";
-                    case 2:
-                        DlyMin = 0.8f;
-                        DlyMax = 100f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 4) + "m";
-                    case 3:
-                        DlyMin = 3.95f;
-                        DlyMax = 500f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 4) + "m";
-                    case 4:
-                        DlyMin = 7.89f;
-                        DlyMax = 1000f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue == 127)
-                            return "1.000s";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 4) + "m";
-                    case 5:
-                        DlyMin = 15.8f;
-                        DlyMax = 2000f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue >= 64)
-                            return g2FloatToStr((DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126) / 1000, 5) + "s";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 4) + "m";
-                    case 6:
-                        DlyMin = 21.3f;
-                        DlyMax = 2700f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue >= 48)
-                            return g2FloatToStr((DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126) / 1000, 5) + "s";
-                        else
-                            return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * (aValue - 1) / 126, 5) + "m";
+        return switch (aType) {
+            case 0 -> aValue == 0 ? "0.01m" : switch (aRange) {
+                case 0 -> fmtDouble(computeDelay(aValue, 0.05f, 5.3f), 4) + "m";
+                case 1 -> fmtDouble(computeDelay(aValue, 0.21f, 25.1f), 4) + "m";
+                case 2 -> fmtDouble(computeDelay(aValue, 0.8f, 100f), 4) + "m";
+                case 3 -> fmtDouble(computeDelay(aValue, 3.95f, 500f), 4) + "m";
+                case 4 -> aValue == 127 ? "1.000s" :
+                    fmtDouble(computeDelay(aValue, 7.89f, 1000f), 4) + "m";
+                case 5 -> {
+                    double min = 15.8f;
+                    double max = 2000f;
+                    yield aValue >= 64 ?
+                            fmtDouble(computeDelay(aValue,min,max) / 1000, 5) + "s" :
+                            fmtDouble(computeDelay(aValue, min, max), 4) + "m";
                 }
-                break;
-            case 1:
-                switch (aRange) {
-                    case 0:
-                        DlyMin = 0f;
-                        DlyMax = 0.66f;
-                        break;
-                    case 1:
-                        DlyMin = 0f;
-                        DlyMax = 3.14f;
-                        break;
-                    case 2:
-                        DlyMin = 0f;
-                        DlyMax = 12.6f;
-                        break;
-                    case 3:
-                        DlyMin = 0f;
-                        DlyMax = 62.5f;
-                        break;
-                    case 4:
-                        DlyMin = 0f;
-                        DlyMax = 125f;
-                        break;
-                    case 5:
-                        DlyMin = 0f;
-                        DlyMax = 250f;
-                        break;
-                    case 6:
-                        DlyMin = 0f;
-                        DlyMax = 338f;
-                        break;
-                    default:
-                        DlyMin = 0f; // fallback
-                        DlyMax = 0f;
+                default -> {
+                    double min = 21.3f;
+                    double max = 2700f;
+                    yield aValue >= 48 ?
+                            fmtDouble(computeDelay(aValue,min,max) / 1000, 5) + "s" :
+                            fmtDouble(computeDelay(aValue, min, max), 5) + "m";
                 }
-                return g2FloatToStr(DlyMin + (DlyMax - DlyMin) * aValue / 127, 4) + "m";
-            case 2:
-                switch (aRange) {
-                    case 0:
-                        DlyRange = 500f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
-                    case 1:
-                        DlyRange = 1000f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue == 127)
-                            return "1.00s";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
-                    case 2:
-                        DlyRange = 2000f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue >= 64)
-                            return g2FloatToStr(DlyRange * aValue / 127000, 5) + "s";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
-                    case 3:
-                        DlyRange = 2700f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue >= 48)
-                            return g2FloatToStr(DlyRange * aValue / 127000, 5) + "s";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
+            };
+            case 1 -> {
+                double m = switch (aRange) {
+                    case 0 -> 0.66f;
+                    case 1 -> 3.14f;
+                    case 2 -> 12.6f;
+                    case 3 -> 62.5f;
+                    case 4 -> 125f;
+                    case 5 -> 250f;
+                    case 6 -> 338f;
+                    default -> 0f;
+                };
+                yield fmtDouble(m * aValue / 127, 4) + "m";
+            }
+            case 2 -> aValue == 0 ? "0.01m" : switch (aRange) {
+                case 0 -> fmtDouble(500f * aValue / 127, 4) + "m";
+                case 1 -> aValue == 127 ? "1.00s" : fmtDouble(1000f * aValue / 127, 4) + "m";
+                case 2 -> {
+                    double f = 2000f;
+                    yield aValue >= 64 ? fmtDouble(f * aValue / 127000, 5) + "s" :
+                            fmtDouble(f * aValue / 127, 4) + "m";
                 }
-                break;
-            case 3:
-                switch (aRange) {
-                    case 0:
-                        DlyRange = 500f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
-                    case 1:
-                        DlyRange = 1000f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue == 127)
-                            return "1.00s";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
-                    case 2:
-                        DlyRange = 1351f;
-                        if (aValue == 0)
-                            return "0.01m";
-                        else if (aValue >= 95)
-                            return g2FloatToStr(DlyRange * aValue / 127000, 5) + "s";
-                        else
-                            return g2FloatToStr(DlyRange * aValue / 127, 4) + "m";
+                default -> {
+                    double f = 2700f;
+                    yield aValue >= 48 ? fmtDouble(f * aValue / 127000, 5) + "s" :
+                            fmtDouble(f * aValue / 127, 4) + "m";
                 }
-                break;
-            case 4:
-                if (aValue >= 0 && aValue <= 3) return "1/64T";
-                if (aValue >= 4 && aValue <= 7) return "1/64";
-                if (aValue >= 8 && aValue <= 11) return "1/32T";
-                if (aValue >= 12 && aValue <= 15) return "1/64D";
-                if (aValue >= 16 && aValue <= 19) return "1/32";
-                if (aValue >= 20 && aValue <= 23) return "1/16T";
-                if (aValue >= 24 && aValue <= 27) return "1/32D";
-                if (aValue >= 28 && aValue <= 35) return "1/16";
-                if (aValue >= 36 && aValue <= 43) return "1/8T";
-                if (aValue >= 44 && aValue <= 51) return "1/16D";
-                if (aValue >= 52 && aValue <= 59) return "1/8";
-                if (aValue >= 60 && aValue <= 67) return "1/4T";
-                if (aValue >= 68 && aValue <= 75) return "1/8D";
-                if (aValue >= 76 && aValue <= 83) return "1/4";
-                if (aValue >= 84 && aValue <= 91) return "1/2T";
-                if (aValue >= 92 && aValue <= 99) return "1/4D";
-                if (aValue >= 100 && aValue <= 107) return "1/2";
-                if (aValue >= 108 && aValue <= 111) return "1/1T";
-                if (aValue >= 112 && aValue <= 115) return "1/2D";
-                if (aValue >= 116 && aValue <= 119) return "1/1";
-                if (aValue >= 120 && aValue <= 123) return "1/1D";
-                if (aValue >= 124 && aValue <= 127) return "2/1";
-                break;
-        }
-        throw new IllegalArgumentException("Invalid range: " + aRange);
+            };
+            case 3 -> aValue == 0 ? "0.01m" : switch (aRange) {
+                case 0 -> fmtDouble(500f * aValue / 127, 4) + "m";
+                case 1 -> aValue == 127 ? "1.00s" : fmtDouble(1000f * aValue / 127, 4) + "m";
+                default -> {
+                    double f = 1351f;
+                    yield aValue >= 95 ? fmtDouble(f * aValue / 127000, 5) + "s" :
+                            fmtDouble(f * aValue / 127, 4) + "m";
+                }
+            };
+            default -> DELAY_VALS[aValue/4];
+        };
     }
 
-    public static String g2FloatToStr(float aValue, int aLen) {
-        int intDigits = String.valueOf(Math.abs((int)aValue)).length();
-        int decimals = Math.max(0, aLen - intDigits);
+    private static double computeDelay(int aValue, double min, double max) {
+        return min + (max - min) * (aValue - 1) / 126;
+    }
 
-        String formatStr = "%." + decimals + "f";
-        String result = String.format(formatStr, aValue);
 
-        if (decimals > 0) {
-            result = result.replaceAll("\\.0+$", "");
-        }
-        return result;
+    public static String fmtDoubleFixed(double v, int totalLen) {
+        if (totalLen < 3) { throw new IllegalArgumentException("fmtDoubleFixed: bad totalLen: " + totalLen); }
+        String s = String.format("%.0" + (totalLen-2) + "f",v);
+        int dot = s.indexOf('.');
+        if (dot >= totalLen) { return s.substring(0,dot); }
+        int declen = totalLen-dot-1;
+        return String.format("%.0"+declen+"f",v);
+    }
+
+    public static String fmtDouble(double v, int totalLen) {
+        return fmtDoubleFixed(v,totalLen).replaceAll("\\.0+$", "");
     }
 
 
