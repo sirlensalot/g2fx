@@ -52,10 +52,10 @@ public enum ModParam {
     (0,
      "Small", "Medium", "Large", "Hall"),
     Sw_3
-    (0,intF(i -> Integer.toString(i*4)),
+    (0,intF(i -> {var n = i*4; return i2s(n);}),
      "sw1", "sw2", "sw3", "sw4", "sw5", "sw6", "sw7", "sw8"),
     ValSwVal
-    (0,63,0),
+    (0,63,0,intF(i->i2s(i==63?64:i))),
     Bipolar_127
     (0,127,0),
     LogLin
@@ -283,7 +283,7 @@ public enum ModParam {
     (0,127,64),
     Sw_1
     (0,
-     new ParamFormatter(i -> Integer.toString(i*4),b -> b ? "0" : "4"),
+     new ParamFormatter(i -> i2s(i * 4), b -> b ? "0" : "4"),
      "sw1", "sw2"),
     FlipFlopMode
     (0,
@@ -398,7 +398,7 @@ public enum ModParam {
     (0,
      "Sine1", "Sine2", "Sine3", "Sine4", "TriSaw", "SymPulse"),
     DxAlgorithm
-    (0,31,0, intF(i -> Integer.toString(i+1))),
+    (0,31,0, intF(i -> i2s(i + 1))),
     DxFeedback
     (0,SELF_AREF_SENTINEL,
      "0", "1", "2", "3", "4", "5", "6", "7"),
@@ -553,6 +553,10 @@ public enum ModParam {
     (1,
      "Knob","Morph")
     ;
+
+    private static String i2s(int n) {
+        return Integer.toString(n);
+    }
 
 
     public static String formatMillisSecs(Double v) {
