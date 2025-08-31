@@ -25,6 +25,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         void accept(T t) throws Exception;
     }
 
+    @FunctionalInterface
+    public interface ThrowingFunction<A,R> {
+        R invoke(A a) throws Exception;
+    }
+
     public interface DeviceListener {
         void onDeviceInitialized(Device d) throws Exception;
         void onDeviceDisposal(Device d) throws Exception;
@@ -189,7 +194,13 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         return null;
     }
 
-    public void withCurrent(ThrowingConsumer<Device> f) throws Exception {
+    public <T>T withCurrent(ThrowingFunction<Device,T> f) throws Exception {
+        if (current == null) { throw new IllegalStateException("Current device not initialized"); }
+        return f.invoke(current);
+    }
+
+
+    public void runWithCurrent(ThrowingConsumer<Device> f) throws Exception {
         if (current == null) { throw new IllegalStateException("Current device not initialized"); }
         f.accept(current);
     }

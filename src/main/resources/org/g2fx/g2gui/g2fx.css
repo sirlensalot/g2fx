@@ -316,6 +316,13 @@
     -fx-font-size: 6pt;
 }
 
+.conn-center {
+    -fx-border-width: 1;
+}
+
+.conn-edge {
+    -fx-border-width: 1;
+}
 
 /* ========== KNOB CONTROL =========== */
 

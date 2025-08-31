@@ -45,7 +45,7 @@ public record UIModule<C> (
             cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
-        //doQuery(m,"Symbol","Type");
+        //doTypeParamQry(m,"Output","Type");
         //doBipUniQry(m);
         //doTf(m);
         return m;
@@ -75,11 +75,11 @@ public record UIModule<C> (
         });
     }
 
-    private static void doQuery(Map<ModuleType, UIModule<UIElement>> m, String cls, String... params) throws Exception {
+    private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls, String... params) throws Exception {
         doQuery(m,cls + "-" + String.join("-",params),(mt,ctl) -> {
             if (cls.equals(ctl.elementType().name())) {
                 for (String param : params) {
-                    return String.format("%s:%s=%s\n", mt, param, invoke(ctl, param));
+                    return String.format("%s=%s[%s]", param, invoke(ctl, param), mt);
                 }
             }
             return null;
@@ -91,16 +91,16 @@ public record UIModule<C> (
                                 BiFunction<ModuleType,UIElement,String> ef) throws Exception {
         String fn = String.format("data/uiqry-%s.txt", name);
         try (PrintWriter bw = new PrintWriter(new FileWriter(fn))) {
+            Set<String> ls = new TreeSet<>();
             for (Map.Entry<ModuleType, UIModule<UIElement>> e : m.entrySet()) {
                 e.getValue().Controls.forEach(c -> {
                     String o = ef.apply(e.getKey(),c);
-                    if (o != null) {
-                        bw.println(o);
-                    }
+                    if (o != null) { ls.add(o); }
                 });
             }
-            System.out.println("Query written to " + fn);
+            ls.forEach(bw::println);
         }
+        System.out.println("Query written to " + fn);
         System.exit(0);
     }
 

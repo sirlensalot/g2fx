@@ -56,18 +56,28 @@ public class Commands {
 
         Menu fileMenu = populateFileMenu(stage);
 
-        Menu toolsMenu = populateToolsMenu();
+        Menu toolsMenu = populateToolsMenu(stage);
 
         menuBar.getMenus().addAll(fileMenu,editMenu,toolsMenu);
         return menuBar;
     }
 
-    private Menu populateToolsMenu() {
+    private Menu populateToolsMenu(Stage stage) {
         Menu menu = new Menu("Tools");
         MenuItem dumpYaml = new MenuItem("Dump Yaml");
-        dumpYaml.setOnAction(e -> devices.execute(true, () -> {
-            devices.withCurrent(d -> d.getPerf().dumpYaml(d.getPerf().getName() + ".yaml"));
-        }));
+        dumpYaml.setOnAction(e -> {
+            String pname = devices.invoke(true,() -> devices.withCurrent(d -> d.getPerf().getName()));
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Dump Yaml File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("YAML Files", "*.yaml"));
+            fileChooser.setInitialFileName(pname + ".yaml");
+            File file = fileChooser.showSaveDialog(stage);
+            if (file != null) {
+                devices.execute(true,() -> devices.runWithCurrent(d ->
+                        d.getPerf().dumpYaml(file.getAbsolutePath())));
+
+            }});
         menu.getItems().addAll(dumpYaml);
         return menu;
     }

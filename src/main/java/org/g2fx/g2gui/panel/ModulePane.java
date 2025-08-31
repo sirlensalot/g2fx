@@ -169,9 +169,21 @@ public class ModulePane {
 
             case UIElements.Symbol c -> mkSymbol(c);
 
+            case UIElements.Input c -> mkInput(c);
+
+            case UIElements.Output c -> mkOutput(c);
+
             default -> empty(e, "renderElement");
 
         };
+    }
+
+    private Node mkOutput(UIElements.Output c) {
+        return Connectors.makeOutput(c);
+    }
+
+    private Node mkInput(UIElements.Input c) {
+        return Connectors.makeInput(c);
     }
 
     private Node mkSymbol(UIElements.Symbol c) {

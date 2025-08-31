@@ -37,6 +37,14 @@ public class UIElements {
         Amplifier,Box,Trig1,Trig2;
     }
 
+    public enum Bandwidth {
+        Dynamic, Static;
+    }
+
+    public enum ConnectorType {
+        Audio, Control, Logic
+    }
+
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
       , ButtonFlat { @Override public Class<? extends UIElement> getType() { return ButtonFlat.class; } }
@@ -168,12 +176,12 @@ public class UIElements {
     }
 
     public record Input (
-        String Bandwidth
+        Bandwidth Bandwidth
       , Integer CodeRef
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , String Type
+      , ConnectorType Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement {
@@ -242,12 +250,12 @@ public class UIElements {
     }
 
     public record Output (
-        String Bandwidth
+        Bandwidth Bandwidth
       , Integer CodeRef
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , String Type
+      , ConnectorType Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement {
