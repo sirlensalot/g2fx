@@ -57,6 +57,12 @@ public class PatchModule {
                 .stream().map(Protocol.Data7.Datum::intValue).toList();
     }
 
+    public List<List<Integer>> getAllVarValues() {
+        return values.stream().map(vfv ->
+                Protocol.VarParams.Params.subfieldsValue(vfv).stream().map(
+                        Protocol.Data7.Datum::intValue).toList()).toList();
+    }
+
     public LibProperty<Integer> getSettingsValueProperty(ModParam param, int variation) {
         int i = settingsModuleType.getModParams().indexOf(param);
         if (i == -1) { throw new IllegalArgumentException(

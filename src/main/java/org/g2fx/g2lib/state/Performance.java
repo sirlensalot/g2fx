@@ -1,6 +1,9 @@
 package org.g2fx.g2lib.state;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Streams;
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -8,13 +11,17 @@ import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
+import static org.g2fx.g2lib.util.Util.withYamlMap;
 
 public class Performance {
 
@@ -163,5 +170,45 @@ public class Performance {
     public void setVersion(int version) {
         this.version = version;
         log.info(() -> "setVersion: " + version);
+    }
+
+    public void dumpYaml(String fileName) throws Exception {
+
+        var top = withYamlMap(m -> {
+            m.put("slots",slots.values().stream().map(s -> withYamlMap(sm -> {
+                sm.put("modules", withYamlMap(am -> {
+                     Arrays.stream(AreaId.USER_AREAS).sequential().forEach(a -> {
+                         am.put(a.toString(),s.getArea(a).getModules().stream().map(pm -> {
+                             return withYamlMap(mm -> {
+                                 mm.put("index",pm.getIndex());
+                                 mm.put("name",pm.name().get());
+                                 ModuleType type = pm.getUserModuleData().getType();
+                                 mm.put("type", type.name().substring(2));
+                                 if (!type.modes.isEmpty()) {
+                                     mm.put("modes", withYamlMap(modem ->
+                                             Streams.forEachPair(type.modes.stream(), pm.getUserModuleData().getModes().stream(), (tm, lp) -> {
+                                                 modem.put(tm.name(), lp.get());
+                                             })));
+                                 }
+                                 if (!type.getParams().isEmpty()) {
+                                     mm.put("params", withYamlMap(pmms -> {
+                                         int i = 1;
+                                         for (List<Integer> vs : pm.getAllVarValues()) {
+                                             pmms.put(Long.toString(i++), withYamlMap(paramm ->
+                                                     Streams.forEachPair(type.getParams().stream(), vs.stream(), (tp, v) ->
+                                                             paramm.put(tp.name(), v))));
+                                         }
+                                     }));
+                                 }
+                             });
+                         }).toList());
+                     });
+                }));
+            })).toList());
+        });
+        ObjectMapper mapper = Util.mkYamlMapper();
+        mapper.writeValue(
+                new File(fileName),
+                top);
     }
 }

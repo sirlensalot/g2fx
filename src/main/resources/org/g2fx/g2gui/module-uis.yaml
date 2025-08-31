@@ -725,7 +725,7 @@
     ID: 41
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -1053,7 +1053,7 @@ Automate:
     ID: 15
     XPos: 4
     YPos: 15
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Bitmap"
@@ -1289,7 +1289,7 @@ BinCounter:
     ID: 40
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -1458,7 +1458,7 @@ ClkDiv:
     ID: 1
     XPos: 129
     YPos: 11
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "TextField"
@@ -1495,7 +1495,7 @@ ClkDiv:
     ID: 5
     XPos: 91
     YPos: 12
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "PartSelector"
@@ -1666,7 +1666,7 @@ ClkGen:
     ID: 20
     XPos: 17
     YPos: 17
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Knob"
@@ -2553,7 +2553,7 @@ CtrlSend:
     ID: 15
     XPos: 4
     YPos: 15
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Bitmap"
@@ -5414,7 +5414,7 @@ EnvADR:
     ID: 12
     XPos: 201
     YPos: 31
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Output"
@@ -5815,7 +5815,7 @@ EnvAHD:
     ID: 3
     XPos: 18
     YPos: 30
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Input"
@@ -6027,7 +6027,7 @@ EnvD:
     ID: 1
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -6218,7 +6218,7 @@ EnvH:
     ID: 0
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -7528,7 +7528,7 @@ FlipFlop:
     ID: 14
     XPos: 111
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
 FltClassic:
@@ -10952,7 +10952,7 @@ LfoB:
     ID: 19
     XPos: 17
     YPos: 17
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -11211,7 +11211,7 @@ LfoShpA:
     ID: 8
     XPos: 17
     YPos: 27
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -14025,7 +14025,7 @@ ModAHD:
     ID: 3
     XPos: 18
     YPos: 32
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Input"
@@ -15719,14 +15719,14 @@ NoteSend:
     ID: 16
     XPos: 60
     YPos: 16
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Symbol"
     ID: 17
     XPos: 133
     YPos: 16
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
 NoteZone:
@@ -16714,7 +16714,7 @@ OscB:
     ID: 19
     XPos: 17
     YPos: 18
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "TextField"
@@ -16927,7 +16927,7 @@ OscC:
     ID: 5
     XPos: 171
     YPos: 30
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "PartSelector"
@@ -17263,7 +17263,7 @@ OscDual:
     ID: 19
     XPos: 17
     YPos: 18
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "TextField"
@@ -17816,7 +17816,7 @@ OscPM:
     ID: 5
     XPos: 171
     YPos: 30
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "PartSelector"
@@ -17986,7 +17986,7 @@ OscPerc:
     ID: 6
     XPos: 58
     YPos: 30
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -18234,7 +18234,7 @@ OscShpA:
     ID: 19
     XPos: 17
     YPos: 18
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "TextField"
@@ -18488,7 +18488,7 @@ OscShpB:
     ID: 4
     XPos: 17
     YPos: 15
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -19029,7 +19029,7 @@ PCSend:
     ID: 16
     XPos: 4
     YPos: 15
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Bitmap"
@@ -20199,7 +20199,7 @@ RndClkA:
     ID: 8
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "ButtonFlat"
@@ -20253,7 +20253,7 @@ RndClkA:
     ID: 12
     XPos: 81
     YPos: 16
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Input"
@@ -20371,14 +20371,14 @@ RndClkB:
     ID: 15
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 9
     XPos: 17
     YPos: 30
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "TextField"
@@ -20532,14 +20532,14 @@ RndPattern:
     ID: 15
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 14
     XPos: 17
     YPos: 30
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Input"
@@ -20747,14 +20747,14 @@ RndTrig:
     ID: 15
     XPos: 17
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 9
     XPos: 81
     YPos: 16
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "TextField"
@@ -20893,7 +20893,7 @@ S&H:
     ID: 8
     XPos: 175
     YPos: 13
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Text"
@@ -22462,7 +22462,7 @@ SeqEvent:
     ID: 63
     XPos: 16
     YPos: 38
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Text"
@@ -22643,21 +22643,21 @@ SeqEvent:
     ID: 91
     XPos: 200
     YPos: 5
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 89
     XPos: 16
     YPos: 60
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Symbol"
     ID: 92
     XPos: 16
     YPos: 16
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
 SeqLev:
@@ -23463,28 +23463,28 @@ SeqLev:
     ID: 10
     XPos: 16
     YPos: 25
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 20
     XPos: 16
     YPos: 48
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Symbol"
     ID: 21
     XPos: 16
     YPos: 70
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Symbol"
     ID: 22
     XPos: 200
     YPos: 5
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
 SeqNote:
@@ -23922,7 +23922,7 @@ SeqNote:
     ID: 62
     XPos: 17
     YPos: 67
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Output"
@@ -24353,21 +24353,21 @@ SeqNote:
     ID: 15
     XPos: 17
     YPos: 89
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Symbol"
     ID: 18
     XPos: 200
     YPos: 5
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 103
     XPos: 17
     YPos: 44
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
 SeqVal:
@@ -24805,7 +24805,7 @@ SeqVal:
     ID: 62
     XPos: 17
     YPos: 48
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Text"
@@ -25392,21 +25392,21 @@ SeqVal:
     ID: 121
     XPos: 17
     YPos: 70
-    Type: "Trig 2"
+    Type: "Trig2"
     Width: 4
     Height: 10
   - Class: "Symbol"
     ID: 125
     XPos: 199
     YPos: 5
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
   - Class: "Symbol"
     ID: 126
     XPos: 17
     YPos: 26
-    Type: "Trig 1"
+    Type: "Trig1"
     Width: 3
     Height: 10
 ShpExp:

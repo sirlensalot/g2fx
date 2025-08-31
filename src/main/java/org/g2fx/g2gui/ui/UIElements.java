@@ -33,6 +33,10 @@ public class UIElements {
         Param, Mode;
     }
 
+    public enum SymbolType {
+        Amplifier,Box,Trig1,Trig2;
+    }
+
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
       , ButtonFlat { @Override public Class<? extends UIElement> getType() { return ButtonFlat.class; } }
@@ -270,7 +274,7 @@ public class UIElements {
     public record Symbol (
         Integer Height
       , Integer ID
-      , String Type
+      , SymbolType Type
       , Integer Width
       , Integer XPos
       , Integer YPos

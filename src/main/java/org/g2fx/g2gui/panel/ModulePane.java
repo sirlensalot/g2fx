@@ -11,8 +11,11 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Font;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
@@ -164,9 +167,21 @@ public class ModulePane {
 
             case UIElements.PartSelector c -> mkPartSelector(c);
 
+            case UIElements.Symbol c -> mkSymbol(c);
+
             default -> empty(e, "renderElement");
 
         };
+    }
+
+    private Node mkSymbol(UIElements.Symbol c) {
+        Label l = label(c.Type().toString());
+        l.setFont(Font.font(6));
+        l.setBorder(Border.stroke(Color.GREY));
+        layout(c,l);
+        l.setPrefWidth(c.Width());
+        l.setPrefHeight(c.Height());
+        return l;
     }
 
     private Node mkPartSelector(UIElements.PartSelector c) {

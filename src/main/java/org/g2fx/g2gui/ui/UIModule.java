@@ -5,11 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -26,7 +25,7 @@ public record UIModule<C> (
 
     public static Map<ModuleType,UIModule<UIElement>> readModuleUIs() throws Exception {
         Map<ModuleType, UIModule<UIElement>> m = new TreeMap<>();
-        ObjectMapper mapper = mkYamlMapper();
+        ObjectMapper mapper = Util.mkYamlMapper();
         HashMap<String,UIModule<Map<String,Object>>> y = mapper.readValue(
                 FXUtil.getResource("module-uis.yaml")
                 , new TypeReference<>() {});
@@ -46,7 +45,7 @@ public record UIModule<C> (
             cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
-        //doQuery(m,"PartSelector","Images");
+        //doQuery(m,"Symbol","Type");
         //doBipUniQry(m);
         //doTf(m);
         return m;
@@ -115,14 +114,9 @@ public record UIModule<C> (
 
     public static void main(String[] args) throws Exception {
         Map<ModuleType, UIModule<UIElement>> m = readModuleUIs();
-        ObjectMapper mapper = mkYamlMapper();
+        ObjectMapper mapper = Util.mkYamlMapper();
         mapper.writeValue(new File("data/module-uis-output.yaml"),m);
 
-    }
-
-    public static ObjectMapper mkYamlMapper() {
-        return new ObjectMapper(
-                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
     }
 
     public static class StringToListDesz extends JsonDeserializer<List<String>> {

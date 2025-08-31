@@ -20,6 +20,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         void run() throws Exception;
     }
 
+    @FunctionalInterface
+    public interface ThrowingConsumer<T> {
+        void accept(T t) throws Exception;
+    }
+
     public interface DeviceListener {
         void onDeviceInitialized(Device d) throws Exception;
         void onDeviceDisposal(Device d) throws Exception;
@@ -182,6 +187,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
             log.log(Level.SEVERE,"File load failed",e);
         }
         return null;
+    }
+
+    public void withCurrent(ThrowingConsumer<Device> f) throws Exception {
+        if (current == null) { throw new IllegalStateException("Current device not initialized"); }
+        f.accept(current);
     }
 
 

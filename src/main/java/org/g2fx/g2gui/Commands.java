@@ -55,8 +55,21 @@ public class Commands {
         Menu editMenu = populateEditMenu();
 
         Menu fileMenu = populateFileMenu(stage);
-        menuBar.getMenus().addAll(fileMenu,editMenu);
+
+        Menu toolsMenu = populateToolsMenu();
+
+        menuBar.getMenus().addAll(fileMenu,editMenu,toolsMenu);
         return menuBar;
+    }
+
+    private Menu populateToolsMenu() {
+        Menu menu = new Menu("Tools");
+        MenuItem dumpYaml = new MenuItem("Dump Yaml");
+        dumpYaml.setOnAction(e -> devices.execute(true, () -> {
+            devices.withCurrent(d -> d.getPerf().dumpYaml(d.getPerf().getName() + ".yaml"));
+        }));
+        menu.getItems().addAll(dumpYaml);
+        return menu;
     }
 
     private Menu populateEditMenu() {

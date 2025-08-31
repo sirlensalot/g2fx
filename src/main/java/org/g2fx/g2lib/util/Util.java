@@ -1,5 +1,8 @@
 package org.g2fx.g2lib.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.g2fx.g2lib.usb.UsbMessage;
 
 import java.io.FileInputStream;
@@ -16,6 +19,11 @@ public class Util {
     private static volatile Level DEFAULT_LEVEL = Level.FINE;
 
     private static final Logger log = getLogger(Util.class);
+
+    public static ObjectMapper mkYamlMapper() {
+        return new ObjectMapper(
+                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+    }
 
     @FunctionalInterface
     public interface TriFunction<A, B, C, R> {
