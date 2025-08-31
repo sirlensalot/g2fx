@@ -23,16 +23,16 @@ public interface Connectors {
     double BLUE = 210;
     double YELLOW = 60;
 
-    static Node makeInput(UIElements.Input c) {
+    record Conn(Connector.PortType portType, Node control, int index) {}
 
-        return mkConnector(c, c.Type(), In);
+    static Conn makeInput(UIElements.Input c) {
+        return mkConnector(c, c.Type(), c.CodeRef(), In);
     }
 
-    static Node makeOutput(UIElements.Output c) {
-
-        return mkConnector(c, c.Type(), Out);
+    static Conn makeOutput(UIElements.Output c) {
+        return mkConnector(c, c.Type(), c.CodeRef(), Out);
     }
-    private static StackPane mkConnector(UIElement c, UIElements.ConnectorType ctype, Connector.PortType portType) {
+    private static Conn mkConnector(UIElement c, UIElements.ConnectorType ctype, int ref, Connector.PortType portType) {
         double hue = switch (ctype) {
             case Audio -> RED;
             case Control -> BLUE;
@@ -53,7 +53,7 @@ public interface Connectors {
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
-        return pane;
+        return new Conn(portType,pane,ref);
     }
 
 }

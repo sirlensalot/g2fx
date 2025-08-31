@@ -6,23 +6,24 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
-import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.Undos;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
+import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
-import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Device;
-import org.g2fx.g2lib.state.PatchModule;
-import org.g2fx.g2lib.state.UserModuleData;
+import org.g2fx.g2lib.state.*;
 
 import java.util.*;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_X;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_Y;
+import static org.g2fx.g2lib.model.Connector.PortType.In;
+import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
 public class AreaPane {
 
@@ -34,7 +35,7 @@ public class AreaPane {
     private final Undos undos;
     private final ScrollPane scrollPane;
 
-    private final List<ModulePane> modulePanes = new ArrayList<>();
+    private final Map<Integer,ModulePane> modulePanes = new TreeMap<>();
 
     private final Set<ModulePane> selectedModules = new HashSet<>();
     private final Rectangle selectedRect;
@@ -42,6 +43,10 @@ public class AreaPane {
     private final Label areaLabel;
     private Point2D dragOrigin;
     private Runnable selectionListener;
+
+    public AreaId getAreaId() {
+        return areaId;
+    }
 
 
     enum SelectionStatus {
@@ -70,7 +75,7 @@ public class AreaPane {
 
     private void setupSelectionDragging() {
         areaPane.setOnMousePressed(e -> {
-            for (ModulePane mp : modulePanes) {
+            for (ModulePane mp : modulePanes.values()) {
                 if (mp.getPane().getBoundsInParent().contains(e.getX(),e.getY())) {
                     selectedRect.setUserData(SelectionStatus.IN_MODULE);
                     return;
@@ -98,7 +103,7 @@ public class AreaPane {
                 if (!e.isShiftDown()) {
                     clearModuleSelection();
                 }
-                for (ModulePane mp : modulePanes) {
+                for (ModulePane mp : modulePanes.values()) {
                     if (mp.getPane().getBoundsInParent().intersects(selBounds)) {
                         selectModule(mp);
                     }
@@ -113,20 +118,42 @@ public class AreaPane {
 
     public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
         // on device thread
-        for (PatchModule m : d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId).getModules()) {
+        PatchArea area = d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
+        for (PatchModule m : area.getModules()) {
             UserModuleData md = m.getUserModuleData();
             ModulePane.ModuleSpec spec = new ModulePane.ModuleSpec(md.getIndex(), md.getType(),
                     md.uprate().get(),
                     md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
             l.add(() -> renderModule(spec, m, d, uiModules.get(md.getType())));
         }
+        l.add(() -> renderCables(new ArrayList<>(area.getCables()))); //assuming fvs are one-off, should be thread-safe
+    }
+
+    private void renderCables(List<PatchCable> patchCables) {
+        // fx thread with fresh list of "immutable" PatchCable instances
+        for (PatchCable patchCable : patchCables) {
+            var src = resolveModule(patchCable.getSrcModule());
+            var dest = resolveModule(patchCable.getDestModule());
+            Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
+            var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
+            var destConn = dest.resolveConn(In, patchCable.getDestConn());
+            areaPane.getChildren().add(Cables.mkCable(
+                    srcConn.control().localToParent(src.getPane().getLayoutX(),src.getPane().getLayoutY()).add(6,6),
+                    destConn.control().localToParent(dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6)));
+        }
+    }
+
+    private ModulePane resolveModule(int mIdx) {
+        ModulePane mp = modulePanes.get(mIdx);
+        if (mp == null) { throw new IllegalStateException("patchCable invalid module index: " + mIdx); }
+        return mp;
     }
 
 
     private void renderModule(ModulePane.ModuleSpec m, PatchModule pm, Device d, UIModule<UIElement> ui) {
         // on fx thread
-        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, slotPane, areaId);
-        modulePanes.add(modulePane);
+        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, slotPane, this);
+        modulePanes.put(m.index(),modulePane);
         areaPane.getChildren().add(modulePane.getPane());
         setupModuleMouseHandling(modulePane);
         modulePane.getModuleBridges().forEach(b -> b.finalizeInit(d).run());
@@ -201,7 +228,7 @@ public class AreaPane {
 
         Map<Integer, List<ModulePane>> modulesByColumn = new TreeMap<>();
         // Group modules by column
-        for (ModulePane pane : modulePanes) {
+        for (ModulePane pane : modulePanes.values()) {
             modulesByColumn.computeIfAbsent(pane.coords().getValue().column(),
                     k -> new ArrayList<>()).add(pane);
         }
@@ -309,7 +336,7 @@ public class AreaPane {
     public void clearModules() {
         areaPane.getChildren().clear();
         areaPane.getChildren().add(areaLabel);
-        for (ModulePane m : modulePanes) {
+        for (ModulePane m : modulePanes.values()) {
             bridges.remove(m.getModuleBridges());
             m.unbindVarControls();
         }

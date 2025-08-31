@@ -95,10 +95,14 @@ public class ModulePane {
             new SimpleObjectProperty<>(new UserModuleData.Coords(0,0));
 
     private final SimpleObjectProperty<Integer> color = new SimpleObjectProperty<>();
+
+    private final Map<Connector.PortType,List<Connectors.Conn>> conns = Map.of(
+            Connector.PortType.In,new ArrayList<>(),
+            Connector.PortType.Out,new ArrayList<>());
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges bridges, PatchModule pm, SlotPane slotPane, AreaId area) {
+                      Bridges bridges, PatchModule pm, SlotPane slotPane, AreaPane area) {
         height = ui.Height();
         type = m.type;
         this.index = m.index;
@@ -107,12 +111,13 @@ public class ModulePane {
         this.ui = ui;
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
-        this.area = area;
+        this.area = area.getAreaId();
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
         textFieldBuilder = new ModuleTextFieldBuilder(this);
 
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
+
         pane = withClass(new Pane(FXUtil.toArray(children)),"mod-pane");
         pane.setMinHeight(height * GRID_Y);
         pane.setMinWidth(GRID_X);
@@ -133,6 +138,7 @@ public class ModulePane {
             pane.setLayoutY(n.row()* GRID_Y);
         });
     }
+
 
 
     public void setSelected(boolean selected) {
@@ -179,12 +185,23 @@ public class ModulePane {
     }
 
     private Node mkOutput(UIElements.Output c) {
-        return Connectors.makeOutput(c);
+        var conn = Connectors.makeOutput(c);
+        conns.get(conn.portType()).add(conn);
+        return conn.control();
     }
 
     private Node mkInput(UIElements.Input c) {
-        return Connectors.makeInput(c);
+        var conn = Connectors.makeInput(c);
+        conns.get(conn.portType()).add(conn);
+        return conn.control();
     }
+
+    public Connectors.Conn resolveConn(Connector.PortType type, int idx) {
+        var l = conns.get(type);
+        if (idx >= l.size()) { throw new IllegalArgumentException("Invalid " + type + " conn index: " + idx + ": " + conns + ", " + this); }
+        return l.get(idx);
+    }
+
 
     private Node mkSymbol(UIElements.Symbol c) {
         Label l = label(c.Type().toString());
