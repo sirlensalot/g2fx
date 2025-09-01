@@ -24,7 +24,6 @@ import org.g2fx.g2gui.bridge.PropertyBridge;
 import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.ui.*;
 import org.g2fx.g2lib.model.*;
-import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
@@ -63,8 +62,8 @@ public class ModulePane {
     private final ModuleSelector moduleSelector;
     private final int height;
     private final FXUtil.TextFieldFocusListener textFocusListener;
-    private final AreaId area;
     private final int index;
+    private final AreaPane areaPane;
     private boolean selected;
 
     private final ModuleTextFieldBuilder textFieldBuilder;
@@ -72,7 +71,7 @@ public class ModulePane {
     private final Map<Integer,Property<Integer>> intProps = new TreeMap<>();
     private final Map<Integer,ObservableValue<Integer>> modeProps = new TreeMap<>();
     private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
-    private List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
+    private final List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
 
 
 
@@ -102,7 +101,7 @@ public class ModulePane {
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges bridges, PatchModule pm, SlotPane slotPane, AreaPane area) {
+                      Bridges bridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
         height = ui.Height();
         type = m.type;
         this.index = m.index;
@@ -111,7 +110,7 @@ public class ModulePane {
         this.ui = ui;
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
-        this.area = area.getAreaId();
+        this.areaPane = areaPane;
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
         textFieldBuilder = new ModuleTextFieldBuilder(this);
 
@@ -185,14 +184,16 @@ public class ModulePane {
     }
 
     private Node mkOutput(UIElements.Output c) {
-        var conn = Connectors.makeOutput(c);
-        conns.get(conn.portType()).add(conn);
-        return conn.control();
+        return addConn(Connectors.makeOutput(c,this));
     }
 
     private Node mkInput(UIElements.Input c) {
-        var conn = Connectors.makeInput(c);
+        return addConn(Connectors.makeInput(c,this));
+    }
+
+    private Node addConn(Connectors.Conn conn) {
         conns.get(conn.portType()).add(conn);
+        areaPane.getConns().addConn(conn);
         return conn.control();
     }
 
@@ -621,7 +622,7 @@ public class ModulePane {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s", slotPane.getSlot(),area,type,index);
+        return String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type,index);
     }
 
     public Property<Boolean> getBoolProp(int idx) { return boolProps.get(idx); }
@@ -644,7 +645,7 @@ public class ModulePane {
     }
 
     public String paramId(IndexParam ip) {
-        return this.toString() + ":" + ip.index() + ":" + ip.param().param().name();
+        return this + ":" + ip.index() + ":" + ip.param().param().name();
     }
 
     public void unbindVarControls() {

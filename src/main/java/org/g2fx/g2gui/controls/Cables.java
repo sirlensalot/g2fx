@@ -7,7 +7,6 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.*;
-import org.g2fx.g2gui.panel.ModulePane;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -44,10 +43,8 @@ public interface Cables {
     }
     record Cable(
             CableColor color,
-            ModulePane src,
             Connectors.Conn srcConn,
             Point2D start,
-            ModulePane dest,
             Connectors.Conn destConn,
             Point2D end,
             CableRun run,
@@ -59,15 +56,15 @@ public interface Cables {
     }
 
     static Cable mkCable(Cable c) {
-        return mkCable(c.src,c.srcConn,c.dest,c.destConn);
+        return mkCable(c.srcConn,c.destConn);
     }
 
-    static Cable mkCable(ModulePane src, Connectors.Conn srcConn, ModulePane dest, Connectors.Conn destConn) {
+    static Cable mkCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
 
         Point2D start = srcConn.control().localToParent(
-                src.getPane().getLayoutX(),src.getPane().getLayoutY()).add(6,6);
+                srcConn.parent().getPane().getLayoutX(),srcConn.parent().getPane().getLayoutY()).add(6,6);
         Point2D end = destConn.control().localToParent(
-                dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6);
+                destConn.parent().getPane().getLayoutX(),destConn.parent().getPane().getLayoutY()).add(6,6);
 
         CableColor color = getConnColor(srcConn.connType());
 
@@ -88,12 +85,12 @@ public interface Cables {
         Circle srcJack = mkJack(gradient, start);
         Circle destJack = mkJack(gradient,end);
 
-        return new Cable(color,src,srcConn,start,dest,destConn,end,run,srcJack,destJack);
+        return new Cable(color,srcConn,start,destConn,end,run,srcJack,destJack);
 
 
     }
 
-    private static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
+    public static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
 
         ThreadLocalRandom r = ThreadLocalRandom.current();
         int offsetMagnitude = r.nextInt(10,20);
@@ -153,7 +150,7 @@ public interface Cables {
     }
 
 
-    private static Circle mkJack(RadialGradient gradient, Point2D pos) {
+    public static Circle mkJack(RadialGradient gradient, Point2D pos) {
         Circle srcJack = new Circle(0,0,RADIUS*.55);
         srcJack.getStyleClass().add("cable-jack");
         srcJack.setFill(gradient);

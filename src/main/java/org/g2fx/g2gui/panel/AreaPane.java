@@ -10,6 +10,7 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Cables;
+import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
@@ -44,11 +45,21 @@ public class AreaPane {
     private Point2D dragOrigin;
     private Runnable selectionListener;
     private List<Cables.Cable> cables = new ArrayList<>();
+    private final Connectors conns = new Connectors(this);
 
     public AreaId getAreaId() {
         return areaId;
     }
 
+    public Connectors getConns() {
+        return conns;
+    }
+
+    public void newCable(Connectors.Conn start, Connectors.Conn end) {
+        addCable(start,end);
+        manageCables(false);
+        //TODO add to backend as redoable action
+    }
 
     enum SelectionStatus {
         IN_MODULE,
@@ -138,11 +149,15 @@ public class AreaPane {
             Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
             var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
             var destConn = dest.resolveConn(In, patchCable.getDestConn());
-            Cables.Cable cable = Cables.mkCable(src, srcConn, dest, destConn);
-            cables.add(cable);
-            areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
+            addCable(srcConn, destConn);
         }
         manageCables(false);
+    }
+
+    private void addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
+        Cables.Cable cable = Cables.mkCable(srcConn, destConn);
+        cables.add(cable);
+        areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
     }
 
     public void manageCables(boolean redraw) {
@@ -157,7 +172,7 @@ public class AreaPane {
 
     private void updateCables(ModulePane mp) {
         for (Cables.Cable c : new ArrayList<>(cables)) {
-            if (mp == c.src()|| mp == c.dest()) {
+            if (mp == c.srcConn().parent()|| mp == c.destConn().parent()) {
                 cables.remove(c);
                 areaPane.getChildren().removeAll(c.endJack(),c.srcJack(),c.run().getShadow(),c.run().getCable());
                 Cables.Cable cnew = Cables.mkCable(c);
@@ -239,6 +254,7 @@ public class AreaPane {
             dragGhosts.clear();
             dragOrigin = null;
         });
+
     }
 
     public void moveSelectedModules(UserModuleData.Coords delta) {
