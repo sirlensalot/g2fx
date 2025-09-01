@@ -20,10 +20,7 @@ import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
-import org.g2fx.g2gui.controls.Knob;
-import org.g2fx.g2gui.controls.PowerButton;
-import org.g2fx.g2gui.controls.RebindableControl;
-import org.g2fx.g2gui.controls.VoiceMode;
+import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
@@ -35,16 +32,14 @@ import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static org.g2fx.g2gui.FXUtil.UI_MAX_VARIATIONS;
 import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.controls.CableColor.*;
 
 public class SlotPane {
 
@@ -62,6 +57,8 @@ public class SlotPane {
     private final Map<AreaId,AreaPane> areaPanes = new HashMap<>();
 
     private SegmentedButton varSelector;
+    private Map<CableColor,CheckBox> cableCheckboxes = new TreeMap<>();
+    private ToggleButton hideCables;
 
 
     public SlotPane(Bridges bridges, FXUtil.TextFieldFocusListener textFocusListener,
@@ -72,10 +69,6 @@ public class SlotPane {
         this.textFocusListener = textFocusListener;
         this.morphControls = morphControls;
         this.undos = undos;
-    }
-
-    public void shakeCables() {
-        areaPanes.values().forEach(AreaPane::redrawCables);
     }
 
     public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
@@ -188,15 +181,19 @@ public class SlotPane {
 
         ToggleButton patchEnable = new PowerButton().getButton();
 
-        CheckBox redCable = cableCheckbox("red",PatchSettings::red);
-        CheckBox blueCable = cableCheckbox("blue",PatchSettings::blue);
-        CheckBox yellowCable = cableCheckbox("yellow",PatchSettings::yellow);
-        CheckBox orangeCable = cableCheckbox("orange",PatchSettings::orange);
-        CheckBox purpleCable = cableCheckbox("purple",PatchSettings::purple);
-        CheckBox whiteCable = cableCheckbox("white",PatchSettings::white);
-        ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button",FXUtil.G2_TOGGLE);
+        CheckBox redCable = cableCheckbox(Red,PatchSettings::red);
+        CheckBox blueCable = cableCheckbox(Blue,PatchSettings::blue);
+        CheckBox yellowCable = cableCheckbox(Yellow,PatchSettings::yellow);
+        CheckBox orangeCable = cableCheckbox(Orange,PatchSettings::orange);
+        CheckBox greenCable = cableCheckbox(Green,PatchSettings::purple);
+        CheckBox purpleCable = cableCheckbox(Purple,PatchSettings::purple);
+        CheckBox whiteCable = cableCheckbox(White,PatchSettings::white);
+        hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button",FXUtil.G2_TOGGLE);
+        hideCables.setFocusTraversable(false);
+        hideCables.selectedProperty().addListener((c,o,l) -> manageCables(false));
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
-        shakeCables.setOnAction(e -> shakeCables());
+        shakeCables.setFocusTraversable(false);
+        shakeCables.setOnAction(e -> manageCables(true));
 
 
         Knob patchVolume = withClass(new Knob("patch-volume", 1.0),"patch-volume");
@@ -230,14 +227,11 @@ public class SlotPane {
                 patchVolume,
                 patchEnable,
                 FXUtil.label("Visible\nLabels"),
-                redCable, blueCable, yellowCable, orangeCable, purpleCable, whiteCable,
+                redCable, blueCable, yellowCable, orangeCable, greenCable, purpleCable, whiteCable,
                 hideCables, shakeCables
         ),"patch-bar","bar","gfont");
         return patchBar;
     }
-
-
-
 
 
     private Spinner<VoiceMode> mkVoicesSpinner() {
@@ -322,18 +316,36 @@ public class SlotPane {
         }
     }
 
+    public boolean isCableVisible(Cables.Cable cable) {
+        return !hideCables.isSelected() && cableCheckboxes.get(cable.color()).isSelected();
+    }
 
 
-
-    private CheckBox cableCheckbox(String color, Function<PatchSettings,LibProperty<Boolean>> libProp) {
-        CheckBox cb = withClass(new CheckBox(),"cable-" + color,"cable-checkbox");
+    private CheckBox cableCheckbox(CableColor color, Function<PatchSettings,LibProperty<Boolean>> libProp) {
+        CheckBox cb = withClass(new CheckBox(),"cable-" + color.name().toLowerCase(),"cable-checkbox");
+        //logColor(color);
         cb.setSelected(true);
+        cb.setFocusTraversable(false);
         bindVarControl(cb.selectedProperty(),v -> {
             BooleanProperty p = new SimpleBooleanProperty(cb,color + " cable",true);
             bridges.bridge(p,d->libProp.apply(d.getPerf().getSlot(slot).getPatchSettings()));
             return p;
         });
+        cableCheckboxes.put(color,cb);
+        cb.selectedProperty().addListener((c, o, n) -> manageCables(false));
         return cb;
+    }
+
+    private static void logColor(CableColor color) {
+        var f = color.getFill();
+        System.out.printf("%s: rgba(%d, %d, %d, %.2f)\n", color, (int)(f.getRed() * 255),
+                (int)(f.getGreen() * 255),
+                (int)(f.getBlue() * 255),
+                f.getOpacity());
+    }
+
+    public void manageCables(boolean redraw) {
+        areaPanes.values().forEach(a -> a.manageCables(redraw));
     }
 
     public void maximizeAreaPane(AreaId area) {
@@ -360,5 +372,9 @@ public class SlotPane {
     public void unbindVarControls(List<RebindableControl<Integer,?>> bs) {
         bs.forEach(RebindableControl::unbind);
         varControls.removeAll(bs);
+    }
+
+    public void toggleShowCables() {
+        hideCables.setSelected(!hideCables.isSelected());
     }
 }

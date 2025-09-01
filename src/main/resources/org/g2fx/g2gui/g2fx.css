@@ -131,22 +131,22 @@
 }
 
 .cable-red .box {
-    -fx-background-color: red;
+    fx-background-color: rgba(255, 102, 114, 1.00);
 }
 .cable-blue .box {
-    -fx-background-color: blue;
+    -fx-background-color: rgba(102, 178, 255, 1.00);
 }
 .cable-yellow .box {
-    -fx-background-color: yellow;
+    -fx-background-color: rgba(255, 255, 102, 1.00);
 }
 .cable-orange .box {
-    -fx-background-color: orange;
+    -fx-background-color: rgba(255, 178, 102, 1.00);
 }
 .cable-green .box {
-    -fx-background-color: green;
+    -fx-background-color: rgba(102, 255, 102, 1.00);
 }
 .cable-purple .box {
-    -fx-background-color: purple;
+    -fx-background-color: rgba(178, 102, 255, 1.00);
 }
 .cable-white .box {
     -fx-background-color: white;

@@ -156,21 +156,34 @@ public class Commands {
     }
 
     public FXUtil.TextFieldFocusListener setupKeyBindings(Stage stage) {
-        EventHandler<? super KeyEvent> globalKeyListener = event -> {
-            KeyCode code = event.getCode();
+        EventHandler<? super KeyEvent> globalKeyListener = e -> {
+            KeyCode code = e.getCode();
+            boolean anyModifiers = e.isShiftDown() || e.isShortcutDown() || e.isControlDown() || e.isAltDown() || e.isMetaDown();
             switch (code) {
                 case F:
                 case V:
-                    AreaId area = code == KeyCode.F ? AreaId.Fx : AreaId.Voice;
-                    slots.getSelectedSlotPane().maximizeAreaPane(area);
-                    event.consume();
+                    if (!anyModifiers) {
+                        AreaId area = code == KeyCode.F ? AreaId.Fx : AreaId.Voice;
+                        slots.getSelectedSlotPane().maximizeAreaPane(area);
+                        e.consume();
+                    }
                     return;
                 case A:
                 case B:
                 case C:
                 case D:
-                    slots.selectSlot(code.getCode() - KeyCode.A.getCode());
-                    event.consume();
+                    if (!anyModifiers) {
+                        slots.selectSlot(code.getCode() - KeyCode.A.getCode());
+                        e.consume();
+                    }
+                    return;
+                case SPACE:
+                    if (!anyModifiers) {
+                        slots.getSelectedSlotPane().toggleShowCables();
+                        e.consume();
+                    } else if (e.isShortcutDown()) {
+                        slots.getSelectedSlotPane().manageCables(true);
+                    }
                     return;
                 case KeyCode.DIGIT1:
                 case KeyCode.DIGIT2:
@@ -180,9 +193,11 @@ public class Commands {
                 case KeyCode.DIGIT6:
                 case KeyCode.DIGIT7:
                 case KeyCode.DIGIT8:
-                    slots.getSelectedSlotPane().selectVar(
-                            code.getCode() - KeyCode.DIGIT1.getCode());
-                    event.consume();
+                    if (!anyModifiers) {
+                        slots.getSelectedSlotPane().selectVar(
+                                code.getCode() - KeyCode.DIGIT1.getCode());
+                        e.consume();
+                    }
                     return;
 
             }

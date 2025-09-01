@@ -12,48 +12,16 @@ import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.Connector;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
-import static org.g2fx.g2gui.controls.Connectors.ConnectorColor.*;
+import static org.g2fx.g2gui.controls.CableColor.*;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
 public interface Connectors {
 
-    double SAT = 0.6;
-    double FILL_B = 1;
-    double EDGE_B = 0.6;
+
     double RADIUS = 5.5;
     double HOLE_RADIUS = RADIUS * .5;
-
-    enum ConnectorColor {
-        Red(355,SAT,FILL_B,EDGE_B),
-        Orange(30,SAT,FILL_B,EDGE_B),
-        Blue(210,SAT,FILL_B,EDGE_B),
-        Yellow(60,SAT,FILL_B,EDGE_B);
-        private final double hue;
-        private final double sat;
-        private final double fillB;
-        private final double edgeB;
-
-        ConnectorColor(double hue, double sat, double fillB, double edgeB) {
-            this.hue = hue;
-            this.sat = sat;
-            this.fillB = fillB;
-            this.edgeB = edgeB;
-        }
-
-        public Color getFill() {
-            return getColor(fillB);
-        }
-
-        public Color getEdge() {
-            return getColor(edgeB);
-        }
-
-        public Color getColor(double b) {
-            return Color.hsb(hue,sat,b);
-        }
-    }
 
     record Conn(Connector.PortType portType, UIElements.ConnectorType connType, Node control, int index) {}
 
@@ -83,7 +51,7 @@ public interface Connectors {
         return new Conn(portType,ctype,pane,ref);
     }
 
-    public static ConnectorColor getConnColor(UIElements.ConnectorType ctype) {
+    public static CableColor getConnColor(UIElements.ConnectorType ctype) {
         return switch (ctype) {
             case Audio -> Red;
             case Control -> Blue;

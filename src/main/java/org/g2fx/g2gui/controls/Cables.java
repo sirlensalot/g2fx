@@ -45,7 +45,7 @@ public interface Cables {
         }
     }
     record Cable(
-            Connectors.ConnectorColor color,
+            CableColor color,
             ModulePane src,
             Connectors.Conn srcConn,
             Point2D start,
@@ -67,7 +67,7 @@ public interface Cables {
         Point2D end = destConn.control().localToParent(
                 dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6);
 
-        Connectors.ConnectorColor color = getConnColor(srcConn.connType());
+        CableColor color = getConnColor(srcConn.connType());
 
         var run = mkCableRun(start, end, color);
 
@@ -91,7 +91,7 @@ public interface Cables {
 
     }
 
-    private static CableRun mkCableRun(Point2D start, Point2D end, Connectors.ConnectorColor color) {
+    private static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
         int segments = 40;
         double g = 1;
         double h = 200;

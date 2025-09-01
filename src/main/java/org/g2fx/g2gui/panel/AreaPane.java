@@ -140,15 +140,17 @@ public class AreaPane {
             var destConn = dest.resolveConn(In, patchCable.getDestConn());
             Cables.Cable cable = Cables.mkCable(src, srcConn, dest, destConn);
             cables.add(cable);
-            areaPane.getChildren().addAll(cable.srcJack(), cable.endJack(), cable.run().getShadow(), cable.run().getCable());
+            areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
         }
+        manageCables(false);
     }
 
-    public void redrawCables() {
+    public void manageCables(boolean redraw) {
         for (Cables.Cable cable : cables) {
-            areaPane.getChildren().removeAll(cable.run().getCable(),cable.run().getShadow());
-            Cables.redrawRun(cable);
-            areaPane.getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
+            areaPane.getChildren().removeAll(cable.run().getCable(), cable.run().getShadow());
+            if (redraw) Cables.redrawRun(cable);
+            if (slotPane.isCableVisible(cable))
+                areaPane.getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
         }
     }
 
