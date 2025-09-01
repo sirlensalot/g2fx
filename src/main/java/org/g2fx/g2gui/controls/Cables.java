@@ -6,9 +6,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polyline;
-import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.*;
 import org.g2fx.g2gui.panel.ModulePane;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -71,7 +69,6 @@ public interface Cables {
         Point2D end = destConn.control().localToParent(
                 dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6);
 
-        System.out.printf("%s:%s -> %s:%s: start=%s,end=%s\n",src,srcConn,dest,destConn,start,end);
         CableColor color = getConnColor(srcConn.connType());
 
         var run = mkCableRun(start, end, color);
@@ -97,36 +94,64 @@ public interface Cables {
     }
 
     private static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
-        int segments = 40;
-        double g = 1;
-        double h = 200;
-        double H = ThreadLocalRandom.current().nextDouble(h, h+600);
 
-        Point2D[] cablePoints = calculateCatenaryPoints(start, end, segments, g, H);
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        int offsetMagnitude = r.nextInt(10,20);
+        double controlPointRatio = r.nextDouble(.1,.17);
+        boolean flip = r.nextBoolean();
+        Path cable = drawCablePath(start, end, offsetMagnitude, controlPointRatio, flip);
+        Path shadow = drawCablePath(start, end, offsetMagnitude, controlPointRatio, flip);
 
-        Polyline cable = new Polyline();
-        Polyline shadow = new Polyline();
-        for (Point2D point : cablePoints) {
-            cable.getPoints().addAll(point.getX(), point.getY());
-            shadow.getPoints().addAll(point.getX(), point.getY());
-        }
-
-
-        cable.setStroke(color.getColor(0.8));
-        double width = 3.2;
+        cable.setFill(null); // No fill, just stroke
         cable.setStrokeWidth(3);
         cable.setStrokeLineCap(StrokeLineCap.ROUND);
+        cable.setStroke(color.getColor(0.8));
 
-        shadow.setStroke(color.getColor(0.4));
-        double shadowWidth = .75;
+        shadow.setFill(null);
         shadow.setStrokeWidth(2);
         shadow.setStrokeLineCap(StrokeLineCap.ROUND);
+        double width = 3.2;
+        double shadowWidth = .75;
         shadow.setTranslateX(width/2-shadowWidth);
         shadow.setTranslateY(width/2-shadowWidth);
-
         var run = new CableRun(cable,shadow);
         return run;
     }
+
+
+    static Path drawCablePath(Point2D start, Point2D end, double offsetMagnitude,
+                              double controlPointRatio, boolean flip) {
+        Path path = new Path();
+
+        MoveTo moveTo = new MoveTo(start.getX(), start.getY());
+        path.getElements().add(moveTo);
+
+        Point2D dir = end.subtract(start);
+        double length = dir.magnitude();
+        offsetMagnitude = Math.abs(offsetMagnitude * length * .01);
+        Point2D unitDir = dir.normalize();
+
+        Point2D perp = new Point2D(-unitDir.getY(), unitDir.getX());
+        if (flip) perp = perp.multiply(-1);
+
+        Point2D control1 = start.add(unitDir.multiply(controlPointRatio * length))
+                .add(perp.multiply(offsetMagnitude));
+        Point2D control2 = end.subtract(unitDir.multiply(controlPointRatio * length))
+                .subtract(perp.multiply(offsetMagnitude));
+
+        CubicCurveTo cubicCurveTo = new CubicCurveTo();
+        cubicCurveTo.setControlX1(control1.getX());
+        cubicCurveTo.setControlY1(control1.getY());
+        cubicCurveTo.setControlX2(control2.getX());
+        cubicCurveTo.setControlY2(control2.getY());
+        cubicCurveTo.setX(end.getX());
+        cubicCurveTo.setY(end.getY());
+
+        path.getElements().add(cubicCurveTo);
+
+        return path;
+    }
+
 
     private static Circle mkJack(RadialGradient gradient, Point2D pos) {
         Circle srcJack = new Circle(0,0,RADIUS*.55);
@@ -137,26 +162,5 @@ public interface Cables {
         return srcJack;
     }
 
-    static double catenary(double x, double g, double H) {
-        return -H / g * (Math.cosh(g * x / H) - 1);
-    }
-
-    static Point2D[] calculateCatenaryPoints(Point2D p1, Point2D p2, int segments, double g, double H) {
-        Point2D[] points = new Point2D[segments + 2];
-        double dx = (p2.getX() - p1.getX()) / (segments + 1);
-        double dy = (p2.getY() - p1.getY()) / (segments + 1);
-        double halfx = (p2.getX() - p1.getX()) / 2;
-        double maxSag = catenary(-halfx, g, H);
-
-        points[0] = p1;
-        for (int i = 1; i <= segments; i++) {
-            double x = p1.getX() + dx * i;
-            double y = p1.getY() + dy * i + catenary(dx * i - halfx, g, H) - maxSag;
-            points[i] = new Point2D(x, y);
-        }
-        points[segments + 1] = p2;
-
-        return points;
-    }
 
 }

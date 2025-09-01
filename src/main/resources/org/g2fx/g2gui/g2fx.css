@@ -131,7 +131,7 @@
 }
 
 .cable-red .box {
-    fx-background-color: rgba(255, 102, 114, 1.00);
+    -fx-background-color: rgba(255, 102, 114, 1.00);
 }
 .cable-blue .box {
     -fx-background-color: rgba(102, 178, 255, 1.00);
