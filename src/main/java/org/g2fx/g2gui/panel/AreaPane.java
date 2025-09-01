@@ -43,6 +43,7 @@ public class AreaPane {
     private final Label areaLabel;
     private Point2D dragOrigin;
     private Runnable selectionListener;
+    private List<Cables.Cable> cables = new ArrayList<>();
 
     public AreaId getAreaId() {
         return areaId;
@@ -137,7 +138,17 @@ public class AreaPane {
             Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
             var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
             var destConn = dest.resolveConn(In, patchCable.getDestConn());
-            areaPane.getChildren().add(Cables.mkCable(src,srcConn,dest,destConn));
+            Cables.Cable cable = Cables.mkCable(src, srcConn, dest, destConn);
+            cables.add(cable);
+            areaPane.getChildren().addAll(cable.srcJack(), cable.endJack(), cable.run().getShadow(), cable.run().getCable());
+        }
+    }
+
+    public void redrawCables() {
+        for (Cables.Cable cable : cables) {
+            areaPane.getChildren().removeAll(cable.run().getCable(),cable.run().getShadow());
+            Cables.redrawRun(cable);
+            areaPane.getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
         }
     }
 
@@ -339,6 +350,7 @@ public class AreaPane {
             m.unbindVarControls();
         }
         modulePanes.clear();
+        cables.clear();
     }
 
 

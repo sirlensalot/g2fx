@@ -15,7 +15,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.*;
+import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
@@ -71,6 +72,10 @@ public class SlotPane {
         this.textFocusListener = textFocusListener;
         this.morphControls = morphControls;
         this.undos = undos;
+    }
+
+    public void shakeCables() {
+        areaPanes.values().forEach(AreaPane::redrawCables);
     }
 
     public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
@@ -191,6 +196,7 @@ public class SlotPane {
         CheckBox whiteCable = cableCheckbox("white",PatchSettings::white);
         ToggleButton hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button",FXUtil.G2_TOGGLE);
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
+        shakeCables.setOnAction(e -> shakeCables());
 
 
         Knob patchVolume = withClass(new Knob("patch-volume", 1.0),"patch-volume");

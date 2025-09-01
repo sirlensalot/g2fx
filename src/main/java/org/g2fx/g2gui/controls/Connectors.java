@@ -12,16 +12,48 @@ import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.Connector;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.controls.Connectors.ConnectorColor.*;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
 public interface Connectors {
 
-    double RED = 355;
-    double ORANGE = 30;
-    double BLUE = 210;
-    double YELLOW = 60;
+    double SAT = 0.6;
+    double FILL_B = 1;
+    double EDGE_B = 0.6;
+    double RADIUS = 5.5;
+    double HOLE_RADIUS = RADIUS * .5;
+
+    enum ConnectorColor {
+        Red(355,SAT,FILL_B,EDGE_B),
+        Orange(30,SAT,FILL_B,EDGE_B),
+        Blue(210,SAT,FILL_B,EDGE_B),
+        Yellow(60,SAT,FILL_B,EDGE_B);
+        private final double hue;
+        private final double sat;
+        private final double fillB;
+        private final double edgeB;
+
+        ConnectorColor(double hue, double sat, double fillB, double edgeB) {
+            this.hue = hue;
+            this.sat = sat;
+            this.fillB = fillB;
+            this.edgeB = edgeB;
+        }
+
+        public Color getFill() {
+            return getColor(fillB);
+        }
+
+        public Color getEdge() {
+            return getColor(edgeB);
+        }
+
+        public Color getColor(double b) {
+            return Color.hsb(hue,sat,b);
+        }
+    }
 
     record Conn(Connector.PortType portType, UIElements.ConnectorType connType, Node control, int index) {}
 
@@ -33,27 +65,30 @@ public interface Connectors {
         return mkConnector(c, c.Type(), c.CodeRef(), Out);
     }
     private static Conn mkConnector(UIElement c, UIElements.ConnectorType ctype, int ref, Connector.PortType portType) {
-        double hue = switch (ctype) {
-            case Audio -> RED;
-            case Control -> BLUE;
-            case Logic -> YELLOW;
-        };
-        double r = 5.5;
-        Shape edge = portType == In ? new Circle(0,0,r) : new Rectangle(0,0,r*2,r*2);
+        var color = getConnColor(ctype);
+        Shape edge = portType == In ? new Circle(0,0, RADIUS) : new Rectangle(0,0, RADIUS *2, RADIUS *2);
         double sat = 0.6;
         edge.getStyleClass().add("conn-edge");
-        edge.setStroke(Color.hsb(hue,sat,.6));
-        edge.setFill(Color.hsb(hue,sat,1));
+        edge.setStroke(color.getEdge());
+        edge.setFill(color.getFill());
 
-        Circle center = new Circle(-1,-1,r*.5);
+        Circle center = new Circle(-1,-1, HOLE_RADIUS);
         center.getStyleClass().add("conn-center");
-        center.setStroke(Color.hsb(hue,sat,.6));
-        center.setFill(Color.hsb(hue,0,0));
+        center.setStroke(color.getEdge());
+        center.setFill(Color.BLACK);
 
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
         return new Conn(portType,ctype,pane,ref);
+    }
+
+    public static ConnectorColor getConnColor(UIElements.ConnectorType ctype) {
+        return switch (ctype) {
+            case Audio -> Red;
+            case Control -> Blue;
+            case Logic -> Yellow;
+        };
     }
 
 }
