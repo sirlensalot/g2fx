@@ -137,9 +137,7 @@ public class AreaPane {
             Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
             var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
             var destConn = dest.resolveConn(In, patchCable.getDestConn());
-            areaPane.getChildren().add(Cables.mkCable(
-                    srcConn.control().localToParent(src.getPane().getLayoutX(),src.getPane().getLayoutY()).add(6,6),
-                    destConn.control().localToParent(dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6)));
+            areaPane.getChildren().add(Cables.mkCable(src,srcConn,dest,destConn));
         }
     }
 

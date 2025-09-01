@@ -1,12 +1,21 @@
 package org.g2fx.g2gui.controls;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
+import org.g2fx.g2gui.panel.ModulePane;
 
 public interface Cables {
 
-    static Polyline mkCable(Point2D start, Point2D end) {
+
+    static Node mkCable(ModulePane src, Connectors.Conn srcConn, ModulePane dest, Connectors.Conn destConn) {
+
+        Point2D start = srcConn.control().localToParent(
+                src.getPane().getLayoutX(),src.getPane().getLayoutY()).add(6,6);
+        Point2D end = destConn.control().localToParent(
+                dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6);
+
         int segments = 40;
         double g = 1;
         double H = 1000;
@@ -18,11 +27,16 @@ public interface Cables {
             cable.getPoints().addAll(point.getX(), point.getY());
         }
 
-        cable.setStroke(Color.DARKGRAY);
+        cable.setStroke(Color.hsb(switch (srcConn.connType()) {
+            case Audio -> Connectors.RED;
+            case Control -> Connectors.BLUE;
+            case Logic -> Connectors.YELLOW;
+        },.6,.8));
         cable.setStrokeWidth(4);
         cable.setStrokeLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
 
         return cable;
+
 
     }
 
@@ -47,4 +61,5 @@ public interface Cables {
 
         return points;
     }
+
 }

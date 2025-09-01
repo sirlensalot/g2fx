@@ -23,7 +23,7 @@ public interface Connectors {
     double BLUE = 210;
     double YELLOW = 60;
 
-    record Conn(Connector.PortType portType, Node control, int index) {}
+    record Conn(Connector.PortType portType, UIElements.ConnectorType connType, Node control, int index) {}
 
     static Conn makeInput(UIElements.Input c) {
         return mkConnector(c, c.Type(), c.CodeRef(), In);
@@ -53,7 +53,7 @@ public interface Connectors {
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
-        return new Conn(portType,pane,ref);
+        return new Conn(portType,ctype,pane,ref);
     }
 
 }
