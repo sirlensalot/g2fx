@@ -60,6 +60,10 @@ public interface Cables {
         c.run.reset(mkCableRun(c.start,c.end,c.color));
     }
 
+    static Cable mkCable(Cable c) {
+        return mkCable(c.src,c.srcConn,c.dest,c.destConn);
+    }
+
     static Cable mkCable(ModulePane src, Connectors.Conn srcConn, ModulePane dest, Connectors.Conn destConn) {
 
         Point2D start = srcConn.control().localToParent(
@@ -67,6 +71,7 @@ public interface Cables {
         Point2D end = destConn.control().localToParent(
                 dest.getPane().getLayoutX(),dest.getPane().getLayoutY()).add(6,6);
 
+        System.out.printf("%s:%s -> %s:%s: start=%s,end=%s\n",src,srcConn,dest,destConn,start,end);
         CableColor color = getConnColor(srcConn.connType());
 
         var run = mkCableRun(start, end, color);

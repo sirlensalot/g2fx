@@ -23,7 +23,12 @@ public interface Connectors {
     double RADIUS = 5.5;
     double HOLE_RADIUS = RADIUS * .5;
 
-    record Conn(Connector.PortType portType, UIElements.ConnectorType connType, Node control, int index) {}
+    record Conn(Connector.PortType portType, UIElements.ConnectorType connType, Node control, int index) {
+        @Override
+        public String toString() {
+            return portType + ":" + index + ":" + connType;
+        }
+    }
 
     static Conn makeInput(UIElements.Input c) {
         return mkConnector(c, c.Type(), c.CodeRef(), In);

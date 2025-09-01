@@ -154,6 +154,21 @@ public class AreaPane {
         }
     }
 
+
+    private void updateCables(ModulePane mp) {
+        for (Cables.Cable c : new ArrayList<>(cables)) {
+            if (mp == c.src()|| mp == c.dest()) {
+                cables.remove(c);
+                areaPane.getChildren().removeAll(c.endJack(),c.srcJack(),c.run().getShadow(),c.run().getCable());
+                Cables.Cable cnew = Cables.mkCable(c);
+                cables.add(cnew);
+                areaPane.getChildren().addAll(cnew.endJack(),cnew.srcJack());
+            }
+        }
+        manageCables(false);
+    }
+
+
     private ModulePane resolveModule(int mIdx) {
         ModulePane mp = modulePanes.get(mIdx);
         if (mp == null) { throw new IllegalStateException("patchCable invalid module index: " + mIdx); }
@@ -168,7 +183,9 @@ public class AreaPane {
         areaPane.getChildren().add(modulePane.getPane());
         setupModuleMouseHandling(modulePane);
         modulePane.getModuleBridges().forEach(b -> b.finalizeInit(d).run());
+        modulePane.coords().addListener((c,o,l) -> updateCables(modulePane));
     }
+
 
     private void setupModuleMouseHandling(ModulePane modulePane) {
         Pane pane = modulePane.getPane();
@@ -347,6 +364,7 @@ public class AreaPane {
     public void clearModules() {
         areaPane.getChildren().clear();
         areaPane.getChildren().add(areaLabel);
+        areaPane.getChildren().add(selectedRect);
         for (ModulePane m : modulePanes.values()) {
             bridges.remove(m.getModuleBridges());
             m.unbindVarControls();
@@ -354,6 +372,8 @@ public class AreaPane {
         modulePanes.clear();
         cables.clear();
     }
+
+
 
 
 
