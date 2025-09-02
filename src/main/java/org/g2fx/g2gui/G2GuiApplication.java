@@ -144,7 +144,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
                 new VBox(menuBar,globalBar,editorBar,slotTabs),"top-box");
         VBox.setVgrow(slotTabs, Priority.ALWAYS);
 
-        return new Scene(topBox, 1280, 775);
+        return new Scene(topBox, 1300, 800);
     }
 
     public record ModuleButtonInfo (
