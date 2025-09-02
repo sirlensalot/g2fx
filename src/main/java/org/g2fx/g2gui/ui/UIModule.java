@@ -48,6 +48,7 @@ public record UIModule<C> (
         //doTypeParamQry(m,"Output","Type");
         //doBipUniQry(m);
         //doTf(m);
+        //doGraph(m);
         return m;
     }
 
@@ -75,6 +76,17 @@ public record UIModule<C> (
         });
     }
 
+    private static void doGraph(Map<ModuleType, UIModule<UIElement>> m) throws Exception {
+        doQuery(m,"Graph-all",(mt, ctl) -> {
+            if (ctl instanceof UIElements.Graph f) {
+                return String.format("%d:%s,deps=%s", f.GraphFunc(), mt,f.Dependencies() == null ? "[]" :
+                        f.Dependencies().stream().map(d ->
+                                String.format("%s.%s->%s",d.index(),d.type(),(d.type()== UIElements.DepType.Param ?
+                                        mt.getParams().get(d.index()) : mt.modes.get(d.index())).param())).toList());
+            }
+            return null;
+        });
+    }
     private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls, String... params) throws Exception {
         doQuery(m,cls + "-" + String.join("-",params),(mt,ctl) -> {
             if (cls.equals(ctl.elementType().name())) {

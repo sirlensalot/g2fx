@@ -138,55 +138,38 @@ public class ModuleTextFieldBuilder {
 
     private Node fmtInt2(Label l, UIElements.TextField tf,
                          BiFunction<Integer, Integer, String> f) {
-        ObservableValue<Integer> p0 = parent.resolveDepParam(tf, 0);
-        ObservableValue<Integer> p1 = parent.resolveDepParam(tf, 1);
-        ChangeListener<Integer> listener = (cc,oo,nn) ->
-                l.setText(f.apply(p0.getValue(), p1.getValue()));
-        p0.addListener(listener);
-        p1.addListener(listener);
+        parent.listenInt2(tf,(a,b) -> l.setText(f.apply(a,b)));
         return l;
     }
 
     private Node fmtInt3(Label l, UIElements.TextField tf,
                          Util.TriFunction<Integer, Integer, Integer, String> f) {
-        ObservableValue<Integer> p0 = parent.resolveDepParam(tf,0);
-        ObservableValue<Integer> p1 = parent.resolveDepParam(tf,1);
-        ObservableValue<Integer> p2 = parent.resolveDepParam(tf,2);
-        ChangeListener<Integer> listener = (cc,oo,nn) ->
-                l.setText(f.apply(p0.getValue(), p1.getValue(), p2.getValue()));
-        p0.addListener(listener);
-        p1.addListener(listener);
-        p2.addListener(listener);
+        parent.listenInt3(tf,(a,b,c) -> l.setText(f.apply(a,b,c)));
         return l;
     }
+
     private Node formatPshiftFreq(UIElements.TextField c, Label l) {
         return fmtInt2(l,c,(coarse,fine) -> formatFreq(4,coarse,fine));
     }
 
     private Node formatPulseTime(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pTime = parent.resolveDepParam(c,0);
-        ObservableValue<Integer> pRange = parent.resolveDepParam(c,1);
-        ChangeListener<Integer> listener = (cc, o, n) -> {
-            double t = PULSE_DELAY_RANGE[pTime.getValue()];
-            l.setText(formatMillisSecs(switch (pRange.getValue()) {
+        return fmtInt2(l,c,(pTime,pRange) -> {
+            double t = PULSE_DELAY_RANGE[pTime];
+            return formatMillisSecs(switch (pRange) {
                 case 0 -> t/100;
                 case 1 -> t/10;
                 default -> t;
-            }));
-        };
-        pTime.addListener(listener);
-        pRange.addListener(listener);
-        return l;
+            });
+        });
     }
 
     private Node formatClkTempo(UIElements.TextField c, Label l) {
         ObservableValue<Integer> pRateBpm = parent.resolveDepParam(c,0);
         ObservableValue<Boolean> pActive = parent.resolveBoolDepParam(c,1);
         ObservableValue<Integer> pSource = parent.resolveDepParam(c,2);
-        ChangeListener<Integer> listener = (cc, o, n) -> {
-            l.setText(!pActive.getValue() ? "--" : pSource.getValue() == 1 ? "MASTER" :
+        ChangeListener<Integer> listener = (cc, o, n) ->
+                l.setText(!pActive.getValue() ? "--" : pSource.getValue() == 1 ? "MASTER" :
                     (g2BPM(pRateBpm.getValue()) + " BPM"));
-        };
         pRateBpm.addListener(listener);
         pActive.addListener((cc, o, n) -> listener.changed(null,0,0));
         pSource.addListener(listener);
@@ -194,44 +177,32 @@ public class ModuleTextFieldBuilder {
     }
 
     private Node formatOperatorFreq(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pCoarse = parent.resolveDepParam(c,0);
-        ObservableValue<Integer> pFine = parent.resolveDepParam(c,1);
-        ObservableValue<Integer> pRatio = parent.resolveDepParam(c,2);
-        ChangeListener<Integer> listener = (cc, o, n) -> {
-            int aValue = pCoarse.getValue();
-            int iValue1 = pFine.getValue();
+        return fmtInt3(l,c,(pCoarse,pFine,pRatio) -> {
+            int aValue = pCoarse;
+            int iValue1 = pFine;
             // TODO these are both bananas, port logic anew
-            if (pRatio.getValue()==0) {
+            if (pRatio==0) {
                 double Fact = aValue == 0 ? 0.5 : aValue;
-                l.setText(String.format("x%.01f",Fact + Fact * iValue1 / 100));
+                return String.format("x%.01f",Fact + Fact * iValue1 / 100);
             } else {
-                l.setText(formatHz(Math.pow(10, Math.divideExact(aValue,4))));
+                return formatHz(Math.pow(10, Math.divideExact(aValue,4)));
             }
-        };
-        pCoarse.addListener(listener);
-        pFine.addListener(listener);
-        pRatio.addListener(listener);
-        return l;
+        });
     }
 
-    private Label formatLfoFreq(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pRate = parent.resolveDepParam(c,0);
-        ObservableValue<Integer> pRange = parent.resolveDepParam(c,1);
-        ChangeListener<Integer> listener = (cc, o, n) -> {
-            int r = pRate.getValue();
-            l.setText(switch (pRange.getValue()) {
-                case 0 -> String.format("%.02f",699/(double)(r+1)); //Rate Sub
-                case 1 -> r < 32 ? // Rate Lo
-                        String.format("%.02fs",1/(0.0159 * Math.pow(2, (double) r / 12))) :
-                        String.format("%.02fHz",0.0159 * Math.pow(2, (double) r / 12));
-                case 2 -> String.format("%.01fHz",0.2555 * Math.pow(2, (double) r / 12)); // Rate Hi
-                case 3 -> Integer.toString(g2BPM(r));
-                default -> LFO_CLOCK_VALS[r/4];
-            });
-        };
-        pRange.addListener(listener);
-        pRate.addListener(listener);
-        return l;
+    private Node formatLfoFreq(UIElements.TextField c, Label l) {
+        return fmtInt2(l,c,(pRate,pRange) -> switch (pRange) {
+            case 0 -> String.format("%.02f",699/(double)(pRate +1)); //Rate Sub
+            case 1 -> pRate < 32 ? // Rate Lo
+                    String.format("%.02fs",1/(0.0159 *
+                            Math.pow(2, (double) (int) pRate / 12))) :
+                    String.format("%.02fHz",0.0159 *
+                            Math.pow(2, (double) (int) pRate / 12));
+            case 2 -> String.format("%.01fHz",0.2555 *
+                    Math.pow(2, (double) (int) pRate / 12)); // Rate Hi
+            case 3 -> Integer.toString(g2BPM(pRate));
+            default -> LFO_CLOCK_VALS[pRate /4];
+        });
     }
 
     private static int g2BPM(int rateParam) {

@@ -30,6 +30,11 @@ public class Util {
         R apply(A a, B b, C c);
     }
 
+    @FunctionalInterface
+    public interface TriConsumer<A, B, C> {
+        void accept(A a, B b, C c);
+    }
+
     static class DualConsoleHandler extends StreamHandler {
 
         private final ConsoleHandler stderrHandler = new ConsoleHandler();

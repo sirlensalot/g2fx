@@ -168,7 +168,7 @@ public enum ModParam {
      "A", "E", "I", "O", "U", "Y", "AA", "AE", "OE"),
     FltFreq
     (0,127,75, intF(n ->
-            formatHz(440.0 * Math.pow(2, (double) (n - 60) / 12)))), //TODO lo shd be 13.76hz but is 13.8hz
+            formatHz(computeFltFreq(n)))), //TODO lo shd be 13.76hz but is 13.8hz
     Level_200
     (0,127,0),
     GcOffOn
@@ -553,6 +553,10 @@ public enum ModParam {
     (1,
      "Knob","Morph")
     ;
+
+    public static double computeFltFreq(int n) {
+        return 440.0 * Math.pow(2, (double) (n - 60) / 12);
+    }
 
     private static String i2s(int n) {
         return Integer.toString(n);

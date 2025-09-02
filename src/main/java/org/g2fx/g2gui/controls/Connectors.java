@@ -90,7 +90,6 @@ public class Connectors {
         conns.add(conn);
         conn.control().setOnMousePressed(e -> {
             current = conn;
-            System.out.println(conn);
             dragOrigin = areaPane.getAreaPane().sceneToLocal(e.getSceneX(),e.getSceneY());
             e.consume();
         });

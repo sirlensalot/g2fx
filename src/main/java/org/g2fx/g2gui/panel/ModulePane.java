@@ -4,6 +4,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Point2D;
@@ -27,9 +28,11 @@ import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
+import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -178,9 +181,18 @@ public class ModulePane {
 
             case UIElements.Output c -> mkOutput(c);
 
+            case UIElements.Graph c -> mkGraph(c);
+
             default -> empty(e, "renderElement");
 
         };
+    }
+
+    private Node mkGraph(UIElements.Graph c) {
+        if (c.GraphFunc() == 20) {
+            return Graphs.mkFltClassicGraph(c,this);
+        }
+        return empty(c,"Graph");
     }
 
     private Node mkOutput(UIElements.Output c) {
@@ -341,6 +353,28 @@ public class ModulePane {
         b.setLayoutX(c.XPos());
         b.setLayoutY(c.YPos()-2.5);
         return b;
+    }
+
+    public void listenInt2(ControlDependencies deps,
+                            BiConsumer<Integer, Integer> f) {
+        ObservableValue<Integer> p0 = resolveDepParam(deps, 0);
+        ObservableValue<Integer> p1 = resolveDepParam(deps, 1);
+        ChangeListener<Integer> listener = (c, o, n) ->
+                f.accept(p0.getValue(), p1.getValue());
+        p0.addListener(listener);
+        p1.addListener(listener);
+    }
+
+    public void listenInt3(ControlDependencies deps,
+                            Util.TriConsumer<Integer, Integer, Integer> f) {
+        ObservableValue<Integer> p0 = resolveDepParam(deps, 0);
+        ObservableValue<Integer> p1 = resolveDepParam(deps, 1);
+        ObservableValue<Integer> p2 = resolveDepParam(deps, 2);
+        ChangeListener<Integer> listener = (c,o,n) ->
+                f.accept(p0.getValue(), p1.getValue(), p2.getValue());
+        p0.addListener(listener);
+        p1.addListener(listener);
+        p2.addListener(listener);
     }
 
     public ObservableValue<Integer> resolveDepParam(ControlDependencies c, int ix) {
