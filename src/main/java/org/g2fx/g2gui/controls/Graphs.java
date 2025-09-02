@@ -5,11 +5,10 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.ui.UIElements;
 
-import static org.g2fx.g2gui.controls.ListenerBuilder.IntOrBool.Bool;
-import static org.g2fx.g2gui.controls.ListenerBuilder.IntOrBool.Int;
+import static org.g2fx.g2gui.controls.ParamListener.IntOrBool.Bool;
+import static org.g2fx.g2gui.controls.ParamListener.IntOrBool.Int;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.ModParam.computeFltFreq;
 
@@ -26,7 +25,7 @@ public interface Graphs {
      * @param order Filter order (e.g. 2 = 12dB/oct, 3 = 18db/oct, 4 = 24dB/oct)
      * @return Magnitude response at freqHz
      */
-    public static double computeFiltLP(double freqHz, double cutoffHz, double resonance, int order) {
+    static double computeFiltLP(double freqHz, double cutoffHz, double resonance, int order) {
 
         freqHz = Math.max(freqHz, EPSILON);
         cutoffHz = Math.max(cutoffHz, EPSILON);
@@ -44,14 +43,14 @@ public interface Graphs {
         return magDB;
     }
 
-    static Node mkFltClassicGraph(UIElements.Graph c, ModulePane parent) {
+    static Node mkFltClassicGraph(UIElements.Graph c, ParamListener paramListener) {
         Canvas canvas = new Canvas(c.Width(), c.Height());
-        ListenerBuilder.build(vs -> {
+        paramListener.build(vs -> {
             double cutoff = computeFltFreq(vs.get(0).getInt());
             double resonance = (double) (vs.get(1).getInt() * 4) /127;
             int order = vs.get(2).getInt()+2;
             drawFilterCurve(c,canvas.getGraphicsContext2D(), cutoff, resonance, order, vs.get(3).getBool());
-        },parent,c,Int,Int,Int,Bool);
+        },c,Int,Int,Int,Bool);
 
         Pane pane = new Pane(canvas);
         pane.setPrefSize(c.Width(), c.Height());

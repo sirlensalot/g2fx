@@ -4,7 +4,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Point2D;
@@ -23,16 +22,20 @@ import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.bridge.PropertyBridge;
 import org.g2fx.g2gui.controls.*;
-import org.g2fx.g2gui.ui.*;
+import org.g2fx.g2gui.ui.UIElement;
+import org.g2fx.g2gui.ui.UIElements;
+import org.g2fx.g2gui.ui.UIModule;
+import org.g2fx.g2gui.ui.UIParamControl;
 import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
-import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -54,6 +57,7 @@ public class ModulePane {
             "LS-4-Bip.png",
             "LS-5-BipInv.png").map(s -> FXUtil.getImageResource("img" + File.separator + s)).toList();
 
+
     /**
      * Lib-side module, ONLY ACCESS ON LIB THREAD or
      * in bridge constructors
@@ -71,11 +75,9 @@ public class ModulePane {
 
     private final ModuleTextFieldBuilder textFieldBuilder;
 
-    private final Map<Integer,Property<Integer>> intProps = new TreeMap<>();
-    private final Map<Integer,ObservableValue<Integer>> modeProps = new TreeMap<>();
-    private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
-    private final List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
+    private final ParamListener paramListener;
 
+    private final List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
 
 
     /**
@@ -107,6 +109,7 @@ public class ModulePane {
                       Bridges bridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
         height = ui.Height();
         type = m.type;
+        paramListener = new ParamListener(type,this);
         this.index = m.index;
         this.bridges = bridges;
         this.patchModule = pm;
@@ -115,7 +118,7 @@ public class ModulePane {
         this.textFocusListener = textFocusListener;
         this.areaPane = areaPane;
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
-        textFieldBuilder = new ModuleTextFieldBuilder(this);
+        textFieldBuilder = new ModuleTextFieldBuilder(paramListener);
 
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
@@ -183,16 +186,16 @@ public class ModulePane {
 
             case UIElements.Graph c -> mkGraph(c);
 
-            default -> empty(e, "renderElement");
+            default -> paramListener.empty(e, "renderElement");
 
         };
     }
 
     private Node mkGraph(UIElements.Graph c) {
         if (c.GraphFunc() == 20) {
-            return Graphs.mkFltClassicGraph(c,this);
+            return Graphs.mkFltClassicGraph(c,paramListener);
         }
-        return empty(c,"Graph");
+        return paramListener.empty(c,"Graph");
     }
 
     private Node mkOutput(UIElements.Output c) {
@@ -227,7 +230,7 @@ public class ModulePane {
     }
 
     private Node mkPartSelector(UIElements.PartSelector c) {
-        IndexParam mip = new IndexParam(type.modes.get(c.CodeRef()),c.CodeRef());
+        IndexParam mip = new IndexParam(type.modes.get(c.CodeRef()),c.CodeRef(),this.toString());
         if (c.Images()==null) {
             //TODO this is probably going away as it is too wide, adapt ModeSelector to handle text
             ComboBox<String> combo = withClass(
@@ -242,15 +245,14 @@ public class ModulePane {
             combo.getProperties().put(COMBO_BOX_ROWS_TO_MEASURE_WIDTH_KEY,1);
             layout(c,combo);
             SimpleObjectProperty<Integer> selectedReadOnlyProperty = new SimpleObjectProperty<>();
-            combo.getSelectionModel().selectedIndexProperty().addListener((cc,oo,n) -> {
-                selectedReadOnlyProperty.setValue(n.intValue());
-            });
-            addModeProp(mip,selectedReadOnlyProperty);
+            combo.getSelectionModel().selectedIndexProperty().addListener((cc,oo,n) ->
+                    selectedReadOnlyProperty.setValue(n.intValue()));
+            paramListener.addModeProp(mip,selectedReadOnlyProperty);
             return combo;
         } else {
             ModeSelector ms = new ModeSelector(mip, c, this);
             addBridge(bridges.bridge(ms.selectedProperty(),d -> patchModule.getUserModuleData().mode(mip.index())));
-            addModeProp(mip,ms.selectedProperty());
+            paramListener.addModeProp(mip,ms.selectedProperty());
             return ms.getPane();
         }
 
@@ -259,7 +261,7 @@ public class ModulePane {
 
     private Node renderParamControl(UIParamControl uc) {
 
-        IndexParam ip = resolveParam(uc);
+        IndexParam ip = paramListener.resolveParam(uc);
 
         return switch (uc) {
 
@@ -355,45 +357,8 @@ public class ModulePane {
         return b;
     }
 
-    public void listenInt2(ControlDependencies deps,
-                            BiConsumer<Integer, Integer> f) {
-        ObservableValue<Integer> p0 = resolveDepParam(deps, 0);
-        ObservableValue<Integer> p1 = resolveDepParam(deps, 1);
-        ChangeListener<Integer> listener = (c, o, n) ->
-                f.accept(p0.getValue(), p1.getValue());
-        p0.addListener(listener);
-        p1.addListener(listener);
-    }
 
-    public void listenInt3(ControlDependencies deps,
-                            Util.TriConsumer<Integer, Integer, Integer> f) {
-        ObservableValue<Integer> p0 = resolveDepParam(deps, 0);
-        ObservableValue<Integer> p1 = resolveDepParam(deps, 1);
-        ObservableValue<Integer> p2 = resolveDepParam(deps, 2);
-        ChangeListener<Integer> listener = (c,o,n) ->
-                f.accept(p0.getValue(), p1.getValue(), p2.getValue());
-        p0.addListener(listener);
-        p1.addListener(listener);
-        p2.addListener(listener);
-    }
 
-    public ObservableValue<Integer> resolveDepParam(ControlDependencies c, int ix) {
-        ControlDependencies.Dependency d = c.Dependencies().get(ix);
-        boolean isParam = d.type() == UIElements.DepType.Param;
-        IndexParam ip = isParam ?
-                resolveParam(d.index()) :
-                resolveMode(d.index());
-        ObservableValue<Integer> p = (isParam?intProps:modeProps).get(ip.index());
-        if (p == null) { throw new IllegalArgumentException("resoveDepParam: no property found " + ip); }
-        return p;
-    }
-
-    public Property<Boolean> resolveBoolDepParam(ControlDependencies c, int ix) {
-        IndexParam ip = resolveParam(c.Dependencies().get(ix).index());
-        Property<Boolean> p = boolProps.get(ip.index());
-        if (p == null) { throw new IllegalArgumentException("resoveBoolDepParam: no property found " + ip); }
-        return p;
-    }
 
     private Node mkButtonText(UIElements.ButtonText c, IndexParam ip) {
         if (ip.param().param() == ModParam.ActiveMonitor) {
@@ -428,7 +393,7 @@ public class ModulePane {
                 case Medium, ResetMedium -> 0.88;
                 default -> 1.0;
             };
-            Knob knob = new Knob(paramId(ip), scale, c.Type().isReset,ip.param().param().min,ip.param().param().max);
+            Knob knob = new Knob(ip.toString(), scale, c.Type().isReset,ip.param().param().min,ip.param().param().max);
             layout(c, knob);
             bindIntParam(ip, knob, knob.getValueProperty(), knob.valueChangingProperty());
             return knob;
@@ -437,15 +402,16 @@ public class ModulePane {
             bindIntParam(ip,ms.control(),ms.property(),ms.slider().valueChangingProperty());
             return ms.control();
         }
-        return empty(c, "Knob-SeqSlider");
+        return paramListener.empty(c, "Knob-SeqSlider");
     }
 
     private Function<Device, LibProperty<Integer>> mkParamIntProp(IndexParam ip, int v) {
-        return d -> patchModule.getParamValueProperty(v, ip.index);
+        return d -> patchModule.getParamValueProperty(v, ip.index());
     }
 
     private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
-        bindVarControl(ip,intProps, property, v -> {
+        paramListener.addIntProp(ip,property);
+        bindVarControl(property, v -> {
             Property<Integer> p =
                     new SimpleObjectProperty<>(ctl, property.getName(), null);
             moduleBridges.add(bridges.bridge(mkParamIntProp(ip, v),
@@ -459,10 +425,7 @@ public class ModulePane {
         return type.shortName + ":" + ip.param().name() + ":" + v;
     }
 
-    public Node empty(UIElement e, String msg) {
-        System.out.println(msg + " TODO: " + e + ": " + this);
-        return new Pane();
-    }
+
 
     private ToggleButton mkPowerButton(UIElements.ButtonText c, IndexParam ip) {
         final ToggleButton b = new PowerButton().getButton();
@@ -512,7 +475,8 @@ public class ModulePane {
 
     private <T extends Node> T mkToggle(IndexParam ip, T b, BooleanProperty selectedProperty,
                                         ObservableValue<Boolean> defeatUndoProperty) {
-        bindVarControl(ip,boolProps,selectedProperty, v -> {
+        paramListener.addBoolProp(ip,selectedProperty);
+        bindVarControl(selectedProperty, v -> {
             SimpleBooleanProperty p =
                     new SimpleBooleanProperty(b, varPropName(ip, v),false);
             FxProperty.SimpleFxProperty<Boolean> fxProperty = defeatUndoProperty == null ?
@@ -598,40 +562,12 @@ public class ModulePane {
         return b;
     }
 
-    public record IndexParam(NamedParam param, int index) {}
-    
-    private IndexParam resolveParam(UIParamControl uc) {
-        int cr = uc.CodeRef();
-        if (cr > type.getParams().size()) { throw new IllegalArgumentException("resolveParam: bad index: " + uc); }
-        NamedParam p = type.getParams().get(cr);
-        if (!p.name().equals(uc.Control())) { throw new IllegalArgumentException("resolveParam: bad name: " + uc); }
-        return new IndexParam(p,cr);
-    }
-
-    public IndexParam resolveParam(int index) {
-        if (index > type.getParams().size()) {
-            throw new IllegalArgumentException("Bad param index: " + index + ", module: " + this);
-        }
-        return new IndexParam(type.getParams().get(index),index);
-    }
-
-
-    public IndexParam resolveMode(int index) {
-        if (index > type.modes.size()) {
-            throw new IllegalArgumentException("Bad param index: " + index + ", module: " + this);
-        }
-        return new IndexParam(type.modes.get(index),index);
-    }
-
-    private <T> void bindVarControl(IndexParam ip, Map<Integer,Property<T>> coll, Property<T> control,
+    private <T> void bindVarControl(Property<T> control,
                                     IntFunction<Property<T>> varPropBuilder) {
         varBindings.add(slotPane.bindVarControl(control,varPropBuilder));
-        coll.put(ip.index,control);
     }
 
-    public void addModeProp(IndexParam ip,ObservableValue<Integer> prop) {
-        modeProps.put(ip.index,prop);
-    }
+
 
 
     public void addBridge(PropertyBridge<?, ?> bridge) {
@@ -659,8 +595,6 @@ public class ModulePane {
         return String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type,index);
     }
 
-    public Property<Boolean> getBoolProp(int idx) { return boolProps.get(idx); }
-    public Property<Integer> getIntProp(int idx) { return intProps.get(idx); }
 
     public ModuleType getType() {
         return type;
@@ -676,10 +610,6 @@ public class ModulePane {
 
     public Bridges getBridges() {
         return bridges;
-    }
-
-    public String paramId(IndexParam ip) {
-        return this + ":" + ip.index() + ":" + ip.param().param().name();
     }
 
     public void unbindVarControls() {

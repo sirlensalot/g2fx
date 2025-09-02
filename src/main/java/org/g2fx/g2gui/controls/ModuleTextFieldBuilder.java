@@ -8,7 +8,6 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.ParamFormatter;
 import org.g2fx.g2lib.util.Util;
@@ -40,11 +39,10 @@ public class ModuleTextFieldBuilder {
     private static final int TF_REVERB_TIME = 107;
 
 
+    private final ParamListener paramListener;
 
-    private final ModulePane parent;
-
-    public ModuleTextFieldBuilder(ModulePane parent) {
-        this.parent = parent;
+    public ModuleTextFieldBuilder(ParamListener paramListener) {
+        this.paramListener = paramListener;
     }
 
     public Node mkTextField(UIElements.TextField c) {
@@ -54,17 +52,17 @@ public class ModuleTextFieldBuilder {
         l.setPrefWidth(c.Width());
 
 
-        ModulePane.IndexParam ip = parent.resolveParam(c.MasterRef());
-        l.setUserData(parent.paramId(ip));
+        IndexParam ip = paramListener.resolveParam(c.MasterRef());
+        l.setUserData(ip.toString());
 
         ParamFormatter pf = ip.param().param().formatter;
 
-        Property<Boolean> pb = parent.getBoolProp(ip.index());
+        Property<Boolean> pb = paramListener.getBoolProp(ip.index());
         if (pb != null && pf != null && pf.boolFmt() != null) {
             return formatParam(l,pb,pf.boolFmt());
         }
 
-        Property<Integer> pi = parent.getIntProp(ip.index());
+        Property<Integer> pi = paramListener.getIntProp(ip.index());
         if (pi != null && pf != null && pf.intFmt() != null) {
             return formatParam(l,pi,pf.intFmt());
         }
@@ -86,7 +84,7 @@ public class ModuleTextFieldBuilder {
         }
 
         System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
-        return parent.empty(c,"mkTextField");
+        return paramListener.empty(c,"mkTextField");
 
     }
 
@@ -138,13 +136,13 @@ public class ModuleTextFieldBuilder {
 
     private Node fmtInt2(Label l, UIElements.TextField tf,
                          BiFunction<Integer, Integer, String> f) {
-        parent.listenInt2(tf,(a,b) -> l.setText(f.apply(a,b)));
+        paramListener.listenInt2(tf,(a,b) -> l.setText(f.apply(a,b)));
         return l;
     }
 
     private Node fmtInt3(Label l, UIElements.TextField tf,
                          Util.TriFunction<Integer, Integer, Integer, String> f) {
-        parent.listenInt3(tf,(a,b,c) -> l.setText(f.apply(a,b,c)));
+        paramListener.listenInt3(tf,(a,b,c) -> l.setText(f.apply(a,b,c)));
         return l;
     }
 
@@ -164,9 +162,9 @@ public class ModuleTextFieldBuilder {
     }
 
     private Node formatClkTempo(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pRateBpm = parent.resolveDepParam(c,0);
-        ObservableValue<Boolean> pActive = parent.resolveBoolDepParam(c,1);
-        ObservableValue<Integer> pSource = parent.resolveDepParam(c,2);
+        ObservableValue<Integer> pRateBpm = paramListener.resolveDepParam(c,0);
+        ObservableValue<Boolean> pActive = paramListener.resolveBoolDepParam(c,1);
+        ObservableValue<Integer> pSource = paramListener.resolveDepParam(c,2);
         ChangeListener<Integer> listener = (cc, o, n) ->
                 l.setText(!pActive.getValue() ? "--" : pSource.getValue() == 1 ? "MASTER" :
                     (g2BPM(pRateBpm.getValue()) + " BPM"));

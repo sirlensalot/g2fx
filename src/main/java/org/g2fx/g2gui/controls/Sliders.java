@@ -16,7 +16,6 @@ import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.ModParam;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
-import static org.g2fx.g2gui.panel.ModulePane.IndexParam;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 
 public interface Sliders {
@@ -26,7 +25,7 @@ public interface Sliders {
     public static ModuleSlider mkSlider(UIElements.Knob c, IndexParam ip, ModulePane parent) {
         ModParam mp = ip.param().param();
         Slider slider = withClass(new Slider(mp.min,mp.max,mp.def),"module-slider");
-        slider.setUserData(parent.paramId(ip));
+        slider.setUserData(ip.toString());
         slider.setMajorTickUnit(1.0);
         slider.setOrientation(Orientation.VERTICAL);
         Button left = withClass(new Button("◀"),"module-slider-button");
@@ -35,7 +34,7 @@ public interface Sliders {
         control.setAlignment(Pos.CENTER);
         left.setOnAction(e -> slider.decrement());
         right.setOnAction(e -> slider.increment());
-        var pi = new SimpleObjectProperty<>(slider, parent.paramId(ip), mp.def);
+        var pi = new SimpleObjectProperty<>(slider, ip.toString(), mp.def);
         pi.addListener((cc,o,n) -> slider.valueProperty().set(n));
         slider.valueProperty().addListener((cc,o,n)->pi.setValue(n.intValue()));
         slider.valueProperty().set(pi.getValue());

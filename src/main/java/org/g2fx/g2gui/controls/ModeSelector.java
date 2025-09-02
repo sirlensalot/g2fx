@@ -17,8 +17,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.Popup;
 import org.g2fx.g2gui.FXUtil;
-import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.panel.ModulePane;
+import org.g2fx.g2gui.ui.UIElements;
 
 import java.io.File;
 
@@ -26,12 +26,12 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class ModeSelector {
 
-    private final ModulePane.IndexParam ip;
+    private final IndexParam ip;
     private final Pane pane;
     private Property<Integer> selectedProperty;
 
 
-    public ModeSelector(ModulePane.IndexParam ip, UIElements.PartSelector ps, ModulePane parent) {
+    public ModeSelector(IndexParam ip, UIElements.PartSelector ps, ModulePane parent) {
         this.ip = ip;
         pane = mkControl(ps,parent);
 
@@ -47,7 +47,7 @@ public class ModeSelector {
         ObservableList<Image> items = FXCollections.observableArrayList(c.Images().stream().map(f ->
                 FXUtil.getImageResource("img" + File.separator + f)).toList());
         ListView<Image> listView = withClass(new ListView<>(items),"module-mode-list");
-        selectedProperty = new SimpleObjectProperty<>(listView,parent.paramId(ip),ip.param().param().def);
+        selectedProperty = new SimpleObjectProperty<>(listView, ip.toString(),ip.param().param().def);
         listView.setFixedCellSize(c.Height());
         listView.setPrefHeight(c.Height()*items.size());
         listView.setPrefWidth(c.ImageWidth()+12);

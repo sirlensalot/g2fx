@@ -37,7 +37,7 @@ public class ButtonRadio {
     /**
      * Ctor for "ButtonRadio": not editable, image or text, single row
      */
-    public ButtonRadio(ModulePane parent, UIElements.ButtonRadio c, ModulePane.IndexParam ip) {
+    public ButtonRadio(ModulePane parent, UIElements.ButtonRadio c, IndexParam ip) {
         List<TextOrImage> ss = c.Text().isEmpty() ?
                 TextOrImage.mkImages(c.Images()) : TextOrImage.mkTexts(c.Text());
         ObservableList<ToggleButton> buttons =
@@ -78,7 +78,7 @@ public class ButtonRadio {
     /**
      * Ctor for "ButtonRadioEdit": text only, editable, multiple rows
      */
-    public ButtonRadio(ModulePane parent, UIElements.ButtonRadioEdit c, ModulePane.IndexParam ip) {
+    public ButtonRadio(ModulePane parent, UIElements.ButtonRadioEdit c, IndexParam ip) {
 
         ToggleGroup toggleGroup = new ToggleGroup();
         Pane box = new Pane();
@@ -114,10 +114,10 @@ public class ButtonRadio {
         selectedToggleIndexProperty = setupProperty(parent, ip, toggleGroup, buttons);
     }
 
-    private Property<Integer> setupProperty(ModulePane parent, ModulePane.IndexParam ip, ToggleGroup toggleGroup,
+    private Property<Integer> setupProperty(ModulePane parent, IndexParam ip, ToggleGroup toggleGroup,
                                             List<ToggleButton> buttons) {
         Property<Integer> property = new SimpleObjectProperty<>(control,
-                parent.paramId(ip),
+                ip.toString(),
                 ip.param().param().def);
         toggleGroup.selectToggle(
                 buttons.get(property.getValue()));
