@@ -16,6 +16,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.controls.ParamListener.pBool;
+import static org.g2fx.g2gui.controls.ParamListener.pInt;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.ModParam.*;
 import static org.g2fx.g2lib.model.ParamConstants.*;
@@ -162,15 +164,11 @@ public class ModuleTextFieldBuilder {
     }
 
     private Node formatClkTempo(UIElements.TextField c, Label l) {
-        ObservableValue<Integer> pRateBpm = paramListener.resolveDepParam(c,0);
-        ObservableValue<Boolean> pActive = paramListener.resolveBoolDepParam(c,1);
-        ObservableValue<Integer> pSource = paramListener.resolveDepParam(c,2);
-        ChangeListener<Integer> listener = (cc, o, n) ->
-                l.setText(!pActive.getValue() ? "--" : pSource.getValue() == 1 ? "MASTER" :
-                    (g2BPM(pRateBpm.getValue()) + " BPM"));
-        pRateBpm.addListener(listener);
-        pActive.addListener((cc, o, n) -> listener.changed(null,0,0));
-        pSource.addListener(listener);
+        paramListener.build(c, vs ->
+                l.setText(!vs.getBool(ActiveMonitor) ? "--" :
+                        vs.getInt(InternalMaster) == 1 ? "MASTER" :
+                                (g2BPM(vs.getInt(RateBpm)) + " BPM")),
+                pInt(RateBpm),pBool(ActiveMonitor),pInt(InternalMaster));
         return l;
     }
 

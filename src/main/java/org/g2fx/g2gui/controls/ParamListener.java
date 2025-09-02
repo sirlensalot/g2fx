@@ -15,10 +15,7 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.util.Util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -63,6 +60,44 @@ public class ParamListener {
     }
 
 
+    public record ParamSpec(IntOrBool type,Object id) {}
+    public static ParamSpec pInt(Object id) { return new ParamSpec(IntOrBool.Int,id); }
+    public static ParamSpec pBool(Object id) { return new ParamSpec(IntOrBool.Bool,id); }
+
+
+    public class ParamVals {
+        private final Map<Object,ParamVal> vs;
+        private final Map<Object,IntOrBool> types;
+
+        public ParamVals(ParamSpec... specs) {
+            this.vs = new HashMap<>(specs.length);
+            this.types = new HashMap<>(specs.length);
+        }
+        public void put(ParamSpec spec,ParamVal val) {
+            vs.put(spec.id,val);
+            types.put(spec.id,spec.type);
+        }
+
+        public int getInt(Object id) {
+            return get(id,IntOrBool.Int).getInt();
+        }
+
+        public boolean getBool(Object id) {
+            return get(id,IntOrBool.Bool).getBool();
+        }
+
+        private ParamVal get(Object id, IntOrBool type) {
+            ParamVal v = vs.get(id);
+            if (v == null) {
+                throw new IllegalArgumentException("ParamVals.get: invalid key: " + id + ", " + vs);
+            }
+            if (type != types.get(id)) {
+                throw new IllegalArgumentException("ParamVals.get: invalid type: " + id + ", expected " + types.get(id));
+            }
+            return v;
+        }
+    }
+
     private final Map<Integer, Property<Integer>> intProps = new TreeMap<>();
     private final Map<Integer,ObservableValue<Integer>> modeProps = new TreeMap<>();
     private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
@@ -75,11 +110,20 @@ public class ParamListener {
     }
 
 
-    public void build(Consumer<List<ParamVal>> f, ControlDependencies deps, IntOrBool... depTypes) {
+    public void build(ControlDependencies deps, Consumer<List<ParamVal>> f, IntOrBool... depTypes) {
         List<ParamVal> vs = new ArrayList<>(depTypes.length);
         Runnable listener = () -> f.accept(vs);
         for (int i = 0 ; i < depTypes.length ; i++) {
             vs.add(depTypes[i] == IntOrBool.Int ? new IntVal(resolveDepParam(deps, i), listener) :
+                    new BoolVal(resolveBoolDepParam(deps, i), listener));
+        }
+    }
+
+    public void build(ControlDependencies deps, Consumer<ParamVals> f, ParamSpec... depTypes) {
+        ParamVals vs = new ParamVals(depTypes);
+        Runnable listener = () -> f.accept(vs);
+        for (int i = 0 ; i < depTypes.length ; i++) {
+            vs.put(depTypes[i],depTypes[i].type == IntOrBool.Int ? new IntVal(resolveDepParam(deps, i), listener) :
                     new BoolVal(resolveBoolDepParam(deps, i), listener));
         }
     }

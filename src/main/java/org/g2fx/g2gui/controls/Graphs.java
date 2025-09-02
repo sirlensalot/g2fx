@@ -7,10 +7,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import org.g2fx.g2gui.ui.UIElements;
 
-import static org.g2fx.g2gui.controls.ParamListener.IntOrBool.Bool;
-import static org.g2fx.g2gui.controls.ParamListener.IntOrBool.Int;
+import static org.g2fx.g2gui.controls.ParamListener.pBool;
+import static org.g2fx.g2gui.controls.ParamListener.pInt;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
-import static org.g2fx.g2lib.model.ModParam.computeFltFreq;
+import static org.g2fx.g2lib.model.ModParam.*;
 
 public interface Graphs {
 
@@ -45,12 +45,12 @@ public interface Graphs {
 
     static Node mkFltClassicGraph(UIElements.Graph c, ParamListener paramListener) {
         Canvas canvas = new Canvas(c.Width(), c.Height());
-        paramListener.build(vs -> {
-            double cutoff = computeFltFreq(vs.get(0).getInt());
-            double resonance = (double) (vs.get(1).getInt() * 4) /127;
-            int order = vs.get(2).getInt()+2;
-            drawFilterCurve(c,canvas.getGraphicsContext2D(), cutoff, resonance, order, vs.get(3).getBool());
-        },c,Int,Int,Int,Bool);
+        paramListener.build(c, vs -> {
+            double cutoff = computeFltFreq(vs.getInt(FltFreq));
+            double resonance = (double) (vs.getInt(Res_1) * 4) /127;
+            int order = vs.getInt(ClassicSlope)+2;
+            drawFilterCurve(c,canvas.getGraphicsContext2D(), cutoff, resonance, order, vs.getBool(ActiveMonitor));
+        }, pInt(FltFreq),pInt(Res_1),pInt(ClassicSlope),pBool(ActiveMonitor));
 
         Pane pane = new Pane(canvas);
         pane.setPrefSize(c.Width(), c.Height());
