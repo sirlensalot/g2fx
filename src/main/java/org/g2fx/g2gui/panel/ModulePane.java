@@ -103,6 +103,8 @@ public class ModulePane {
     private final Map<Connector.PortType,List<Connectors.Conn>> conns = Map.of(
             Connector.PortType.In,new ArrayList<>(),
             Connector.PortType.Out,new ArrayList<>());
+
+    private Graphs graphs;
     
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
@@ -110,6 +112,7 @@ public class ModulePane {
         height = ui.Height();
         type = m.type;
         paramListener = new ParamListener(type,this);
+        graphs = new Graphs(paramListener,type);
         this.index = m.index;
         this.bridges = bridges;
         this.patchModule = pm;
@@ -184,15 +187,11 @@ public class ModulePane {
 
             case UIElements.Output c -> mkOutput(c);
 
-            case UIElements.Graph c -> mkGraph(c);
+            case UIElements.Graph c -> graphs.mkGraph(c);
 
             default -> paramListener.empty(e, "renderElement");
 
         };
-    }
-
-    private Node mkGraph(UIElements.Graph c) {
-        return Graphs.mkGraph(c,paramListener,type);
     }
 
     private Node mkOutput(UIElements.Output c) {

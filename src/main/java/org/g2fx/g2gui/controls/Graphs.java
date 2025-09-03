@@ -13,33 +13,41 @@ import static org.g2fx.g2gui.controls.ParamListener.pInt;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.ModParam.*;
 
-public interface Graphs {
+public class Graphs {
 
-    double FREQ_MIN = 20;
-    double FREQ_MAX = 20000;
-    double DB_MIN = -24; // bottom of graph (dB)
-    double DB_MAX = 18;   // top of graph (dB)
-    double EPSILON = 1e-10;
+    public static double FREQ_MIN = 20;
+    public static double FREQ_MAX = 20000;
+    public static double DB_MIN = -24; // bottom of graph (dB)
+    public static double DB_MAX = 18;   // top of graph (dB)
+    public static double EPSILON = 1e-10;
 
+    private final ParamListener paramListener;
+    private final ModuleType type;
 
-    static Node mkGraph(UIElements.Graph c, ParamListener paramListener, ModuleType type) {
-        if (c.GraphFunc() == 20) {
-            return mkFltClassicGraph(c,paramListener);
-        } else if (c.GraphFunc() == 3) {
-            return mkADSR(c,paramListener);
-        } else if (c.GraphFunc() == 17) {
-            return mkEnvMulti(c,paramListener);
-        } else if (c.GraphFunc() == 28 && type == ModuleType.M_EnvAHD) {
-            return mkAHD(c,paramListener);
-        }
-        return paramListener.empty(c,"Graph");
+    public Graphs(ParamListener paramListener, ModuleType type) {
+        this.paramListener = paramListener;
+        this.type = type;
+    }
+
+    public Node mkGraph(UIElements.Graph c) {
+        return switch (c.GraphFunc()) {
+            case 20 -> mkFltClassicGraph(c);
+            case 3 -> mkADSR(c);
+            case 23 -> mkADDSR(c);
+            case 1 -> mkADR(c);
+            case 6 -> mkD(c);
+            case 7  -> mkH(c);
+            case 17 -> mkEnvMulti(c);
+            case 28 -> type == ModuleType.M_EnvAHD ? mkAHD(c) : paramListener.empty(c, "Env_ModAHD");
+            default -> paramListener.empty(c, "Graph");
+        };
     }
     /**
      * @param resonance 0..4-ish
      * @param order Filter order (e.g. 2 = 12dB/oct, 3 = 18db/oct, 4 = 24dB/oct)
      * @return Magnitude response at freqHz
      */
-    static double computeFiltLP(double freqHz, double cutoffHz, double resonance, int order) {
+    private static double computeFiltLP(double freqHz, double cutoffHz, double resonance, int order) {
 
         freqHz = Math.max(freqHz, EPSILON);
         cutoffHz = Math.max(cutoffHz, EPSILON);
@@ -57,7 +65,7 @@ public interface Graphs {
         return magDB;
     }
 
-    static Node mkFltClassicGraph(UIElements.Graph c, ParamListener paramListener) {
+    private Node mkFltClassicGraph(UIElements.Graph c) {
         Canvas canvas = new Canvas(c.Width(), c.Height());
         paramListener.build(c, vs -> {
 
@@ -130,7 +138,7 @@ public interface Graphs {
     }
 
 
-    static Node mkADSR(UIElements.Graph c, ParamListener paramListener) {
+    private Node mkADSR(UIElements.Graph c) {
         EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
         paramListener.build(c,vs ->
                         EnvGraphs.adsrGraph(g,
@@ -145,8 +153,29 @@ public interface Graphs {
 
     }
 
+    private Node mkADDSR(UIElements.Graph c) {
+        EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
+        paramListener.build(c,vs ->
+                        EnvGraphs.addsrGraph(g,
+                                vs.getInt(EnvShape_3),
+                                vs.getInt("A"),
+                                vs.getInt("D1"),
+                                vs.getInt("L1"),
+                                vs.getInt("D2"),
+                                vs.getInt("L2"),
+                                vs.getInt("R"),
+                                vs.getInt(SustainMode_1),
+                                vs.getInt(PosNegInvBipInv)),
+                pInt("A"),
+                pInt("D1"),pInt("L1"),
+                pInt("D2"),pInt("L2"),pInt("R"),
+                pInt(EnvShape_3),pInt(SustainMode_1), pInt(PosNegInvBipInv)
+        );
+        return g.control();
 
-    static Node mkEnvMulti(UIElements.Graph c, ParamListener paramListener) {
+    }
+
+    private Node mkEnvMulti(UIElements.Graph c) {
         EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
         paramListener.build(c,vs ->
                         EnvGraphs.multiEnvGraph(g,
@@ -167,7 +196,7 @@ public interface Graphs {
         return g.control();
     }
 
-    static Node mkAHD(UIElements.Graph c, ParamListener paramListener) {
+    private Node mkAHD(UIElements.Graph c) {
         EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
         paramListener.build(c,vs ->
                         EnvGraphs.ahdGraph(g,
@@ -181,4 +210,37 @@ public interface Graphs {
 
     }
 
+    private Node mkADR(UIElements.Graph c) {
+        EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
+        paramListener.build(c,vs ->
+                        EnvGraphs.adrGraph(g,
+                                vs.getInt(EnvShape_3),
+                                vs.getInt("A"),
+                                vs.getInt("R"),
+                                vs.getInt(PosNegInv),
+                                vs.getInt(AdAr)),
+                pInt("A"),pInt("R"),pInt(EnvShape_3),pInt(AdAr), pInt(PosNegInv));
+        return g.control();
+
+    }
+
+    private Node mkD(UIElements.Graph c) {
+        EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
+        paramListener.build(c,vs ->
+                        EnvGraphs.denvGraph(g,
+                                vs.getInt(EnvTime),
+                                vs.getInt(PosNegInv)),
+                pInt(EnvTime),pInt(PosNegInv));
+        return g.control();
+    }
+
+    private Node mkH(UIElements.Graph c) {
+        EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
+        paramListener.build(c,vs ->
+                        EnvGraphs.henvGraph(g,
+                                vs.getInt(EnvTime),
+                                vs.getInt(PosNegInv)),
+                pInt(EnvTime),pInt(PosNegInv));
+        return g.control();
+    }
 }

@@ -17,6 +17,12 @@ public interface EnvGraphs {
                 {log, exp, exp},
                 {lin, lin, lin}
         };
+        public static final CurveType[][] ADDSR = {
+                {exp,exp,exp,exp},
+                {lin,exp,exp,exp},
+                {log,exp,exp,exp},
+                {lin,lin,lin,lin}
+        };
         public static final CurveType[][] MULTI = {
             {exp,exp,exp,exp},
             {lin,exp,exp,exp},
@@ -28,6 +34,12 @@ public interface EnvGraphs {
                 {lin,lin,exp},
                 {log,lin,exp},
                 {lin,lin,lin}
+        };
+        public static final CurveType[][] ADR = {
+                {exp,exp},
+                {lin,exp},
+                {log,exp},
+                {lin,lin}
         };
     }
 
@@ -54,12 +66,12 @@ public interface EnvGraphs {
     }
 
     static void ahdGraph(Graph g, int attack1,int hold2,int decay4,int shape0,int posNegInv5) {
-        EnvProperties ep = (posNegInv5&1)!=0?new EnvProperties(){{ys=-28;xs=20;yo=28;}}:new EnvProperties(){{ys=28;xs=20;yo=0;}};
+        EnvProperties ep = (posNegInv5&1)!=0?new EnvProperties(-28,20,28):new EnvProperties(28,20,0);
         EnvSegment[] en = {new EnvSegment(attack1,0,ep),new EnvSegment(hold2,0,ep),new EnvSegment(decay4,127,ep)};
 
         CurveType[] sm = CurveType.AHD[shape0];
         ep.sustime = computeSustime(en,0);
-        var d = envGetd(en,sm);
+        var d = drawEnv(en,sm);
         g.g.setContent(d);
     }
 
@@ -67,7 +79,7 @@ public interface EnvGraphs {
                               int l1, int l2, int l3, int l4,
                               int t1, int t2, int t3, int t4,
                               int susMode, int posNegInvBip, int shape) {
-        EnvProperties ep = (posNegInvBip&1)!=0?new EnvProperties(){{ys=-28;xs=15;yo=28;}}:new EnvProperties(){{ys=28;xs=15;yo=0;}};
+        EnvProperties ep = (posNegInvBip&1)!=0?new EnvProperties(-28,15,28):new EnvProperties(28,15,0);
         EnvSegment[] en = new EnvSegment[]{
                 new EnvSegment(t1, 127 - l1, ep), new EnvSegment(t2, 127 - l2, ep),
                 new EnvSegment(t3, 127 - l3, ep), new EnvSegment(t4, 127 - l4, ep)
@@ -77,7 +89,7 @@ public interface EnvGraphs {
 
         CurveType[] sm = CurveType.MULTI[shape];
         ep.sustime = computeSustime(en,4.5);
-        var d = envGetd(en,sm);
+        var d = drawEnv(en,sm);
         g.g.setContent(d);
     }
 
@@ -85,8 +97,8 @@ public interface EnvGraphs {
     static void adsrGraph(Graph g, int shape, int attack, int decay, int sustain, int release, int posNegBipInv) {
 
         EnvProperties ep = (posNegBipInv & 1) != 0
-                ? new EnvProperties() {{ ys = -28; xs = 15; yo = 28; }}
-                : new EnvProperties() {{ ys = 28; xs = 15; yo = 0; }};
+                ? new EnvProperties(-28,15,28)
+                : new EnvProperties(28,15,0);
 
         EnvSegment[] en = new EnvSegment[] {
                 new EnvSegment(attack, 0, ep),
@@ -99,10 +111,49 @@ public interface EnvGraphs {
         ep.sustime = computeSustime(en, 3.0);
 
 
-        String d = envGetd(en, sm);
+        String d = drawEnv(en, sm);
 
         g.g.setContent(d);
     }
+
+    static void adrGraph(Graph g,int shape,int attack,int release,int posNegInv,int dcyRel) {
+        EnvProperties ep = (posNegInv&1)!=0?new EnvProperties(-22,15,22):new EnvProperties(22,15,0);
+        EnvSegment[] en = {new EnvSegment(attack,0,ep,dcyRel!=0),new EnvSegment(release,127,ep)};
+        CurveType[] sm = CurveType.ADR[shape];
+        ep.sustime = computeSustime(en, 2.0);
+        var d = drawEnv(en,sm);
+        g.g.setContent(d);
+    }
+
+    static void addsrGraph(Graph g,int shape,int attack,int decay1,int level1,int decay2,int level2,
+                           int release,int sustainMode,int posNegInv) {
+        EnvProperties ep = (posNegInv&1)!=0?new EnvProperties(-28,15,28):new EnvProperties(28,15,0);
+        EnvSegment[] en = {new EnvSegment(attack,0,ep),new EnvSegment(decay1,127-level1,ep),
+                new EnvSegment(decay2,127-level2,ep),new EnvSegment(release,127,ep)};
+        en[sustainMode&2|1].sustain = true;
+        CurveType[] sm = CurveType.ADDSR[shape];
+        ep.sustime = computeSustime(en, 4.0);
+        var d = drawEnv(en,sm);
+        g.g.setContent(d);
+    }
+    static void denvGraph(Graph g,int decay,int posNegInv) {
+        EnvProperties ep = (posNegInv&1)!=0?new EnvProperties(-22,31,22):new EnvProperties(22,31,0);
+        EnvSegment[] en = {new EnvSegment(0,0,ep),new EnvSegment(decay,127,ep)};
+        CurveType[] sm = {CurveType.lin,CurveType.exp};
+        ep.sustime = computeSustime(en, 0.0);
+        var d = drawEnv(en,sm);
+        g.g.setContent(d);
+    }
+    static void henvGraph(Graph g,int hold,int posNegInv) {
+        EnvProperties ep = (posNegInv&1)!=0?new EnvProperties(-22,31,22):new EnvProperties(22,31,0);
+        EnvSegment[] en = {new EnvSegment(0,0,ep),new EnvSegment(hold,0,ep),
+                new EnvSegment(0,127,ep),new EnvSegment(200,127,ep)};
+        CurveType[] sm ={CurveType.lin,CurveType.lin,CurveType.lin,CurveType.lin};
+        ep.sustime = computeSustime(en, 0.0);
+        var d = drawEnv(en,sm);
+        g.g.setContent(d);
+    }
+
 
     private static double computeSustime(EnvSegment[] en, double susInit) {
         double sumNonSustain = 0;
@@ -113,7 +164,7 @@ public interface EnvGraphs {
         return st;
     }
 
-    static String envGetd(EnvSegment[] en, CurveType[] segs) {
+    static String drawEnv(EnvSegment[] en, CurveType[] segs) {
         StringBuilder d = new StringBuilder();
         d.append(en[0].initial(en));
         for (int i = 0; i < en.length; i++) {
@@ -132,24 +183,33 @@ public interface EnvGraphs {
 
 
     class EnvProperties {
-        public double xs, ys, yo;
+        public final double ys, xs, yo;
+
+        public EnvProperties(double ys, double xs, double yo) {
+            this.ys = ys;
+            this.xs = xs;
+            this.yo = yo;
+        }
+
         public double sustime;
         public double tacc = 0.0;
     }
 
     class EnvSegment {
-        public double t, l;
+        private static final double UNIT = 1.0 / 128.0;
+        private final double t, l;
+        private final EnvProperties ep;
+
         public boolean sustain;
 
-        public EnvProperties ep;
 
         public EnvSegment(int tRaw, int lRaw, EnvProperties ep) {
             this(tRaw,lRaw, ep, false);
         }
 
         public EnvSegment(int tRaw, int lRaw, EnvProperties ep, boolean sustain) {
-            this.t = tRaw * (1.0 / 128.0);
-            this.l = lRaw * (1.0 / 128.0);
+            this.t = tRaw * UNIT;
+            this.l = lRaw * UNIT;
             this.ep = ep;
             this.sustain = sustain;
         }
