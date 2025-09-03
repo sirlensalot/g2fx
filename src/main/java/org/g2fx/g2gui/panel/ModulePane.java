@@ -192,10 +192,7 @@ public class ModulePane {
     }
 
     private Node mkGraph(UIElements.Graph c) {
-        if (c.GraphFunc() == 20) {
-            return Graphs.mkFltClassicGraph(c,paramListener);
-        }
-        return paramListener.empty(c,"Graph");
+        return Graphs.mkGraph(c,paramListener,type);
     }
 
     private Node mkOutput(UIElements.Output c) {

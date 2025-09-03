@@ -28,11 +28,11 @@ public class ModuleTextFieldBuilder {
     private static final int TF_OSC_FREQ = 60;
     private static final int TF_LFO_FREQ = 103;
     private static final int TF_OPERATOR_FREQ = 198; // TODO very wrong
-    private static final int TF_CONST_BIP = 96; // TODO doesn't honor BiP switch, has deps though
+    private static final int TF_CONST_BIP = 96;
     private static final int TF_LEV_AMP = 147;
     private static final int TF_CLK_GEN = 110;
     private static final int TF_PULSE_TIME = 122;
-    private static final int TF_MIX_LEV = 102; // TODO doesn't handle Exp
+    private static final int TF_MIX_LEV = 102;
     private static final int TF_PSHIFT_FREQ = 201;
     private static final int TF_DELAY_TIME = 141;
     private static final int TF_DELAY_TIME_CLK = 143;
