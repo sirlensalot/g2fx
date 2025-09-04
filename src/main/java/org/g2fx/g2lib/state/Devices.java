@@ -1,6 +1,6 @@
 package org.g2fx.g2lib.state;
 
-import org.g2fx.g2lib.repl.Repl;
+import org.g2fx.g2lib.repl.Eval;
 import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
@@ -161,17 +161,17 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     }
 
 
-    public Repl.Path getCurrentPath() {
+    public Eval.Path getCurrentPath() {
         if (current == null) { return null; }
         return current.getPath();
     }
 
-    public Repl.SlotPatch getSlotPatch(Slot slot) {
+    public Eval.SlotPatch getSlotPatch(Slot slot) {
         return current != null ? current.getSlotPatch(slot) : null;
     }
 
 
-    public Repl.Path loadFile(String path) {
+    public Eval.Path loadFile(String path) {
 
         notifyDeviceDispose(current); //null safe
 
@@ -181,7 +181,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         }
         try {
             if (path.endsWith("prf2")) {
-                Repl.Path p = current.loadPerfFile(path);
+                Eval.Path p = current.loadPerfFile(path);
                 notifyDeviceInit(current);
                 return p;
             }

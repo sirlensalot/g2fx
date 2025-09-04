@@ -28,6 +28,7 @@ public class Commands {
 
     private final Slots slots;
     private final Undos undos;
+    private Stage scriptWindow;
     private MenuBar menuBar;
     private final Set<File> recentFiles = new LinkedHashSet<>();
     private Menu recentFilesMenu;
@@ -78,7 +79,10 @@ public class Commands {
                         d.getPerf().dumpYaml(file.getAbsolutePath())));
 
             }});
-        menu.getItems().addAll(dumpYaml);
+        MenuItem repl = new MenuItem("Scripts");
+        repl.setOnAction(e -> scriptWindow.show());
+
+        menu.getItems().addAll(dumpYaml,repl);
         return menu;
     }
 
@@ -212,4 +216,7 @@ public class Commands {
         };
     }
 
+    public void setScriptWindow(Stage scriptWindow) {
+        this.scriptWindow = scriptWindow;
+    }
 }

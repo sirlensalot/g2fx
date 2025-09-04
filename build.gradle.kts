@@ -51,6 +51,8 @@ dependencies {
 
     implementation("org.controlsfx:controlsfx:11.1.2")
 
+    implementation("org.fxmisc.richtext:richtextfx:0.11.6")
+
 }
 
 tasks.test {
