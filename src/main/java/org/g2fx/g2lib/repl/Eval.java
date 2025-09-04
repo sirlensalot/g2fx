@@ -54,7 +54,7 @@ public class Eval {
             }
         };
         cmds = List.of(
-                mkCmd("exit",(c,i) -> QUIT_SENTINEL, NullCompleter.INSTANCE,
+                mkCmd("exit",(c,i) -> QUIT_SENTINEL,
                         cmdDesc("Exit program")),
                 mkCmd("list-entries",Eval.this::listEntries,listCompleter,
                         cmdDesc("List bank or patch entries",
@@ -63,31 +63,37 @@ public class Eval {
                 mkCmd("file-load",Eval.this::fileLoad,new Completers.FileNameCompleter(),
                         cmdDesc("Load perf or patch file",
                                 argDesc("file","File ending in .pch2 or .prf2"))),
-                mkCmd("voice",(c,i) -> area(c,i, AreaId.Voice),NullCompleter.INSTANCE,
+                mkCmd("va",(c,i) -> area(c,i, AreaId.Voice),
                         cmdDesc("Switch to voice area")),
-                mkCmd("fx",(c,i) -> area(c,i,AreaId.Fx),NullCompleter.INSTANCE,
+                mkCmd("fx",(c,i) -> area(c,i,AreaId.Fx),
                         cmdDesc("Switch to FX area")),
-                mkCmd("wait",Eval.this::doWait,NullCompleter.INSTANCE,
+                mkCmd("wait",Eval.this::doWait,
                         cmdDesc("Pause process",argDesc("time","time in millis"))),
                 mkCmd("slot",Eval.this::slot,new StringsCompleter(
                                 Arrays.stream(Slot.values()).map(s -> s.toString().toLowerCase()).toList()),
                         cmdDesc("Set current slot",argDesc("slot","a-d"))),
-                mkCmd("load",Eval.this::load,NullCompleter.INSTANCE,
+                mkCmd("load",Eval.this::load,
                         cmdDesc("Load entry into device",
                                 argDesc("typeOrSlot","'perf' or slot (A,B,C,D)"),
                                 argDesc("bank","bank number"),
                                 argDesc("entry","bank entry number"))),
-                mkCmd("echo",Eval.this::echo,NullCompleter.INSTANCE,cmdDesc("echo args")),
-                mkCmd("path",Eval.this::path,NullCompleter.INSTANCE,cmdDesc("echo path")),
-                mkCmd("list",Eval.this::list,NullCompleter.INSTANCE,cmdDesc("context-sensitive list")),
-                mkCmd("var",Eval.this::var,NullCompleter.INSTANCE,cmdDesc("switch variation",
+                mkCmd("echo",Eval.this::echo,cmdDesc("echo args")),
+                mkCmd("path",Eval.this::path,cmdDesc("echo path")),
+                mkCmd("list",Eval.this::list,cmdDesc("context-sensitive list")),
+                mkCmd("var",Eval.this::var,cmdDesc("switch variation",
                                 argDesc("idx","variation index"))),
-                mkCmd("mod",Eval.this::mod,NullCompleter.INSTANCE,cmdDesc("switch to module",
+                mkCmd("mod",Eval.this::mod,cmdDesc("switch to module",
                         argDesc("idx","module index"))),
-                mkCmd("pset",Eval.this::pset,NullCompleter.INSTANCE,cmdDesc("set param value",
+                mkCmd("pset",Eval.this::pset,cmdDesc("set param value",
                         argDesc("idxOrName","param index or name"),
                         argDesc("val","param value"))),
-                mkCmd("comm",Eval.this::comm,NullCompleter.INSTANCE,
+                mkCmd("pload",Eval.this::pload,cmdDesc("set patch load meter",
+                        argDesc("area","patch area (fx|va)"),
+                        argDesc("meter","meter index (mem|cyc)"),
+                        argDesc("value","load value")
+                        )),
+                mkCmd("help",Eval.this::help,cmdDesc("Command help")),
+                mkCmd("comm",Eval.this::comm,
                         cmdDesc("Start/stop device communication stream",
                                 argDesc("startStop","start or stop")))
 
@@ -109,6 +115,26 @@ public class Eval {
 
         this.writer = writer == null ? reader.getTerminal().writer() : writer;
         
+    }
+
+    private Object pload(CmdDesc desc, CommandInput ci) {
+        List<String> as = getArgs(desc, ci);
+        var area = "va".equals(as.removeFirst()) ? AreaId.Voice : AreaId.Fx;
+        var isMem = "mem".equals(as.removeFirst());
+        double val = parseInt(desc,"value",as.removeFirst());
+        devices.runWithCurrent(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a ->
+        {
+            PatchLoadData data = d.getPerf().getSlot(path.slot().slot()).getArea(area).getPatchLoadData();
+            if (isMem) data.mem().set(val); else data.cycles().set(val);
+        }));
+        return 1;
+    }
+
+    private Object help(CmdDesc desc, CommandInput ci) {
+        for (Command cmd : cmds) {
+            getWriter().println(usage(cmd.desc,cmd.cmd));
+        }
+        return 1;
     }
 
     private Object pset(CmdDesc desc, CommandInput ci) {
@@ -262,9 +288,12 @@ public class Eval {
     }
 
     private List<String> getArgs(CmdDesc desc, CommandInput input) {
+        return getArgs(desc,input,desc.getArgsDesc().size());
+    }
+    private List<String> getArgs(CmdDesc desc, CommandInput input, int reqd) {
         List<String> args = new ArrayList<>(Arrays.stream(input.args()).filter(s -> !s.isEmpty()).toList());
-        if (args.size() != desc.getArgsDesc().size()) {
-            throw bad(desc, "expected " + desc.getArgsDesc().size() + " arguments");
+        if (args.size() != reqd) {
+            throw bad(desc, "expected " + reqd + " arguments");
         }
         return args;
     }
@@ -333,6 +362,9 @@ public class Eval {
         public CmdDesc getDesc() { return desc; }
     }
 
+    public static Command mkCmd(String cmd, BiFunction<CmdDesc, CommandInput, Object> method, CmdDesc desc) {
+        return mkCmd(cmd,method,NullCompleter.INSTANCE,desc);
+    }
     public static Command mkCmd(String cmd, BiFunction<CmdDesc, CommandInput, Object> method,
                                 final Completer completer, CmdDesc desc) {
         return new Command(cmd, new CommandMethods(
@@ -388,6 +420,7 @@ public class Eval {
     public static String usage(CmdDesc desc,String cmd) {
         final StringBuilder s = new StringBuilder(cmd);
         desc.getArgsDesc().forEach(d -> s.append(" ").append(d.getName()));
+        s.append(": " + desc.getMainDesc().getFirst());
         desc.getArgsDesc().forEach(d -> {
             List<AttributedString> ad = d.getDescription();
             if (!ad.isEmpty()) {
