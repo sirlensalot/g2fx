@@ -102,11 +102,12 @@ public class ButtonRadio {
                 tb.setLayoutY(y);
                 editor.setLayoutY(y);
                 box.getChildren().addAll(tb,editor);
-                parent.addBridge(parent.getBridges().bridge(d ->
+                parent.getBridges().bridge(d ->
                                 parent.getPatchModule().getModuleLabels(ip.index()).get(ix),
                         FxProperty.adaptReadOnly(tb.textProperty(), tb::setText),
                         Iso.id()
-                ));
+                );
+
             }
         }
         layout(c,box,new Point2D(1,2));

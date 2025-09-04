@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
-public class Bridges {
+public class Bridges implements Bridger {
     
     private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
     private final Executor devices;
@@ -25,15 +25,17 @@ public class Bridges {
         this.undos = undos;
     }
 
+    @Override
     public <T> PropertyBridge<T, T> bridge(Property<T> fxProperty,
                                            Function<Device, LibProperty<T>> libProperty) {
         return bridge(libProperty,
                 new FxProperty.SimpleFxProperty<>(fxProperty), Iso.id());
     }
 
-    public <T,F> PropertyBridge<T, F> bridge(Function<Device,LibProperty<T>> libProperty,
-                                              FxProperty<F> fxProperty,
-                                              Iso<T,F> iso) {
+    @Override
+    public <T,F> PropertyBridge<T, F> bridge(Function<Device, LibProperty<T>> libProperty,
+                                             FxProperty<F> fxProperty,
+                                             Iso<T, F> iso) {
         PropertyBridge<T, F> bridge =
                 new PropertyBridge<>(libProperty, devices, fxProperty, fxQueue, iso, undos);
         bridges.add(bridge);

@@ -18,10 +18,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import org.g2fx.g2gui.FXUtil;
-import org.g2fx.g2gui.bridge.Bridges;
-import org.g2fx.g2gui.bridge.FxProperty;
-import org.g2fx.g2gui.bridge.Iso;
-import org.g2fx.g2gui.bridge.PropertyBridge;
+import org.g2fx.g2gui.bridge.*;
 import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
@@ -64,7 +61,7 @@ public class ModulePane {
      * in bridge constructors
      */
     private final PatchModule patchModule;
-    private final Bridges bridges;
+    private final LocalBridger bridges;
     private final UIModule<UIElement> ui;
     private final SlotPane slotPane;
     private final ModuleSelector moduleSelector;
@@ -94,8 +91,6 @@ public class ModulePane {
     private final Pane pane;
     private final ModuleType type;
 
-    private final List<PropertyBridge<?,?>> moduleBridges = new ArrayList<>();
-
     private final SimpleObjectProperty<UserModuleData.Coords> coords =
             new SimpleObjectProperty<>(new UserModuleData.Coords(0,0));
 
@@ -109,13 +104,13 @@ public class ModulePane {
 
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges bridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
+                      Bridges globalBridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
         height = ui.Height();
         type = m.type;
         paramListener = new ParamListener(type,this);
         graphs = new Graphs(paramListener,type);
         this.index = m.index;
-        this.bridges = bridges;
+        this.bridges = new LocalBridger(globalBridges);
         this.patchModule = pm;
         this.ui = ui;
         this.slotPane = slotPane;
@@ -134,14 +129,15 @@ public class ModulePane {
         pane.setMaxWidth(GRID_X);
 
 
+        bridges.bridge(moduleSelector.name(), dd -> patchModule.name());
 
-        addBridge(bridges.bridge(moduleSelector.name(), dd -> patchModule.name()));
+        bridges.bridge(color, d -> patchModule.getUserModuleData().color());
 
-        addBridge(bridges.bridge(color,d -> patchModule.getUserModuleData().color()));
         color.addListener((c,o,n) -> pane.setBackground(FXUtil.rgbFill(ParamConstants.MODULE_COLORS[n])));
 
-        addBridge(bridges.bridge(d->patchModule.getUserModuleData().coords(),
-                new FxProperty.SimpleFxProperty<>(coords), Iso.id()));
+        bridges.bridge(d -> patchModule.getUserModuleData().coords(),
+                new FxProperty.SimpleFxProperty<>(coords), Iso.id());
+
         coords.addListener((c,o,n) -> {
             pane.setLayoutX(n.column()* GRID_X);
             pane.setLayoutY(n.row()* GRID_Y);
@@ -244,9 +240,9 @@ public class ModulePane {
             //TODO this is probably going away as it is too wide, adapt ModeSelector to handle text
             ComboBox<String> combo = withClass(
                     new ComboBox<>(FXCollections.observableArrayList(mip.param().param().enums)),"module-mode-combo");
-            addBridge(bridges.bridge(d -> patchModule.getUserModuleData().mode(mip.index()),
-                    FxProperty.adaptReadOnly(combo.getSelectionModel().selectedIndexProperty(),n ->
-                            combo.getSelectionModel().select(n.intValue())),Iso.INTEGER_NUMBER_ISO));
+            bridges.bridge(d -> patchModule.getUserModuleData().mode(mip.index()),
+                    FxProperty.adaptReadOnly(combo.getSelectionModel().selectedIndexProperty(), n ->
+                            combo.getSelectionModel().select(n.intValue())), Iso.INTEGER_NUMBER_ISO);
 
             combo.setPrefWidth(c.ImageWidth());
             combo.setMaxHeight(c.Height());
@@ -260,7 +256,8 @@ public class ModulePane {
             return combo;
         } else {
             ModeSelector ms = new ModeSelector(mip, c, this);
-            addBridge(bridges.bridge(ms.selectedProperty(),d -> patchModule.getUserModuleData().mode(mip.index())));
+            bridges.bridge(ms.selectedProperty(), d -> patchModule.getUserModuleData().mode(mip.index()));
+
             paramListener.addModeProp(mip,ms.selectedProperty());
             return ms.getPane();
         }
@@ -423,9 +420,9 @@ public class ModulePane {
         bindVarControl(property, v -> {
             Property<Integer> p =
                     new SimpleObjectProperty<>(ctl, property.getName(), null);
-            moduleBridges.add(bridges.bridge(mkParamIntProp(ip, v),
+            bridges.bridge(mkParamIntProp(ip, v),
                     new FxProperty.SimpleFxProperty<>(p, changing),
-                    Iso.id()));
+                    Iso.id());
             return p;
         });
     }
@@ -490,9 +487,9 @@ public class ModulePane {
                     new SimpleBooleanProperty(b, varPropName(ip, v),false);
             FxProperty.SimpleFxProperty<Boolean> fxProperty = defeatUndoProperty == null ?
                     new FxProperty.SimpleFxProperty<>(p) : new FxProperty.SimpleFxProperty<>(p,defeatUndoProperty);
-            moduleBridges.add(bridges.bridge(mkParamIntProp(ip, v),
+            bridges.bridge(mkParamIntProp(ip, v),
                     fxProperty,
-                    Iso.BOOL_PARAM_ISO));
+                    Iso.BOOL_PARAM_ISO);
             return p;
                 });
         return b;
@@ -503,10 +500,10 @@ public class ModulePane {
 
         TextField editor = makeButtonEditField(button);
 
-        addBridge(bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
+        bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
                 FxProperty.adaptReadOnly(button.textProperty(), button::setText),
                 Iso.id()
-        ));
+        );
 
         return new Pane(button,editor);
     }
@@ -577,18 +574,12 @@ public class ModulePane {
     }
 
 
-
-
-    public void addBridge(PropertyBridge<?, ?> bridge) {
-        moduleBridges.add(bridge);
-    }
-
     public Pane getPane() {
         return pane;
     }
 
     public List<PropertyBridge<?, ?>> getModuleBridges() {
-        return moduleBridges;
+        return bridges.getLocalBridges();
     }
 
     public Property<Integer> color() { return color; }
@@ -617,7 +608,7 @@ public class ModulePane {
         return patchModule;
     }
 
-    public Bridges getBridges() {
+    public Bridger getBridges() {
         return bridges;
     }
 

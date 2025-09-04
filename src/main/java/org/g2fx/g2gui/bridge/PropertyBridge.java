@@ -135,4 +135,8 @@ public class PropertyBridge<T,F> {
 
     }
 
+    @Override
+    public String toString() {
+        return "PropertyBridge: " + fxProperty.getObservable().toString();
+    }
 }
