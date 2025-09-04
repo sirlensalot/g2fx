@@ -129,7 +129,6 @@ public class Eval {
                 if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
                     int nv = v.value().get() == 0 ? 1 : 0;
                     v.value().set(nv);
-                    //System.out.println(v + "->" + nv);
                 }
             });
         });

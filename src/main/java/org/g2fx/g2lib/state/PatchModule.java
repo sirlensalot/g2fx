@@ -22,7 +22,7 @@ public class PatchModule {
     private final UserModuleData userModuleData;
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
-    private ParamValues values;
+    private ParamValues values = new ParamValues();
     private final Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>();
     private LibProperty<String> name;
 
@@ -53,14 +53,11 @@ public class PatchModule {
     }
 
     public List<Integer> getVarValues(int variation) {
-        return Protocol.VarParams.Params.subfieldsValue(values.getRequiredVarValues(variation))
-                .stream().map(Protocol.Data7.Datum::intValue).toList();
+        return values.getVarValues(variation);
     }
 
     public List<List<Integer>> getAllVarValues() {
-        return values.getValues().stream().map(vfv ->
-                Protocol.VarParams.Params.subfieldsValue(vfv).stream().map(
-                        Protocol.Data7.Datum::intValue).toList()).toList();
+        return values.getAllVarValues();
     }
 
     public LibProperty<Integer> getSettingsValueProperty(ModParam param, int variation) {

@@ -195,14 +195,14 @@ public class ModulePane {
     }
 
     private Node mkLed(UIElements.Led c) {
-        if (c.Type() == UIElements.LedType.Green) {
+        if (c.Type() == UIElements.LedType.Green && c.LedGroup() == null) { //Green, no group: use GroupId
             Rectangle r = withClass(new Rectangle(7,7),"led-green","led-green-off");
             layout(c,r);
             Property<Boolean> lit = new SimpleObjectProperty<>(false);
             bridges.bridge(d -> {
                         List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getLeds();
                         for (PatchVisual led : leds) {
-                            if (led.getModule() == patchModule && led.getVisual().index() == c.CodeRef()) {
+                            if (led.getModule() == patchModule && led.getVisual().index() == c.GroupId()) {
                                 //System.out.println("Led: " + led + ", " + this);
                                 return led.value();
                             }
