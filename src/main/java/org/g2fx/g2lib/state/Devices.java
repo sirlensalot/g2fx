@@ -1,6 +1,5 @@
 package org.g2fx.g2lib.state;
 
-import org.g2fx.g2lib.repl.Eval;
 import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
@@ -161,17 +160,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     }
 
 
-    public Eval.Path getCurrentPath() {
-        if (current == null) { return null; }
-        return current.getPath();
-    }
-
-    public Eval.SlotPatch getSlotPatch(Slot slot) {
-        return current != null ? current.getSlotPatch(slot) : null;
-    }
-
-
-    public Eval.Path loadFile(String path) {
+    public void loadFile(String path) {
 
         notifyDeviceDispose(current); //null safe
 
@@ -181,9 +170,8 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         }
         try {
             if (path.endsWith("prf2")) {
-                Eval.Path p = current.loadPerfFile(path);
+                current.loadPerfFile(path);
                 notifyDeviceInit(current);
-                return p;
             }
             if (path.endsWith("pch2")) {
                 throw new UnsupportedOperationException("Patch load TODO"); //TODO
@@ -191,7 +179,6 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         } catch (Exception e) {
             log.log(Level.SEVERE,"File load failed",e);
         }
-        return null;
     }
 
     public <T>T withCurrent(ThrowingFunction<Device,T> f) throws Exception {
@@ -200,10 +187,6 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     }
 
 
-    public void runWithCurrent(ThrowingConsumer<Device> f) throws Exception {
-        if (current == null) { throw new IllegalStateException("Current device not initialized"); }
-        f.accept(current);
-    }
 
 
     private record FailableResult<R>(RuntimeException failure,R result) {
@@ -235,6 +218,18 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
             throw new RuntimeException("Unable to invoke callable",e);
         }
 
+    }
+    public <V> V invokeWithCurrent(ThrowingFunction<Device,V> f) {
+        return invoke(true,() -> withCurrent(f));
+    }
+
+    public void runWithCurrent(ThrowingConsumer<Device> f) {
+        execute(true,() -> {
+            if (current == null) {
+                throw new IllegalStateException("Current device not initialized");
+            }
+            f.accept(current);
+        });
     }
 
     @Override

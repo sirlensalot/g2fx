@@ -1,9 +1,10 @@
 package org.g2fx.g2lib.repl;
 
-import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Devices;
-import org.g2fx.g2lib.state.Slot;
-import org.g2fx.g2lib.state.UsbDevice;
+import com.google.common.collect.Streams;
+import org.g2fx.g2gui.controls.IndexParam;
+import org.g2fx.g2lib.model.ModParam;
+import org.g2fx.g2lib.model.NamedParam;
+import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.g2fx.g2lib.util.Util;
 import org.jline.builtins.Completers;
@@ -23,13 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Eval {
-
-    public record Path(String device, String perf, SlotPatch slot, Integer variation,
-                       AreaId area, NamedIndex module, NamedIndex param) { }
-
-    public record SlotPatch(Slot slot, String name) { }
-
-    public record NamedIndex(int index, String name) { }
 
     private final PrintWriter writer;
     private Logger log = Util.getLogger(getClass());
@@ -86,6 +80,13 @@ public class Eval {
                 mkCmd("echo",Eval.this::echo,NullCompleter.INSTANCE,cmdDesc("echo args")),
                 mkCmd("path",Eval.this::path,NullCompleter.INSTANCE,cmdDesc("echo path")),
                 mkCmd("list",Eval.this::list,NullCompleter.INSTANCE,cmdDesc("context-sensitive list")),
+                mkCmd("var",Eval.this::var,NullCompleter.INSTANCE,cmdDesc("switch variation",
+                                argDesc("idx","variation index"))),
+                mkCmd("mod",Eval.this::mod,NullCompleter.INSTANCE,cmdDesc("switch to module",
+                        argDesc("idx","module index"))),
+                mkCmd("pset",Eval.this::pset,NullCompleter.INSTANCE,cmdDesc("set param value",
+                        argDesc("idxOrName","param index or name"),
+                        argDesc("val","param value"))),
                 mkCmd("comm",Eval.this::comm,NullCompleter.INSTANCE,
                         cmdDesc("Start/stop device communication stream",
                                 argDesc("startStop","start or stop")))
@@ -110,43 +111,87 @@ public class Eval {
         
     }
 
-    private Object list(CmdDesc desc, CommandInput i) {
-        if (path == null) { return done("No path"); }
-        if (path.area == null) { return done("No area"); }
-        final AreaId a = path.area;
-        getWriter().println((String)devices.invoke(true,() -> devices.withCurrent(d ->
-            String.join("\n",d.getPerf().getSlot(d.getPerf().getSelectedSlot())
-                    .getArea(a).getModules().stream().map(m ->
-                            String.format("%s:%s (%s)",m.getIndex(),m.name().get(),m.getUserModuleData().getType().shortName)).toList())
-
-        )));
+    private Object pset(CmdDesc desc, CommandInput ci) {
+        if (path == null || path.module() == null) { throw bad(desc, "No current path/module"); }
+        List<String> as = getArgs(desc, ci);
+        List<NamedParam> ps = path.module().meta().getParams();
+        IndexParam np = null;
+        for (int i = 0 ; i < ps.size(); i++) {
+            NamedParam p = ps.get(i);
+            if (p.name().equals(as.get(0))) { np = new IndexParam(p,i,""); }
+        }
+        if (np != null) {
+            as.removeFirst();
+        } else {
+            int ix = parseNextInt(desc, "param index", as);
+            if (ix >= ps.size()) { throw bad(desc, "Invalid mod index: %s", ix); }
+            np = new IndexParam(ps.get(ix),ix,"");
+        }
+        int val = parseNextInt(desc,"param val",as);
+        ModParam mp = np.param().param();
+        if (val < mp.min || val > mp.max) {
+            throw bad(desc,"Invalid param value %s, should be [%s,%s)",val,mp.min,mp.max);
+        }
+        final var npp = np;
+        devices.runWithCurrent(d -> getCurrentArea(d).getModule(path.module().index())
+                .getParamValueProperty(path.variation(),npp.index()).set(val));
         return 1;
+    }
+
+    private static InvalidCommandException bad(CmdDesc desc, String msg, Object... args) {
+        return new InvalidCommandException(desc, String.format(msg,args));
+    }
+
+
+    private Object var(CmdDesc desc, CommandInput ci) {
+        if (path == null || path.slot() == null) { throw bad(desc, "No current path/slot"); }
+        int v = parseNextInt(desc,"var idx",getArgs(desc,ci));
+        path = path.setVar(v);
+        return 1;
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
+    private Object mod(CmdDesc c, CommandInput i) {
+        if (path == null || path.area() == null) { return done("No path"); }
+        int idx = parseNextInt(c,"mod index",getArgs(c,i));
+        path = devices.invokeWithCurrent(d -> {
+            PatchModule m = getCurrentArea(d).getModule(idx);
+            return path.setModule(new Path.NamedIndex<>(m.getIndex(),m.name().get(),m.getUserModuleData().getType()));
+        });
+        return 1;
+    }
+
+    private Object list(CmdDesc desc, CommandInput ci) {
+        if (path == null) { return done("No path"); }
+        if (path.area() == null) { return done("No area"); }
+        if (path.module() == null) {
+            return done(devices.invokeWithCurrent(d ->
+                    String.join("\n", getCurrentArea(d).getModules().stream().map(m ->
+                            String.format("%s:%s (%s)", m.getIndex(), m.name().get(),
+                                    m.getUserModuleData().getType().shortName)).toList())
+            ));
+        }
+        return done(devices.invokeWithCurrent(d -> {
+            PatchModule m = getCurrentArea(d).getModule(path.module().index());
+            List<Integer> vvs = m.getVarValues(path.variation());
+            return String.join("\n", Streams.mapWithIndex(vvs.stream(),(v,i) ->
+                    String.format("%s:%s",m.getUserModuleData().getType().getParams().get((int)i).name(),v))
+                    .toList()); }));
+    }
+
+    private PatchArea getCurrentArea(Device d) {
+        return d.getPerf().getSlot(path.slot().slot())
+                .getArea(path.area());
     }
 
     private Object done(String output) { getWriter().println(output); return 1; }
 
-    public String descPath() {
-        if (path == null || path.device() == null) { return null; }
-        String s = path.device();
-        if (path.perf() != null) {
-            s += ":" + path.perf();
-            if (path.slot() != null) {
-                s += ":" + path.slot().name() + "[" + path.slot.slot() + "]";
-                if (path.variation() != null) {
-                    s += ":v" + (path.variation() + 1);
-                }
-                if (path.area() != null) {
-                    s += ":" + path.area().name().toLowerCase();
-                    //TODO module, param
-                }
-            }
-        }
-        return s;
-    }
-
 
     private Object path(CmdDesc desc, CommandInput input) {
-        getWriter().println(path == null ? "None" : descPath());
+        getWriter().println(path == null ? "None" : path);
         return 1;
     }
 
@@ -183,10 +228,9 @@ public class Eval {
 
     private Object slot(CmdDesc desc, CommandInput input) {
         Slot s = Slot.fromAlpha(getArgs(desc,input).getFirst());
-        if (path == null || path.perf() == null) { throw new InvalidCommandException(desc,"No current performance"); }
-        SlotPatch sp = devices.invoke(true,() -> devices.getSlotPatch(s));
-        path = new Path(path.device(), path.perf(),
-                sp, path.variation(), path.area(), path.module(), path.param());
+        if (path == null || path.perf() == null ) { throw bad(desc, "No current performance"); }
+        path = devices.invoke(true,() ->
+                devices.withCurrent(c -> Path.pathForPatch(c,c.getPerf().getSlot(s))));
         return 1;
     }
 
@@ -212,7 +256,7 @@ public class Eval {
     }
     private Object area(CmdDesc c, CommandInput i, AreaId areaId) {
         getArgs(c,i); //validate no args
-        if (path == null || path.slot() == null) { throw new InvalidCommandException(c,"No current patch"); }
+        if (path == null || path.slot() == null) { throw bad(c, "No current patch"); }
         path = new Path(path.device(), path.perf(), path.slot(), path.variation(), areaId, path.module(), path.param());
         return 1;
     }
@@ -220,21 +264,24 @@ public class Eval {
     private List<String> getArgs(CmdDesc desc, CommandInput input) {
         List<String> args = new ArrayList<>(Arrays.stream(input.args()).filter(s -> !s.isEmpty()).toList());
         if (args.size() != desc.getArgsDesc().size()) {
-            throw new InvalidCommandException(desc,"expected " + desc.getArgsDesc().size() + " arguments");
+            throw bad(desc, "expected " + desc.getArgsDesc().size() + " arguments");
         }
         return args;
     }
 
 
     private Object fileLoad(CmdDesc desc, CommandInput input) {
-        final String path = getArgs(desc, input).getFirst();
-        if (!new File(path).isFile()) {
-            throw new InvalidCommandException(desc,"not a file");
+        final String filePath = getArgs(desc, input).getFirst();
+        if (!new File(filePath).isFile()) {
+            throw bad(desc, "not a file");
         }
-        if (!(path.endsWith("prf2") || path.endsWith("pch2"))) {
-            throw new InvalidCommandException(desc,"Not a G2 file");
+        if (!(filePath.endsWith("prf2") || filePath.endsWith("pch2"))) {
+            throw bad(desc, "Not a G2 file");
         }
-        this.path = devices.invoke(true,() -> devices.loadFile(path));
+        path = devices.invoke(true,() -> {
+            devices.loadFile(filePath);
+            return devices.withCurrent(c -> Path.pathForPatch(c,c.getPerf().getSelectedPatch()));
+        });
         return 0;
     }
 
@@ -264,11 +311,14 @@ public class Eval {
         return 1;
     }
 
+    public int parseNextInt(CmdDesc desc, String msg, List<String> words) {
+        return parseInt(desc,msg,words.removeFirst());
+    }
     public int parseInt(CmdDesc desc, String msg, String s) {
         try {
             return Integer.parseInt(s);
         } catch (Exception ignore) {
-            throw new InvalidCommandException(desc,msg + ": expected integer: " + s);
+            throw bad(desc, msg + ": expected integer: " + s);
         }
     }
 
@@ -298,9 +348,9 @@ public class Eval {
     }
 
     public void runScript(BufferedReader fr) throws IOException {
+        updatePath();
         String line;
         while ((line = fr.readLine()) != null) {
-            updatePath();
             if (line.startsWith("#")) continue;
             ParsedLine pl = reader.getParser().parse(line, 0);
             handleInput(new ArrayList<>(pl.words()));
@@ -312,7 +362,7 @@ public class Eval {
         if (ws.isEmpty()) return true;
         String cmd = ws.removeFirst();
         if (!commandRegistry.hasCommand(cmd)) {
-            reader.getTerminal().writer().println("Invalid command: " + cmd);
+            getWriter().println("Invalid command: " + cmd);
             return true;
         }
         try {
@@ -321,11 +371,11 @@ public class Eval {
                     cmd,
                     ws.toArray());
             if (result == QUIT_SENTINEL) {
-                reader.getTerminal().writer().println("Exiting");
+                getWriter().println("Exiting");
                 return false;
             }
         } catch (InvalidCommandException e) {
-            reader.getTerminal().writer().format("Invalid command: %s\nUsage: %s\n",
+            getWriter().format("Invalid command: %s\nUsage: %s\n",
                     e.getMessage(),
                     usage(e.getDesc(),cmd)
             );
@@ -350,16 +400,16 @@ public class Eval {
         return s.toString();
     }
 
-    public Path getPath() {
-        return path;
-    }
-
-    public void updatePath() {
-        Path pp = devices.invoke(true,devices::getCurrentPath);
-        if (this.path == null || this.path.device() == null || this.path.perf() == null) {
-            log.info("overwriting path");
-            this.path = pp;
+    public Path updatePath() {
+        if (path == null || path.device() == null || path.perf() == null) {
+            path = devices.invoke(true,() -> {
+                Device cur = devices.getCurrent();
+                if (cur == null || cur.getPerf() == null) { return null; }
+                Patch patch = cur.getPerf().getSelectedPatch();
+                return Path.pathForPatch(cur, patch);
+            });
         }
+        return path;
     }
 
 }

@@ -116,6 +116,9 @@ public class Patch {
         return version;
     }
 
+    public Slot getSlot() {
+        return slot;
+    }
 
     public void setVersion(int version) {
         this.version = version;

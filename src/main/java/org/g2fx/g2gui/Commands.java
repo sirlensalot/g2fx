@@ -28,7 +28,7 @@ public class Commands {
 
     private final Slots slots;
     private final Undos undos;
-    private Stage scriptWindow;
+    private ScriptWindow scriptWindow;
     private MenuBar menuBar;
     private final Set<File> recentFiles = new LinkedHashSet<>();
     private Menu recentFilesMenu;
@@ -156,7 +156,7 @@ public class Commands {
             FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
         });
 
-        devices.invoke(true,() -> devices.loadFile(f.getAbsolutePath()));
+        devices.execute(true,() -> devices.loadFile(f.getAbsolutePath()));
     }
 
     public FXUtil.TextFieldFocusListener setupKeyBindings(Stage stage) {
@@ -216,7 +216,7 @@ public class Commands {
         };
     }
 
-    public void setScriptWindow(Stage scriptWindow) {
+    public void setScriptWindow(ScriptWindow scriptWindow) {
         this.scriptWindow = scriptWindow;
     }
 }

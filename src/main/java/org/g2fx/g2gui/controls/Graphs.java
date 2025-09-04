@@ -139,6 +139,7 @@ public class Graphs {
 
 
     private Node mkADSR(UIElements.Graph c) {
+        // mod: shape is 0
         EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
         paramListener.build(c,vs ->
                         EnvGraphs.adsrGraph(g,
@@ -197,6 +198,7 @@ public class Graphs {
     }
 
     private Node mkAHD(UIElements.Graph c) {
+        //Mod: shape is 0
         EnvGraphs.Graph g = EnvGraphs.mkEnvGraphPane(c);
         paramListener.build(c,vs ->
                         EnvGraphs.ahdGraph(g,

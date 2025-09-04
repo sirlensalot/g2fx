@@ -11,15 +11,10 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.controlsfx.control.SegmentedButton;
-import org.fxmisc.richtext.CodeArea;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
@@ -32,14 +27,13 @@ import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.repl.Eval;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +65,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     private FXUtil.TextFieldFocusListener textFocusListener;
 
     private Slots slots;
-    private Stage scriptWindow;
+    private ScriptWindow scriptWindow;
 
     @Override
     public void init() throws Exception {
@@ -101,6 +95,8 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
             fxUpdates.forEach(Runnable::run);
         });
         d.sendStartStopComm(true);
+
+        fxQueue.execute(()->scriptWindow.updatePath());
     }
 
     @Override
@@ -122,7 +118,8 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         textFocusListener = commands.setupKeyBindings(stage);
         Scene scene = mkScene(stage);
 
-        scriptWindow = mkScriptWindow();
+        scriptWindow = new ScriptWindow(devices);
+
         commands.setScriptWindow(scriptWindow);
 
         stage.setTitle(TITLE);
@@ -154,66 +151,6 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         VBox.setVgrow(slotTabs, Priority.ALWAYS);
 
         return new Scene(topBox, 1300, 800);
-    }
-
-    public Stage mkScriptWindow() throws Exception {
-
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter pw = new PrintWriter(stringWriter);
-        Eval eval = new Eval(devices,false,pw);
-
-        CodeArea codeArea = new CodeArea();
-        codeArea.setWrapText(true);
-        codeArea.setPrefHeight(400);
-
-        // Create the output console area (JavaFX TextArea)
-        TextArea consoleOutput = new TextArea();
-        consoleOutput.setEditable(false);
-        consoleOutput.setPrefRowCount(8);
-
-        // Button to simulate running the script or current line
-        Button runButton = new Button("Run Script");
-        runButton.setOnAction(e -> {
-            // Example: just append the current text to console output
-            runScript(codeArea, stringWriter, eval, consoleOutput);
-        });
-
-        codeArea.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-            KeyCombination cmdEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.SHORTCUT_DOWN);
-            if (cmdEnter.match(event)) {
-                runScript(codeArea, stringWriter, eval, consoleOutput);
-            }
-        });
-        // Layout: VBox with editor taking most space, console at bottom
-        VBox root = new VBox(5, codeArea, runButton, consoleOutput);
-        root.setPrefSize(600, 600);
-
-        // Make the editor grow vertically, console fixed size
-        VBox.setVgrow(codeArea, javafx.scene.layout.Priority.ALWAYS);
-
-        Stage dialogStage = new Stage();
-        dialogStage.setTitle("Script Editor");
-        dialogStage.setScene(new Scene(root));
-        dialogStage.setWidth(600);
-        dialogStage.setHeight(400);
-
-        dialogStage.show();
-
-        return dialogStage;
-
-    }
-
-    private void runScript(CodeArea codeArea, StringWriter stringWriter, Eval eval, TextArea consoleOutput) {
-        String script = codeArea.getText();
-        stringWriter.getBuffer().setLength(0);
-        BufferedReader br = new BufferedReader(new StringReader(script));
-        try {
-            eval.runScript(br);
-        } catch (Exception ex) {
-            log.log(Level.SEVERE,"script run failed",ex);
-        }
-        String output = stringWriter.toString();
-        consoleOutput.setText(output);
     }
 
     public record ModuleButtonInfo (

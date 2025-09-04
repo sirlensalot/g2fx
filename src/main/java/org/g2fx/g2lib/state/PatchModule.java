@@ -22,8 +22,8 @@ public class PatchModule {
     private final UserModuleData userModuleData;
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
-    private List<FieldValues> values;
-    private Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>();
+    private ParamValues values;
+    private final Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>();
     private LibProperty<String> name;
 
     private final int index;
@@ -49,16 +49,16 @@ public class PatchModule {
     }
 
     public void setParamValues(List<FieldValues> varParams) {
-        values = varParams;
+        values = new ParamValues(varParams);
     }
 
     public List<Integer> getVarValues(int variation) {
-        return Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation))
+        return Protocol.VarParams.Params.subfieldsValue(values.getRequiredVarValues(variation))
                 .stream().map(Protocol.Data7.Datum::intValue).toList();
     }
 
     public List<List<Integer>> getAllVarValues() {
-        return values.stream().map(vfv ->
+        return values.getValues().stream().map(vfv ->
                 Protocol.VarParams.Params.subfieldsValue(vfv).stream().map(
                         Protocol.Data7.Datum::intValue).toList()).toList();
     }
@@ -71,28 +71,11 @@ public class PatchModule {
     }
 
     public LibProperty<Integer> getParamValueProperty(int variation, int index) {
-        List<FieldValues> fvss = Protocol.VarParams.Params.subfieldsValue(getRequiredVarValues(variation));
-        FieldValues fvs = fvss.get(index);
-        return new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
-            @Override
-            public Integer get() {
-                return Protocol.Data7.Datum.intValue(fvs);
-            }
-
-            @Override
-            public void set(Integer newValue) {
-                fvs.update(Protocol.Data7.Datum.value(newValue));
-            }
-        });
+        return values.param(variation,index);
     }
 
 
-    private FieldValues getRequiredVarValues(int variation) {
-        if (variation >= values.size()) {
-            throw new IllegalArgumentException("Invalid/missing variation: " + variation);
-        }
-        return values.get(variation);
-    }
+
 
     public int getIndex() {
         return index;
@@ -155,7 +138,7 @@ public class PatchModule {
         int variation = Protocol.ParamUpdate.Variation.intValue(fvs);
         int value = Protocol.ParamUpdate.Value.intValue(fvs);
         int param = Protocol.ParamUpdate.Param.intValue(fvs);
-        FieldValues vvs = getRequiredVarValues(variation);
+        FieldValues vvs = values.getRequiredVarValues(variation);
         FieldValues v = Protocol.VarParams.Params.subfieldsValue(vvs).get(param);
         int old = Protocol.Data7.Datum.intValue(v);
         if (old != value) { //updates can happen with same value, ignore

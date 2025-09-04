@@ -84,9 +84,8 @@ public class Repl implements Runnable {
     }
 
     private String getPrompt() {
-        eval.updatePath();
-        String s = eval.descPath();
-        return s == null ? "offline> " : s + "> ";
+        Path path = eval.updatePath();
+        return path == null ? "offline>" : path + ">";
     }
 
     public void run() {
