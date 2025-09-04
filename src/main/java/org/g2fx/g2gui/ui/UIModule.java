@@ -45,7 +45,7 @@ public record UIModule<C> (
             cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
-        //doTypeParamQry(m,"Output","Type");
+        //doTypeParamQry(m,"Led",false,"InfoFunc");
         //doBipUniQry(m);
         //doTf(m);
         //doGraph(m);
@@ -87,12 +87,17 @@ public record UIModule<C> (
             return null;
         });
     }
-    private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls, String... params) throws Exception {
+    private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls,
+                                       boolean inclModule, String... params) throws Exception {
         doQuery(m,cls + "-" + String.join("-",params),(mt,ctl) -> {
             if (cls.equals(ctl.elementType().name())) {
+                String out = null;
                 for (String param : params) {
-                    return String.format("%s=%s[%s]", param, invoke(ctl, param), mt);
+                    out = out == null ? "" : out + ",";
+                    out += String.format("%s=%s", param, invoke(ctl, param));
                 }
+                if (inclModule) out += "[" + mt + "]";
+                return out;
             }
             return null;
         });

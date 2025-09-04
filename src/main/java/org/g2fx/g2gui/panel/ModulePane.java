@@ -15,6 +15,7 @@ import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.Bridges;
@@ -105,7 +106,7 @@ public class ModulePane {
             Connector.PortType.Out,new ArrayList<>());
 
     private Graphs graphs;
-    
+
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
                       Bridges bridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
@@ -189,9 +190,21 @@ public class ModulePane {
 
             case UIElements.Graph c -> graphs.mkGraph(c);
 
+            case UIElements.Led c -> mkLed(c);
+
             default -> paramListener.empty(e, "renderElement");
 
         };
+    }
+
+    private Node mkLed(UIElements.Led c) {
+        if (c.Type() == UIElements.LedType.Green) {
+            Rectangle r = withClass(new Rectangle(7,7),"led-green","led-green-off");
+            layout(c,r);
+            return r;
+        } else {
+            return paramListener.empty(c,"LedSequencer");
+        }
     }
 
     private Node mkOutput(UIElements.Output c) {

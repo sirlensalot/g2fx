@@ -45,6 +45,10 @@ public class UIElements {
         Audio, Control, Logic
     }
 
+    public enum LedType {
+        Green,Sequencer;
+    }
+
     public enum ElementType {
         Bitmap { @Override public Class<? extends UIElement> getType() { return Bitmap.class; } }
       , ButtonFlat { @Override public Class<? extends UIElement> getType() { return ButtonFlat.class; } }
@@ -207,7 +211,7 @@ public class UIElements {
       , Integer ID
       , Integer InfoFunc
       , Boolean LedGroup
-      , String Type
+      , LedType Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement {
