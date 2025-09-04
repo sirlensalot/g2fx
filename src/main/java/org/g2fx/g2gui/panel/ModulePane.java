@@ -27,6 +27,7 @@ import org.g2fx.g2gui.ui.UIParamControl;
 import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
+import org.g2fx.g2lib.state.PatchVisual;
 import org.g2fx.g2lib.state.UserModuleData;
 
 import java.io.File;
@@ -197,6 +198,23 @@ public class ModulePane {
         if (c.Type() == UIElements.LedType.Green) {
             Rectangle r = withClass(new Rectangle(7,7),"led-green","led-green-off");
             layout(c,r);
+            Property<Boolean> lit = new SimpleObjectProperty<>(false);
+            bridges.bridge(d -> {
+                        List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getLeds();
+                        for (PatchVisual led : leds) {
+                            if (led.getModule() == patchModule && led.getVisual().index() == c.CodeRef()) {
+                                //System.out.println("Led: " + led + ", " + this);
+                                return led.value();
+                            }
+                        }
+                        throw new IllegalStateException("Could not locate led idx " + c.CodeRef() + ", " + this);
+                    },
+                    new FxProperty.SimpleFxProperty<>(lit),
+                    Iso.BOOL_PARAM_ISO);
+            lit.addListener((cc,o,n) -> {
+                r.getStyleClass().remove(n ? "led-green-off" : "led-green-on");
+                r.getStyleClass().add(n ? "led-green-on" : "led-green-off");
+            });
             return r;
         } else {
             return paramListener.empty(c,"LedSequencer");

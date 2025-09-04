@@ -95,6 +95,8 @@ public class Eval {
                         argDesc("value","load value")
                         )),
                 mkCmd("help",Eval.this::help,cmdDesc("Command help")),
+                mkCmd("led",Eval.this::led,cmdDesc("toggle green led",
+                        argDesc("name","led name"))),
                 mkCmd("comm",Eval.this::comm,
                         cmdDesc("Start/stop device communication stream",
                                 argDesc("startStop","start or stop")))
@@ -119,16 +121,35 @@ public class Eval {
         
     }
 
+    private Object led(CmdDesc desc, CommandInput ci) {
+        String name = getArgs(desc,ci).removeFirst();
+        devices.runWithCurrent(d -> {
+            PatchModule pm = getCurrentModule(d);
+            getCurrentSlot(d).getLeds().forEach(v -> {
+                if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
+                    int nv = v.value().get() == 0 ? 1 : 0;
+                    v.value().set(nv);
+                    //System.out.println(v + "->" + nv);
+                }
+            });
+        });
+        return null;
+    }
+
     private Object pload(CmdDesc desc, CommandInput ci) {
         List<String> as = getArgs(desc, ci);
         var area = "va".equals(as.removeFirst()) ? AreaId.Voice : AreaId.Fx;
         var isMem = "mem".equals(as.removeFirst());
         double val = parseInt(desc,"value",as.removeFirst());
         devices.runWithCurrent(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a -> {
-            PatchLoadData data = d.getPerf().getSlot(path.slot().slot()).getArea(area).getPatchLoadData();
+            PatchLoadData data = getCurrentSlot(d).getArea(area).getPatchLoadData();
             if (isMem) data.mem().set(val); else data.cycles().set(val);
         }));
         return 1;
+    }
+
+    private Patch getCurrentSlot(Device d) {
+        return d.getPerf().getSlot(path.slot().slot());
     }
 
     private Object help(CmdDesc desc, CommandInput ci) {
@@ -160,9 +181,13 @@ public class Eval {
             throw bad(desc,"Invalid param value %s, should be [%s,%s)",val,mp.min,mp.max);
         }
         final var npp = np;
-        devices.runWithCurrent(d -> getCurrentArea(d).getModule(path.module().index())
+        devices.runWithCurrent(d -> getCurrentModule(d)
                 .getParamValueProperty(path.variation(),npp.index()).set(val));
         return 1;
+    }
+
+    private PatchModule getCurrentModule(Device d) {
+        return getCurrentArea(d).getModule(path.module().index());
     }
 
     private static InvalidCommandException bad(CmdDesc desc, String msg, Object... args) {
@@ -208,7 +233,7 @@ public class Eval {
             ));
         }
         devices.runWithCurrent(d -> {
-            PatchModule m = getCurrentArea(d).getModule(path.module().index());
+            PatchModule m = getCurrentModule(d);
 
             getWriter().println("Params:");
             List<Integer> vvs = m.getVarValues(path.variation());
@@ -216,7 +241,7 @@ public class Eval {
                     getWriter().format("  %s:%s\n", m.getUserModuleData().getType().getParams().get((int) i).name(), v));
 
             getWriter().println("LEDs:");
-            Patch patch = d.getPerf().getSlot(path.slot().slot());
+            Patch patch = getCurrentSlot(d);
             forEachIndexed(patch.getLeds(), (pv,ix) -> {
                 if (notNull(pv).getModule() == m) {
                     getWriter().format("  %s: %s\n", ix, pv);
@@ -233,7 +258,7 @@ public class Eval {
     }
 
     private PatchArea getCurrentArea(Device d) {
-        return d.getPerf().getSlot(path.slot().slot())
+        return getCurrentSlot(d)
                 .getArea(path.area());
     }
 

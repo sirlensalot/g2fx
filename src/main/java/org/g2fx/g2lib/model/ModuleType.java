@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.model;
 
+import com.google.common.collect.Streams;
+
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -2499,11 +2501,14 @@ public enum ModuleType {
                 m.put(vt, List.of());
             } else {
                 vs.forEach(v -> {
+
+                });
+                m.put(vt, Streams.mapWithIndex(vs.stream(),(v,i) -> {
                     if (!names.add(v.names())) {
                         throw new IllegalStateException("Duplicate name for visual: " + v);
                     }
-                });
-                m.put(vt, vs);
+                    return v.setIndex((int)i);
+                }).toList());
             }
         }
         return m;
@@ -2602,7 +2607,7 @@ public enum ModuleType {
         return ledgroup(groupType, namedRange("",names));
     }
     private static Map<VisualType,List<Visual>> ledgroup(Visual.LedGroupType groupType, String... names) {
-        return Map.of(LedGroup,List.of(new Visual(LedGroup,groupType,List.of(names))));
+        return Map.of(LedGroup,List.of(new Visual(LedGroup,groupType,List.of(names),0)));
     }
 
     private static Map<VisualType, List<Visual>> led() {

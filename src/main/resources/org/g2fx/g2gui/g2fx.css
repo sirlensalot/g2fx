@@ -324,6 +324,18 @@
     -fx-border-width: 1;
 }
 
+.led-green {
+    -fx-stroke-width: 1;
+    -fx-stroke: black;
+}
+
+.led-green-off {
+    -fx-fill: #37682b;
+}
+.led-green-on {
+    -fx-fill: #75fb8e;
+}
+
 /* ========== KNOB CONTROL =========== */
 
 .knob {

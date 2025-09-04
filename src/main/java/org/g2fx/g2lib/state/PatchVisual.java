@@ -48,4 +48,5 @@ public class PatchVisual {
     public Visual getVisual() {
         return visual;
     }
+
 }
