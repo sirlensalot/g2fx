@@ -8,6 +8,7 @@ import java.util.List;
 public class GlobalKnobAssignments {
     private final List<FieldValues> assignments;
 
+    // file-perf
     public GlobalKnobAssignments(FieldValues fvs) {
         this.assignments =
                 Protocol.GlobalKnobAssignments.Knobs.subfieldsValue(fvs);

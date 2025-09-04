@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.Visual;
 
 public class PatchVisual {
@@ -7,7 +8,7 @@ public class PatchVisual {
     private final AreaId area;
     private final PatchModule module;
     private final Visual visual;
-    private int value;
+    private final LibProperty<Integer> value = new LibProperty<>(0);
 
     public PatchVisual(AreaId area, PatchModule module, Visual visual) {
         this.area = area;
@@ -16,12 +17,14 @@ public class PatchVisual {
     }
 
     public boolean update(int value) {
-        if (this.value != value) {
-            this.value = value;
+        if (this.value.get() != value) {
+            this.value.set(value);
             return true;
         }
         return false;
     }
+
+    public LibProperty<Integer> value() { return value; }
 
     @Override
     public String toString() {
@@ -31,6 +34,18 @@ public class PatchVisual {
             case 2 , 3 , 4 -> visual.names().toString();
             default -> visual.groupType() + "[" + visual.names().size() + "]";
         };
-        return area + "." + module.name().get() + "[" + module.getIndex() + "]." + ns + "=" + value;
+        return area + "." + module.name().get() + "[" + module.getIndex() + "]." + ns + "=" + value.get();
+    }
+
+    public PatchModule getModule() {
+        return module;
+    }
+
+    public AreaId getArea() {
+        return area;
+    }
+
+    public Visual getVisual() {
+        return visual;
     }
 }

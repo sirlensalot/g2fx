@@ -2485,11 +2485,29 @@ public enum ModuleType {
         this.params = params;
         this.modes = modes;
         this.shortName = mkShortName(name());
-        this.visuals = new HashMap<>(visuals);
+        this.visuals = validateVisuals(visuals);
         Arrays.stream(VisualType.values()).forEach(t ->
                 ModuleType.this.visuals.computeIfAbsent(t,k->List.of()));
     }
 
+    private static HashMap<VisualType, List<Visual>> validateVisuals(Map<VisualType, List<Visual>> visuals) {
+        HashMap<VisualType, List<Visual>> m = new HashMap<>();
+        Set<List<String>> names = new HashSet<>();
+        for (VisualType vt : VisualType.values()) {
+            List<Visual> vs = visuals.get(vt);
+            if (vs == null) {
+                m.put(vt, List.of());
+            } else {
+                vs.forEach(v -> {
+                    if (!names.add(v.names())) {
+                        throw new IllegalStateException("Duplicate name for visual: " + v);
+                    }
+                });
+                m.put(vt, vs);
+            }
+        }
+        return m;
+    }
 
 
     private static String mkShortName(String name) {

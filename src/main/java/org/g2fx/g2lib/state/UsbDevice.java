@@ -418,6 +418,7 @@ public class UsbDevice extends Device implements Dispatcher {
 
 
 
+    // usb
     private boolean readExtMasterClock(ByteBuffer buf) {
         buf.get();
         int v = Util.getShort(buf);
@@ -425,6 +426,7 @@ public class UsbDevice extends Device implements Dispatcher {
     }
 
 
+    // usb
     private boolean setSynthSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf);
         synthSettings = new SynthSettings(Protocol.SynthSettings.FIELDS.read(bb));

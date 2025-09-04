@@ -88,7 +88,7 @@ public class Patch {
     public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
     private LibProperty<String> name;
     private final Slot slot;
-    public int version;
+    private int version;
 
 
     private PatchSettings patchSettings;
@@ -104,6 +104,7 @@ public class Patch {
     private final List<PatchVisual> leds = new ArrayList<>();
     private final List<PatchVisual> metersAndGroups = new ArrayList<>();
 
+    // file-perf
     public Patch(Slot slot) {
         this.log = Util.getLogger(getClass().getName() + ":" + slot);
         this.slot = slot;
@@ -120,6 +121,15 @@ public class Patch {
         return slot;
     }
 
+    public List<PatchVisual> getLeds() {
+        return leds;
+    }
+
+    public List<PatchVisual> getMetersAndGroups() {
+        return metersAndGroups;
+    }
+
+    // usb, file-perf, test, file-patch
     public void setVersion(int version) {
         this.version = version;
         log.info(() -> "setVersion: " + version);
@@ -133,7 +143,7 @@ public class Patch {
         return knobAssignments;
     }
 
-
+    // usb, test
     public void readPatchDescription(ByteBuffer buf) {
         for (Sections ss : MSG_SECTIONS) {
             readSection(buf,ss);
@@ -144,6 +154,8 @@ public class Patch {
         }
         updateVisualIndex();
     }
+
+    // test
     public static Patch readFromMessage(int version, Slot slot, ByteBuffer buf) {
         Patch patch = new Patch(slot);
         patch.setVersion(version);
@@ -171,6 +183,7 @@ public class Patch {
         };
     }
 
+    // test
     public void readMessageHeader(ByteBuffer buf) {
         Util.expectWarn(buf,0x01,"Message","Cmd");
         int slot = buf.get();
@@ -187,6 +200,7 @@ public class Patch {
         buf.put(Util.asBytes(0x01,slot.ordinal()+8,version));
     }
 
+    // file-patch
     public static Patch readFromFile(Slot slot, String filePath) throws Exception {
         ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
@@ -195,12 +209,9 @@ public class Patch {
 
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
         Patch patch = new Patch(slot);
-        patch.version = fileBuffer.get();
+        patch.setVersion(fileBuffer.get());
 
-        for (Sections ss : FILE_SECTIONS) {
-            patch.readSection(fileBuffer,ss);
-        }
-        patch.updateVisualIndex();
+        patch.readFileSections(fileBuffer);
 
         int fcrc = Util.getShort(fileBuffer);
         if (fcrc != crc) {
@@ -208,6 +219,14 @@ public class Patch {
         }
 
         return patch;
+    }
+
+    // file-patch, file-perf
+    public void readFileSections(ByteBuffer fileBuffer) {
+        for (Sections ss : FILE_SECTIONS) {
+            readSection(fileBuffer,ss);
+        }
+        updateVisualIndex();
     }
 
 
@@ -289,12 +308,14 @@ public class Patch {
     }
 
 
+    // file-perf, usb, file-patch
     public void readSection(ByteBuffer buf, Sections s) {
         BitBuffer bb = Sections.sliceSection(s,buf);
         //log.info(s + ": length " + bb.limit());
         readSectionSlice(bb, s);
     }
 
+    // usb, and via readSection
     public boolean readSectionSlice(BitBuffer bb, Sections s) {
         int startIx = bb.getBitIndex();
         if (s.location != null) {
@@ -317,6 +338,7 @@ public class Patch {
         return true;
     }
 
+    // via readSectionSlice only
     private void updateSection(Sections s, Section section) {
         sections.put(s, section);
         log.info("updateSection: " + s);
@@ -344,6 +366,7 @@ public class Patch {
         }
     }
 
+    // test
     public void readPatchLoadDataMsg(UsbMessage msg) {
         ByteBuffer buf = msg.getBufferx();
         readMessageHeader(buf);
@@ -351,13 +374,14 @@ public class Patch {
         readPatchLoadData(buf);
     }
 
+    // usb
     public boolean readPatchLoadData(ByteBuffer buf) {
         FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.PatchLoadData.Location.intValue(fvs)).setPatchLoadData(fvs);
         return true;
     }
 
-
+    // usb
     public boolean readSelectedParam(ByteBuffer buf) {
         FieldValues fvs = Protocol.SelectedParam.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.SelectedParam.Location.intValue(fvs)).setSelectedParam(fvs);
@@ -365,11 +389,13 @@ public class Patch {
     }
 
 
+    // test
     public void readSectionMessage(ByteBuffer buf, Sections s) {
         readMessageHeader(buf);
         readSection(buf,s);
     }
 
+    // usb, file-patch
     private void updateVisualIndex() {
         leds.clear();
         voiceArea.addVisuals(Visual.VisualType.Led,leds);
@@ -382,6 +408,7 @@ public class Patch {
         log.info(() -> "metersAndGroups: " + metersAndGroups);
     }
 
+    // usb
     public boolean readVolumeData(ByteBuffer buf) {
         List<PatchVisual> updated = new ArrayList<>();
         metersAndGroups.forEach(v -> {
@@ -395,6 +422,7 @@ public class Patch {
         return true;
     }
 
+    // usb
     public boolean readLedData(ByteBuffer buf) {
         buf.get(); //unknown
         ByteBuffer buf2 = buf.slice();
@@ -414,6 +442,7 @@ public class Patch {
         return true;
     }
 
+    // usb
     public boolean readParamUpdate(ByteBuffer buf) {
         FieldValues fvs = Protocol.ParamUpdate.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.ParamUpdate.Location.intValue(fvs)).updateParam(fvs);

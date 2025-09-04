@@ -66,11 +66,8 @@ public class Performance {
                 readSectionSlice(fileBuffer,Sections.SPerformanceSettings));
         for (Slot s : Slot.values()) {
             Patch patch = new Patch(s);
-            patch.version = 0; //TODO source?
-
-            for (Sections ss : Patch.FILE_SECTIONS) {
-                patch.readSection(fileBuffer,ss);
-            }
+            patch.setVersion(0); //TODO source?
+            patch.readFileSections(fileBuffer);
             perf.slots.put(s,patch);
         }
         perf.globalKnobAssignments = new GlobalKnobAssignments(
@@ -79,6 +76,7 @@ public class Performance {
         return perf;
     }
 
+    // test
     public Performance readFromMessage(ByteBuffer buf) {
         readPerfMsgHeader(buf.rewind());
         Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
@@ -86,6 +84,7 @@ public class Performance {
         return this;
     }
 
+    // usb, test
     public boolean readPerformanceNameAndSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf.slice());
         perfName = LibProperty.stringFieldProperty(Protocol.EntryName.FIELDS.read(bb),Protocol.EntryName.Name);
@@ -95,28 +94,33 @@ public class Performance {
         return true;
     }
 
+    // file-perf, test
     private static FieldValues readSectionSlice(ByteBuffer buf, Sections s) {
         return s.fields.read(Sections.sliceSection(s,buf));
     }
 
+    // test
     private void readPerfMsgHeader(ByteBuffer buf) {
         Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
         Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
         Util.expectWarn(buf,version,"Message","Perf version");
     }
 
+    // test
     public void readSectionMessage(ByteBuffer buf, Sections s) {
         readPerfMsgHeader(buf.rewind());
         FieldValues fvs = readSectionSlice(buf, s);
         updateSection(s, fvs);
     }
 
+    // usb, test
     private void updateSection(Sections s, FieldValues fvs) {
         switch (s) {
             case SGlobalKnobAssignments -> this.globalKnobAssignments = new GlobalKnobAssignments(fvs);
         }
     }
 
+    // usb
     public boolean readSectionSlice(Sections s, BitBuffer bb) {
         updateSection(s,s.fields.read(bb));
         log.info(() -> "readSectionSlice: " + s);
@@ -160,6 +164,7 @@ public class Performance {
         return Slot.fromIndex(perfSettings.selectedSlot().get());
     }
 
+    // usb
     public boolean readAssignedVoices(ByteBuffer buf) {
         for (Slot s : Slot.values()) {
             getSlot(s).setAssignedVoices(Util.b2i(buf.get()));
@@ -167,6 +172,7 @@ public class Performance {
         return true;
     }
 
+    // usb, file-perf
     public void setVersion(int version) {
         this.version = version;
         log.info(() -> "setVersion: " + version);

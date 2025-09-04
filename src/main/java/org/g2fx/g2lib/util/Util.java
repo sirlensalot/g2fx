@@ -3,6 +3,7 @@ package org.g2fx.g2lib.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.Streams;
 import org.g2fx.g2lib.usb.UsbMessage;
 
 import java.io.FileInputStream;
@@ -10,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.*;
 
@@ -286,4 +288,9 @@ public class Util {
         return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
     }
 
+    public static <T> T notNull(T t) { assert t != null; return t; }
+
+    public static <T> void forEachIndexed(Collection<T> coll, BiConsumer<T,Integer> f) {
+        Streams.mapWithIndex(coll.stream(),(v,ix) -> { f.accept(v,(int) ix); return 1; }).toArray();
+    }
 }

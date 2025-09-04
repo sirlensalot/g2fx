@@ -38,6 +38,7 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
     public Path setModule(NamedIndex<ModuleType> m) { return new Path(device,perf,slot,variation,area,m,null);}
     public Path setParam(NamedIndex<NamedParam> m) { return new Path(device,perf,slot,variation,area,module,m);}
     public Path setVar(int v) { return new Path(device,perf,slot,v,area,module,param);}
+    public Path setArea(AreaId a) { return new Path(device,perf,slot,variation,a,null,null); }
 
     @Override
     public String toString() {
@@ -49,5 +50,4 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
                                     "/%s%s",module,param == null ? "" : param.toString())))));
 
     }
-
 }

@@ -629,7 +629,7 @@ class ProtocolTest {
         ByteBuffer buf = Util.readFile(PATCHMSG_1);
         Patch p = Patch.readFromMessage(0, Slot.B,buf);
 //        assertEquals(9,p.slot);
-        assertEquals(0,p.version);
+        assertEquals(0,p.getVersion());
 
 
         FieldValues pd = PatchDescription.FIELDS.values(
@@ -874,7 +874,7 @@ class ProtocolTest {
     void readPatchLoad() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PatchLoadVA_b852.msg");
         Patch patch = new Patch(Slot.A);
-        patch.version = 0;
+        patch.setVersion(0);
         patch.readPatchLoadDataMsg(new UsbMessage(0,true,0,buf));
         PatchLoadData plVoice = patch.getArea(AreaId.Voice).getPatchLoadData();
         assertEquals(13, plVoice.getCycles());

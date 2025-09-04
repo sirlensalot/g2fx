@@ -1,6 +1,5 @@
 package org.g2fx.g2lib.repl;
 
-import com.google.common.collect.Streams;
 import org.g2fx.g2gui.controls.IndexParam;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.NamedParam;
@@ -22,6 +21,9 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.g2fx.g2lib.util.Util.forEachIndexed;
+import static org.g2fx.g2lib.util.Util.notNull;
 
 public class Eval {
 
@@ -83,7 +85,7 @@ public class Eval {
                 mkCmd("var",Eval.this::var,cmdDesc("switch variation",
                                 argDesc("idx","variation index"))),
                 mkCmd("mod",Eval.this::mod,cmdDesc("switch to module",
-                        argDesc("idx","module index"))),
+                        argDesc("nameOrIdx","module name or index"))),
                 mkCmd("pset",Eval.this::pset,cmdDesc("set param value",
                         argDesc("idxOrName","param index or name"),
                         argDesc("val","param value"))),
@@ -122,8 +124,7 @@ public class Eval {
         var area = "va".equals(as.removeFirst()) ? AreaId.Voice : AreaId.Fx;
         var isMem = "mem".equals(as.removeFirst());
         double val = parseInt(desc,"value",as.removeFirst());
-        devices.runWithCurrent(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a ->
-        {
+        devices.runWithCurrent(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a -> {
             PatchLoadData data = d.getPerf().getSlot(path.slot().slot()).getArea(area).getPatchLoadData();
             if (isMem) data.mem().set(val); else data.cycles().set(val);
         }));
@@ -181,10 +182,16 @@ public class Eval {
     }
 
     private Object mod(CmdDesc c, CommandInput i) {
-        if (path == null || path.area() == null) { return done("No path"); }
-        int idx = parseNextInt(c,"mod index",getArgs(c,i));
+        if (path == null || path.area() == null) { throw bad(c,"Path null/no area"); }
+        String a = getArgs(c,i).removeFirst();
         path = devices.invokeWithCurrent(d -> {
-            PatchModule m = getCurrentArea(d).getModule(idx);
+            PatchModule m = null;
+            for (PatchModule pm : getCurrentArea(d).getModules()) {
+                if (a.equals(pm.name().get())) {
+                    m = pm;
+                }
+            }
+            if (m == null) { m = getCurrentArea(d).getModule(parseInt(c,"mod idx",a)); }
             return path.setModule(new Path.NamedIndex<>(m.getIndex(),m.name().get(),m.getUserModuleData().getType()));
         });
         return 1;
@@ -200,12 +207,29 @@ public class Eval {
                                     m.getUserModuleData().getType().shortName)).toList())
             ));
         }
-        return done(devices.invokeWithCurrent(d -> {
+        devices.runWithCurrent(d -> {
             PatchModule m = getCurrentArea(d).getModule(path.module().index());
+
+            getWriter().println("Params:");
             List<Integer> vvs = m.getVarValues(path.variation());
-            return String.join("\n", Streams.mapWithIndex(vvs.stream(),(v,i) ->
-                    String.format("%s:%s",m.getUserModuleData().getType().getParams().get((int)i).name(),v))
-                    .toList()); }));
+            forEachIndexed(vvs,(v,i) ->
+                    getWriter().format("  %s:%s\n", m.getUserModuleData().getType().getParams().get((int) i).name(), v));
+
+            getWriter().println("LEDs:");
+            Patch patch = d.getPerf().getSlot(path.slot().slot());
+            forEachIndexed(patch.getLeds(), (pv,ix) -> {
+                if (notNull(pv).getModule() == m) {
+                    getWriter().format("  %s: %s\n", ix, pv);
+                }
+            });
+            getWriter().println("Meters/Groups:");
+            forEachIndexed(patch.getMetersAndGroups(), (pv,ix) -> {
+                if (notNull(pv).getModule() == m) {
+                    getWriter().format("  %s: %s\n", ix, pv);
+                }
+            });
+        });
+        return 1;
     }
 
     private PatchArea getCurrentArea(Device d) {
@@ -283,7 +307,7 @@ public class Eval {
     private Object area(CmdDesc c, CommandInput i, AreaId areaId) {
         getArgs(c,i); //validate no args
         if (path == null || path.slot() == null) { throw bad(c, "No current patch"); }
-        path = new Path(path.device(), path.perf(), path.slot(), path.variation(), areaId, path.module(), path.param());
+        path = path.setArea(areaId);
         return 1;
     }
 
