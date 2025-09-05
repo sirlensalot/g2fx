@@ -8,10 +8,7 @@ import org.jline.reader.UserInterruptException;
 import org.jline.widget.TailTipWidgets;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +34,7 @@ public class Repl implements Runnable {
 
         thread = new Thread(this);
         Map<String, CmdDesc> descs = new HashMap<>();
-        eval.getCmds().forEach(c -> descs.put(c.cmd(),c.desc()));
+        Arrays.stream(EvalCommand.values()).forEach(ec -> descs.put(ec.name(),ec.builder.desc));
         new TailTipWidgets(eval.getReader(), descs).enable();
         if (interactive) {
             eval.getReader().getTerminal().writer().println("""

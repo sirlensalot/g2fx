@@ -15,9 +15,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Logger;
+
+import static org.g2fx.g2lib.util.Util.forEachIndexed;
 
 public class Patch {
 
@@ -427,16 +428,14 @@ public class Patch {
         buf.get(); //unknown
         ByteBuffer buf2 = buf.slice();
         List<PatchVisual> updated = new ArrayList<>();
-        AtomicInteger i = new AtomicInteger();
-        leds.forEach(v -> {
-            int bi = Math.floorDiv(i.get(),4);
-            int bm = Math.floorMod(i.get(),4) * 2;
+        forEachIndexed(leds,(v,i) ->  {
+            int bi = Math.floorDiv(i,4);
+            int bm = Math.floorMod(i,4) * 2;
             int b = (buf2.get(bi) & (0x03 << bm)) >>> bm;
             //log.info(String.format("%s %s %s %s %s",i,bi,bm,b,Integer.toBinaryString(buf2.get(bi))));
             if (v.update(b)) {
                 updated.add(v);
             }
-            i.getAndIncrement();
         });
         log.info(() -> "readLedData: " + updated);
         return true;
