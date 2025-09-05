@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.repl;
 
+import org.g2fx.g2gui.Commands;
 import org.g2fx.g2gui.controls.IndexParam;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.NamedParam;
@@ -40,11 +41,16 @@ public class Eval {
     private final CommandRegistry commandRegistry;
     private final List<Command> cmds;
 
+    private boolean uiMode;
+    private Commands ui;
+
     private Path path = null;
     
-    public Eval(Devices devices, boolean interactive, PrintWriter writer) throws Exception {
+    public Eval(Devices devices, boolean interactive, PrintWriter writer, Commands commands) throws Exception {
 
         this.devices = devices;
+        this.ui = commands;
+        uiMode = commands != null;
 
         final Completer listCompleter = new Completer() {
             private final Completer arg1 = new StringsCompleter("perf","patch");
@@ -56,6 +62,8 @@ public class Eval {
             }
         };
         cmds = List.of(
+                mkCmd("ui",(c,i) -> toggleUIMode(),
+                        cmdDesc("Toggle UI mode (slot selection affects UI, etc)")),
                 mkCmd("exit",(c,i) -> QUIT_SENTINEL,
                         cmdDesc("Exit program")),
                 mkCmd("list-entries",Eval.this::listEntries,listCompleter,
@@ -119,6 +127,11 @@ public class Eval {
 
         this.writer = writer == null ? reader.getTerminal().writer() : writer;
         
+    }
+
+    private Object toggleUIMode() {
+        uiMode = ui != null && !uiMode;
+        return 1;
     }
 
     private Object led(CmdDesc desc, CommandInput ci) {
@@ -197,13 +210,14 @@ public class Eval {
     private Object var(CmdDesc desc, CommandInput ci) {
         if (path == null || path.slot() == null) { throw bad(desc, "No current path/slot"); }
         int v = parseNextInt(desc,"var idx",getArgs(desc,ci));
-        path = path.setVar(v);
+        if (v < 1 || v > PatchModule.MAX_VARIATIONS) { throw bad(desc,"Invalid variation"); }
+        path = path.setVar(v-1);
+        if (uiMode) {
+            ui.setVar(v-1);
+        }
         return 1;
     }
 
-    public Path getPath() {
-        return path;
-    }
 
     private Object mod(CmdDesc c, CommandInput i) {
         if (path == null || path.area() == null) { throw bad(c,"Path null/no area"); }
@@ -218,6 +232,7 @@ public class Eval {
             if (m == null) { m = getCurrentArea(d).getModule(parseInt(c,"mod idx",a)); }
             return path.setModule(new Path.NamedIndex<>(m.getIndex(),m.name().get(),m.getUserModuleData().getType()));
         });
+        if (uiMode) { ui.selectModule(path.slot().slot(), path.area(), path.module().index()); }
         return 1;
     }
 
@@ -305,6 +320,9 @@ public class Eval {
         if (path == null || path.perf() == null ) { throw bad(desc, "No current performance"); }
         path = devices.invoke(true,() ->
                 devices.withCurrent(c -> Path.pathForPatch(c,c.getPerf().getSlot(s))));
+        if (uiMode) {
+            ui.setSlot(path.slot().slot());
+        }
         return 1;
     }
 
@@ -332,6 +350,7 @@ public class Eval {
         getArgs(c,i); //validate no args
         if (path == null || path.slot() == null) { throw bad(c, "No current patch"); }
         path = path.setArea(areaId);
+        if (uiMode) ui.setArea(areaId);
         return 1;
     }
 
@@ -493,4 +512,10 @@ public class Eval {
         return path;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s%s",
+                path == null ? "offline" : path,
+                ui == null ? "" : " uiMode=" + uiMode);
+    }
 }

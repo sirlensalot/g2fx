@@ -45,8 +45,8 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
         return device == null ? "[no device]" : perf == null ? "[no perf]" : String.format(
             "%s/%s%s",device,perf,slot == null ? "" : String.format(
                     "/%s%s",slot,area == null ? "" : String.format(
-                            "/%s%s/",area, variation == null ? "" : String.format(
-                            "/v%s%s",variation,module == null ? "" : String.format(
+                            "/%s%s",area, variation == null ? "" : String.format(
+                            "/v%s%s",variation+1,module == null ? "" : String.format(
                                     "/%s%s",module,param == null ? "" : param.toString())))));
 
     }

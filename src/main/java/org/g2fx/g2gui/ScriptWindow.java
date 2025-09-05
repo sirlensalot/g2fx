@@ -30,13 +30,13 @@ public class ScriptWindow {
     private final StringWriter stringWriter;
     private final TextArea consoleOutput;
 
-    public ScriptWindow(Devices devices) throws Exception {
+    public ScriptWindow(Devices devices,Commands commands) throws Exception {
 
         dialogStage = new Stage();
 
         stringWriter = new StringWriter();
         PrintWriter pw = new PrintWriter(stringWriter);
-        eval = new Eval(devices,false,pw);
+        eval = new Eval(devices,false,pw,commands);
 
         codeArea = new CodeArea();
         codeArea.setWrapText(true);
@@ -94,8 +94,7 @@ public class ScriptWindow {
     }
 
     private void updateTItle() {
-        dialogStage.setTitle("Script Editor: " +
-                (eval.getPath() == null ? "offline" : eval.getPath()));
+        dialogStage.setTitle("Scripts: " + eval);
     }
 
     public void show() {

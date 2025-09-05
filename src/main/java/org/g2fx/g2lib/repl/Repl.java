@@ -33,7 +33,7 @@ public class Repl implements Runnable {
         this.enabled = replEnabled;
         this.scriptFile = scriptFile;
         boolean interactive = replEnabled && scriptFile == null;
-        this.eval = new Eval(devices,interactive,null);
+        this.eval = new Eval(devices,interactive,null,null);
 
         thread = new Thread(this);
         Map<String, CmdDesc> descs = new HashMap<>();

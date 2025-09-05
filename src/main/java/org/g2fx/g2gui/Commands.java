@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Devices;
+import org.g2fx.g2lib.state.Slot;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class Commands {
                 case V:
                     if (!anyModifiers) {
                         AreaId area = code == KeyCode.F ? AreaId.Fx : AreaId.Voice;
-                        slots.getSelectedSlotPane().maximizeAreaPane(area);
+                        setArea(area);
                         e.consume();
                     }
                     return;
@@ -177,7 +178,7 @@ public class Commands {
                 case C:
                 case D:
                     if (!anyModifiers) {
-                        slots.selectSlot(code.getCode() - KeyCode.A.getCode());
+                        setSlot(Slot.fromIndex(code.getCode() - KeyCode.A.getCode()));
                         e.consume();
                     }
                     return;
@@ -198,8 +199,7 @@ public class Commands {
                 case KeyCode.DIGIT7:
                 case KeyCode.DIGIT8:
                     if (!anyModifiers) {
-                        slots.getSelectedSlotPane().selectVar(
-                                code.getCode() - KeyCode.DIGIT1.getCode());
+                        setVar(code.getCode() - KeyCode.DIGIT1.getCode());
                         e.consume();
                     }
                     return;
@@ -216,7 +216,24 @@ public class Commands {
         };
     }
 
+    public void setArea(AreaId area) {
+        slots.getSelectedSlotPane().maximizeAreaPane(area);
+    }
+
+    public void setSlot(Slot slot) {
+        slots.selectSlot(slot.ordinal());
+    }
+
+    public void setVar(int v) {
+        slots.getSelectedSlotPane().selectVar(v);
+    }
+
     public void setScriptWindow(ScriptWindow scriptWindow) {
         this.scriptWindow = scriptWindow;
+    }
+
+
+    public void selectModule(Slot slot,AreaId area,int idx) {
+        slots.getSlot(slot).getAreaPane(area).selectModule(idx);
     }
 }

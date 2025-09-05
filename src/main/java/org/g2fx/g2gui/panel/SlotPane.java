@@ -360,6 +360,11 @@ public class SlotPane {
         varSelector.getToggleGroup().getToggles().get(i).setSelected(true);
     }
 
+    public AreaPane getAreaPane(AreaId id) {
+        if (id == AreaId.Settings) { throw new IllegalArgumentException("getAreaPane: must be FX or Voice"); }
+        return areaPanes.get(id);
+    }
+
     public void updateModuleColor(int index) {
         undos.beginMulti();
         try {

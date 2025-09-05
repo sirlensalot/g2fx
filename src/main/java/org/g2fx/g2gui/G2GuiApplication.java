@@ -118,7 +118,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         textFocusListener = commands.setupKeyBindings(stage);
         Scene scene = mkScene(stage);
 
-        scriptWindow = new ScriptWindow(devices);
+        scriptWindow = new ScriptWindow(devices,commands);
 
         commands.setScriptWindow(scriptWindow);
 

@@ -11,10 +11,10 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.FXUtil;
-import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.Undos;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
@@ -165,6 +165,10 @@ public class Slots {
 
     public SlotPane getSelectedSlotPane() {
         return slotPanes.get(slotTabs.getSelectionModel().getSelectedIndex());
+    }
+
+    public SlotPane getSlot(Slot slot) {
+        return slotPanes.get(slot.ordinal());
     }
 
     public void selectSlot(int slot) {

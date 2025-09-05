@@ -405,4 +405,10 @@ public class AreaPane {
     public void addSelectionListener(Runnable r) {
         this.selectionListener = r;
     }
+
+    public void selectModule(int idx) {
+        ModulePane mp = modulePanes.get(idx);
+        if (mp == null) { throw new IllegalArgumentException("selectModule: invalid index: " + idx); }
+        selectModule(mp);
+    }
 }
