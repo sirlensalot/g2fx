@@ -99,7 +99,7 @@ public class Repl implements Runnable {
                 continue;
             }
             List<String> ws = new ArrayList<>(eval.getReader().getParsedLine().words());
-            if (!eval.handleInput(ws)) {
+            if (eval.handleInput(ws).isQuit()) {
                 return;
             }
         }

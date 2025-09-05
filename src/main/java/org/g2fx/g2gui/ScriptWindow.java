@@ -1,5 +1,6 @@
 package org.g2fx.g2gui;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -11,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.fxmisc.richtext.CodeArea;
 import org.g2fx.g2lib.repl.Eval;
+import org.g2fx.g2lib.repl.EvalResult;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.util.Util;
 
@@ -18,6 +20,8 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +33,9 @@ public class ScriptWindow {
     private final CodeArea codeArea;
     private final StringWriter stringWriter;
     private final TextArea consoleOutput;
+
+    private final Executor waitExecutor = Executors.newSingleThreadExecutor();
+    private Integer waiting = null;
 
     public ScriptWindow(Devices devices,Commands commands) throws Exception {
 
@@ -80,21 +87,39 @@ public class ScriptWindow {
 
 
     private void runScript() {
+        if (waiting != null) { return; }
         String script = codeArea.getText();
-        stringWriter.getBuffer().setLength(0);
         BufferedReader br = new BufferedReader(new StringReader(script));
+        runEval(br);
+    }
+
+    private void runEval(BufferedReader br) {
+        waiting = null;
+        EvalResult r;
         try {
-            eval.runScript(br);
+            r = eval.runScript(br);
         } catch (Exception ex) {
             log.log(Level.SEVERE,"script run failed",ex);
+            r = EvalResult.evalContinue();
         }
         String output = stringWriter.toString();
         consoleOutput.setText(output);
-        updateTItle();
+        if (r.isWait()) {
+            final int ms = waiting = r.waitMs();
+            updateTitle();
+            waitExecutor.execute(() -> {
+                try { Thread.sleep(ms); } catch (InterruptedException ignored) {}
+                Platform.runLater(() -> runEval(br));
+            });
+        } else {
+            stringWriter.getBuffer().setLength(0);
+            updateTitle();
+        }
     }
 
-    private void updateTItle() {
-        dialogStage.setTitle("Scripts: " + eval);
+    private void updateTitle() {
+        dialogStage.setTitle("Scripts: " + eval +
+                (waiting == null ? "" : " [Wait " + waiting + "]"));
     }
 
     public void show() {
@@ -103,6 +128,6 @@ public class ScriptWindow {
 
     public void updatePath() {
         eval.updatePath();
-        updateTItle();
+        updateTitle();
     }
 }

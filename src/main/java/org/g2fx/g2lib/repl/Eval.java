@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.repl.EvalResult.evalContinue;
 import static org.g2fx.g2lib.util.Util.forEachIndexed;
 import static org.g2fx.g2lib.util.Util.notNull;
 
@@ -30,8 +31,6 @@ public class Eval {
 
     private final PrintWriter writer;
     private Logger log = Util.getLogger(getClass());
-
-    public static final Object QUIT_SENTINEL = new Object();
 
     public record Command(String cmd, CommandMethods methods, CmdDesc desc) { }
     
@@ -64,7 +63,7 @@ public class Eval {
         cmds = List.of(
                 mkCmd("ui",(c,i) -> toggleUIMode(),
                         cmdDesc("Toggle UI mode (slot selection affects UI, etc)")),
-                mkCmd("exit",(c,i) -> QUIT_SENTINEL,
+                mkCmd("exit",(c,i) -> new EvalResult(EvalResult.EvalResultType.Quit,0),
                         cmdDesc("Exit program")),
                 mkCmd("list-entries",Eval.this::listEntries,listCompleter,
                         cmdDesc("List bank or patch entries",
@@ -327,9 +326,11 @@ public class Eval {
     }
 
     private Object doWait(CmdDesc c, CommandInput i) {
+        int wait = parseNextInt(c, "wait", getArgs(c, i));
+        if (ui != null) { return new EvalResult(EvalResult.EvalResultType.Wait,wait); }
         try {
-            Thread.sleep(parseInt(c,"wait",getArgs(c,i).getFirst()));
-        } catch (InterruptedException ignore) { }
+            Thread.sleep(wait);
+        } catch (InterruptedException ignore) {}
         return 1;
     }
 
@@ -446,33 +447,44 @@ public class Eval {
         }
     }
 
-    public void runScript(BufferedReader fr) throws IOException {
+    public EvalResult runScript(BufferedReader fr) throws IOException {
         updatePath();
         String line;
         while ((line = fr.readLine()) != null) {
             if (line.startsWith("#")) continue;
             ParsedLine pl = reader.getParser().parse(line, 0);
-            handleInput(new ArrayList<>(pl.words()));
+            EvalResult r = handleInput(new ArrayList<>(pl.words()));
+            if (r.type() != EvalResult.EvalResultType.Continue) {
+                return r;
+            }
         }
+        return evalContinue();
+
     }
 
 
-    public boolean handleInput(List<String> ws) {
-        if (ws.isEmpty()) return true;
+    public EvalResult handleInput(List<String> ws) {
+        if (ws.isEmpty()) return evalContinue();
         String cmd = ws.removeFirst();
         if (!commandRegistry.hasCommand(cmd)) {
             getWriter().println("Invalid command: " + cmd);
-            return true;
+            return evalContinue();
         }
         try {
             Object result = commandRegistry.invoke(
                     new CommandRegistry.CommandSession(reader.getTerminal()),
                     cmd,
                     ws.toArray());
-            if (result == QUIT_SENTINEL) {
-                getWriter().println("Exiting");
-                return false;
+            if (result instanceof EvalResult er) {
+                if (er.isQuit()) {
+                    getWriter().println("Exiting");
+                    return er;
+                } else if (er.isWait()) {
+                    getWriter().println("Wait " + er.waitMs());
+                    return er;
+                }
             }
+
         } catch (InvalidCommandException e) {
             getWriter().format("Invalid command: %s\nUsage: %s\n",
                     e.getMessage(),
@@ -481,7 +493,7 @@ public class Eval {
         } catch (Exception e) {
             log.log(Level.SEVERE,"failure",e);
         }
-        return true;
+        return evalContinue();
     }
 
     public static String usage(CmdDesc desc,String cmd) {
