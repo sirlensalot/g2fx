@@ -84,6 +84,10 @@ public class SlotPane {
         areaPanes.values().forEach(AreaPane::clearModules);
     }
 
+    public void disposeModuleBridges() {
+        areaPanes.values().forEach(AreaPane::disposeModuleBridges);
+    }
+
 
 
     public <T> RebindableControl<Integer, T> bindVarControl(Property<T> control, IntFunction<Property<T>> varPropBuilder) {

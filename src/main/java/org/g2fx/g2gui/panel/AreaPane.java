@@ -382,11 +382,16 @@ public class AreaPane {
         areaPane.getChildren().add(areaLabel);
         areaPane.getChildren().add(selectedRect);
         for (ModulePane m : modulePanes.values()) {
-            bridges.remove(m.getModuleBridges());
             m.unbindVarControls();
         }
         modulePanes.clear();
         cables.clear();
+    }
+
+    public void disposeModuleBridges() {
+        for (ModulePane m : modulePanes.values()) {
+            bridges.remove(m.getModuleBridges());
+        }
     }
 
 

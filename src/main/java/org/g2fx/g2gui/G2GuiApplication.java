@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -102,9 +104,15 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     @Override
     public void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners, get fx disposals
-        List<Runnable> fxDisposals = bridges.dispose();
+        List<Runnable> fxDisposals = new ArrayList<>(bridges.dispose());
+        fxDisposals.add(slots.disposeModuleBridges());
+        CountDownLatch latch = new CountDownLatch(1);
+        fxDisposals.add(latch::countDown);
         //run all disposals on fx thread
         fxQueue.execute(() -> fxDisposals.forEach(Runnable::run));
+        if (!latch.await(1, TimeUnit.SECONDS)) {
+            log.severe("onDeviceDisposal: timeout waiting for UI thread disposals");
+        }
     }
 
 

@@ -159,6 +159,8 @@ public class Eval {
             if (e.getCause() instanceof InvalidCommandException ice) {
                 usageError(ice,cmd);
             } else {
+                writer.println("Unexpected error: " + e);
+                e.printStackTrace(writer);
                 log.log(Level.SEVERE, "failure", e);
             }
         }

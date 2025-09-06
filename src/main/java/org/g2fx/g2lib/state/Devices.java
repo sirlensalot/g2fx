@@ -201,7 +201,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
     public <V> V invoke(boolean offlineOk, Callable<V> c) {
         Future<FailableResult<V>> f = executorService.submit(() -> {
-            if (!offlineOk && !online()) {
+            if (enforceOnline(offlineOk)) {
                 return FailableResult.failed(new IllegalStateException("Device offline"));
             }
             try {
@@ -219,6 +219,11 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         }
 
     }
+
+    private boolean enforceOnline(boolean offlineOk) {
+        return !offlineOk && !online();
+    }
+
     public <V> V invokeWithCurrent(ThrowingFunction<Device,V> f) {
         return invoke(true,() -> withCurrent(f));
     }
@@ -242,9 +247,13 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     }
 
     public void execute(boolean offlineOk, ThrowingRunnable r) {
-        invoke(offlineOk,() -> {
-            r.run();
-            return 1;
+        executorService.execute(() -> {
+            enforceOnline(offlineOk);
+            try {
+                r.run();
+            } catch (Exception e) {
+                log.log(Level.SEVERE,"execute: unexpected error",e);
+            }
         });
     }
 }

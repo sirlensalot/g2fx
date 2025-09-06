@@ -20,17 +20,21 @@ import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class Slots {
+
+    private final Logger log = Util.getLogger(getClass());
 
     private TabPane slotTabs;
     private SegmentedButton slotBar;
@@ -72,6 +76,10 @@ public class Slots {
     public Runnable clearModules() {
         // on device thread, return fx action
         return () -> slotPanes.forEach(SlotPane::clearModules);
+    }
+
+    public Runnable disposeModuleBridges() {
+        return () -> slotPanes.forEach(SlotPane::disposeModuleBridges);
     }
 
 
