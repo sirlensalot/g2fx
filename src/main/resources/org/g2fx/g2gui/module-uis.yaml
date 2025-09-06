@@ -9449,7 +9449,7 @@ Gate:
     YPos: 4
     CodeRef: 1
     InfoFunc: 0
-    Width: 28
+    Width: 39
     Height: 22
     ImageCount: 6
     ImageWidth: 90
@@ -9518,7 +9518,7 @@ Gate:
     YPos: 4
     CodeRef: 0
     InfoFunc: 0
-    Width: 28
+    Width: 39
     Height: 22
     ImageCount: 6
     ImageWidth: 90

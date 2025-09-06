@@ -53,7 +53,7 @@ public class ModeSelector {
         listView.setPrefWidth(c.ImageWidth()+12);
 
         ImageView current = new ImageView(items.getFirst());
-        current.setViewport(new Rectangle2D(0,0,c.Width(),c.Height()));
+        current.setViewport(new Rectangle2D(0,0,c.Width()-11,c.Height()));
 
         listView.setCellFactory(lv -> new ListCell<>() {
             private final ImageView view = new ImageView();

@@ -15,7 +15,6 @@ import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.*;
@@ -27,7 +26,6 @@ import org.g2fx.g2gui.ui.UIParamControl;
 import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
-import org.g2fx.g2lib.state.PatchVisual;
 import org.g2fx.g2lib.state.UserModuleData;
 
 import java.io.File;
@@ -78,6 +76,8 @@ public class ModulePane {
 
     private final List<RebindableControl<Integer,?>> varBindings = new ArrayList<>();
 
+    private final Visuals visuals;
+
 
     /**
      * Captures initial module info that is then one-way UI -> backend from then on.
@@ -120,6 +120,7 @@ public class ModulePane {
         moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
         textFieldBuilder = new ModuleTextFieldBuilder(paramListener);
 
+        visuals = new Visuals(bridges,paramListener,patchModule,slotPane);
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
 
@@ -187,38 +188,11 @@ public class ModulePane {
 
             case UIElements.Graph c -> graphs.mkGraph(c);
 
-            case UIElements.Led c -> mkLed(c);
+            case UIElements.Led c -> visuals.mkLed(c);
 
             default -> paramListener.empty(e, "renderElement");
 
         };
-    }
-
-    private Node mkLed(UIElements.Led c) {
-        if (c.Type() == UIElements.LedType.Green && c.LedGroup() == null) { //Green, no group: use GroupId
-            Rectangle r = withClass(new Rectangle(7,7),"led-green","led-green-off");
-            layout(c,r);
-            Property<Boolean> lit = new SimpleObjectProperty<>(false);
-            bridges.bridge(d -> {
-                        List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getLeds();
-                        for (PatchVisual led : leds) {
-                            if (led.getModule() == patchModule && led.getVisual().index() == c.GroupId()) {
-                                //System.out.println("Led: " + led + ", " + this);
-                                return led.value();
-                            }
-                        }
-                        throw new IllegalStateException("Could not locate led idx " + c.CodeRef() + ", " + this);
-                    },
-                    new FxProperty.SimpleFxProperty<>(lit),
-                    Iso.BOOL_PARAM_ISO);
-            lit.addListener((cc,o,n) -> {
-                r.getStyleClass().remove(n ? "led-green-off" : "led-green-on");
-                r.getStyleClass().add(n ? "led-green-on" : "led-green-off");
-            });
-            return r;
-        } else {
-            return paramListener.empty(c,"LedSequencer");
-        }
     }
 
     private Node mkOutput(UIElements.Output c) {
