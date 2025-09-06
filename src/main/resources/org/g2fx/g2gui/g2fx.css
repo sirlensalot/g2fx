@@ -324,7 +324,7 @@
     -fx-border-width: 1;
 }
 
-.led-green {
+.led-green, .led-sequencer {
     -fx-stroke-width: 1;
     -fx-stroke: black;
 }

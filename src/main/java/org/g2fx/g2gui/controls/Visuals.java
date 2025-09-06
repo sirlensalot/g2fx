@@ -42,12 +42,23 @@ public class Visuals {
                 return mkGroupLed(c);
             }
         } else {
-            return paramListener.empty(c,"LedSequencer");
+            return mkSequencerLed(c);
         }
+    }
+
+    private Node mkSequencerLed(UIElements.Led c) {
+        LedControl ctl = mkLed(c,12,5,"led-sequencer");
+        bridgeGroupLed(c, ctl);
+        return ctl.control();
     }
 
     private Node mkGroupLed(UIElements.Led c) {
         LedControl ctl = mkGreenLed(c);
+        bridgeGroupLed(c, ctl);
+        return ctl.control();
+    }
+
+    private void bridgeGroupLed(UIElements.Led c, LedControl ctl) {
         bridges.bridge(d -> {
                     List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getMetersAndGroups();
                     return findVisual(c, leds);
@@ -64,7 +75,6 @@ public class Visuals {
                         return 0; // one-way
                     }
                 });
-        return ctl.control();
     }
 
     private LibProperty<Integer> findVisual(UIElements.Led c, List<PatchVisual> leds) {
@@ -89,7 +99,11 @@ public class Visuals {
     }
 
     private static LedControl mkGreenLed(UIElements.Led c) {
-        Rectangle r = withClass(new Rectangle(7,7),"led-green","led-green-off");
+        return mkLed(c, 7, 7, "led-green");
+    }
+
+    private static LedControl mkLed(UIElements.Led c, int width, int height, String style) {
+        Rectangle r = withClass(new Rectangle(width, height), style,"led-green-off");
         layout(c,r);
         Property<Boolean> lit = new SimpleObjectProperty<>(false);
         lit.addListener((cc,o,n) -> {

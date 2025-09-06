@@ -350,7 +350,7 @@ public class ModulePane {
     private static Label mkText(UIElements.Text c) {
         Label b = label(c.Text());
         b.getStyleClass().add("module-text");
-        b.setLayoutX(c.XPos());
+        b.setLayoutX(c.XPos()-1);
         b.setLayoutY(c.YPos()-2.5);
         return b;
     }

@@ -45,12 +45,33 @@ public record UIModule<C> (
             cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
-        //doTypeParamQry(m,"Led",true,"Type","LedGroup","GroupId","CodeRef","Control");
+//        doTypeParamQry(m,"Led",true,true,"Type","LedGroup","GroupId","CodeRef","Control");
+        //doTypeParamQry(m,"Led",true,true);
         //doBipUniQry(m);
         //doTf(m);
         //doGraph(m);
         return m;
     }
+    private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls,
+                                       boolean inclModule, boolean modFirst, String... params) throws Exception {
+        doQuery(m,cls + "-" + String.join("-",params),(mt,ctl) -> {
+            if (cls.equals(ctl.elementType().name())) {
+                String out = null;
+                if (params.length==0) {
+                    out = ctl.toString();
+                } else {
+                    for (String param : params) {
+                        out = out == null ? "" : out + ",";
+                        out += String.format("%s=%s", param, invoke(ctl, param));
+                    }
+                }
+                if (inclModule) out = modFirst ? mt + ":" + out : out + ":" + mt;
+                return out;
+            }
+            return null;
+        });
+    }
+
 
     private static void doBipUniQry(Map<ModuleType, UIModule<UIElement>> m) throws Exception {
         doQuery(m,"BipUni",(mt, ctl) -> {
@@ -83,21 +104,6 @@ public record UIModule<C> (
                         f.Dependencies().stream().map(d ->
                                 String.format("%s.%s->%s",d.index(),d.type(),(d.type()== UIElements.DepType.Param ?
                                         mt.getParams().get(d.index()) : mt.modes.get(d.index())).param())).toList());
-            }
-            return null;
-        });
-    }
-    private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls,
-                                       boolean inclModule, String... params) throws Exception {
-        doQuery(m,cls + "-" + String.join("-",params),(mt,ctl) -> {
-            if (cls.equals(ctl.elementType().name())) {
-                String out = null;
-                for (String param : params) {
-                    out = out == null ? "" : out + ",";
-                    out += String.format("%s=%s", param, invoke(ctl, param));
-                }
-                if (inclModule) out += "[" + mt + "]";
-                return out;
             }
             return null;
         });
