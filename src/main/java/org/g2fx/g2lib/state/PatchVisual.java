@@ -29,11 +29,7 @@ public class PatchVisual {
     @Override
     public String toString() {
         int sz = visual.names().size();
-        String ns = switch (sz) {
-            case 1 -> visual.names().getFirst();
-            case 2 , 3 , 4 -> visual.names().toString();
-            default -> visual.groupType() + "[" + visual.names().size() + "]";
-        };
+        String ns = sz == 1 ? visual.names().getFirst() : visual.names().toString();
         return area + "." + module.name().get() + "[" + module.getIndex() + "]." + ns + "=" + value.get();
     }
 

@@ -222,6 +222,20 @@ public enum EvalCommand {
                     });
                 });
             })),
+    gled(cmd("set group led value",
+            argDesc("name","first led name"),argDesc("value","group led value"))
+            .run(c -> {
+                String name = c.nextArg();
+                int val = c.nextInt();
+                c.devices.runWithCurrent(d -> {
+                    PatchModule pm = c.getCurrentModule(d);
+                    c.getCurrentSlot(d).getMetersAndGroups().forEach(v -> {
+                        if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
+                            v.value().set(val);
+                        }
+                    });
+                });
+            })),
     comm(cmd("Start/stop device communication stream",
             argDesc("startStop","start or stop"))
             .run(c -> {

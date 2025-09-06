@@ -45,7 +45,7 @@ public record UIModule<C> (
             cs.sort(Comparator.comparing(UIElement::elementType));
             m.put(mt,new UIModule<>(um.Name,um.Tooltip,um.Height,cs));
         }
-        //doTypeParamQry(m,"Led",true,"Type","GroupId","CodeRef","Control","LedGroup");
+        //doTypeParamQry(m,"Led",true,"Type","LedGroup","GroupId","CodeRef","Control");
         //doBipUniQry(m);
         //doTf(m);
         //doGraph(m);
