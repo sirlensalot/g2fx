@@ -190,6 +190,8 @@ public class ModulePane {
 
             case UIElements.Led c -> visuals.mkLed(c);
 
+            case UIElements.MiniVU c -> visuals.mkMeter(c);
+
             default -> paramListener.empty(e, "renderElement");
 
         };

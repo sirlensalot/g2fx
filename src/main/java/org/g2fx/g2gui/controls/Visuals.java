@@ -10,6 +10,7 @@ import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.PatchVisual;
 
@@ -47,7 +48,7 @@ public class Visuals {
     }
 
     private Node mkSequencerLed(UIElements.Led c) {
-        LedControl ctl = mkLed(c,12,5,"led-sequencer");
+        LedControl ctl = mkLed(c,12,5,"led-sequencer"); //ledgroup(Visual.LedGroupType.Radio,
         bridgeGroupLed(c, ctl);
         return ctl.control();
     }
@@ -61,7 +62,7 @@ public class Visuals {
     private void bridgeGroupLed(UIElements.Led c, LedControl ctl) {
         bridges.bridge(d -> {
                     List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getMetersAndGroups();
-                    return findVisual(c, leds);
+                    return findVisual(c.GroupId(), leds, Visual.VisualType.LedGroup);
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
                 new Iso<>() {
@@ -77,21 +78,24 @@ public class Visuals {
                 });
     }
 
-    private LibProperty<Integer> findVisual(UIElements.Led c, List<PatchVisual> leds) {
+    private LibProperty<Integer> findVisual(int groupId, List<PatchVisual> leds, Visual.VisualType type) {
         for (PatchVisual led : leds) {
-            if (led.getModule() == patchModule && led.getVisual().index() == c.GroupId()) {
+            if (led.getModule() == patchModule && led.getVisual().index() == groupId) {
                 //System.out.println("Led: " + led + ", " + this);
+                if (led.getVisual().type() != type) {
+                    throw new IllegalArgumentException("findVisual: matching visual of wrong type " + type + ": " + led);
+                }
                 return led.value();
             }
         }
-        throw new IllegalStateException("Could not locate led idx " + c.GroupId() + ", " + this);
+        throw new IllegalStateException("Could not locate led idx " + groupId + ", " + this);
     }
 
     private Node mkSingleLed(UIElements.Led c) {
         LedControl ctl = mkGreenLed(c);
         bridges.bridge(d -> {
                     List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getLeds();
-                    return findVisual(c, leds);
+                    return findVisual(c.GroupId(), leds, Visual.VisualType.Led);
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
                 Iso.BOOL_PARAM_ISO);
@@ -112,5 +116,14 @@ public class Visuals {
         });
         LedControl ctl = new LedControl(r, lit);
         return ctl;
+    }
+
+    public Node mkMeter(UIElements.MiniVU c) {
+        VuMeter v = new VuMeter(c);
+        bridges.bridge(v.level(),d -> {
+                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getMetersAndGroups();
+                    return findVisual(c.GroupId(), leds, Visual.VisualType.Meter);
+                });
+        return v.getControl();
     }
 }

@@ -30,7 +30,7 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
                 cur.getPerf().perfName().get(),
                 new SlotPatch(patch.getSlot(),cur.getPerf().getPerfSettings().getSlotSettings(patch.getSlot()).patchName().get()),
                 patch.getPatchSettings().variation().get(),
-                AreaId.Voice,
+                patch.getPatchSettings().height().get() == 0 ? AreaId.Fx : AreaId.Voice,
                 null,
                 null
         );

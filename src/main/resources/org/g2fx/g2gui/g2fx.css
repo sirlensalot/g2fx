@@ -336,6 +336,11 @@
     -fx-fill: #75fb8e;
 }
 
+.vu-box {
+    -fx-border-width: 1;
+    -fx-border-color: black;
+}
+
 /* ========== KNOB CONTROL =========== */
 
 .knob {

@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 public class ScriptWindow {
 
+    private static final String PREF_SCRIPT = "ScriptText";
     private final Stage dialogStage;
     private final Eval eval;
     private final Logger log = Util.getLogger(getClass());
@@ -48,6 +49,9 @@ public class ScriptWindow {
         codeArea = new CodeArea();
         codeArea.setWrapText(true);
         codeArea.setPrefHeight(600);
+
+        String scriptText = FXUtil.getPrefs().get(PREF_SCRIPT, "");
+        codeArea.appendText(scriptText);
 
         // Create the output console area (JavaFX TextArea)
         consoleOutput = new TextArea();
@@ -89,6 +93,7 @@ public class ScriptWindow {
     private void runScript() {
         if (waiting != null) { return; }
         String script = codeArea.getText();
+        FXUtil.getPrefs().put(PREF_SCRIPT, script);
         BufferedReader br = new BufferedReader(new StringReader(script));
         runEval(br);
     }
