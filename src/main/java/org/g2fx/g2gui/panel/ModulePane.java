@@ -192,8 +192,6 @@ public class ModulePane {
 
             case UIElements.MiniVU c -> visuals.mkMeter(c);
 
-            default -> paramListener.empty(e, "renderElement");
-
         };
     }
 
