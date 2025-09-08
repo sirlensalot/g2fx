@@ -10,12 +10,10 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.text.Font;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.*;
 import org.g2fx.g2gui.controls.*;
@@ -41,6 +39,8 @@ import static org.controlsfx.control.CheckComboBox.COMBO_BOX_ROWS_TO_MEASURE_WID
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.ui.UIElements.Orientation.Horizontal;
 import static org.g2fx.g2gui.ui.UIElements.Orientation.Vertical;
+import static org.g2fx.g2gui.ui.UIElements.SymbolType.Amplifier;
+import static org.g2fx.g2gui.ui.UIElements.SymbolType.Box;
 
 public class ModulePane {
 
@@ -52,7 +52,7 @@ public class ModulePane {
             "LS-2-Neg.png",
             "LS-3-NegInv.png",
             "LS-4-Bip.png",
-            "LS-5-BipInv.png").map(s -> FXUtil.getImageResource("img" + File.separator + s)).toList();
+            "LS-5-BipInv.png").map(s -> FXUtil.getImageResource(img(s))).toList();
 
 
     /**
@@ -217,13 +217,16 @@ public class ModulePane {
 
 
     private Node mkSymbol(UIElements.Symbol c) {
-        Label l = label(c.Type().toString());
-        l.setFont(Font.font(6));
-        l.setBorder(Border.stroke(Color.GREY));
-        layout(c,l);
-        l.setPrefWidth(c.Width());
-        l.setPrefHeight(c.Height());
-        return l;
+        UIElements.SymbolType t = c.Type();
+        Point2D offset = new Point2D(
+                t == Box ? 1 : t == Amplifier ? -2 : 0,
+                t == Amplifier ? -0.5 : 0);
+        ImageView iv = layout(c, getImageViewResource(img("symbol-" + t + ".png")),offset);
+        iv.setFitHeight(c.Height());
+        iv.setFitWidth(c.Width());
+        iv.setViewOrder(5);
+        return iv;
+//
     }
 
     private Node mkPartSelector(UIElements.PartSelector c) {
@@ -322,10 +325,13 @@ public class ModulePane {
             ModulePane.layout(c,l,new Point2D(0,.5));
             return l;
         } else {
-            return layout(c, getImageViewResource("img" + File.separator + c.ImageFile()));
+            return layout(c, getImageViewResource(img(c.ImageFile())));
         }
     }
 
+    private static String img(String img) {
+        return "img" + File.separator + img;
+    }
 
 
     private Node mkButtonFlat(UIElements.ButtonFlat c, IndexParam ip) {

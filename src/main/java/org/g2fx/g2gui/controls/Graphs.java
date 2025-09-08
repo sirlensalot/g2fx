@@ -3,6 +3,8 @@ package org.g2fx.g2gui.controls;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import org.g2fx.g2gui.ui.UIElements;
@@ -39,9 +41,20 @@ public class Graphs {
             case 7  -> mkH(c);
             case 17 -> mkEnvMulti(c);
             case 28 -> type == ModuleType.M_EnvAHD ? mkAHD(c) : paramListener.empty(c, "Env_ModAHD");
-            default -> paramListener.empty(c, "Graph");
+            default -> emptyGraph(c);
         };
     }
+
+    private Node emptyGraph(UIElements.Graph c) {
+        Label l = new Label("Graph " + c.GraphFunc());
+        l.setPrefWidth(c.Width());
+        l.setPrefHeight(c.Height());
+        l.setBorder(Border.stroke(Color.GREEN));
+        layout(c,l);
+        paramListener.empty(c,"Graph");
+        return l;
+    }
+
     /**
      * @param resonance 0..4-ish
      * @param order Filter order (e.g. 2 = 12dB/oct, 3 = 18db/oct, 4 = 24dB/oct)
