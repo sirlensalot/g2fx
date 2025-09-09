@@ -131,6 +131,8 @@ public class ScriptWindow {
 
     public void show() {
         dialogStage.show();
+        dialogStage.toFront();
+        dialogStage.requestFocus();
     }
 
     public void updatePath() {

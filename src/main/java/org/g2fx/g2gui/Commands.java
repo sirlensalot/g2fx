@@ -1,6 +1,7 @@
 package org.g2fx.g2gui;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -11,6 +12,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2gui.window.ParameterOverview;
 import org.g2fx.g2gui.window.ScriptWindow;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Devices;
@@ -34,6 +36,7 @@ public class Commands {
     private MenuBar menuBar;
     private final Set<File> recentFiles = new LinkedHashSet<>();
     private Menu recentFilesMenu;
+    private ParameterOverview parameterOverview;
 
     public Commands(Devices devices, Slots slots, Undos undos) {
         this.devices = devices;
@@ -81,11 +84,21 @@ public class Commands {
                         d.getPerf().dumpYaml(file.getAbsolutePath())));
 
             }});
-        MenuItem repl = new MenuItem("Scripts");
-        repl.setOnAction(e -> scriptWindow.show());
 
-        menu.getItems().addAll(dumpYaml,repl);
+
+        menu.getItems().addAll(dumpYaml, mkMenuItem("Scripts", e -> scriptWindow.show()));
         return menu;
+    }
+
+    private static MenuItem mkMenuItem(String name, EventHandler<ActionEvent> action,KeyCombination shortcut) {
+        MenuItem i = mkMenuItem(name,action);
+        i.setAccelerator(shortcut);
+        return i;
+    }
+    private static MenuItem mkMenuItem(String name, EventHandler<ActionEvent> action) {
+        MenuItem repl = new MenuItem(name);
+        repl.setOnAction(action);
+        return repl;
     }
 
     private Menu populateEditMenu() {
@@ -236,5 +249,9 @@ public class Commands {
 
     public void selectModule(Slot slot,AreaId area,int idx) {
         slots.getSlot(slot).getAreaPane(area).selectModule(idx);
+    }
+
+    public void setParameterOverview(ParameterOverview parameterOverview) {
+        this.parameterOverview = parameterOverview;
     }
 }
