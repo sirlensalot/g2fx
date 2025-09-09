@@ -416,4 +416,8 @@ public class AreaPane {
         if (mp == null) { throw new IllegalArgumentException("selectModule: invalid index: " + idx); }
         selectModule(mp);
     }
+
+    public ModulePane getModule(int module) {
+        return modulePanes.get(module);
+    }
 }

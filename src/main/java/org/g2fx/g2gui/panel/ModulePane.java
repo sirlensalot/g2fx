@@ -613,4 +613,12 @@ public class ModulePane {
     public void unbindVarControls() {
         slotPane.unbindVarControls(varBindings);
     }
+
+    public String getName() {
+        return moduleSelector.name().getValue();
+    }
+
+    public String getParamName(int param) {
+        return type.getParams().get(param).name();
+    }
 }

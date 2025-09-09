@@ -11,14 +11,14 @@ public class KnobAssignments {
     private final List<FieldValues> kfvs;
     private final List<LibProperty<KnobAssignment>> assignments = new ArrayList<>();
 
-    public KnobAssignments(FieldValues fvs) {
+    public KnobAssignments(FieldValues fvs, Slot slot) {
         this.kfvs =
                 Protocol.KnobAssignments.Knobs.subfieldsValue(fvs);
         for (FieldValues ka : kfvs) {
             KnobAssignment k;
             if (Protocol.KnobAssignment.Assigned.intValue(ka) == 1) {
                 FieldValues kp = Protocol.KnobAssignment.Params.subfieldsValue(ka).getFirst();
-                k = new KnobAssignment(new KnobAssignment.Location(null,
+                k = new KnobAssignment(new KnobAssignment.Location(slot,
                         AreaId.LOOKUP.get(Protocol.KnobParams.Location.intValue(kp)),
                         Protocol.KnobParams.Index.intValue(kp),
                         Protocol.KnobParams.Param.intValue(kp)),

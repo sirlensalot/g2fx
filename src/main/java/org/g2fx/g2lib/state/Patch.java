@@ -360,7 +360,7 @@ public class Patch {
             case SCableList0 -> fxArea.addCables(section.values);
             case SCableList1 -> voiceArea.addCables(section.values);
             case SMorphLabels -> settingsArea.setMorphLabels(section.values);
-            case SKnobAssignments -> this.knobAssignments = new KnobAssignments(section.values);
+            case SKnobAssignments -> this.knobAssignments = new KnobAssignments(section.values,slot);
             case SControlAssignments -> this.controls = new ControlAssignments(section.values);
             case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
             case SPatchName -> this.name = LibProperty.stringFieldProperty(section.values, Protocol.EntryName.Name);

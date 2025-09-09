@@ -17,6 +17,7 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
+import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.state.Device;
@@ -38,7 +39,12 @@ public class ParameterOverview {
             public char buttonChar() { return (char) ('A' + ordinal()); }
     }
 
-    record PageControl(Label module, Label param) {}
+    record PageControl(Label module, Label param) {
+        public void clear() {
+            module.setText("");
+            param.setText("");
+        }
+    }
 
     record SlotOrGlobal(Slot slot) {
         public boolean isGlobal() { return slot == null; }
@@ -132,8 +138,11 @@ public class ParameterOverview {
         Property<KnobAssignment> prop = new SimpleObjectProperty<>();
         pageControls.add(new RebindableControl<>(prop,sog -> props.get(sog.index())));
         prop.addListener((c,o,n) -> {
-            ctl.module().setText(n.assigned() ? n.loc().module()+"" : "");
-            ctl.param().setText(n.assigned() ? n.loc().param()+"" : "");
+            if (!n.assigned()) { ctl.clear(); return; }
+            Slot slot = n.loc().slot();
+            ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
+            ctl.module().setText(mp.getName());
+            ctl.param().setText(mp.getParamName(n.loc().param()));
         });
     }
 
