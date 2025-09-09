@@ -1,4 +1,4 @@
-package org.g2fx.g2gui;
+package org.g2fx.g2gui.window;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -11,6 +11,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.fxmisc.richtext.CodeArea;
+import org.g2fx.g2gui.Commands;
+import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2lib.repl.Eval;
 import org.g2fx.g2lib.repl.EvalResult;
 import org.g2fx.g2lib.state.Devices;
@@ -38,7 +40,7 @@ public class ScriptWindow {
     private final Executor waitExecutor = Executors.newSingleThreadExecutor();
     private Integer waiting = null;
 
-    public ScriptWindow(Devices devices,Commands commands) throws Exception {
+    public ScriptWindow(Devices devices, Commands commands) throws Exception {
 
         dialogStage = new Stage();
 

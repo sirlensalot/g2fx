@@ -23,6 +23,8 @@ import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.MultiStateToggle;
 import org.g2fx.g2gui.controls.TextOrImage;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2gui.window.ParameterOverview;
+import org.g2fx.g2gui.window.ScriptWindow;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
@@ -127,12 +129,13 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         Scene scene = mkScene(stage);
 
         scriptWindow = new ScriptWindow(devices,commands);
+        ParameterOverview parameterOverview = new ParameterOverview();
 
         commands.setScriptWindow(scriptWindow);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
-        scene.getStylesheets().add(FXUtil.getResource("g2fx.css").toExternalForm());
+        addGlobalStylesheet(scene);
         stage.show();
 
         fxQueue.startPolling();
@@ -141,6 +144,11 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         textFocusListener.focusChange(false);
 
 
+    }
+
+    public static Scene addGlobalStylesheet(Scene scene) {
+        scene.getStylesheets().add(FXUtil.getResource("g2fx.css").toExternalForm());
+        return scene;
     }
 
 

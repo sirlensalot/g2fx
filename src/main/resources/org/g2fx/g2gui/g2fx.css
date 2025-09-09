@@ -341,6 +341,34 @@
     -fx-border-color: black;
 }
 
+/* ========== Param Overview Window =========== */
+
+.ppage-pvalue {
+    -fx-min-width: 60;
+    -fx-min-height: 10;
+}
+
+.ppage-box {
+    -fx-padding: 2px;
+}
+
+.ppage-row-id {
+    -fx-padding: 2px;
+    -fx-pref-width: 15px;
+}
+
+.ppage-block-box {
+    -fx-border-width: 1px;
+    -fx-border-color: grey;
+}
+
+.ppage-block {
+    -fx-padding: 5px;
+}
+
+.ppage-button-bar {
+    -fx-padding: 5px;
+}
 /* ========== KNOB CONTROL =========== */
 
 .knob {

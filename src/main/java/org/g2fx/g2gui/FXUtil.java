@@ -32,6 +32,14 @@ public class FXUtil {
         node.getStyleClass().addAll(classes);
         return node;
     }
+    public static <T extends Styleable> T withClass1(String clas, T node) {
+        return withClass(node,clas);
+    }
+
+    public static <T extends Node> T unfocusable(T node) {
+        node.setFocusTraversable(false);
+        return node;
+    }
 
     public static URL getResource(String file) {
         URL r = FXUtil.class.getResource(file);
