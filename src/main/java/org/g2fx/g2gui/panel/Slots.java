@@ -3,6 +3,7 @@ package org.g2fx.g2gui.panel;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.RadioButton;
@@ -15,6 +16,7 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.RebindableControl;
+import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
@@ -40,7 +42,7 @@ public class Slots {
     private SegmentedButton slotBar;
     private final List<SlotPane> slotPanes = new ArrayList<>();
 
-    private final List<RebindableControl<Integer,?>> slotControls = new ArrayList<>();
+    private final RebindableControls<Integer> slotControls = new RebindableControls<>();
 
 
     private final Map<ModuleType, UIModule<UIElement>> uiModules;
@@ -49,7 +51,7 @@ public class Slots {
 
     public record SlotAndVar(Slot slot,Integer var) {}
 
-    private final List<RebindableControl<SlotAndVar,?>> morphControls = new ArrayList<>();
+    private final RebindableControls<SlotAndVar> morphControls = new RebindableControls<>();
 
     private final Bridges bridges;
 
@@ -150,9 +152,7 @@ public class Slots {
 
     private void slotChanged(Integer oldSlot, Integer newSlot) {
         slotTabs.getSelectionModel().select(newSlot);
-        for (RebindableControl<Integer,?> control : slotControls) {
-            control.bind(newSlot);
-        }
+        slotControls.updateBinds(newSlot);
         getSelectedSlotPane().updateMorphBinds();
     }
 
@@ -186,5 +186,9 @@ public class Slots {
     public <T> void bindSlotControl(Property<T> control, Function<Slot,Property<T>> slotPropBuilder) {
         List<Property<T>> l = Arrays.stream(Slot.values()).map(slotPropBuilder).toList();
         slotControls.add(new RebindableControl<>(control, l::get));
+    }
+
+    public void addListener(ChangeListener<Slot> l) {
+        slotTabs.getSelectionModel().selectedIndexProperty().addListener((c,o,n) -> l.changed(null,null,Slot.fromIndex(n.intValue())));
     }
 }

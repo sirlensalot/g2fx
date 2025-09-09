@@ -129,7 +129,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         Scene scene = mkScene(stage);
 
         scriptWindow = new ScriptWindow(devices,commands);
-        ParameterOverview parameterOverview = new ParameterOverview(slots);
+        ParameterOverview parameterOverview = new ParameterOverview(slots,bridges);
 
         commands.setScriptWindow(scriptWindow);
         commands.setParameterOverview(parameterOverview);

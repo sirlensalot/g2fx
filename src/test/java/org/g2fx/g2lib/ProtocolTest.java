@@ -153,7 +153,7 @@ class ProtocolTest {
         for (int i = 0; i < kc; i++) {
             FieldValues ka = kas.get(i);
             int a = i == 0 ? 1 : 0;
-            assertFieldEquals(ka,a,KnobAssignment.Assigned);
+            assertFieldEquals(ka,a,Protocol.KnobAssignment.Assigned);
         }
 
         List<FieldValues> akas = p.getKnobAssignments().getActiveAssignments();

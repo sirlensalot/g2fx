@@ -32,7 +32,10 @@ import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
@@ -46,13 +49,13 @@ public class SlotPane {
     private final Bridges bridges;
     private final Slot slot;
     private final FXUtil.TextFieldFocusListener textFocusListener;
-    private final List<RebindableControl<Slots.SlotAndVar, ?>> morphControls;
+    private final RebindableControls<Slots.SlotAndVar> morphControls;
     private final Undos undos;
 
     private SplitPane.Divider divider;
     private SplitPane patchSplit;
 
-    private final List<RebindableControl<Integer,?>> varControls = new ArrayList<>();
+    private final RebindableControls<Integer> varControls = new RebindableControls<>();
 
     private final Map<AreaId,AreaPane> areaPanes = new HashMap<>();
 
@@ -62,7 +65,7 @@ public class SlotPane {
 
 
     public SlotPane(Bridges bridges, FXUtil.TextFieldFocusListener textFocusListener,
-                    Slot slot, List<RebindableControl<Slots.SlotAndVar, ?>> morphControls,
+                    Slot slot, RebindableControls<Slots.SlotAndVar> morphControls,
                     Undos undos) {
         this.bridges = bridges;
         this.slot = slot;
@@ -300,9 +303,7 @@ public class SlotPane {
 
     private void updateVarBinds(Integer newVar) {
         if (newVar == null) { return; }
-        for (RebindableControl<Integer,?> vc : varControls) {
-            vc.bind(newVar);
-        }
+        varControls.updateBinds(newVar);
     }
 
     private Integer getCurrentVar() {
@@ -314,9 +315,7 @@ public class SlotPane {
     public void updateMorphBinds() {
         Integer var = getCurrentVar();
         if (var != null) {
-            for (RebindableControl<Slots.SlotAndVar, ?> mc : morphControls) {
-                mc.bind(new Slots.SlotAndVar(slot, var));
-            }
+            morphControls.updateBinds(new Slots.SlotAndVar(slot, var));
         }
     }
 
@@ -380,7 +379,7 @@ public class SlotPane {
 
     public void unbindVarControls(List<RebindableControl<Integer,?>> bs) {
         bs.forEach(RebindableControl::unbind);
-        varControls.removeAll(bs);
+        varControls.remove(bs);
     }
 
     public void toggleShowCables() {
