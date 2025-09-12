@@ -343,6 +343,10 @@
 
 /* ========== Param Overview Window =========== */
 
+.ppage-button, .ppage-tbutton, .ppage-label, .ppage-pname, .ppage-pvalue {
+    -fx-font-size: 10px;
+}
+
 .ppage-pvalue {
     -fx-min-width: 60;
     -fx-min-height: 10;

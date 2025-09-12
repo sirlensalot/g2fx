@@ -619,6 +619,10 @@ public enum ModParam {
         return new NamedParam(this,name,List.of());
     }
 
+    public NamedParam mk(String name, int userNameParam) {
+        return new NamedParam(this,name,List.of(),userNameParam);
+    }
+
     public NamedParam mk() {
         return new NamedParam(this,name(),List.of());
     }

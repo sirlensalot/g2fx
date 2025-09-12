@@ -1,9 +1,6 @@
 package org.g2fx.g2gui.panel;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Point2D;
@@ -27,10 +24,7 @@ import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -102,6 +96,7 @@ public class ModulePane {
             Connector.PortType.Out,new ArrayList<>());
 
     private Graphs graphs;
+    private final Map<Integer, ObservableValue<String>> paramNames = new TreeMap<>();
 
     public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
                       FXUtil.TextFieldFocusListener textFocusListener,
@@ -498,6 +493,8 @@ public class ModulePane {
 
         TextField editor = makeButtonEditField(button);
 
+        paramNames.put(ip.index(),button.textProperty());
+
         bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
                 FxProperty.adaptReadOnly(button.textProperty(), button::setText),
                 Iso.id()
@@ -618,7 +615,8 @@ public class ModulePane {
         return moduleSelector.name().getValue();
     }
 
-    public String getParamName(int param) {
-        return type.getParams().get(param).name();
+    public ObservableValue<String> getParamName(int param) {
+        ObservableValue<String> np = paramNames.get(param);
+        return np != null ? np : new SimpleStringProperty(type.getParams().get(param).name());
     }
 }

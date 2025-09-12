@@ -1,5 +1,6 @@
 package org.g2fx.g2gui.window;
 
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
@@ -20,6 +21,7 @@ import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.KnobAssignment;
 import org.g2fx.g2lib.state.Slot;
@@ -34,7 +36,7 @@ import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.G2GuiApplication.addGlobalStylesheet;
 
 public class ParameterOverview {
-    public static enum PageRow {
+    public enum PageRow {
         Osc,LFO,Env,Filter,Effect;
             public char buttonChar() { return (char) ('A' + ordinal()); }
     }
@@ -78,9 +80,9 @@ public class ParameterOverview {
         buttonBar.setSpacing(5);
         List<VBox> pages = Arrays.stream(PageRow.values()).map(pid ->
                 withClass1("ppage-block", new VBox(
-                        withClass1("ppage-block-label", new HBox(label(pid.buttonChar()+" "+pid.name()))),
+                        withClass1("ppage-block-label", new HBox(withClass1("ppage-label",label(pid.buttonChar()+" "+pid.name())))),
                         withClass1("ppage-block-box",addChildren(new VBox(), IntStream.rangeClosed(1,3).mapToObj(col -> {
-                            VBox idbox = withClass1("ppage-row-id", new VBox(label(Integer.toString(col))));
+                            VBox idbox = withClass1("ppage-row-id", new VBox(withClass1("ppage-label",label(Integer.toString(col)))));
                             VBox.setVgrow(idbox,Priority.ALWAYS);
                             idbox.setAlignment(Pos.CENTER);
                             ArrayList<PageControl> cs = new ArrayList<>();
@@ -108,7 +110,8 @@ public class ParameterOverview {
 
         slots.addListener((c,o,n) -> {
             if (!globalPages.isSelected()) {
-                pageControls.updateBinds(new SlotOrGlobal(n));
+                //defer bind updates, since in init the source props may not be re-initialized
+                Platform.runLater(() -> pageControls.updateBinds(new SlotOrGlobal(n)));
             }
         });
         globalPages.setOnAction(e -> {
@@ -139,11 +142,21 @@ public class ParameterOverview {
         pageControls.add(new RebindableControl<>(prop,sog -> props.get(sog.index())));
         prop.addListener((c,o,n) -> {
             if (!n.assigned()) { ctl.clear(); return; }
-            Slot slot = n.loc().slot();
-            ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
-            ctl.module().setText(mp.getName());
-            ctl.param().setText(mp.getParamName(n.loc().param()));
+            updateAssignedSlot(ctl, n);
         });
+    }
+
+    private void updateAssignedSlot(PageControl ctl, KnobAssignment n) {
+        Slot slot = n.loc().slot();
+        if (n.loc().area()== AreaId.Settings) {
+            System.out.println("TODO: Param Overview for settings");
+            return;
+        }
+        ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
+        ctl.module().setText(globalPages.isSelected() ? n.loc().slot() + ":" + mp.getName() : mp.getName());
+        Integer userNameParam = mp.getType().getParams().get(n.loc().param()).userNameParam();
+        int paramTextIx = userNameParam != null ? userNameParam : n.loc().param();
+        ctl.param().setText(mp.getParamName(paramTextIx).getValue());
     }
 
     private Node spacer() {

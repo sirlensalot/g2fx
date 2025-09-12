@@ -15,7 +15,9 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.util.Util;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -65,7 +67,7 @@ public class ParamListener {
     public static ParamSpec pBool(Object id) { return new ParamSpec(IntOrBool.Bool,id); }
 
 
-    public class ParamVals {
+    public static class ParamVals {
         private final Map<Object,ParamVal> vs;
         private final Map<Object,IntOrBool> types;
 
@@ -109,15 +111,6 @@ public class ParamListener {
         this.modulePane = modulePane;
     }
 
-
-    public void build(ControlDependencies deps, Consumer<List<ParamVal>> f, IntOrBool... depTypes) {
-        List<ParamVal> vs = new ArrayList<>(depTypes.length);
-        Runnable listener = () -> f.accept(vs);
-        for (int i = 0 ; i < depTypes.length ; i++) {
-            vs.add(depTypes[i] == IntOrBool.Int ? new IntVal(resolveDepParam(deps, i), listener) :
-                    new BoolVal(resolveBoolDepParam(deps, i), listener));
-        }
-    }
 
     public void build(ControlDependencies deps, Consumer<ParamVals> f, ParamSpec... depTypes) {
         ParamVals vs = new ParamVals(depTypes);
@@ -190,7 +183,6 @@ public class ParamListener {
         int cr = uc.CodeRef();
         if (cr > type.getParams().size()) { throw new IllegalArgumentException("resolveParam: bad index: " + uc); }
         NamedParam p = type.getParams().get(cr);
-        if (!p.name().equals(uc.Control())) { throw new IllegalArgumentException("resolveParam: bad name: " + uc); }
         return new IndexParam(p,cr,modulePane.toString());
     }
 
