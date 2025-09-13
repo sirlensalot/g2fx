@@ -12,6 +12,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2gui.window.G2Window;
 import org.g2fx.g2gui.window.ParameterOverview;
 import org.g2fx.g2gui.window.PatchSettingsWindow;
 import org.g2fx.g2gui.window.ScriptWindow;
@@ -28,48 +29,132 @@ import java.util.Set;
 public class Commands {
 
     public static final String PREF_RECENT_FILES = "recentFiles";
+    public static final int MAX_RECENT_FILES = 15;
+
 
     private final Devices devices;
 
     private final Slots slots;
     private final Undos undos;
     private ScriptWindow scriptWindow;
-    private MenuBar menuBar;
     private final Set<File> recentFiles = new LinkedHashSet<>();
-    private Menu recentFilesMenu;
     private ParameterOverview parameterOverview;
     private PatchSettingsWindow patchSettings;
+
+    private final List<Menus> allMenus = new ArrayList<>();
+
+
+    public class Menus {
+        private final MenuBar menuBar;
+        private Menu recentFilesMenu;
+
+        public Menus(Stage stage) {
+            menuBar = new MenuBar();
+
+            menuBar.setUseSystemMenuBar(true);
+
+            Menu editMenu = populateEditMenu();
+
+            Menu fileMenu = populateFileMenu(stage);
+
+            Menu synthMenu = populateSynthMenu();
+
+            Menu toolsMenu = populateToolsMenu(stage);
+
+            menuBar.getMenus().addAll(fileMenu,editMenu,synthMenu,toolsMenu);
+
+        }
+
+        private Menu populateFileMenu(Stage stage) {
+            Menu fileMenu = new Menu("File");
+            recentFilesMenu = new Menu("Recent Files");
+            populateRecentFiles();
+
+            MenuItem openItem = new MenuItem("Open...");
+
+            fileMenu.getItems().addAll(openItem, recentFilesMenu);
+
+            openItem.setAccelerator(KeyCombination.keyCombination("Shortcut+O"));
+            openItem.setOnAction(event -> {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Open File");
+                fileChooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
+                );
+                File f = fileChooser.showOpenDialog(stage);
+                if (f != null) { loadFile(f); }
+
+            });
+            return fileMenu;
+        }
+
+        private void populateRecentFiles() {
+            recentFilesMenu.getItems().clear();
+
+            int i = 0;
+            for (File rf : new ArrayList<>(recentFiles).reversed()) {
+
+                MenuItem mi = new MenuItem(rf.getName());
+                recentFilesMenu.getItems().add(mi);
+                if (i==0) {
+                    mi.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+O"));
+                }
+                mi.setOnAction(e -> {
+                    loadFile(rf);
+                });
+
+                if (i++>MAX_RECENT_FILES) { break; }
+            }
+            menuBar.setUseSystemMenuBar(false);
+            menuBar.setUseSystemMenuBar(true);
+        }
+
+
+        private void loadFile(File f) {
+
+            recentFiles.remove(f);
+            recentFiles.add(f);
+
+            Platform.runLater(Commands.this::updateRecentFiles);
+
+            devices.execute(true,() -> devices.loadFile(f.getAbsolutePath()));
+        }
+
+
+        public MenuBar getMenuBar() {
+            return menuBar;
+        }
+    }
 
     public Commands(Devices devices, Slots slots, Undos undos) {
         this.devices = devices;
         this.slots = slots;
         this.undos = undos;
-    }
-
-
-    public MenuBar setupMenu(Stage stage) {
-
         String recentFilesString = FXUtil.getPrefs().get(PREF_RECENT_FILES, "");
         if (!recentFilesString.isEmpty()) {
             for (String path : List.of(recentFilesString.split("\n")).reversed()) {
                 recentFiles.add(new File(path));
             }
         }
+    }
 
-        menuBar = new MenuBar();
 
-        menuBar.setUseSystemMenuBar(true);
+    public MenuBar setupMenu(Stage stage) {
+        Menus menus = new Menus(stage);
+        allMenus.add(menus);
+        return menus.getMenuBar();
+    }
 
-        Menu editMenu = populateEditMenu();
-
-        Menu fileMenu = populateFileMenu(stage);
-
-        Menu synthMenu = populateSynthMenu();
-
-        Menu toolsMenu = populateToolsMenu(stage);
-
-        menuBar.getMenus().addAll(fileMenu,editMenu,synthMenu,toolsMenu);
-        return menuBar;
+    public void updateRecentFiles() {
+        allMenus.forEach(Menus::populateRecentFiles);
+        int i = 0;
+        StringBuilder sb = new StringBuilder();
+        for (File rf : new ArrayList<>(recentFiles).reversed()) {
+            if (!sb.isEmpty()) { sb.append("\n"); }
+            sb.append(rf.getAbsolutePath());
+            if (i++> MAX_RECENT_FILES) { break; }
+        }
+        FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
     }
 
     private Menu populateSynthMenu() {
@@ -130,66 +215,7 @@ public class Commands {
         return editMenu;
     }
 
-    private Menu populateFileMenu(Stage stage) {
-        Menu fileMenu = new Menu("File");
-        recentFilesMenu = new Menu("Recent Files");
-        populateRecentFiles();
 
-        MenuItem openItem = new MenuItem("Open...");
-
-        fileMenu.getItems().addAll(openItem, recentFilesMenu);
-
-        openItem.setAccelerator(KeyCombination.keyCombination("Shortcut+O"));
-        openItem.setOnAction(event -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open File");
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
-            );
-            File f = fileChooser.showOpenDialog(stage);
-            if (f != null) { loadFile(f); }
-
-        });
-        return fileMenu;
-    }
-
-    private StringBuilder populateRecentFiles() {
-        int i = 0;
-        StringBuilder sb = new StringBuilder();
-        for (File rf : new ArrayList<>(recentFiles).reversed()) {
-
-            MenuItem mi = new MenuItem(rf.getName());
-            recentFilesMenu.getItems().add(mi);
-            if (i==0) {
-                mi.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+O"));
-            }
-            mi.setOnAction(e -> {
-                loadFile(rf);
-            });
-            if (!sb.isEmpty()) { sb.append("\n"); }
-            sb.append(rf.getAbsolutePath());
-
-            if (i++>15) { break; }
-        }
-        menuBar.setUseSystemMenuBar(false);
-        menuBar.setUseSystemMenuBar(true);
-        return sb;
-    }
-
-    private void loadFile(File f) {
-
-        recentFiles.remove(f);
-        recentFiles.add(f);
-
-        recentFilesMenu.getItems().clear();
-
-        Platform.runLater(() -> {
-            StringBuilder sb = populateRecentFiles();
-            FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
-        });
-
-        devices.execute(true,() -> devices.loadFile(f.getAbsolutePath()));
-    }
 
     public FXUtil.TextFieldFocusListener setupKeyBindings(Stage stage) {
         EventHandler<? super KeyEvent> globalKeyListener = e -> {
@@ -260,7 +286,7 @@ public class Commands {
     }
 
     public void setScriptWindow(ScriptWindow scriptWindow) {
-        this.scriptWindow = scriptWindow;
+        this.scriptWindow = setupWindowMenu(scriptWindow);
     }
 
 
@@ -268,11 +294,17 @@ public class Commands {
         slots.getSlot(slot).getAreaPane(area).selectModule(idx);
     }
 
+    private <T extends G2Window> T setupWindowMenu(T window) {
+        window.setMenu(this::setupMenu);
+        return window;
+    }
+
     public void setParameterOverview(ParameterOverview parameterOverview) {
-        this.parameterOverview = parameterOverview;
+        this.parameterOverview = setupWindowMenu(parameterOverview);
     }
 
     public void setPatchSettings(PatchSettingsWindow patchSettings) {
-        this.patchSettings = patchSettings;
+        this.patchSettings = setupWindowMenu(patchSettings);
     }
+
 }

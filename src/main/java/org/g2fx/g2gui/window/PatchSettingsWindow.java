@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.controlsfx.control.SegmentedButton;
@@ -21,17 +22,18 @@ import java.util.stream.Stream;
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.G2GuiApplication.addGlobalStylesheet;
 
-public class PatchSettingsWindow {
+public class PatchSettingsWindow implements G2Window {
 
     public static final double KNOB_SCALE = 1;
     private final Stage stage;
     private final Slots slots;
     private final Bridger bridges;
+    private final HBox root;
 
     public PatchSettingsWindow(Slots slots, Bridger bridges) {
         this.slots = slots;
         this.bridges = bridges;
-        HBox root = withClass1("pset-root",new HBox(
+        root = withClass1("pset-root",new HBox(
                 withClass1("pset-box",psetBox(
                         plabel("Sustain Pedal"),
                         withClass1("pset-sustain",mkSustain()),
@@ -154,9 +156,13 @@ public class PatchSettingsWindow {
     }
 
 
-    public void show() {
-        stage.show();
-        stage.toFront();
-        stage.requestFocus();
+    @Override
+    public Stage getStage() {
+        return stage;
+    }
+
+    @Override
+    public Pane getRoot() {
+        return root;
     }
 }

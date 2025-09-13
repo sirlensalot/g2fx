@@ -8,6 +8,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.fxmisc.richtext.CodeArea;
@@ -27,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ScriptWindow {
+public class ScriptWindow implements G2Window {
 
     private static final String PREF_SCRIPT = "ScriptText";
     private final Stage dialogStage;
@@ -38,6 +39,7 @@ public class ScriptWindow {
     private final TextArea consoleOutput;
 
     private final Executor waitExecutor = Executors.newSingleThreadExecutor();
+    private final VBox root;
     private Integer waiting = null;
 
     public ScriptWindow(Devices devices, Commands commands) throws Exception {
@@ -74,7 +76,7 @@ public class ScriptWindow {
             }
         });
         // Layout: VBox with editor taking most space, console at bottom
-        VBox root = new VBox(5, codeArea, runButton, consoleOutput);
+        root = new VBox(5, codeArea, runButton, consoleOutput);
         root.setPrefSize(600, 800);
 
         // Make the editor grow vertically, console fixed size
@@ -129,10 +131,14 @@ public class ScriptWindow {
                 (waiting == null ? "" : " [Wait " + waiting + "]"));
     }
 
-    public void show() {
-        dialogStage.show();
-        dialogStage.toFront();
-        dialogStage.requestFocus();
+    @Override
+    public Stage getStage() {
+        return dialogStage;
+    }
+
+    @Override
+    public Pane getRoot() {
+        return root;
     }
 
     public void updatePath() {

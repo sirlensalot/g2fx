@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.G2GuiApplication.addGlobalStylesheet;
 
-public class ParameterOverview {
+public class ParameterOverview implements G2Window {
     public enum PageRow {
         Osc,LFO,Env,Filter,Effect;
             public char buttonChar() { return (char) ('A' + ordinal()); }
@@ -65,6 +65,7 @@ public class ParameterOverview {
     private final Slots slots;
     private final Bridger bridges;
     private final Stage stage;
+    private final VBox root;
 
     public ParameterOverview(Slots slots, Bridger bridges) {
         this.slots = slots;
@@ -92,7 +93,7 @@ public class ParameterOverview {
                                     mkRow(pid, col, cs)));
                         }).toList())
                 )))).toList();
-        VBox root = addChildren(new VBox(buttonBar),pages);
+        root = addChildren(new VBox(buttonBar),pages);
         stage = new Stage();
         stage.setTitle("Parameter Overview");
         stage.setScene(addGlobalStylesheet(new Scene(root)));
@@ -177,9 +178,14 @@ public class ParameterOverview {
         return r;
     }
 
-    public void show() {
-        stage.show();
-        stage.toFront();
-        stage.requestFocus();
+
+    @Override
+    public Stage getStage() {
+        return stage;
+    }
+
+    @Override
+    public VBox getRoot() {
+        return root;
     }
 }
