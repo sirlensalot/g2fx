@@ -11,7 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.controlsfx.control.SegmentedButton;
+import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.controls.Knob;
+import org.g2fx.g2gui.panel.Slots;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -23,8 +25,12 @@ public class PatchSettingsWindow {
 
     public static final double KNOB_SCALE = 1;
     private final Stage stage;
+    private final Slots slots;
+    private final Bridger bridges;
 
-    public PatchSettingsWindow() {
+    public PatchSettingsWindow(Slots slots, Bridger bridges) {
+        this.slots = slots;
+        this.bridges = bridges;
         HBox root = withClass1("pset-root",new HBox(
                 withClass1("pset-box",psetBox(
                         plabel("Sustain Pedal"),

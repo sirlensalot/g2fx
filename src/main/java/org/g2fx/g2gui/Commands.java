@@ -13,6 +13,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.ParameterOverview;
+import org.g2fx.g2gui.window.PatchSettingsWindow;
 import org.g2fx.g2gui.window.ScriptWindow;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Devices;
@@ -37,6 +38,7 @@ public class Commands {
     private final Set<File> recentFiles = new LinkedHashSet<>();
     private Menu recentFilesMenu;
     private ParameterOverview parameterOverview;
+    private PatchSettingsWindow patchSettings;
 
     public Commands(Devices devices, Slots slots, Undos undos) {
         this.devices = devices;
@@ -62,10 +64,21 @@ public class Commands {
 
         Menu fileMenu = populateFileMenu(stage);
 
+        Menu synthMenu = populateSynthMenu();
+
         Menu toolsMenu = populateToolsMenu(stage);
 
-        menuBar.getMenus().addAll(fileMenu,editMenu,toolsMenu);
+        menuBar.getMenus().addAll(fileMenu,editMenu,synthMenu,toolsMenu);
         return menuBar;
+    }
+
+    private Menu populateSynthMenu() {
+        Menu menu = new Menu("Synth");
+        menu.getItems().addAll(
+                mkMenuItem("Synth settings",e -> patchSettings.show(),
+                        KeyCombination.keyCombination("Shortcut+G"))
+        );
+        return menu;
     }
 
     private Menu populateToolsMenu(Stage stage) {
@@ -86,7 +99,11 @@ public class Commands {
             }});
 
 
-        menu.getItems().addAll(dumpYaml, mkMenuItem("Scripts", e -> scriptWindow.show()));
+        menu.getItems().addAll(
+                mkMenuItem("Parameter Overview",e -> parameterOverview.show(),
+                        KeyCombination.keyCombination("Shortcut+L")),
+                dumpYaml,
+                mkMenuItem("Scripts", e -> scriptWindow.show()));
         return menu;
     }
 
@@ -253,5 +270,9 @@ public class Commands {
 
     public void setParameterOverview(ParameterOverview parameterOverview) {
         this.parameterOverview = parameterOverview;
+    }
+
+    public void setPatchSettings(PatchSettingsWindow patchSettings) {
+        this.patchSettings = patchSettings;
     }
 }

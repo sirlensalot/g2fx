@@ -131,10 +131,11 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
         scriptWindow = new ScriptWindow(devices,commands);
         ParameterOverview parameterOverview = new ParameterOverview(slots,bridges);
-        PatchSettingsWindow patchSettings = new PatchSettingsWindow();
+        PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,bridges);
 
         commands.setScriptWindow(scriptWindow);
         commands.setParameterOverview(parameterOverview);
+        commands.setPatchSettings(patchSettings);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
