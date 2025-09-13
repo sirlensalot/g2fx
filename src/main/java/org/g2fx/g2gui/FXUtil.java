@@ -1,6 +1,7 @@
 package org.g2fx.g2gui;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.css.Styleable;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -13,6 +14,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import java.net.URL;
@@ -141,5 +143,17 @@ public class FXUtil {
             @Override public String fromString(String string) { return string; }
         }, textField.getText(), c -> { return c.getControlNewText().length() <= maxLength ? c : null; }));
         return textField;
+    }
+
+    public static ToggleButton g2Toggle(String n) {
+        return unfocusable(withClass(new ToggleButton(n),"g2-toggle"));
+    }
+
+    public static void trackWinSizeInTitle(Stage stage, String title) {
+        ChangeListener<Number> l = (c, o, n) ->
+                stage.setTitle(String.format("%s [%sx%s]", title,
+                        stage.getWidth(), stage.getHeight()));
+        stage.widthProperty().addListener(l);
+        stage.heightProperty().addListener(l);
     }
 }

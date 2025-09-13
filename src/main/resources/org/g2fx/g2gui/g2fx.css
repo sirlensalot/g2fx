@@ -341,6 +341,52 @@
     -fx-border-color: black;
 }
 
+/* ========== Patch Settings window ============== */
+
+.pset-box,.pset-root {
+    -fx-padding: 4px;
+}
+.pset-arp-col1 {
+    -fx-padding: 0 4 0 0;
+}
+.pset-arp-col2 {
+    -fx-padding: 0 0 0 4;
+}
+
+.pset-field,.pset-vert-radio {
+    -fx-pref-width: 50px;
+}
+
+.pset-field {
+
+}
+
+.pset-vert-radio {
+    -fx-font-size: 11px;
+    -fx-pref-height: 18px;
+}
+
+.pset-oct-button, .pset-sustain-button, .pset-vert-radio {
+    -fx-padding: 0;
+}
+
+.pset-oct-button {
+    -fx-pref-width: 20px;
+}
+
+.pset-oct-label {
+    -fx-padding: 5 0 0 0;
+}
+
+.pset-sustain-button {
+    -fx-pref-width: 40px;
+}
+
+.pset-vib-rate-box {
+    -fx-padding: 0;
+}
+
+
 /* ========== Param Overview Window =========== */
 
 .ppage-button, .ppage-tbutton, .ppage-label, .ppage-pname, .ppage-pvalue {

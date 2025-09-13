@@ -24,6 +24,7 @@ import org.g2fx.g2gui.controls.MultiStateToggle;
 import org.g2fx.g2gui.controls.TextOrImage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.ParameterOverview;
+import org.g2fx.g2gui.window.PatchSettingsWindow;
 import org.g2fx.g2gui.window.ScriptWindow;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
@@ -130,6 +131,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
         scriptWindow = new ScriptWindow(devices,commands);
         ParameterOverview parameterOverview = new ParameterOverview(slots,bridges);
+        PatchSettingsWindow patchSettings = new PatchSettingsWindow();
 
         commands.setScriptWindow(scriptWindow);
         commands.setParameterOverview(parameterOverview);
