@@ -14,7 +14,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
@@ -41,9 +40,10 @@ public class ParameterOverview {
             public char buttonChar() { return (char) ('A' + ordinal()); }
     }
 
-    record PageControl(Label module, Label param) {
+    record PageControl(Label module, Label param, int ix, List<PageControl> row) {
         public void clear() {
             module.setText("");
+            module.setUserData(null);
             param.setText("");
         }
     }
@@ -89,16 +89,7 @@ public class ParameterOverview {
                             controls.add(cs);
                             return withClass1("ppage-row", addChildren(
                                     new HBox(idbox),
-                                    IntStream.range(0,8).mapToObj(ix -> {
-                                        Label pname = withClass(label(""), "ppage-pname");
-                                        Label pvalue = withClass(label(""), "ppage-pvalue", "module-text-field");
-                                        PageControl c = new PageControl(pname, pvalue);
-                                        bindPageControl(c,pid,col,ix);
-                                        cs.add(c);
-                                        return FXUtil.withClass(new VBox(c.module(), c.param()),
-                                                "ppage-box",
-                                                col % 2 == 0 ? "ppage-box-even" : "ppage-box-odd");
-                                    }).toList()));
+                                    mkRow(pid, col, cs)));
                         }).toList())
                 )))).toList();
         VBox root = addChildren(new VBox(buttonBar),pages);
@@ -125,11 +116,27 @@ public class ParameterOverview {
         stage.show();
     }
 
+    private List<? extends Node> mkRow(PageRow pid, int col, ArrayList<PageControl> cs) {
+        List<PageControl> ctlRow = new ArrayList<>();
+        List<VBox> row = IntStream.range(0, 8).mapToObj(ix -> {
+            Label pname = withClass(label(""), "ppage-pname");
+            Label pvalue = withClass(label(""), "ppage-pvalue", "module-text-field");
+            PageControl c = new PageControl(pname, pvalue, ix, ctlRow);
+            ctlRow.add(c);
+            bindPageControl(c, pid, col, ix);
+            cs.add(c);
+            return withClass(new VBox(c.module(), c.param()),
+                    "ppage-box",
+                    col % 2 == 0 ? "ppage-box-even" : "ppage-box-odd");
+        }).toList();
+        return row;
+    }
+
     private void bindPageControl(PageControl ctl, PageRow pid, int col, int ix) {
         int idx = pid.ordinal()*24 + (col-1)*8 + ix;
         List<Property<KnobAssignment>> props = new ArrayList<>();
         for (int i = 0 ; i < 5 ; i++) {
-            Property<KnobAssignment> prop = new SimpleObjectProperty<KnobAssignment>(KnobAssignment.unassigned());
+            Property<KnobAssignment> prop = new SimpleObjectProperty<>(KnobAssignment.unassigned());
             boolean isGlobal = i == 4;
             int ii = i;
             Function<Device, LibProperty<KnobAssignment>> f = isGlobal ?
@@ -153,7 +160,12 @@ public class ParameterOverview {
             return;
         }
         ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
-        ctl.module().setText(globalPages.isSelected() ? n.loc().slot() + ":" + mp.getName() : mp.getName());
+        ctl.module().setUserData(mp);
+        if (ctl.ix()>0 && ctl.row().get(ctl.ix()-1).module().getUserData() == mp) {
+            ctl.module().setText("");
+        } else {
+            ctl.module().setText(globalPages.isSelected() ? n.loc().slot() + ":" + mp.getName() : mp.getName());
+        }
         Integer userNameParam = mp.getType().getParams().get(n.loc().param()).userNameParam();
         int paramTextIx = userNameParam != null ? userNameParam : n.loc().param();
         ctl.param().setText(mp.getParamName(paramTextIx).getValue());
