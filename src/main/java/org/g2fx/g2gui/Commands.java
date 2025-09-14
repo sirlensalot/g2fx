@@ -12,10 +12,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
-import org.g2fx.g2gui.window.G2Window;
-import org.g2fx.g2gui.window.ParameterOverview;
-import org.g2fx.g2gui.window.PatchSettingsWindow;
-import org.g2fx.g2gui.window.ScriptWindow;
+import org.g2fx.g2gui.window.*;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.Slot;
@@ -40,6 +37,7 @@ public class Commands {
     private final Set<File> recentFiles = new LinkedHashSet<>();
     private ParameterOverview parameterOverview;
     private PatchSettingsWindow patchSettings;
+    private PerformanceSettingsWindow perfSettings;
 
     private final List<Menus> allMenus = new ArrayList<>();
 
@@ -57,11 +55,13 @@ public class Commands {
 
             Menu fileMenu = populateFileMenu(stage);
 
-            Menu synthMenu = populateSynthMenu();
+            Menu patchMenu = populatePatchMenu();
 
             Menu toolsMenu = populateToolsMenu(stage);
 
-            menuBar.getMenus().addAll(fileMenu,editMenu,synthMenu,toolsMenu);
+            Menu perfMenu = populatePerfMenu();
+
+            menuBar.getMenus().addAll(fileMenu,editMenu,patchMenu,perfMenu,toolsMenu);
 
         }
 
@@ -126,6 +126,14 @@ public class Commands {
         }
     }
 
+    private Menu populatePerfMenu() {
+        Menu perfMenu = new Menu("Performance");
+        perfMenu.getItems().addAll(mkMenuItem("Performance Settings",e -> perfSettings.show(),
+                KeyCombination.keyCombination("Shortcut+R")));
+        return perfMenu;
+    }
+
+
     public Commands(Devices devices, Slots slots, Undos undos) {
         this.devices = devices;
         this.slots = slots;
@@ -157,11 +165,11 @@ public class Commands {
         FXUtil.getPrefs().put(PREF_RECENT_FILES, sb.toString());
     }
 
-    private Menu populateSynthMenu() {
-        Menu menu = new Menu("Synth");
+    private Menu populatePatchMenu() {
+        Menu menu = new Menu("Patch");
         menu.getItems().addAll(
-                mkMenuItem("Synth settings",e -> patchSettings.show(),
-                        KeyCombination.keyCombination("Shortcut+G"))
+                mkMenuItem("Patch settings",e -> patchSettings.show(),
+                        KeyCombination.keyCombination("Shortcut+P"))
         );
         return menu;
     }
@@ -307,4 +315,7 @@ public class Commands {
         this.patchSettings = setupWindowMenu(patchSettings);
     }
 
+    public void setPerfSettings(PerformanceSettingsWindow perfSettings) {
+        this.perfSettings = setupWindowMenu(perfSettings);
+    }
 }

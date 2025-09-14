@@ -386,6 +386,19 @@
     -fx-padding: 0;
 }
 
+/* ============ Perf settings window ============ */
+
+.perfs-root {
+    -fx-padding: 4px;
+    -fx-font-size: 11px;
+}
+.perfs-clock-spinner {
+    -fx-pref-width: 60px;
+}
+.perfs-range-textfield {
+    -fx-pref-width: 50px;
+}
+
 
 /* ========== Param Overview Window =========== */
 

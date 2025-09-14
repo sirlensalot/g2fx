@@ -26,6 +26,7 @@ import org.g2fx.g2gui.controls.TextOrImage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.ParameterOverview;
 import org.g2fx.g2gui.window.PatchSettingsWindow;
+import org.g2fx.g2gui.window.PerformanceSettingsWindow;
 import org.g2fx.g2gui.window.ScriptWindow;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
@@ -134,10 +135,12 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         scriptWindow = new ScriptWindow(devices,commands);
         ParameterOverview parameterOverview = new ParameterOverview(slots,bridges,morphNames);
         PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,bridges);
+        PerformanceSettingsWindow perfSettings = new PerformanceSettingsWindow(bridges);
 
         commands.setScriptWindow(scriptWindow);
         commands.setParameterOverview(parameterOverview);
         commands.setPatchSettings(patchSettings);
+        commands.setPerfSettings(perfSettings);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
@@ -391,19 +394,18 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener, 16), d -> d.getPerf().perfName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener, 16),
+                d -> d.getPerf().perfName());
 
-        Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
-        bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
-                d -> d.getPerf().getPerfSettings().masterClock());
+        Spinner<Integer> clockSpinner = mkClockSpinner(bridges);
 
-        ToggleButton runClockButton = withClass(new ToggleButton("Run"), FXUtil.G2_TOGGLE);
-        bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
+        ToggleButton runClockButton = mkClockRunButton(bridges);
 
         SegmentedButton slotBar = slots.mkSlotBar(bridges);
 
         TextField synthName = new TextField("synth name");
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener, 16), d -> d.getSynthSettings().deviceName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener, 16),
+                d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), FXUtil.G2_TOGGLE);
         bridges.bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
@@ -421,6 +423,18 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         return globalBar;
     }
 
+    public static ToggleButton mkClockRunButton(Bridges bridges) {
+        ToggleButton runClockButton = withClass(new ToggleButton("Run"), FXUtil.G2_TOGGLE);
+        bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
+        return runClockButton;
+    }
+
+    public static Spinner<Integer> mkClockSpinner(Bridges bridges) {
+        Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
+        bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
+                d -> d.getPerf().getPerfSettings().masterClock());
+        return clockSpinner;
+    }
 
 
     @Override
