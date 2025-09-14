@@ -28,14 +28,14 @@ public class PropertyBridge<T,F> {
     /**
      * lib update lock. All reads/writes on lib thread.
      */
-    private static boolean updatingLib = false;
+    private boolean updatingLib = false;
 
     private final FxProperty<F> fxProperty;
     private final ChangeListener<F> fxListener;
     /**
      * fx update lock. All reads/writes on fx thread.
      */
-    private static boolean updatingFx = false;
+    private boolean updatingFx = false;
 
     private final Function<Device,Runnable> initFinalizer;
 
