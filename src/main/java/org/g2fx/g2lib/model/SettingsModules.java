@@ -1,6 +1,7 @@
 package org.g2fx.g2lib.model;
 
 import org.g2fx.g2gui.controls.IndexParam;
+import org.g2fx.g2lib.util.SafeLookup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +59,8 @@ public enum SettingsModules {
             {"Wheel","Vel","Keyb","Aft.Tch","Sust.Pd","Ctrl.Pd","P.Stick","G.Wh 2"};
     public static final String MORPH_GW1="G.Wh 1";
 
+    public static final SafeLookup<Integer,SettingsModules> IX_LOOKUP =
+            SafeLookup.makeLookup(values(), SettingsModules::getModIndex);
 
     public abstract List<ModParam> getModParams();
 
@@ -78,5 +81,7 @@ public enum SettingsModules {
         }
         throw new IllegalArgumentException("Invalid mod param " + param + " for settings module " + this);
     }
+
+
 
 }

@@ -3,6 +3,7 @@ package org.g2fx.g2gui.window;
 import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -20,6 +21,7 @@ import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.KnobAssignment;
@@ -28,6 +30,7 @@ import org.g2fx.g2lib.state.Slot;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -64,12 +67,14 @@ public class ParameterOverview implements G2Window {
     private final List<List<PageControl>> controls = new ArrayList<>();
     private final Slots slots;
     private final Bridger bridges;
+    private final Map<Integer, ObservableValue<String>> morphNames;
     private final Stage stage;
     private final VBox root;
 
-    public ParameterOverview(Slots slots, Bridger bridges) {
+    public ParameterOverview(Slots slots, Bridger bridges, Map<Integer, ObservableValue<String>> morphNames) {
         this.slots = slots;
         this.bridges = bridges;
+        this.morphNames = morphNames;
         Arrays.stream(PageRow.values()).forEach(i -> controls.add(new ArrayList<>()));
         HBox buttonBar = withClass1("ppage-button-bar", new HBox(
                 spacer(),
@@ -155,21 +160,34 @@ public class ParameterOverview implements G2Window {
     }
 
     private void updateAssignedSlot(PageControl ctl, KnobAssignment n) {
-        Slot slot = n.loc().slot();
+        Object ud;
+        String moduleName;
         if (n.loc().area()== AreaId.Settings) {
-            System.out.println("TODO: Param Overview for settings");
-            return;
+            SettingsModules sm = SettingsModules.IX_LOOKUP.get(n.loc().module());
+            if (sm == SettingsModules.Morphs) {
+                ctl.param().setText(morphNames.get(n.loc().param()).getValue()); //TODO won't update
+            } else {
+                ctl.param().setText(sm.getModParams().get(n.loc().param()).name());
+            }
+            ud = sm;
+            moduleName = sm.name();
+            System.out.println(n);
+        } else {
+            Slot slot = n.loc().slot();
+            ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
+            moduleName = mp.getName();
+            ud = mp;
+            Integer userNameParam = mp.getType().getParams().get(n.loc().param()).userNameParam();
+            int paramTextIx = userNameParam != null ? userNameParam : n.loc().param();
+            ctl.param().setText(mp.getParamName(paramTextIx).getValue()); //TODO won't update
         }
-        ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
-        ctl.module().setUserData(mp);
-        if (ctl.ix()>0 && ctl.row().get(ctl.ix()-1).module().getUserData() == mp) {
+        ctl.module().setUserData(ud);
+        if (ctl.ix()>0 && ctl.row().get(ctl.ix()-1).module().getUserData() == ud) {
             ctl.module().setText("");
         } else {
-            ctl.module().setText(globalPages.isSelected() ? n.loc().slot() + ":" + mp.getName() : mp.getName());
+            ctl.module().setText(globalPages.isSelected() ? n.loc().slot() + ":" + moduleName : moduleName);
         }
-        Integer userNameParam = mp.getType().getParams().get(n.loc().param()).userNameParam();
-        int paramTextIx = userNameParam != null ? userNameParam : n.loc().param();
-        ctl.param().setText(mp.getParamName(paramTextIx).getValue());
+
     }
 
     private Node spacer() {

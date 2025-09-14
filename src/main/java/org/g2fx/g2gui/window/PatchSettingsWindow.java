@@ -1,7 +1,9 @@
 package org.g2fx.g2gui.window;
 
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -17,10 +19,14 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.state.Device;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.G2GuiApplication.addGlobalStylesheet;
@@ -30,11 +36,11 @@ import static org.g2fx.g2lib.model.SettingsModules.*;
 
 public class PatchSettingsWindow implements G2Window {
 
-    public static final double KNOB_SCALE = 1;
     private final Stage stage;
     private final Slots slots;
     private final Bridges bridges;
     private final HBox root;
+    private final Map<ModParam, ChangeListener<Integer>> fieldListeners = new HashMap<>();
 
     public PatchSettingsWindow(Slots slots, Bridges bridges) {
         this.slots = slots;
@@ -53,13 +59,13 @@ public class PatchSettingsWindow implements G2Window {
                         plabel("Arpeggiator"),
                         withClass1("pset-arp-row",new HBox(
                                 withClass1("pset-arp-col1", psetBox(
-                                        pfield(),
-                                        mkKnob(),
+                                        pfield(ArpTime),
+                                        mkKnob(Arpeggiator, ArpTime),
                                         verticalRadio(Arpeggiator, ArpEnable)
                                 )),
                                 withClass1("pset-arp-col2", psetBox(
-                                        pfield(),
-                                        mkKnob(),
+                                        pfield(ArpDir),
+                                        mkKnob(Arpeggiator,ArpDir),
                                         verticalRadio(Arpeggiator, ArpOctaves)
                                 ))
                         ))
@@ -67,23 +73,23 @@ public class PatchSettingsWindow implements G2Window {
                 )),
                 withClass1("pset-box",psetBox(
                         plabel("Vibrato"),
-                        pfield(),
-                        mkKnob(),
+                        pfield(VibCents),
+                        mkKnob(Vibrato,VibCents),
                         verticalRadio(Vibrato, VibratoControl),
                         withClass1("pset-vib-rate-box",psetVibRateBox(
                                 plabel("Rate"),
-                                mkVibRate()))
+                                mkKnob(Vibrato,VibRate)))
                 )),
                 withClass1("pset-box",psetBox(
                         plabel("Glide"),
-                        pfield(),
-                        mkKnob(),
+                        pfield(GlideSpeed),
+                        mkKnob(Glide,GlideSpeed),
                         verticalRadio(Glide, GlideControl)
                 )),
                 withClass1("pset-box",psetBox(
                         plabel("Bend"),
-                        pfield(),
-                        mkKnob(),
+                        pfield(BendSemi),
+                        mkKnob(Bend,BendSemi),
                         verticalRadio(Bend, BendEnable)
                 ))
         ));
@@ -120,10 +126,15 @@ public class PatchSettingsWindow implements G2Window {
         slots.bindSlotVarControl(property,sv -> {
             Property<Integer> p =
                     new SimpleObjectProperty<>(ctl, property.getName(), param.def);
-            bridges.bridge(p, d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(module)
-                    .getSettingsValueProperty(param,sv.var()));
+            bridges.bridge(p, d -> getSettingsValueProperty(module, param, sv, d));
             return p;
         });
+    }
+
+    private static LibProperty<Integer> getSettingsValueProperty(
+            SettingsModules module, ModParam param, Slots.SlotAndVar sv, Device d) {
+        return d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(module)
+                .getSettingsValueProperty(param, sv.var());
     }
 
     private Node verticalRadio(SettingsModules module, ModParam param) {
@@ -147,16 +158,31 @@ public class PatchSettingsWindow implements G2Window {
     }
 
 
-    private Node mkKnob() {
-        return new Knob("",KNOB_SCALE);
+    private Node mkKnob(SettingsModules module,ModParam param) {
+        Knob knob = new Knob(module + ":" + param, 1.0,
+                false, param.min, param.max);
+        slots.bindSlotVarControl(knob.getValueProperty(),sv -> {
+            Property<Integer> p = new SimpleObjectProperty<>(knob,sv.toString(),param.def);
+            bridges.bridge(p,d -> getSettingsValueProperty(module,param,sv,d));
+            return p;
+        });
+        ChangeListener<Integer> l = fieldListeners.get(param);
+        if (l != null) {
+            knob.getValueProperty().addListener(l);
+            Platform.runLater(()->
+                    l.changed(null,null,knob.getValueProperty().getValue()));
+        }
+        return knob;
     }
 
-    private Node mkVibRate() {
-        return new Knob("", KNOB_SCALE);
-    }
-
-    private Label pfield() {
-        return withClass(label("--"), "pset-field", "module-text-field");
+    /**
+     * IMPORTANT: this must always be invoked before the associated knob for
+     * the listener association to work.
+     */
+    private Label pfield(ModParam param) {
+        Label l = withClass(label("--"), "pset-field", "module-text-field");
+        fieldListeners.put(param,(c,o,n) -> l.setText(param.formatter.intFmt().apply(n)));
+        return l;
     }
     private Label plabel(String text) {
         return withClass1("pset-label",label(text));

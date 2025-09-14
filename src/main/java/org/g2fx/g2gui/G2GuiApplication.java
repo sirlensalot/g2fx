@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -71,6 +72,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
     private Slots slots;
     private ScriptWindow scriptWindow;
+    private final Map<Integer, ObservableValue<String>> morphNames = new TreeMap<>();
 
     @Override
     public void init() throws Exception {
@@ -130,7 +132,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         Scene scene = mkScene(stage);
 
         scriptWindow = new ScriptWindow(devices,commands);
-        ParameterOverview parameterOverview = new ParameterOverview(slots,bridges);
+        ParameterOverview parameterOverview = new ParameterOverview(slots,bridges,morphNames);
         PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,bridges);
 
         commands.setScriptWindow(scriptWindow);
@@ -203,11 +205,12 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
     private VBox mkMorphsBox() {
         List<VBox> morphs = new ArrayList<>();
-        for (int i = 0; i < FXUtil.UI_MAX_VARIATIONS; i++) {
+        for (int i = 0; i < SettingsModules.MORPH_LABELS.length; i++) {
             final int ii = i;
             String morphCtl = SettingsModules.MORPH_LABELS[i];
             ToggleButton tb = mkMorphToggle(i,i == 4 ? List.of(morphCtl,SettingsModules.MORPH_GW1) : List.of(morphCtl));
             TextField tf = withClass(new TextField(morphCtl), "morph-name");
+            morphNames.put(i,tf.textProperty());
             slots.bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener, 16), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
                 bridges.bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
