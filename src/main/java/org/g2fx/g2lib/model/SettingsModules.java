@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.model;
 
+import org.g2fx.g2gui.controls.IndexParam;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,7 +30,7 @@ public enum SettingsModules {
     },
     Glide {
         public List<ModParam> getModParams() {
-            return List.of(ModParam.Glide, ModParam.GlideSpeed);
+            return List.of(ModParam.GlideControl, ModParam.GlideSpeed);
         }
     },
     Bend {
@@ -38,7 +40,7 @@ public enum SettingsModules {
     },
     Vibrato {
         public List<ModParam> getModParams() {
-            return List.of(ModParam.Vibrato, ModParam.VibCents, ModParam.VibRate);
+            return List.of(ModParam.VibratoControl, ModParam.VibCents, ModParam.VibRate);
         }
     },
     Arpeggiator {
@@ -68,5 +70,13 @@ public enum SettingsModules {
     }
 
     public int getModIndex() { return ordinal() + 1; }
+
+    public IndexParam getIndexParam(ModParam param) {
+        int i = 0;
+        for (ModParam p : getModParams()) {
+            if (p == param) { return new IndexParam(p.mk(),i,name()); }
+        }
+        throw new IllegalArgumentException("Invalid mod param " + param + " for settings module " + this);
+    }
 
 }

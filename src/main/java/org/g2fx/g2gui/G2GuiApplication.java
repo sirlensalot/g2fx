@@ -216,7 +216,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
 
             tf.setPadding(new Insets(1));
             Knob dial = withClass(new Knob("Morph" + i, 1.0), "morph-knob");
-            slots.bindMorphControl(dial.getValueProperty(),sv -> {
+            slots.bindSlotVarControl(dial.getValueProperty(), sv -> {
                 SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(dial,"morphDial:"+sv,0);
                 bridges.bridge(d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                                 .getParamValueProperty(sv.var(),ii),
@@ -243,7 +243,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         statuses.add("Knob");
         statuses.addAll(g2Controls);
         MultiStateToggle mst = new MultiStateToggle(TextOrImage.mkTexts(statuses), 1, "morph-mode-toggle");
-        slots.bindMorphControl(mst.state(),sv -> {
+        slots.bindSlotVarControl(mst.state(), sv -> {
             Property<Integer> p = new SimpleObjectProperty<>(mst.getToggle(),"morphMode:"+sv,1);
             bridges.bridge(p,d->d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                     .getParamValueProperty(sv.var(),index+ 8));

@@ -1,5 +1,7 @@
 package org.g2fx.g2gui.window;
 
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,33 +14,40 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.controlsfx.control.SegmentedButton;
-import org.g2fx.g2gui.bridge.Bridger;
+import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2lib.model.ModParam;
+import org.g2fx.g2lib.model.SettingsModules;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.G2GuiApplication.addGlobalStylesheet;
+import static org.g2fx.g2gui.controls.ButtonRadio.mkSelectedToggleIndexProperty;
+import static org.g2fx.g2lib.model.ModParam.*;
+import static org.g2fx.g2lib.model.SettingsModules.*;
 
 public class PatchSettingsWindow implements G2Window {
 
     public static final double KNOB_SCALE = 1;
     private final Stage stage;
     private final Slots slots;
-    private final Bridger bridges;
+    private final Bridges bridges;
     private final HBox root;
 
-    public PatchSettingsWindow(Slots slots, Bridger bridges) {
+    public PatchSettingsWindow(Slots slots, Bridges bridges) {
         this.slots = slots;
         this.bridges = bridges;
+
         root = withClass1("pset-root",new HBox(
                 withClass1("pset-box",psetBox(
                         plabel("Sustain Pedal"),
-                        withClass1("pset-sustain",mkSustain()),
+                        withClass1("pset-sustain",
+                                mkSegmentedButton(Misc, MiscSustain, "pset-sustain-button")),
                         withClass1("pset-oct-label",plabel("Octave Shift")),
-                        withClass1("pset-octave",mkOctShift())
+                        withClass1("pset-octave",
+                                mkSegmentedButton(Misc, MiscOctShift, "pset-oct-button"))
                 )),
                 withClass1("pset-box",psetBox(
                         plabel("Arpeggiator"),
@@ -46,12 +55,12 @@ public class PatchSettingsWindow implements G2Window {
                                 withClass1("pset-arp-col1", psetBox(
                                         pfield(),
                                         mkKnob(),
-                                        mkArpActive()
+                                        verticalRadio(Arpeggiator, ArpEnable)
                                 )),
                                 withClass1("pset-arp-col2", psetBox(
                                         pfield(),
                                         mkKnob(),
-                                        mkArpOct()
+                                        verticalRadio(Arpeggiator, ArpOctaves)
                                 ))
                         ))
 
@@ -60,7 +69,7 @@ public class PatchSettingsWindow implements G2Window {
                         plabel("Vibrato"),
                         pfield(),
                         mkKnob(),
-                        mkVibType(),
+                        verticalRadio(Vibrato, VibratoControl),
                         withClass1("pset-vib-rate-box",psetVibRateBox(
                                 plabel("Rate"),
                                 mkVibRate()))
@@ -69,13 +78,13 @@ public class PatchSettingsWindow implements G2Window {
                         plabel("Glide"),
                         pfield(),
                         mkKnob(),
-                        mkGlide()
+                        verticalRadio(Glide, GlideControl)
                 )),
                 withClass1("pset-box",psetBox(
                         plabel("Bend"),
                         pfield(),
                         mkKnob(),
-                        mkBend()
+                        verticalRadio(Bend, BendEnable)
                 ))
         ));
         stage = new Stage();
@@ -102,52 +111,50 @@ public class PatchSettingsWindow implements G2Window {
         return box;
     }
 
-    private Node mkSustain() {
-        return new SegmentedButton(
-                withClass1("pset-sustain-button", g2Toggle("off")),
-                withClass1("pset-sustain-button", g2Toggle("on"))
-        );
-    }
-    private Node mkOctShift() {
-        return new SegmentedButton(FXCollections.observableArrayList(Stream.of(-2,-1,0,1,2).map(i ->
-                withClass1("pset-oct-button", g2Toggle(Integer.toString(i)))).toList()));
-    }
-    private Node mkKnob() {
-        return new Knob("",KNOB_SCALE);
-    }
-    private Node mkArpActive() {
-        return verticalRadio(List.of("On","Off"));
-    }
-    private Node verticalRadio(String... names) {
-        return verticalRadio(List.of(names));
+
+    private void setupSettingsToggle(SettingsModules module, ModParam param, Node ctl, ToggleGroup toggleGroup, List<ToggleButton> buttons) {
+        for (int i = 0; i < buttons.size(); i++) { buttons.get(i).setUserData(i); }
+        Property<Integer> property = mkSelectedToggleIndexProperty(ctl,
+                module.getIndexParam(param),
+                toggleGroup, buttons);
+        slots.bindSlotVarControl(property,sv -> {
+            Property<Integer> p =
+                    new SimpleObjectProperty<>(ctl, property.getName(), param.def);
+            bridges.bridge(p, d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(module)
+                    .getSettingsValueProperty(param,sv.var()));
+            return p;
+        });
     }
 
-    private Node verticalRadio(List<String> names) {
+    private Node verticalRadio(SettingsModules module, ModParam param) {
         ToggleGroup tg = new ToggleGroup();
-        return addChildren(new VBox(),names.stream().map(n -> {
+        List<ToggleButton> buttons = param.enums.stream().map(n -> {
             ToggleButton tb = withClass1("pset-vert-radio", g2Toggle(n));
             tb.setToggleGroup(tg);
             return tb;
-        }).toList());
+        }).toList();
+        VBox ctl = addChildren(new VBox(), buttons.reversed());
+        setupSettingsToggle(module, param,ctl,tg,buttons);
+        return ctl;
     }
 
-    private Node mkArpOct() {
-        return verticalRadio(Stream.of(4,3,2,1).map(i -> i + " oct").toList());
 
+    private Node mkSegmentedButton(SettingsModules module, ModParam param, String css) {
+        SegmentedButton ctl = new SegmentedButton(FXCollections.observableArrayList(
+                param.enums.stream().map(n -> withClass1(css,g2Toggle(n))).toList()));
+        setupSettingsToggle(module,param,ctl,ctl.getToggleGroup(),ctl.getButtons());
+        return ctl;
     }
-    private Node mkVibType() {
-        return verticalRadio("Wheel","AfTouch","Off");
+
+
+    private Node mkKnob() {
+        return new Knob("",KNOB_SCALE);
     }
+
     private Node mkVibRate() {
         return new Knob("", KNOB_SCALE);
     }
-    private Node mkGlide() {
-        return verticalRadio("Auto","Normal","Off");
 
-    }
-    private Node mkBend() {
-        return verticalRadio("On","Off");
-    }
     private Label pfield() {
         return withClass(label("--"), "pset-field", "module-text-field");
     }

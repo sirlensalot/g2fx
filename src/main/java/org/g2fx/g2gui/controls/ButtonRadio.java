@@ -72,7 +72,7 @@ public class ButtonRadio {
             });
         }
         ToggleGroup toggleGroup = button.getToggleGroup();
-        selectedToggleIndexProperty = setupProperty(parent, ip, toggleGroup, buttons);
+        selectedToggleIndexProperty = mkSelectedToggleIndexProperty(control, ip, toggleGroup, buttons);
     }
 
     /**
@@ -112,11 +112,12 @@ public class ButtonRadio {
         }
         layout(c,box,new Point2D(1,2));
         control = box;
-        selectedToggleIndexProperty = setupProperty(parent, ip, toggleGroup, buttons);
+        selectedToggleIndexProperty = mkSelectedToggleIndexProperty(control, ip, toggleGroup, buttons);
     }
 
-    private Property<Integer> setupProperty(ModulePane parent, IndexParam ip, ToggleGroup toggleGroup,
-                                            List<ToggleButton> buttons) {
+    public static Property<Integer> mkSelectedToggleIndexProperty(
+            Node control, IndexParam ip, ToggleGroup toggleGroup,
+            List<ToggleButton> buttons) {
         Property<Integer> property = new SimpleObjectProperty<>(control,
                 ip.toString(),
                 ip.param().param().def);

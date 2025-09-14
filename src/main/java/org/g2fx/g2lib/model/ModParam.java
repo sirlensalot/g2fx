@@ -512,9 +512,9 @@ public enum ModParam {
     GainActiveMuted
     (1,
      "Off","On"),
-    Glide
+    GlideControl
     (2,
-     "Auto","Normal","Off"),
+     "Off","Normal","Auto"),
     GlideSpeed
     (0,127,0),
     BendEnable
@@ -522,9 +522,9 @@ public enum ModParam {
      "Off","On"),
     BendSemi
     (0,23,2),
-    Vibrato
+    VibratoControl
     (2,
-     "Wheel","AftTouch","Off"),
+     "Off","AftTouch","Wheel"),
     VibCents
     (0,127,0),
     VibRate

@@ -51,7 +51,7 @@ public class Slots {
 
     public record SlotAndVar(Slot slot,Integer var) {}
 
-    private final RebindableControls<SlotAndVar> morphControls = new RebindableControls<>();
+    private final RebindableControls<SlotAndVar> slotVarControls = new RebindableControls<>();
 
     private final Bridges bridges;
 
@@ -88,7 +88,7 @@ public class Slots {
     public TabPane mkSlotTabs(FXUtil.TextFieldFocusListener textFocusListener) {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
-            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot,morphControls,undos);
+            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot, slotVarControls,undos);
             slotPanes.add(slotPane);
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());
@@ -156,10 +156,10 @@ public class Slots {
         getSelectedSlotPane().updateMorphBinds();
     }
 
-    public <T> void bindMorphControl(Property<T> control, Function<SlotAndVar,Property<T>> propBuilder) {
+    public <T> void bindSlotVarControl(Property<T> control, Function<SlotAndVar,Property<T>> propBuilder) {
         List<List<Property<T>>> props = Arrays.stream(Slot.values()).map(s ->
                 IntStream.range(0, FXUtil.UI_MAX_VARIATIONS).mapToObj(v -> propBuilder.apply(new SlotAndVar(s,v))).toList()).toList();
-        morphControls.add(new RebindableControl<>(control,sv -> props.get(sv.slot.ordinal()).get(sv.var)));
+        slotVarControls.add(new RebindableControl<>(control, sv -> props.get(sv.slot.ordinal()).get(sv.var)));
     }
 
 
