@@ -63,4 +63,8 @@ tasks.test {
 tasks.register<JavaExec>("runApp") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass = "org.g2fx.g2gui.G2GuiApplication"
+    jvmArgs = listOf(
+        "--module-path", configurations.runtimeClasspath.get().asPath,
+        "--add-modules", "javafx.controls"
+    )
 }

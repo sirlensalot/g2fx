@@ -236,6 +236,35 @@ public enum EvalCommand {
                     });
                 });
             })),
+    record(cmd("Start or stop session recording. No arguments means stop recording.",
+            argDesc("session","recording session name"),
+            argDesc("dir","path to store message images in"))
+            .argsRequired(0)
+            .run(c -> {
+                if (c.args().isEmpty()) {
+                    c.devices.runWithCurrent(d -> {
+                        if (d instanceof UsbDevice ud) ud.getUsb().stopRecording();
+                    });
+                    return;
+                }
+                if (c.args().size() != 2) {
+                    throw c.bad("Must have 0 or 2 arguments");
+                }
+                File dir = new File(c.args().get(1).arg());
+                if (dir.exists()) {
+                    if (!dir.isDirectory()) {
+                        throw c.bad("Invalid dir arg, must be directory");
+                    }
+                } else {
+                    if (!dir.mkdir()) {
+                        throw c.bad("Unable to create directory: " + dir);
+                    }
+                }
+                c.devices.runWithCurrent(d -> {
+                       if (d instanceof UsbDevice ud)
+                           ud.getUsb().startRecording(c.args().getFirst().arg(),dir);
+                });
+            })),
     comm(cmd("Start/stop device communication stream",
             argDesc("startStop","start or stop"))
             .run(c -> {
@@ -250,8 +279,10 @@ public enum EvalCommand {
         public CmdDesc desc;
         public Function<EvalCtx, EvalResult> cmd;
         public Completer completer = NullCompleter.INSTANCE;
+        public int reqdArgs = -1;
 
         public Builder desc(CmdDesc desc) { this.desc = desc; return this; }
+        public Builder argsRequired(int reqdArgs) { this.reqdArgs = reqdArgs; return this; }
         public Builder run(Consumer<EvalCtx> cmd) { this.cmd = adaptConsumer(cmd); return this; }
         public Builder eval(Function<EvalCtx, EvalResult> cmd) { this.cmd = cmd; return this; }
         public Builder completer(Completer completer) { this.completer = completer; return this; }

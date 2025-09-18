@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.Streams;
-import org.g2fx.g2lib.usb.UsbMessage;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -122,12 +122,6 @@ public class Util {
     }
 
 
-    public static UsbMessage writeMsg(String name, UsbMessage m) {
-        if (m == null) { return null; }
-        Util.writeBuffer(m.buffer().rewind(), String.format("msg_%s_%x.msg",name,m.crc()));
-        return m;
-    }
-
     public static int b2i(byte b) {
         return b & 0xff;
     }
@@ -242,17 +236,15 @@ public class Util {
         buffer.position(buffer.position()+ length);
     }
 
-    public static void writeBuffer(ByteBuffer data, String name) {
+    public static void writeBuffer(ByteBuffer data, File name) throws Exception {
         int position = data.position();
-        try (FileOutputStream fos = new FileOutputStream("data/" + name)) {
+        try (FileOutputStream fos = new FileOutputStream(name)) {
             data.rewind();
             byte[] bs = new byte[data.limit()];
             data.get(bs);
             fos.write(bs);
             fos.flush();
             data.position(position);
-        } catch (Exception e) {
-            throw new RuntimeException("error writing patch desc", e);
         }
     }
 

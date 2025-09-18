@@ -11,6 +11,7 @@ import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -329,10 +330,10 @@ public class Patch {
         try {
             fvs = s.fields.read(bb);
         } catch (RuntimeException e) {
-            String file = String.format("error_%s.msg",s.name());
+            File file = new File(String.format("data/error_%s.msg",s.name()));
             log.severe(String.format("Error reading section %s, dumping buffer to %s",s,file));
             ByteBuffer data = bb.setBitIndex(startIx).shiftedSlice();
-            Util.writeBuffer(data,file);
+            try { Util.writeBuffer(data,file); } catch (Exception ignored) {}
             throw e;
         }
         updateSection(s, new Section(s, fvs));

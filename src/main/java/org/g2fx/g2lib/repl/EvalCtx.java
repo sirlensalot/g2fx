@@ -25,7 +25,15 @@ public class EvalCtx {
     public final Eval eval;
     public final boolean uiMode;
 
-    public EvalCtx(PrintWriter writer, Devices devices, Commands ui, Path path, CmdDesc desc, CommandInput input, boolean uiMode, Eval eval) {
+    public EvalCtx(PrintWriter writer,
+                   Devices devices,
+                   Commands ui,
+                   Path path,
+                   CmdDesc desc,
+                   CommandInput input,
+                   boolean uiMode,
+                   Eval eval,
+                   int reqdArgs) {
         this.writer = writer;
         this.devices = devices;
         this.ui = ui;
@@ -33,7 +41,8 @@ public class EvalCtx {
         this.desc = desc;
         this.eval = eval;
         this.uiMode = uiMode;
-        this.args = initArgs(desc,input); // can fail so must be last
+
+        this.args = initArgs(desc,input,reqdArgs < 0 ? desc.getArgsDesc().size() : reqdArgs); // can fail so must be last
     }
 
     public String nextArg() {
@@ -60,11 +69,11 @@ public class EvalCtx {
         }
     }
 
-    private List<ArgAndDesc> initArgs(CmdDesc desc, CommandInput input) {
+    private List<ArgAndDesc> initArgs(CmdDesc desc, CommandInput input, int reqdArgs) {
         List<String> words = new ArrayList<>(Arrays.stream(input.args()).filter(s -> !s.isEmpty()).toList());
         List<ArgDesc> ads = desc.getArgsDesc();
-        if (words.size() != ads.size()) {
-            throw bad("expected " + ads.size() + " arguments");
+        if (words.size() < reqdArgs) {
+            throw bad("expected " + reqdArgs + " arguments");
         }
         List<ArgAndDesc> as = new ArrayList<>();
         Streams.forEachPair(words.stream(), ads.stream(), (v, d) -> as.add(new ArgAndDesc(v, d)));

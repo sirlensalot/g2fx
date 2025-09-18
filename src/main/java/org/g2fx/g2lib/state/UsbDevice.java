@@ -73,6 +73,12 @@ public class UsbDevice extends Device implements Dispatcher {
         usb.setDispatcher(this);
     }
 
+    /**
+     * WARNING this is only exposed for scripting, otherwise should not be directly accessed.
+     */
+    public Usb getUsb() {
+        return usb;
+    }
 
     public boolean online() {
         return true;

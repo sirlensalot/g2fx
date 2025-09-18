@@ -97,7 +97,9 @@ public class Eval {
 
     public Command mkCmd(EvalCommand ec) {
         return mkCmd(ec.name(),(c,i) ->
-                ec.builder.cmd.apply(new EvalCtx(writer,devices,ui,path,c,i,uiMode,this)),
+                ec.builder.cmd.apply(
+                        new EvalCtx(writer,devices,ui,path,c,i,
+                                uiMode,this,ec.builder.reqdArgs)),
                 ec.builder.completer,
                 ec.builder.desc);
     }

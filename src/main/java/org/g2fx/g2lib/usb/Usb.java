@@ -6,9 +6,11 @@ import org.g2fx.g2lib.util.Util;
 import org.usb4java.BufferUtils;
 import org.usb4java.LibUsb;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.usb.UsbService.ERRORS;
@@ -18,7 +20,9 @@ public class Usb {
 
     private final UsbService.UsbDevice device;
     private final UsbReadThread readThread;
-    private final boolean recordMessages;
+
+    private MessageRecorder recorder;
+
     /**
      * Same-thread dispatcher
      */
@@ -27,7 +31,6 @@ public class Usb {
     public Usb(UsbService.UsbDevice device) {
         this.device = device;
         readThread = new UsbReadThread(this);
-        recordMessages = "true".equalsIgnoreCase(System.getProperty("g2lib.record"));
     }
 
     public void start() {
@@ -121,9 +124,23 @@ public class Usb {
         }
     }
 
+    public void startRecording(String sessionName, File dir) throws Exception {
+        log.info("Recording messages, session=" + sessionName + ", dir=" + dir);
+        this.recorder = new MessageRecorder(sessionName,dir);
+    }
+
+    public void stopRecording() {
+        log.info("Stopping recording for session " + recorder.getSession());
+        this.recorder = null;
+    }
+
     private UsbMessage record(UsbMessage msg) {
-        if (recordMessages) {
-            Util.writeMsg("inbound",msg);
+        if (recorder == null || msg == null) { return msg; }
+        try {
+            recorder.record(msg);
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"Recording failed, stopping",e);
+            stopRecording();
         }
         return msg;
     }
