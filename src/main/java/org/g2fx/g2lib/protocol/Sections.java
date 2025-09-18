@@ -50,6 +50,11 @@ public enum Sections {
         this.location = null;
     }
 
+    /**
+     * A protocol "Section" starts with bytes [type,lmsb,llsb]
+     * with LMSB+LLSB being the section length, then content.
+     * @return a BitBuffer sliced at content start.
+     */
     public static BitBuffer sliceSection(Sections s, ByteBuffer buf) {
         int t = buf.get();
         if (t != s.type) {

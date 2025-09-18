@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GlobalKnobAssignments {
+    private final FieldValues fvs;
     private final List<FieldValues> gkfvs;
     private final List<LibProperty<KnobAssignment>> assignments = new ArrayList<>();
 
     // file-perf
     public GlobalKnobAssignments(FieldValues fvs) {
+        this.fvs = fvs;
         this.gkfvs =
                 Protocol.GlobalKnobAssignments.Knobs.subfieldsValue(fvs);
         for (FieldValues ka : gkfvs) {
@@ -57,5 +59,9 @@ public class GlobalKnobAssignments {
         return gkfvs.stream().filter(fv ->
                 Protocol.GlobalKnobAssignment.Assigned.intValue(fv) == 1)
                 .map(ka -> Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka).getFirst()).toList();
+    }
+
+    public FieldValues getFieldValues() {
+        return fvs;
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Streams;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.protocol.FieldValue;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -19,8 +20,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import static org.g2fx.g2lib.state.Patch.fileHeader;
-import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
+import static org.g2fx.g2lib.state.Patch.*;
 import static org.g2fx.g2lib.util.Util.withYamlMap;
 
 public class Performance {
@@ -74,6 +74,33 @@ public class Performance {
                 readSectionSlice(fileBuffer,Sections.SGlobalKnobAssignments));
 
         return perf;
+    }
+
+    public void writeToFile(File file) throws Exception {
+        ByteBuffer buf = writeFile();
+        Util.writeBuffer(buf.rewind(),file);
+    }
+
+    public ByteBuffer writeFile() throws Exception {
+        ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
+        buf.put(HEADER.rewind());
+        int start = buf.position();
+        buf.put(Util.asBytes(0x17,version));
+        writeSection(buf,Sections.SPerformanceSettings,perfSettings.getFieldValues());
+        for (Patch patch : slots.values()) {
+            patch.writeFileSections(buf);
+        }
+        writeSection(buf,Sections.SGlobalKnobAssignments,globalKnobAssignments.getFieldValues());
+        writeCrc(buf,start);
+        return buf;
+    }
+
+    private void writeSection(ByteBuffer buf, Sections ss, FieldValues fvs) throws Exception {
+        BitBuffer bb = new BitBuffer(1024);
+        for (FieldValue fv : fvs.values) {
+            fv.write(bb);
+        }
+        writeSectionContents(buf,ss,bb);
     }
 
     // test

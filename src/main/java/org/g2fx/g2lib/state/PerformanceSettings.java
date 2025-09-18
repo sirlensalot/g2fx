@@ -43,6 +43,8 @@ public class PerformanceSettings {
     public SlotSettings getSlotSettings(Slot slot) {
         return slotSettings.get(slot.ordinal());
     }
-    
 
+    public FieldValues getFieldValues() {
+        return fvs;
+    }
 }

@@ -249,7 +249,7 @@ public class Patch {
         if (ss == null) {
             throw new IllegalArgumentException("No section in patch: " + s);
         }
-        BitBuffer bb = new BitBuffer(1024);
+        BitBuffer bb = new BitBuffer(0xfff);
         if (s.location != null) {
             bb.put(2,s.location);
         }
@@ -257,6 +257,11 @@ public class Patch {
         for (FieldValue fv : fvs.values) {
             fv.write(bb);
         }
+        writeSectionContents(buf, s, bb);
+
+    }
+
+    public static void writeSectionContents(ByteBuffer buf, Sections s, BitBuffer bb) {
         ByteBuffer bbuf = bb.toBuffer();
 //        log.info(String.format("Wrote: %s, len=%x, crc=%x: %s\n",s,bb.limit(),CRC16.crc16(bbuf),Util.dumpBufferString(bbuf)));
 
@@ -266,7 +271,6 @@ public class Patch {
         while(bbuf.hasRemaining()) {
             buf.put(bbuf.get());
         }
-
     }
 
     public ByteBuffer writeMessage() throws Exception {
@@ -297,16 +301,24 @@ public class Patch {
             throw new RuntimeException("writeFile: version not initialized");
         }
         buf.put(Util.asBytes(0x17,version));
-        for (Sections s : FILE_SECTIONS) {
-            writeSection(buf,s);
-        }
+        writeFileSections(buf);
+        writeCrc(buf, start);
+        return buf;
+    }
+
+    public static void writeCrc(ByteBuffer buf, int start) {
         buf.limit(buf.position());
         buf.rewind();
-        int crc = CRC16.crc16(buf,start,buf.limit()-start);
+        int crc = CRC16.crc16(buf, start, buf.limit()- start);
         buf.position(buf.limit());
         buf.limit(buf.position()+2);
         Util.putShort(buf,crc);
-        return buf;
+    }
+
+    public void writeFileSections(ByteBuffer buf) throws Exception {
+        for (Sections s : FILE_SECTIONS) {
+            writeSection(buf,s);
+        }
     }
 
 

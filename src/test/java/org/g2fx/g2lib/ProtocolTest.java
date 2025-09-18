@@ -871,6 +871,14 @@ class ProtocolTest {
     }
 
     @Test
+    void roundtripPerformanceFile() throws Exception {
+        String filePath = "data/perf-20240802.prf2";
+        Performance perf = Performance.readFromFile(filePath);
+        assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
+                Util.dumpBufferString(perf.writeFile().rewind()));
+    }
+
+    @Test
     void readPatchLoad() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PatchLoadVA_b852.msg");
         Patch patch = new Patch(Slot.A);

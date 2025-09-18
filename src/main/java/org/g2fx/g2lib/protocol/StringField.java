@@ -89,8 +89,9 @@ public class StringField extends AbstractField implements Field {
             }
             return;
         }
-        //write terminator unless string goes to EOF
-        if (length != READ_TO_EOF) {
+        //write terminator unless string goes to EOF, or
+        //string is max length and lengthWithTerm is set
+        if (length != READ_TO_EOF && !(lengthWithTerm && i >= length)) {
             bb.put(8, 0);
         }
     }
