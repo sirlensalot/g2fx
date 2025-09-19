@@ -7,6 +7,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
@@ -67,14 +68,12 @@ public class Commands {
 
         private Menu populateFileMenu(Stage stage) {
             Menu fileMenu = new Menu("File");
+
             recentFilesMenu = new Menu("Recent Files");
             populateRecentFiles();
 
             MenuItem openItem = new MenuItem("Open...");
-
-            fileMenu.getItems().addAll(openItem, recentFilesMenu);
-
-            openItem.setAccelerator(KeyCombination.keyCombination("Shortcut+O"));
+            openItem.setAccelerator(shortcutKey(KeyCode.O));
             openItem.setOnAction(event -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Open File");
@@ -83,8 +82,12 @@ public class Commands {
                 );
                 File f = fileChooser.showOpenDialog(stage);
                 if (f != null) { loadFile(f); }
-
             });
+
+            fileMenu.getItems().addAll(
+                    openItem,
+                    mkMenuItem("Save",shortcutKey(KeyCode.S),e -> savePerf(stage)),
+                    recentFilesMenu);
             return fileMenu;
         }
 
@@ -97,7 +100,8 @@ public class Commands {
                 MenuItem mi = new MenuItem(rf.getName());
                 recentFilesMenu.getItems().add(mi);
                 if (i==0) {
-                    mi.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+O"));
+                    mi.setAccelerator(new KeyCodeCombination(KeyCode.O,
+                            KeyCombination.SHORTCUT_DOWN,KeyCombination.SHIFT_DOWN));
                 }
                 mi.setOnAction(e -> {
                     loadFile(rf);
@@ -126,10 +130,24 @@ public class Commands {
         }
     }
 
+    private void savePerf(Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Performance File");
+        String name = devices.invokeWithCurrent(d -> d.getPerf().perfName().get());
+        fileChooser.setInitialFileName(name+".prf2");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
+        );
+        File f = fileChooser.showSaveDialog(stage);
+        if (f == null) { return; }
+        devices.runWithCurrent(d -> d.getPerf().writeToFile(f));
+    }
+
     private Menu populatePerfMenu() {
         Menu perfMenu = new Menu("Performance");
-        perfMenu.getItems().addAll(mkMenuItem("Performance Settings",e -> perfSettings.show(),
-                KeyCombination.keyCombination("Shortcut+R")));
+        perfMenu.getItems().addAll(mkMenuItem("Performance Settings", shortcutKey(KeyCode.R),
+                e -> perfSettings.show()
+        ));
         return perfMenu;
     }
 
@@ -167,11 +185,14 @@ public class Commands {
 
     private Menu populatePatchMenu() {
         Menu menu = new Menu("Patch");
-        menu.getItems().addAll(
-                mkMenuItem("Patch settings",e -> patchSettings.show(),
-                        KeyCombination.keyCombination("Shortcut+P"))
+        menu.getItems().addAll(mkMenuItem("Patch settings", shortcutKey(KeyCode.P),
+                e -> patchSettings.show())
         );
         return menu;
+    }
+
+    private KeyCombination shortcutKey(KeyCode code) {
+        return new KeyCodeCombination(code,KeyCombination.SHORTCUT_DOWN);
     }
 
     private Menu populateToolsMenu(Stage stage) {
@@ -193,14 +214,14 @@ public class Commands {
 
 
         menu.getItems().addAll(
-                mkMenuItem("Parameter Overview",e -> parameterOverview.show(),
-                        KeyCombination.keyCombination("Shortcut+L")),
+                mkMenuItem("Parameter Overview", shortcutKey(KeyCode.L),
+                        e -> parameterOverview.show()),
                 dumpYaml,
                 mkMenuItem("Scripts", e -> scriptWindow.show()));
         return menu;
     }
 
-    private static MenuItem mkMenuItem(String name, EventHandler<ActionEvent> action,KeyCombination shortcut) {
+    private static MenuItem mkMenuItem(String name, KeyCombination shortcut, EventHandler<ActionEvent> action) {
         MenuItem i = mkMenuItem(name,action);
         i.setAccelerator(shortcut);
         return i;
@@ -214,10 +235,10 @@ public class Commands {
     private Menu populateEditMenu() {
         Menu editMenu = new Menu("Edit");
         MenuItem undo = new MenuItem("Undo");
-        undo.setAccelerator(KeyCombination.keyCombination("Shortcut+Z"));
+        undo.setAccelerator(shortcutKey(KeyCode.Z));
         undo.setOnAction(e -> undos.undo());
         MenuItem redo = new MenuItem("Redo");
-        redo.setAccelerator(KeyCombination.keyCombination("Shortcut+Shift+Z"));
+        redo.setAccelerator(new KeyCodeCombination(KeyCode.Z,KeyCombination.SHORTCUT_DOWN,KeyCombination.SHIFT_DOWN));
         redo.setOnAction(e -> undos.redo());
         editMenu.getItems().addAll(undo,redo);
         return editMenu;
