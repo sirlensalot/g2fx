@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
@@ -118,35 +119,68 @@ public class SlotPane {
                 withClass(new SplitPane(voicePane.getScrollPane(),fxPane.getScrollPane()),"patch-split");
         patchSplit.setOrientation(Orientation.VERTICAL);
 
-        SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
-        divider = patchSplit.getDividers().getFirst();
-
-        Platform.runLater(() -> {
-            //have to hack to get unexposed target for commit listener
-            patchSplit.lookupAll(".split-pane-divider").forEach(d -> {
-                d.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> valueChanging.set(false));
-                d.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> valueChanging.set(true));
-            });
-        });
-
-        bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().height(),
-                new FxProperty.SimpleFxProperty<>(divider.positionProperty(),valueChanging),
-                new Iso<>() {
-                    @Override
-                    public Number to(Integer libHeight) {
-                        return libHeight.doubleValue() / patchSplit.getHeight();
-                    }
-
-                    @Override
-                    public Integer from(Number fxHeight) {
-                        return (int) (fxHeight.doubleValue() * patchSplit.getHeight());
-                    }
-                });
+        setupDivider();
 
         VBox patchBox = withClass(new VBox(patchBar,patchSplit),"patch-box");
 
         VBox.setVgrow(patchSplit, Priority.ALWAYS);
         return patchBox;
+    }
+
+    private void setupDivider() {
+        /*
+         * FX does late-occuring adjustments to the divider long after device/bridge init,
+         * which can result in spurious changes to lib property values, since the value ultimately depends
+         * on the exact value of the pane height. To avoid this,
+         * we suppress FX changes when the user is not using the mouse.
+         */
+        Property<Double> mouseOnlyDividerProperty = new SimpleObjectProperty<>(0d);
+        /*
+         * this now does double-duty as the commit property AND the mouse-only filter.
+         */
+        SimpleBooleanProperty valueChanging = new SimpleBooleanProperty(false);
+        /*
+         * flag for backend updates to update the divider.
+         */
+        AtomicBoolean libUpdating = new AtomicBoolean(false);
+
+        divider = patchSplit.getDividers().getFirst();
+        Platform.runLater(() -> {
+            //the only way to attach mouse listeners is to scan by class :(
+            patchSplit.lookupAll(".split-pane-divider").forEach(d -> {
+                d.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> valueChanging.set(true));
+                d.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> valueChanging.set(false));
+            });
+        });
+
+        //only update FX->Lib property when mouse is being used or backend is updating
+        divider.positionProperty().addListener((c,o,n) -> {
+            if (valueChanging.get() || libUpdating.get()) mouseOnlyDividerProperty.setValue(n.doubleValue());
+        });
+
+
+        bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().height(),
+                new FxProperty<>(mouseOnlyDividerProperty,valueChanging) {
+                    @Override
+                    public void setValue(Double value) {
+                        libUpdating.set(true);
+                        try {
+                            divider.positionProperty().setValue(value);
+                        } finally { libUpdating.set(false); }
+                    }
+                },
+                new Iso<>() {
+                    @Override
+                    public Double to(Integer libHeight) {
+                        return libHeight.doubleValue() / patchSplit.getHeight();
+                    }
+                    @Override
+                    public Integer from(Double fxHeight) {
+                        int h = (int) (fxHeight * patchSplit.getHeight());
+                        //clip low values at 0, as fx doesn't seem to allow an actual "0" position
+                        return h < 3 ? 0 : h;
+                    }
+                });
     }
 
 
