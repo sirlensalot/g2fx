@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.protocol;
 
+import org.g2fx.g2lib.util.BitBuffer;
+
 public abstract class AbstractField implements Field {
     public final Enum<?> enum_;
 
@@ -27,5 +29,10 @@ public abstract class AbstractField implements Field {
 
     public int ordinal() {
         return enum_.ordinal();
+    }
+
+    @Override
+    public void write(FieldValue fv, BitBuffer bb) throws Exception {
+        fv.write(bb);
     }
 }

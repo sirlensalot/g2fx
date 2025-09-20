@@ -112,9 +112,7 @@ public class SubfieldsField extends AbstractField implements Field {
 
     public void write(BitBuffer bb, List<FieldValues> value) throws Exception {
         for (FieldValues fvs : value) {
-            for (FieldValue fv : fvs.values) {
-                fv.write(bb);
-            }
+            fvs.write(bb);
         }
     }
 

@@ -79,4 +79,10 @@ public class Fields {
     public FieldValues values(FieldValue... vs) {
         return init().addAll(vs);
     }
+
+    public void write(BitBuffer bb, List<FieldValue> values) throws Exception {
+        for (FieldValue fv : values) {
+            fv.field().write(fv,bb);
+        }
+    }
 }

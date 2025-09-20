@@ -39,4 +39,5 @@ public interface Field {
         return this;
     }
 
+    void write(FieldValue fv, BitBuffer bb) throws Exception;
 }

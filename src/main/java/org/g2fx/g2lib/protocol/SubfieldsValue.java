@@ -8,7 +8,7 @@ public record SubfieldsValue(SubfieldsField field, List<FieldValues> value) impl
 
     @Override
     public String toString() {
-        return field.name() + ": " + value;
+        return field.name() + ".value(" + value + ")";
     }
     public static List<FieldValues> subfieldsValue(FieldValue f) {
         if (f instanceof SubfieldsValue) {

@@ -12,7 +12,10 @@ public class MorphParameters {
 
     public record MorphParam(int morph, int range) { }
 
+    private final FieldValues fvs;
+
     public MorphParameters(FieldValues fvs) {
+        this.fvs = fvs;
         Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs).forEach(vm -> {
             varMorphs.put(Protocol.VarMorph.Variation.intValue(vm),
                     Protocol.VarMorph.VarMorphParams.subfieldsValue(vm));
@@ -31,5 +34,13 @@ public class MorphParameters {
             }
         }
         return null;
+    }
+
+    public Map<Integer, List<FieldValues>> getVarMorphs() {
+        return varMorphs;
+    }
+
+    public FieldValues getFieldValues() {
+        return fvs;
     }
 }

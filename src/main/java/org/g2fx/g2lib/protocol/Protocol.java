@@ -172,7 +172,18 @@ public class Protocol {
         MorphParameters(MorphParameters ix) { f = new SubfieldsField(this,VarMorph.FIELDS,ix); }
         private final Field f;
         public Field field() { return f; }
-        public static final Fields FIELDS = new Fields(values());
+        public static final Fields FIELDS = new Fields(values()) {
+            @Override
+            public void write(BitBuffer bb, List<FieldValue> values) throws Exception {
+                super.write(bb, values);
+                int over = bb.getBitIndex() % 8;
+                //trim up to 4 bits (see VarMorphParams.Reserved3)
+                if (over > 0 && over < 5) {
+                    System.out.println(values);
+                    bb.trimToByte();
+                }
+            }
+        };
     }
 
     public enum VarMorph implements FieldEnum {

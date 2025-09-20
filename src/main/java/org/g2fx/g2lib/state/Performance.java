@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Streams;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
-import org.g2fx.g2lib.protocol.FieldValue;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -97,9 +96,7 @@ public class Performance {
 
     private void writeSection(ByteBuffer buf, Sections ss, FieldValues fvs) throws Exception {
         BitBuffer bb = new BitBuffer(1024);
-        for (FieldValue fv : fvs.values) {
-            fv.write(bb);
-        }
+        fvs.write(bb);
         writeSectionContents(buf,ss,bb);
     }
 

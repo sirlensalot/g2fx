@@ -2,7 +2,6 @@ package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.Visual;
-import org.g2fx.g2lib.protocol.FieldValue;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -249,14 +248,11 @@ public class Patch {
         if (ss == null) {
             throw new IllegalArgumentException("No section in patch: " + s);
         }
-        BitBuffer bb = new BitBuffer(0xfff);
+        BitBuffer bb = new BitBuffer(0xffff); //TODO need dynamic allocation
         if (s.location != null) {
             bb.put(2,s.location);
         }
-        FieldValues fvs = ss.values;
-        for (FieldValue fv : fvs.values) {
-            fv.write(bb);
-        }
+        ss.values.write(bb);
         writeSectionContents(buf, s, bb);
 
     }
@@ -482,5 +478,9 @@ public class Patch {
 
     public LibProperty<String> name() {
         return name;
+    }
+
+    public MorphParameters getMorphParams() {
+        return morphParams;
     }
 }

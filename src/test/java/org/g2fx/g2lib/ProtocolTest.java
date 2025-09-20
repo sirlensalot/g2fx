@@ -876,6 +876,77 @@ class ProtocolTest {
         Performance perf = Performance.readFromFile(filePath);
         assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
                 Util.dumpBufferString(perf.writeFile().rewind()));
+
+    }
+
+    @Test
+    void regressMorphParamsWrite() throws Exception {
+        FieldValues fvs = Protocol.MorphParameters.FIELDS.init().addAll(
+                Protocol.MorphParameters.VariationCount.value(9),
+                Protocol.MorphParameters.MorphCount.value(8),
+                Protocol.MorphParameters.Reserved.value(0),
+                Protocol.MorphParameters.VarMorphs.value(List.of(
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(0),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(1), VarMorph.VarMorphParams.value(List.of(
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(11),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(27))
+                                        )), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(1),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(0), VarMorph.VarMorphParams.value(List.of()), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(2),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(0), VarMorph.VarMorphParams.value(List.of()), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(3),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(3), VarMorph.VarMorphParams.value(List.of(
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(8),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(8)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(10),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(7)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(11),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(7))
+                                )), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(4),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(3), VarMorph.VarMorphParams.value(List.of(
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(8),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(20)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(10),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(18)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(11),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(19))
+                                )), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(5),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(3), VarMorph.VarMorphParams.value(List.of(
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(8),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(28)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(10),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(26)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(11),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(27))
+                                )), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(6),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(3), VarMorph.VarMorphParams.value(List.of(
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(8),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(28)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(10),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(26)),
+                                        VarMorphParam.FIELDS.init().addAll(VarMorphParam.Location.value(1), VarMorphParam.ModuleIndex.value(11),
+                                                VarMorphParam.ParamIndex.value(4), VarMorphParam.Morph.value(4), VarMorphParam.Range.value(27))
+                                )), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(7),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(0), VarMorph.VarMorphParams.value(List.of()), VarMorph.Reserved3.value(0)),
+                        VarMorph.FIELDS.init().addAll(VarMorph.Variation.value(8),
+                                VarMorph.Reserved0.value(0), VarMorph.Reserved1.value(0), VarMorph.Reserved2.value(0),
+                                VarMorph.MorphCount.value(0), VarMorph.VarMorphParams.value(List.of()), VarMorph.Reserved3.value(0)))));
+        BitBuffer bb = new BitBuffer(0xfff);
+        fvs.write(bb);
+        assertEquals(0,bb.getBitIndex() % 8); // presumably with other payloads this could be > 4 which is "OK" in data seen thus far.
     }
 
     @Test

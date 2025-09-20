@@ -6,7 +6,7 @@ public record IntValue(SizedField field, int value) implements FieldValue {
 
     @Override
     public String toString() {
-        return field.name() + ": " + value;
+        return field.name() + ".value(" + value + ")";
     }
 
     public static int intValue(FieldValue f) {

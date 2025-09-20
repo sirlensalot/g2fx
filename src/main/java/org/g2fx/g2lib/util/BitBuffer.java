@@ -155,4 +155,8 @@ public class BitBuffer {
         return bb;
     }
 
+    public void trimToByte() {
+        buffer.limit(buffer.limit()-1);
+        bindex = blength = buffer.limit()/8;
+    }
 }

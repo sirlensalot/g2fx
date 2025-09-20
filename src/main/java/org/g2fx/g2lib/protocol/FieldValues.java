@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.protocol;
 
+import org.g2fx.g2lib.util.BitBuffer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +49,10 @@ public class FieldValues {
         } else {
             throw new IllegalArgumentException("update: field not found: " + f);
         }
+    }
+
+    public void write(BitBuffer bb) throws Exception {
+        fields.write(bb,values);
     }
 
     @Override
