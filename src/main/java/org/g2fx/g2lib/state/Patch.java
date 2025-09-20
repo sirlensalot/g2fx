@@ -47,43 +47,43 @@ public class Patch {
     public record Section(Sections sections, FieldValues values) { }
 
     public static final Sections[] FILE_SECTIONS = new Sections[] {
-            Sections.SPatchDescription,
-            Sections.SModuleList1,
-            Sections.SModuleList0,
-            Sections.SCurrentNote,
-            Sections.SCableList1,
-            Sections.SCableList0,
-            Sections.SPatchParams,
-            Sections.SModuleParams1,
-            Sections.SModuleParams0,
-            Sections.SMorphParameters,
-            Sections.SKnobAssignments,
-            Sections.SControlAssignments,
-            Sections.SMorphLabels,
-            Sections.SModuleLabels1,
-            Sections.SModuleLabels0,
-            Sections.SModuleNames1,
-            Sections.SModuleNames0,
-            Sections.STextPad
+            Sections.SPatchDescription_21,
+            Sections.SModuleList1_4a,
+            Sections.SModuleList0_4a,
+            Sections.SCurrentNote_69,
+            Sections.SCableList1_52,
+            Sections.SCableList0_52,
+            Sections.SPatchParams_4d,
+            Sections.SModuleParams1_4d,
+            Sections.SModuleParams0_4d,
+            Sections.SMorphParameters_65,
+            Sections.SKnobAssignments_62,
+            Sections.SControlAssignments_60,
+            Sections.SMorphLabels_5b,
+            Sections.SModuleLabels1_5b,
+            Sections.SModuleLabels0_5b,
+            Sections.SModuleNames1_5a,
+            Sections.SModuleNames0_5a,
+            Sections.STextPad_6f
     };
 
     public static final Sections[] MSG_SECTIONS = new Sections[] {
-            Sections.SPatchDescription,
-            Sections.SModuleList1,
-            Sections.SModuleList0,
-            Sections.SCableList1,
-            Sections.SCableList0,
-            Sections.SPatchParams,
-            Sections.SModuleParams1,
-            Sections.SModuleParams0,
-            Sections.SMorphParameters,
-            Sections.SKnobAssignments,
-            Sections.SControlAssignments,
-            Sections.SModuleNames1,
-            Sections.SModuleNames0,
-            Sections.SMorphLabels,
-            Sections.SModuleLabels1,
-            Sections.SModuleLabels0
+            Sections.SPatchDescription_21,
+            Sections.SModuleList1_4a,
+            Sections.SModuleList0_4a,
+            Sections.SCableList1_52,
+            Sections.SCableList0_52,
+            Sections.SPatchParams_4d,
+            Sections.SModuleParams1_4d,
+            Sections.SModuleParams0_4d,
+            Sections.SMorphParameters_65,
+            Sections.SKnobAssignments_62,
+            Sections.SControlAssignments_60,
+            Sections.SModuleNames1_5a,
+            Sections.SModuleNames0_5a,
+            Sections.SMorphLabels_5b,
+            Sections.SModuleLabels1_5b,
+            Sections.SModuleLabels0_5b
     };
 
     public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
@@ -148,7 +148,7 @@ public class Patch {
     public void readPatchDescription(ByteBuffer buf) {
         for (Sections ss : MSG_SECTIONS) {
             readSection(buf,ss);
-            if (ss == Sections.SPatchDescription) {
+            if (ss == Sections.SPatchDescription_21) {
                 Util.expectWarn(buf,0x2d,"Message","USB extra 1");
                 Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }
@@ -276,7 +276,7 @@ public class Patch {
         writeMessageHeader(buf);
         for (Sections s : MSG_SECTIONS) {
             writeSection(buf,s);
-            if (s == Sections.SPatchDescription) {
+            if (s == Sections.SPatchDescription_21) {
                 buf.put(Util.asBytes(0x2d,0x00));
             }
         }
@@ -353,26 +353,26 @@ public class Patch {
         sections.put(s, section);
         log.info("updateSection: " + s);
         switch (s) {
-            case SPatchDescription ->
+            case SPatchDescription_21 ->
                 this.patchSettings = new PatchSettings(section.values);
-            case SPatchParams -> settingsArea.setUserModuleParams(section.values);
-            case STextPad -> this.textPad = section.values;
-            case SCurrentNote -> this.currentNote = section.values;
-            case SModuleList0 -> fxArea.addModules(section.values);
-            case SModuleList1 -> voiceArea.addModules(section.values);
-            case SModuleParams0 -> fxArea.setUserModuleParams(section.values);
-            case SModuleParams1 -> voiceArea.setUserModuleParams(section.values);
-            case SModuleLabels0 -> fxArea.setModuleLabels(section.values);
-            case SModuleLabels1 -> voiceArea.setModuleLabels(section.values);
-            case SModuleNames0 -> fxArea.setModuleNames(section.values);
-            case SModuleNames1 -> voiceArea.setModuleNames(section.values);
-            case SCableList0 -> fxArea.addCables(section.values);
-            case SCableList1 -> voiceArea.addCables(section.values);
-            case SMorphLabels -> settingsArea.setMorphLabels(section.values);
-            case SKnobAssignments -> this.knobAssignments = new KnobAssignments(section.values,slot);
-            case SControlAssignments -> this.controls = new ControlAssignments(section.values);
-            case SMorphParameters -> this.morphParams = new MorphParameters(section.values);
-            case SPatchName -> this.name = LibProperty.stringFieldProperty(section.values, Protocol.EntryName.Name);
+            case SPatchParams_4d -> settingsArea.setUserModuleParams(section.values);
+            case STextPad_6f -> this.textPad = section.values;
+            case SCurrentNote_69 -> this.currentNote = section.values;
+            case SModuleList0_4a -> fxArea.addModules(section.values);
+            case SModuleList1_4a -> voiceArea.addModules(section.values);
+            case SModuleParams0_4d -> fxArea.setUserModuleParams(section.values);
+            case SModuleParams1_4d -> voiceArea.setUserModuleParams(section.values);
+            case SModuleLabels0_5b -> fxArea.setModuleLabels(section.values);
+            case SModuleLabels1_5b -> voiceArea.setModuleLabels(section.values);
+            case SModuleNames0_5a -> fxArea.setModuleNames(section.values);
+            case SModuleNames1_5a -> voiceArea.setModuleNames(section.values);
+            case SCableList0_52 -> fxArea.addCables(section.values);
+            case SCableList1_52 -> voiceArea.addCables(section.values);
+            case SMorphLabels_5b -> settingsArea.setMorphLabels(section.values);
+            case SKnobAssignments_62 -> this.knobAssignments = new KnobAssignments(section.values,slot);
+            case SControlAssignments_60 -> this.controls = new ControlAssignments(section.values);
+            case SMorphParameters_65 -> this.morphParams = new MorphParameters(section.values);
+            case SPatchName_27 -> this.name = LibProperty.stringFieldProperty(section.values, Protocol.EntryName.Name);
         }
     }
 
@@ -380,7 +380,7 @@ public class Patch {
     public void readPatchLoadDataMsg(UsbMessage msg) {
         ByteBuffer buf = msg.getBufferx();
         readMessageHeader(buf);
-        Util.expectWarn(buf,Sections.SPatchLoadData.type,"msg","PatchLoad");
+        Util.expectWarn(buf,Sections.SPatchLoadData_72.type,"msg","PatchLoad");
         readPatchLoadData(buf);
     }
 

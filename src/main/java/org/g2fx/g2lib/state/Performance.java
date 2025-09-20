@@ -62,7 +62,7 @@ public class Performance {
         Performance perf = new Performance();
         perf.setVersion(fileBuffer.get());
         perf.perfSettings = new PerformanceSettings(
-                readSectionSlice(fileBuffer,Sections.SPerformanceSettings));
+                readSectionSlice(fileBuffer,Sections.SPerformanceSettings_11));
         for (Slot s : Slot.values()) {
             Patch patch = new Patch(s);
             patch.setVersion(0); //TODO source?
@@ -70,7 +70,7 @@ public class Performance {
             perf.slots.put(s,patch);
         }
         perf.globalKnobAssignments = new GlobalKnobAssignments(
-                readSectionSlice(fileBuffer,Sections.SGlobalKnobAssignments));
+                readSectionSlice(fileBuffer,Sections.SGlobalKnobAssignments_5f));
 
         return perf;
     }
@@ -85,11 +85,11 @@ public class Performance {
         buf.put(HEADER.rewind());
         int start = buf.position();
         buf.put(Util.asBytes(0x17,version));
-        writeSection(buf,Sections.SPerformanceSettings,perfSettings.getFieldValues());
+        writeSection(buf,Sections.SPerformanceSettings_11,perfSettings.getFieldValues());
         for (Patch patch : slots.values()) {
             patch.writeFileSections(buf);
         }
-        writeSection(buf,Sections.SGlobalKnobAssignments,globalKnobAssignments.getFieldValues());
+        writeSection(buf,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
         writeCrc(buf,start);
         return buf;
     }
@@ -103,7 +103,7 @@ public class Performance {
     // test
     public Performance readFromMessage(ByteBuffer buf) {
         readPerfMsgHeader(buf.rewind());
-        Util.expectWarn(buf,Sections.SPerformanceName.type,"Message","Perf name");
+        Util.expectWarn(buf,Sections.SPerformanceName_29.type,"Message","Perf name");
         readPerformanceNameAndSettings(buf);
         return this;
     }
@@ -113,7 +113,7 @@ public class Performance {
         BitBuffer bb = new BitBuffer(buf.slice());
         perfName = LibProperty.stringFieldProperty(Protocol.EntryName.FIELDS.read(bb),Protocol.EntryName.Name);
         perfSettings = new PerformanceSettings(
-                readSectionSlice(bb.slice(),Sections.SPerformanceSettings));
+                readSectionSlice(bb.slice(),Sections.SPerformanceSettings_11));
         log.info(() -> "readPerformanceNameAndSettings");
         return true;
     }
@@ -140,7 +140,7 @@ public class Performance {
     // usb, test
     private void updateSection(Sections s, FieldValues fvs) {
         switch (s) {
-            case SGlobalKnobAssignments -> this.globalKnobAssignments = new GlobalKnobAssignments(fvs);
+            case SGlobalKnobAssignments_5f -> this.globalKnobAssignments = new GlobalKnobAssignments(fvs);
         }
     }
 

@@ -167,7 +167,7 @@ public class UsbDevice extends Device implements Dispatcher {
             case T_PERFORMANCE_NAME -> perf.readPerformanceNameAndSettings(buf);
             case T_RESERVED_1E -> dispatchSuccess(() -> "reserved 1e");
             case T_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
-            case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments,sliceAhead(buf));
+            case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
             case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
             case T_ENTRY_LIST -> dispatchEntryList(buf.slice());
             default -> dispatchFailure("dispatchPerfCmd: unrecognized type: %02x",t);
@@ -188,9 +188,9 @@ public class UsbDevice extends Device implements Dispatcher {
                 log.info(() -> "patch description");
                 yield true;
             }
-            case T_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName);
-            case T_CURRENT_NOTE -> patch.readSectionSlice(sliceAhead(buf), Sections.SCurrentNote);
-            case T_TEXT_PAD -> patch.readSectionSlice(sliceAhead(buf), Sections.STextPad);
+            case T_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName_27);
+            case T_CURRENT_NOTE -> patch.readSectionSlice(sliceAhead(buf), Sections.SCurrentNote_69);
+            case T_TEXT_PAD -> patch.readSectionSlice(sliceAhead(buf), Sections.STextPad_6f);
             case T_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
             case T_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
             case T_SELECTED_PARAM -> patch.readSelectedParam(buf);
