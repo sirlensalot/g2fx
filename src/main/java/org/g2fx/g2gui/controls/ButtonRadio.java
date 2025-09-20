@@ -40,6 +40,7 @@ public class ButtonRadio {
     public ButtonRadio(ModulePane parent, UIElements.ButtonRadio c, IndexParam ip) {
         List<TextOrImage> ss = c.Text().isEmpty() ?
                 TextOrImage.mkImages(c.Images()) : TextOrImage.mkTexts(c.Text());
+        ToggleGroup tg = new ToggleGroup();
         ObservableList<ToggleButton> buttons =
                 FXCollections.observableArrayList(Streams.mapWithIndex(ss.stream(),(si, ix) -> {
                     ToggleButton tb = withClass(new ToggleButton(),"button-radio-button","g2-toggle");
@@ -58,10 +59,12 @@ public class ButtonRadio {
                     tb.setGraphic(g);
                     tb.setUserData(Long.valueOf(ix).intValue());
                     tb.setPrefWidth(c.ButtonWidth()-1);
+                    tb.setToggleGroup(tg);
                     return tb;
                 }).toList());
 
         SegmentedButton button = layout(c,withClass(new SegmentedButton(buttons), "module-button-radio"));
+        button.setToggleGroup(null);
         control = button;
         if (c.Orientation() == Vertical) {
             button.setRotate(90);
@@ -71,8 +74,7 @@ public class ButtonRadio {
                 button.setTranslateY(c.YPos()-bs.getMinY());
             });
         }
-        ToggleGroup toggleGroup = button.getToggleGroup();
-        selectedToggleIndexProperty = mkSelectedToggleIndexProperty(control, ip, toggleGroup, buttons);
+        selectedToggleIndexProperty = mkSelectedToggleIndexProperty(control, ip, tg, buttons);
     }
 
     /**

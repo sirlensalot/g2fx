@@ -9,8 +9,6 @@ import java.util.function.Consumer;
 
 public abstract class FxProperty<T> {
 
-    private ChangeListener<T> valueListener;
-
     public static class SimpleFxProperty<T> extends FxProperty<T> {
 
         private Property<T> p;
@@ -29,13 +27,6 @@ public abstract class FxProperty<T> {
         @Override public void setValue(T value) { p.setValue(value); }
     }
 
-    private final ObservableValue<Boolean> changing;
-    protected final ObservableValue<T> observable;
-
-    public FxProperty(ObservableValue<T> observable) {
-        this(observable,null); // never changing
-    }
-
     public static <T> FxProperty<T> adaptReadOnly(ObservableValue<T> readProperty, Consumer<T> setter) {
         return new FxProperty<>(readProperty) {
             @Override public void setValue(T value) {
@@ -44,8 +35,22 @@ public abstract class FxProperty<T> {
         };
     }
 
+    private ChangeListener<T> valueListener;
+    private final ObservableValue<Boolean> changing;
+    protected final ObservableValue<T> observable;
+    private String name;
+
+    public FxProperty(ObservableValue<T> observable) {
+        this(observable,null); // never changing
+    }
+
     public FxProperty(ObservableValue<T> observable, ObservableValue<Boolean> changingArg) {
         this.observable = observable;
+        if (observable instanceof Property<T> po) {
+            name = po.getName();
+        } else {
+            name = observable.toString();
+        }
         this.changing = changingArg == null ? new SimpleBooleanProperty(false) : changingArg;
         changing.addListener(new ChangeListener<>() {
             private T changeStartValue;
@@ -81,4 +86,13 @@ public abstract class FxProperty<T> {
     }
 
     public abstract void setValue(T value);
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "FxProperty: " + name;
+    }
 }

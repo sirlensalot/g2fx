@@ -412,7 +412,7 @@ public class ModulePane {
         paramListener.addIntProp(ip,property);
         bindVarControl(property, v -> {
             Property<Integer> p =
-                    new SimpleObjectProperty<>(ctl, property.getName(), null);
+                    new SimpleObjectProperty<>(ctl, property.getName()+":v"+v, null);
             bridges.bridge(mkParamIntProp(ip, v),
                     new FxProperty.SimpleFxProperty<>(p, changing),
                     Iso.id());
