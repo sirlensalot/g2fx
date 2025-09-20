@@ -57,4 +57,7 @@ public class PatchCable {
         fvs.update(Protocol.Cable.DestConn.value(value));
     }
 
+    public FieldValues getFieldValues() {
+        return fvs;
+    }
 }
