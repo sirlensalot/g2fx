@@ -4,6 +4,7 @@ import org.g2fx.g2gui.controls.IndexParam;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.jline.console.ArgDesc;
 import org.jline.console.CmdDesc;
@@ -237,8 +238,8 @@ public enum EvalCommand {
                 });
             })),
     record(cmd("Start or stop session recording. No arguments means stop recording.",
-            argDesc("session","recording session name"),
-            argDesc("dir","path to store message images in"))
+            argDesc("dir","path to store message images in"),
+            argDesc("session","recording session name"))
             .argsRequired(0)
             .run(c -> {
                 if (c.args().isEmpty()) {
@@ -250,7 +251,7 @@ public enum EvalCommand {
                 if (c.args().size() != 2) {
                     throw c.bad("Must have 0 or 2 arguments");
                 }
-                File dir = new File(c.args().get(1).arg());
+                File dir = new File(c.args().get(0).arg());
                 if (dir.exists()) {
                     if (!dir.isDirectory()) {
                         throw c.bad("Invalid dir arg, must be directory");
@@ -262,8 +263,28 @@ public enum EvalCommand {
                 }
                 c.devices.runWithCurrent(d -> {
                        if (d instanceof UsbDevice ud)
-                           ud.getUsb().startRecording(c.args().getFirst().arg(),dir);
+                           ud.getUsb().startRecording(c.args().get(1).arg(),dir);
                 });
+            })),
+    play(cmd("Play session recording yaml file.",argDesc("file","yaml file"))
+            .run(c -> {
+                List<MessageRecorder.RecordedUsbMessage> msgs;
+                File f = new File(c.nextArg());
+                try {
+                    msgs = MessageRecorder.readSessionFile(f);
+                } catch (Exception e) {
+                    throw new RuntimeException("play: could not read session file " + f,e);
+                }
+                new Thread(() -> {
+                    msgs.forEach(rum -> {
+                        try {
+                            Thread.sleep(rum.time());
+                        } catch (InterruptedException ignored) {}
+                        c.devices.runWithCurrent(d -> {
+                            d.dispatch(rum.msg());
+                        });
+                    });
+                }).start();
             })),
     comm(cmd("Start/stop device communication stream",
             argDesc("startStop","start or stop"))

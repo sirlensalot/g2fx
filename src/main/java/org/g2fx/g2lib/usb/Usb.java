@@ -125,12 +125,13 @@ public class Usb {
     }
 
     public void startRecording(String sessionName, File dir) throws Exception {
-        log.info("Recording messages, session=" + sessionName + ", dir=" + dir);
         this.recorder = new MessageRecorder(sessionName,dir);
+        log.info("Recording messages to " + recorder.getPath());
     }
 
     public void stopRecording() {
-        log.info("Stopping recording for session " + recorder.getSession());
+        log.info("Stopping recording to " + recorder.getPath());
+        recorder.stop();
         this.recorder = null;
     }
 

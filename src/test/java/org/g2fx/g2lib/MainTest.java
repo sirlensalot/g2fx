@@ -7,6 +7,7 @@ import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.Visual;
+import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,12 @@ class MainTest {
             }
         }
 
+    }
+
+    @Test
+    void loadRecording() throws Exception {
+        List<MessageRecorder.RecordedUsbMessage> msgs = MessageRecorder.readSessionFile(new File("data/recording1.yaml"));
+        assertEquals(192,msgs.size());
     }
 
     /**
