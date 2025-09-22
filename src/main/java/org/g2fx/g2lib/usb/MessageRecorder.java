@@ -10,7 +10,6 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -108,9 +107,8 @@ public class MessageRecorder {
     public static class BytesDesz extends JsonDeserializer<ByteBuffer> {
         @Override
         public ByteBuffer deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            String[] value = p.getValueAsString().split(" ");
-            ByteBuffer buf = ByteBuffer.allocateDirect(value.length);
-            Arrays.stream(value).forEach(s -> buf.put((byte)Integer.parseUnsignedInt(s,16)));
+            String v = p.getValueAsString();
+            ByteBuffer buf = Util.readTextColsByteBuffer(v);
             return buf;
         }
     }

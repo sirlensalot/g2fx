@@ -1023,4 +1023,22 @@ class ProtocolTest {
         FieldValues fvs = Sections.SModuleLabels0_5b.fields.read(bb);
         //System.out.println(fvs);
     }
+
+    @Test
+    void testPerfNameSettings() throws Exception {
+        String data = """
+                01 0c 07 29 70 65 72 66 2d 32 30 32 34 30 38 30
+                32 2d 73 63 11 00 58 00 04 00 78 00 00 00 00 4e
+                6f 20 6e 61 6d 65 00 01 01 00 00 00 00 7f 02 00
+                00 73 69 6d 70 6c 65 20 73 79 6e 74 68 20 30 30
+                31 01 01 00 00 00 00 7f 03 00 00 4e 6f 20 6e 61
+                6d 65 00 01 00 00 00 00 00 7f 04 00 00 4e 6f 20
+                6e 61 6d 65 00 01 00 00 00 00 00 7f 05 00 00 ff
+                63                                            \s""";
+        ByteBuffer buf = Util.readTextColsByteBuffer(data);
+        Device d = new Device();
+        d.getPerf().setVersion(7);
+        assertTrue(d.dispatch(new UsbMessage(buf.limit(),true,0xff63,buf)));
+        //WARNING: dispatchCmd: unrecognized perf or sys version: 7 <- gotta figure this out.
+    }
 }

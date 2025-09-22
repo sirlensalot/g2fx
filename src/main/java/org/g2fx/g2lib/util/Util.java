@@ -249,11 +249,12 @@ public class Util {
     }
 
 
-    public static void expectWarn(ByteBuffer buf, int expected, String filePath, String msg) {
+    public static byte expectWarn(ByteBuffer buf, int expected, String filePath, String msg) {
         byte b = buf.get();
         if (b != expected) {
             log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,b,filePath,buf.position()-1));
         }
+        return b;
     }
 
     public static Map<String,Object> withYamlMap(
@@ -284,5 +285,12 @@ public class Util {
 
     public static <T> void forEachIndexed(Collection<T> coll, BiConsumer<T,Integer> f) {
         Streams.mapWithIndex(coll.stream(),(v,ix) -> { f.accept(v,(int) ix); return 1; }).toArray();
+    }
+
+    public static ByteBuffer readTextColsByteBuffer(String v) {
+        String[] value = v.split("\\s+");
+        ByteBuffer buf = ByteBuffer.allocateDirect(value.length);
+        Arrays.stream(value).forEach(s -> buf.put((byte)Integer.parseUnsignedInt(s,16)));
+        return buf;
     }
 }

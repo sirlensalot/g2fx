@@ -514,7 +514,7 @@ public class Protocol {
 
     public enum EntryName implements FieldEnum {
         Name;
-        EntryName() { f = new StringField(this); }
+        EntryName() { f = new StringField(this,16,true); }
         private final Field f;
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());

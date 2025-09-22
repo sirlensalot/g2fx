@@ -20,7 +20,8 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
- * Implements an offline device. Subclass `UsbDevice` has all online functionality.
+ * Implements an offline device. Subclass `UsbDevice` has all transmission functionality,
+ * but dispatching here which is offline-compatible is nice for simulation/scripting.
  */
 public class Device implements Dispatcher {
 
@@ -47,6 +48,10 @@ public class Device implements Dispatcher {
 
     public static final int R_CMD = 0x01;
     public static final int R_INIT = 0x80;
+
+    //09: slot change  (72) 01 04 05 09 00 31 c8 00 00 00 00 00 00 00 00
+    //6a: var change   (72) 01 00 05 6a 01 b5 61 00 00 00 00 00 00 00 00
+    //??: param change (b2) 01 01 05 40 01 01 00 45 01 81 ba 00 00 00 00
 
 
     private static final Logger log = Util.getLogger(Device.class);
@@ -107,13 +112,17 @@ public class Device implements Dispatcher {
 
     @Override
     public boolean dispatch(UsbMessage msg) {
-        ByteBuffer buf = msg.getBufferx().slice(); //skip embedded first byte
-        int h = Util.b2i(buf.get());
-        return switch (h) {
-            case R_CMD -> dispatchCmd(buf);
-            case R_INIT -> dispatchSuccess(() -> "System Init");
-            default -> dispatchFailure("dispatch: unrecognized response code: %02x",h);
-        };
+        try {
+            ByteBuffer buf = msg.getBufferx().slice(); //skip embedded first byte
+            int h = Util.b2i(buf.get());
+            return switch (h) {
+                case R_CMD -> dispatchCmd(buf);
+                case R_INIT -> dispatchSuccess(() -> "System Init");
+                default -> dispatchFailure("dispatch: unrecognized response code: %02x", h);
+            };
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error in dispatch of message: " + Util.dumpBufferString(msg.buffer().rewind()),e);
+        }
     }
 
     private boolean dispatchSuccess(Supplier<String> msg) {
@@ -131,7 +140,7 @@ public class Device implements Dispatcher {
      */
     private boolean dispatchCmd(ByteBuffer buf) {
         int h = Util.b2i(buf.get());
-        if (h == 0x0c) {
+        if (h == 0x0c) { // version msg in response from editor init (load?)
             int v = Util.b2i(buf.get());
             if (v == V_VERSION) { // version
                 return dispatchVersion(buf);
@@ -146,10 +155,14 @@ public class Device implements Dispatcher {
             return dispatchSlotCmd(Slot.fromIndex(h), buf);
         } else if (h == 4) {
             int pv = Util.b2i(buf.get());
-            if (pv == perf.getVersion()) {
+            if (pv == V_VERSION) { // version msg in response to load from keyboard, indicates a reset, plus looks like comms stop?
+                return dispatchVersion(buf);
+            } else if (pv == perf.getVersion()) {
                 return dispatchPerfCmd(buf);
             } else {
-                return dispatchFailure("dispatchCmd: unrecognized perf version: " + pv);
+                log.warning("Received different perf version, updating: " + pv);
+                perf.setVersion(pv);
+                return dispatchPerfCmd(buf);
             }
         } else {
             return dispatchFailure("dispatchCmd: unrecognized header: %02x",h);
@@ -182,7 +195,8 @@ public class Device implements Dispatcher {
      */
     private boolean dispatchSlotCmd(Slot slot, ByteBuffer buf) {
         Patch patch = perf.getSlot(slot);
-        Util.expectWarn(buf,patch.getVersion(),"usb","patch version");
+        byte pv = Util.expectWarn(buf, patch.getVersion(), "usb", "patch version for slot " + slot);
+        patch.setVersion(Util.b2i(pv));
         int t = Util.b2i(buf.get());
         return switch (t) {
             case T_PATCH_DESCRIPTION -> {
