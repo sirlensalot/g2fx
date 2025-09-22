@@ -76,4 +76,10 @@ public class ParamValues {
     public List<List<Integer>> getAllVarValues() {
         return getValues().stream().map(ParamValues::getParamValues).toList();
     }
+
+    public void updateParam(FieldValues fvs) {
+        param(Protocol.ParamUpdate.Variation.intValue(fvs),
+                Protocol.ParamUpdate.Param.intValue(fvs))
+                .set(Protocol.ParamUpdate.Value.intValue(fvs));
+    }
 }

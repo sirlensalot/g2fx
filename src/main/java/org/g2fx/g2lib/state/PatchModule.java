@@ -132,16 +132,6 @@ public class PatchModule {
     }
 
     public void updateParam(FieldValues fvs) {
-        int variation = Protocol.ParamUpdate.Variation.intValue(fvs);
-        int value = Protocol.ParamUpdate.Value.intValue(fvs);
-        int param = Protocol.ParamUpdate.Param.intValue(fvs);
-        FieldValues vvs = values.getRequiredVarValues(variation);
-        FieldValues v = Protocol.VarParams.Params.subfieldsValue(vvs).get(param);
-        int old = Protocol.Data7.Datum.intValue(v);
-        if (old != value) { //updates can happen with same value, ignore
-            v.update(Protocol.Data7.Datum.value(value));
-            log.info(() -> String.format("updateParam: var=%s, param=%s[%s], old=%s, value=%s",
-                    variation, getNamedParam(param).name(), param, old, value));
-        }
+        values.updateParam(fvs);
      }
 }
