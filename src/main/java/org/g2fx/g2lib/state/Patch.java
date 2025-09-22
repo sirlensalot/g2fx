@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.state.Device.dispatchSuccess;
 import static org.g2fx.g2lib.util.Util.forEachIndexed;
 
 public class Patch {
@@ -454,8 +455,17 @@ public class Patch {
     public boolean readParamUpdate(ByteBuffer buf) {
         FieldValues fvs = Protocol.ParamUpdate.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.ParamUpdate.Location.intValue(fvs)).updateParam(fvs);
-        return true;
+        return dispatchSuccess(() -> "readParamUpdate");
     }
+
+
+    // 01 b5 61 00 00 00 00 00 00 00 00
+    public boolean readVarChange(ByteBuffer buf) {
+        int var = buf.get();
+        patchSettings.variation().set(var);
+        return dispatchSuccess(()->"readVarChange: " + var);
+    }
+
 
 
 

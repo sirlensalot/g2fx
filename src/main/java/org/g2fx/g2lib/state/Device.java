@@ -25,6 +25,7 @@ import java.util.logging.Logger;
  */
 public class Device implements Dispatcher {
 
+    private static final Logger log = Util.getLogger(Device.class);
 
     public static final int T_PATCH_LOAD_DATA = 0x72;
     public static final int T_TEXT_PAD = 0x6f;
@@ -43,18 +44,13 @@ public class Device implements Dispatcher {
     public static final int T_VOLUME_DATA = 0x3a;
     public static final int T_LED_DATA = 0x39;
     public static final int T_SET_PARAM = 0x40;
+    public static final int T_CHANGE_SLOT = 0x09;
+    public static final int T_CHANGE_VARIATION = 0x6a;
 
     public static final int V_VERSION = 0x40;
 
     public static final int R_CMD = 0x01;
     public static final int R_INIT = 0x80;
-
-    //09: slot change  (72) 01 04 05 09 00 31 c8 00 00 00 00 00 00 00 00
-    //6a: var change   (72) 01 00 05 6a 01 b5 61 00 00 00 00 00 00 00 00
-    //??: param change (b2) 01 01 05 40 01 01 00 45 01 81 ba 00 00 00 00
-
-
-    private static final Logger log = Util.getLogger(Device.class);
 
 
     public enum EntryType {
@@ -110,6 +106,16 @@ public class Device implements Dispatcher {
     public void loadEntry(int slotCode, int bank, int entry) throws Exception { }
 
 
+    public static boolean dispatchSuccess(Supplier<String> msg) {
+        log.info(msg);
+        return true;
+    }
+
+    public static boolean dispatchFailure(String msg, Object... args) {
+        log.warning(String.format(msg,args));
+        return false;
+    }
+
     @Override
     public boolean dispatch(UsbMessage msg) {
         try {
@@ -123,16 +129,6 @@ public class Device implements Dispatcher {
         } catch (RuntimeException e) {
             throw new RuntimeException("Error in dispatch of message: " + Util.dumpBufferString(msg.buffer().rewind()),e);
         }
-    }
-
-    private boolean dispatchSuccess(Supplier<String> msg) {
-        log.info(msg);
-        return true;
-    }
-
-    private boolean dispatchFailure(String msg, Object... args) {
-        log.warning(String.format(msg,args));
-        return false;
     }
 
     /**
@@ -186,9 +182,11 @@ public class Device implements Dispatcher {
             case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
             case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
             case T_ENTRY_LIST -> dispatchEntryList(buf.slice());
+            case T_CHANGE_SLOT -> readSlotChange(buf);
             default -> dispatchFailure("dispatchPerfCmd: unrecognized type: %02x",t);
         };
     }
+
 
     /**
      * Handle 01 [slot] [slot version] ...
@@ -214,6 +212,7 @@ public class Device implements Dispatcher {
             case T_VOLUME_DATA -> patch.readVolumeData(buf);
             case T_LED_DATA -> patch.readLedData(buf);
             case T_SET_PARAM -> patch.readParamUpdate(buf);
+            case T_CHANGE_VARIATION -> patch.readVarChange(buf);
             default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);
         };
     }
@@ -267,6 +266,12 @@ public class Device implements Dispatcher {
     }
 
 
+    // 00 31 c8 00 00 00 00 00 00 00 00
+    private boolean readSlotChange(ByteBuffer buf) {
+        int slot = buf.get();
+        perf.getPerfSettings().selectedSlot().set(slot);
+        return dispatchSuccess(() -> "readSlotChange: " + slot);
+    }
 
     // usb
     private boolean readExtMasterClock(ByteBuffer buf) {
