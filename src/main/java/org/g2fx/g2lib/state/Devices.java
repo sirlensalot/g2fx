@@ -37,7 +37,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     public List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
 
     private final ExecutorService executorService;
-    private final Map<Integer, UsbDevice> devices = new HashMap<>();
+    private final Map<Integer, Device> devices = new HashMap<>();
     private Device current;
 
     private final UsbService usbService;
@@ -65,7 +65,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         }
 
         Usb usb = new Usb(ud);
-        final UsbDevice d = new UsbDevice(usb);
+        final Device d = new Device(usb);
         usb.setThreadsafeDispatcher(msg -> {
             executorService.execute(() -> {
                 try {
@@ -90,7 +90,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
     }
 
     private void disconnected(UsbService.UsbDevice ud) {
-        UsbDevice d = devices.remove(ud.address());
+        Device d = devices.remove(ud.address());
         notifyDeviceDispose(d);
         d.shutdown(false);
     }
@@ -143,7 +143,7 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
         //blocking shutdown of devices
         Future<Boolean> f = executorService.submit(() -> {
-            for (UsbDevice d : devices.values()) {
+            for (Device d : devices.values()) {
                 d.shutdown(true);
             }
             return true;

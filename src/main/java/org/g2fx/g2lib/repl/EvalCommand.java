@@ -5,6 +5,7 @@ import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.MessageRecorder;
+import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.jline.console.ArgDesc;
 import org.jline.console.CmdDesc;
@@ -35,7 +36,7 @@ public enum EvalCommand {
             argDesc("perfOrPatch","'perf' or 'patch'"),
             argDesc("index","bank index: 1-8 for perfs, 1-32 for patches"))
             .run(c -> {
-                UsbDevice.EntryType type = UsbDevice.EntryType.LC_NAME_LOOKUP.get(c.nextArg());
+                Device.EntryType type = Device.EntryType.LC_NAME_LOOKUP.get(c.nextArg());
                 int bank = c.nextInt() - 1;
                 c.devices.runWithCurrent(d -> d.dumpEntries(c.writer,type,bank));
             })),
@@ -244,7 +245,7 @@ public enum EvalCommand {
             .run(c -> {
                 if (c.args().isEmpty()) {
                     c.devices.runWithCurrent(d -> {
-                        if (d instanceof UsbDevice ud) ud.getUsb().stopRecording();
+                        if (d.getUsb() instanceof Usb usb) usb.stopRecording();
                     });
                     return;
                 }
@@ -262,8 +263,7 @@ public enum EvalCommand {
                     }
                 }
                 c.devices.runWithCurrent(d -> {
-                       if (d instanceof UsbDevice ud)
-                           ud.getUsb().startRecording(c.args().get(1).arg(),dir);
+                    if (d.getUsb() instanceof Usb usb) usb.startRecording(c.args().get(1).arg(), dir);
                 });
             })),
     play(cmd("Play session recording yaml file.",argDesc("file","yaml file"))

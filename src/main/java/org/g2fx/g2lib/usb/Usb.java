@@ -1,6 +1,5 @@
 package org.g2fx.g2lib.usb;
 
-import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 import org.usb4java.BufferUtils;
@@ -181,39 +180,6 @@ public class Usb implements UsbSender {
         }
     }
 
-    @Override
-    public int sendSystemRequest(String msg, int... cdata) throws Exception {
-        return sendBulk(msg, true, Util.concat(Util.asBytes(
-                0x01,
-                0x20 + 0x0c,// CMD_REQ + CMD_SYS
-                0x41
-        ),Util.asBytes(cdata)));
-    }
-
-    public int sendPerfRequest(int perfVersion, String msg, int... cdata) throws Exception {
-        return sendBulk(msg, true, Util.concat(Util.asBytes(
-                0x01,
-                0x20 + 0x0c,// CMD_REQ + CMD_SYS
-                perfVersion
-        ),Util.asBytes(cdata)));
-    }
-
-    /**
-     * A slot request expects a response.
-     * @param slot 0-3
-     * @param version patch version
-     * @param msg log msg
-     * @param cdata request data
-     * @return success code
-     */
-    public int sendSlotRequest(Slot slot, int version, String msg, int... cdata) throws Exception {
-        return sendBulk(msg, true, Util.concat(Util.asBytes(
-                0x01,
-                0x20 + 0x08 + slot.ordinal(), // CMD_REQ + CMD_SLOT + slot index
-                version
-                ),Util.asBytes(cdata)));
-    }
-
     /**
      * a slot command does not expect a response
      * @param slot 0-3
@@ -230,6 +196,7 @@ public class Usb implements UsbSender {
         ),Util.asBytes(cdata)));
     }
 
+    @Override
     public void shutdown() {
 
         readThread.shutdown();
@@ -300,6 +267,7 @@ S_SET_MORPH_RANGE :
         return readThread.expect(id,filter);
     }
 
+    @Override
     public void setDispatcher(Dispatcher dispatcher) {
         this.dispatcher = dispatcher;
     }
