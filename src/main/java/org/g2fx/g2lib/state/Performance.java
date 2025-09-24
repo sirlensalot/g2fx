@@ -7,6 +7,8 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
+import org.g2fx.g2lib.usb.UsbPerfSender;
+import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
@@ -42,9 +44,12 @@ public class Performance {
     private GlobalKnobAssignments globalKnobAssignments;
     private final Map<Slot,Patch> slots = new TreeMap<>();
 
-    public Performance() {
+    private final UsbPerfSender sender;
+
+    public Performance(UsbSender sysSender) {
+        this.sender = new UsbPerfSender(sysSender,this);
         for (Slot s : Slot.values()) {
-            slots.put(s,new Patch(s));
+            slots.put(s,new Patch(s, sysSender));
         }
     }
 
@@ -52,19 +57,19 @@ public class Performance {
         return version;
     }
 
-    public static Performance readFromFile(String filePath) throws Exception {
+    public static Performance readFromFile(String filePath,UsbSender sender) throws Exception {
         ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
         ByteBuffer slice = fileBuffer.slice();
         int crc = CRC16.crc16(slice,0,slice.limit()-2);
 
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
-        Performance perf = new Performance();
+        Performance perf = new Performance(sender);
         perf.setVersion(fileBuffer.get());
         perf.perfSettings = new PerformanceSettings(
                 readSectionSlice(fileBuffer,Sections.SPerformanceSettings_11));
         for (Slot s : Slot.values()) {
-            Patch patch = new Patch(s);
+            Patch patch = new Patch(s, sender);
             patch.setVersion(0); //TODO source?
             patch.readFileSections(fileBuffer);
             perf.slots.put(s,patch);

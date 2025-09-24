@@ -5,6 +5,7 @@ import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.usb.UsbSlotSender;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.*;
@@ -13,6 +14,7 @@ import java.util.logging.Logger;
 public class PatchArea {
 
     public final AreaId id;
+    private final UsbSlotSender sender;
     private final Logger log;
 
     private final Map<Integer,PatchModule> modules = new TreeMap<>();
@@ -23,16 +25,18 @@ public class PatchArea {
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
 
-    public PatchArea(Slot slot,AreaId id) {
+    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender) {
         this.id = id;
+        this.sender = sender;
         this.log = Util.getLogger(getClass().getName() + "." + slot + "." + id);
     }
 
-    public PatchArea(Slot slot) {
+    public PatchArea(Slot slot, UsbSlotSender sender) {
+        this.sender = sender;
         this.id = AreaId.Settings;
         this.log = Util.getLogger(getClass().getName() + "." + slot + "." + id);
         Arrays.stream(SettingsModules.values()).forEach(sm -> {
-            PatchModule m = new PatchModule(sm);
+            PatchModule m = new PatchModule(sm,sender,id);
             modules.put(m.getIndex(),m);
         });
     }
@@ -59,7 +63,7 @@ public class PatchArea {
     }
 
     private void addModule(FieldValues fvs) {
-        PatchModule m = new PatchModule(fvs);
+        PatchModule m = new PatchModule(fvs,sender,id);
         modules.put(m.getIndex(),m);
     }
 
@@ -77,7 +81,7 @@ public class PatchArea {
         return getModule(m.getModIndex());
     }
 
-    public void setUserModuleParams(FieldValues moduleParams) {
+    public void setModuleParamValues(FieldValues moduleParams) {
         Protocol.ModuleParams.ParamSet.subfieldsValue(moduleParams)
                 .forEach(fvs -> getModule(
                         Protocol.ModuleParamSet.ModIndex.intValue(fvs))

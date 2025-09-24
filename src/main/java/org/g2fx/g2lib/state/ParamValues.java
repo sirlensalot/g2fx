@@ -3,11 +3,13 @@ package org.g2fx.g2lib.state;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.usb.UsbSlotSender;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.g2fx.g2lib.state.PatchModule.MAX_VARIATIONS;
+import static org.g2fx.g2lib.util.Util.mapWithIndex;
 
 public class ParamValues {
 
@@ -25,21 +27,38 @@ public class ParamValues {
             values.add(fvs);
         }
     }
-    public ParamValues(List<FieldValues> values) {
+    public ParamValues(List<FieldValues> values, UsbSlotSender sender, AreaId area,int index) {
         this.values = values;
-        props = values.stream().map(vfv ->
-                Protocol.VarParams.Params.subfieldsValue(vfv).stream().map(fvs ->
-                        new LibProperty<Integer>(new LibProperty.LibPropertyGetterSetter<>() {
-                            @Override
-                            public Integer get() {
-                                return Protocol.Data7.Datum.intValue(fvs);
-                            }
+        props = mapWithIndex(values,(vfv,v) ->
+                mapWithIndex(Protocol.VarParams.Params.subfieldsValue(vfv),(fvs,i) -> {
+                    LibProperty<Integer> p = new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+                        @Override
+                        public Integer get() {
+                            return Protocol.Data7.Datum.intValue(fvs);
+                        }
+                        @Override
+                        public void set(Integer newValue) {
+                            fvs.update(Protocol.Data7.Datum.value(newValue));
+                        }
+                    });
+                    p.addListener((o,n) -> update(v,i,n,sender,area,index));
+                    return p;
+                }));
+    }
 
-                            @Override
-                            public void set(Integer newValue) {
-                                fvs.update(Protocol.Data7.Datum.value(newValue));
-                            }
-                        })).toList()).toList();
+    private void update(int var, int param, int value, UsbSlotSender sender, AreaId area, int index) {
+        try {
+            sender.sendSlotCommand("update-param",
+                    0x40, //S_SET_PARAM
+                    area.ordinal(),
+                    index,
+                    param,
+                    value,
+                    var
+                    );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public LibProperty<Integer> param(int variation,int idx) {

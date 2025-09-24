@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.usb.UsbService.ERRORS;
 
-public class Usb {
+public class Usb implements UsbSender {
     private static final Logger log = Util.getLogger(Usb.class);
 
     private final UsbService.UsbDevice device;
@@ -38,12 +38,13 @@ public class Usb {
     }
 
 
-
+    /**
+     * Sends DATA and if specified waits for DISPATCH of response. MSG is for logging.
+     * @return length if send success or 0 on error.
+     */
+    @Override
     public synchronized int sendBulk(String msg, boolean dispatch, byte[] data) throws Exception {
 
-        if (dispatch && dispatcher == null) {
-            throw new IllegalArgumentException("sendBulk w dispatch but no dispatcher");
-        }
         Future<UsbMessage> dispatchFuture = dispatch ? expect("dispatch future", m -> true) : null;
 
         int size = data.length + 4;
@@ -63,7 +64,7 @@ public class Usb {
             //transferred.rewind();
             log.info("Sent: " + transferred.get(0));
         }
-
+        // TODO ??? shouldn't really be dispatching on failure here
         if (dispatchFuture != null) {
             UsbMessage fm = dispatchFuture.get();
             try {
@@ -180,6 +181,7 @@ public class Usb {
         }
     }
 
+    @Override
     public int sendSystemRequest(String msg, int... cdata) throws Exception {
         return sendBulk(msg, true, Util.concat(Util.asBytes(
                 0x01,

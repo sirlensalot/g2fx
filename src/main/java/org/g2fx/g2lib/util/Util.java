@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.logging.*;
 
@@ -284,7 +285,11 @@ public class Util {
     public static <T> T notNull(T t) { assert t != null; return t; }
 
     public static <T> void forEachIndexed(Collection<T> coll, BiConsumer<T,Integer> f) {
-        Streams.mapWithIndex(coll.stream(),(v,ix) -> { f.accept(v,(int) ix); return 1; }).toArray();
+        List<Integer> ignored = mapWithIndex(coll,(v,ix) -> { f.accept(v,ix); return 1; });
+    }
+
+    public static <T,R> List<R> mapWithIndex(Collection<T> coll, BiFunction<T,Integer,R> f) {
+        return Streams.mapWithIndex(coll.stream(),(v,ix) -> f.apply(v,(int) ix)).toList();
     }
 
     public static ByteBuffer readTextColsByteBuffer(String v) {

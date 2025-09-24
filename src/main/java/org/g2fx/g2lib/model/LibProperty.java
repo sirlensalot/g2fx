@@ -8,14 +8,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * A thread-safe, generic property for backend use.
- * 
- * <p><b>Threading note:</b> All access to the value (get/set) must occur on the backend (USB) thread.
- * Listener registration/removal is thread-safe via CopyOnWriteArraySet.</p>
- *
- * @param <T> The type of the property value.
- */
+
 public class LibProperty<T> {
 
     @FunctionalInterface
@@ -29,9 +22,7 @@ public class LibProperty<T> {
     }
 
     private final Logger log = Logger.getLogger(getClass().getName());
-
     private final LibPropertyGetterSetter<T> getterSetter;
-
     private final CopyOnWriteArraySet<LibPropertyListener<T>> listeners = new CopyOnWriteArraySet<>();
 
     public LibProperty(LibPropertyGetterSetter<T> getterSetter) {
@@ -54,16 +45,10 @@ public class LibProperty<T> {
         getterSetter.set(initialValue);
     }
 
-    /**
-     * Gets the current value.
-     */
     public T get() {
         return getterSetter.get();
     }
 
-    /**
-     * Sets the value and notifies listeners if the value has changed.
-     */
     public void set(T newValue) {
         T old = get();
         getterSetter.set(newValue);
@@ -72,23 +57,14 @@ public class LibProperty<T> {
         }
     }
 
-    /**
-     * Adds a listener to be notified when the value changes.
-     */
     public void addListener(LibPropertyListener<T> listener) {
         listeners.add(listener);
     }
 
-    /**
-     * Removes a previously registered listener.
-     */
     public void removeListener(LibPropertyListener<T> listener) {
         listeners.remove(listener);
     }
 
-    /**
-     * Notifies all registered listeners of a value change.
-     */
     private void notifyListeners(T oldValue, T newValue) {
         for (LibPropertyListener<T> listener : listeners) {
             try {

@@ -8,6 +8,7 @@ import org.g2fx.g2lib.state.PatchLoadData;
 import org.g2fx.g2lib.state.PerformanceSettings;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.UsbMessage;
+import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ class ProtocolTest {
     public static final String PATCHMSG_0 = "data/msg_Slot0Patch_3dc3.msg";
     public static final String CURRENT_NOTE_MSG = "data/msg_Slot1Note_cc8f.msg";
     public static final String TEXTPAD_MSG = "data/msg_Slot1TextPad_5f41.msg";
+    private UsbSender sender = new UsbSender.OfflineSender();
 
     public static int assertFieldEquals(FieldValues values, int expected, FieldEnum field) {
         int actual = assertValue(values, field);
@@ -583,7 +585,7 @@ class ProtocolTest {
         assertEquals(0x01,buf.get()); // cmd
         assertEquals(0x09,buf.get()); // slot 0
         assertEquals(0x00,buf.get()); // patch version
-        Patch p = new Patch(Slot.A);
+        Patch p = new Patch(Slot.A, sender);
         p.readSection(buf, Sections.STextPad_6f);
         testTextPad(p);
 
@@ -595,7 +597,7 @@ class ProtocolTest {
         assertEquals(0x01,buf.get()); // cmd
         assertEquals(0x09,buf.get()); // slot 0
         assertEquals(0x00,buf.get()); // patch version
-        Patch p = new Patch(Slot.A);
+        Patch p = new Patch(Slot.A, sender);
         p.readSection(buf, Sections.SCurrentNote_69);
         testCurrentNote(p);
     }
@@ -606,7 +608,7 @@ class ProtocolTest {
 
         ByteBuffer buf = Util.readFile(PATCHMSG_0);
 
-        Patch.readFromMessage(0, Slot.A,buf);
+        Patch.readFromMessage(0, Slot.A,buf, sender);
 
     }
 
@@ -614,19 +616,19 @@ class ProtocolTest {
     @Test
     void testPatchFromMessage302a() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PatchDesc_302a.msg");
-        Patch p = Patch.readFromMessage(4, Slot.A, buf);
+        Patch p = Patch.readFromMessage(4, Slot.A, buf, sender);
     }
 
     @Test
     void testPatchFromMessage839d() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PatchDesc_839d.msg");
-        Patch p = Patch.readFromMessage(1, Slot.D, buf);
+        Patch p = Patch.readFromMessage(1, Slot.D, buf, sender);
     }
 
     @Test
     void patchFromMessage() throws Exception {
         ByteBuffer buf = Util.readFile(PATCHMSG_1);
-        Patch p = Patch.readFromMessage(0, Slot.B,buf);
+        Patch p = Patch.readFromMessage(0, Slot.B,buf, sender);
 //        assertEquals(9,p.slot);
         assertEquals(0,p.getVersion());
 
@@ -664,7 +666,7 @@ class ProtocolTest {
     }
     @Test
     public void patchFromFile() throws Exception {
-        testFilePatch(Patch.readFromFile(Slot.A,PATCH_FILE),new int[]{0,2,1},new int[]{2,1,0,1,0});
+        testFilePatch(Patch.readFromFile(Slot.A,PATCH_FILE,sender),new int[]{0,2,1},new int[]{2,1,0,1,0});
     }
 
     private void testFilePatch(Patch p, int[] fxModuleIndexes, int[] cableIndexes) {
@@ -708,7 +710,7 @@ class ProtocolTest {
     @Test
     void roundtripMsgFile() throws Exception {
         ByteBuffer msgfile = Util.readFile(PATCHMSG_1);
-        Patch p = Patch.readFromMessage(0, Slot.B,msgfile);
+        Patch p = Patch.readFromMessage(0, Slot.B,msgfile,sender);
         p.readSectionMessage(Util.readFile(CURRENT_NOTE_MSG), Sections.SCurrentNote_69);
         p.readSectionMessage(Util.readFile(TEXTPAD_MSG), Sections.STextPad_6f);
         ByteBuffer msgbuf = p.writeMessage();
@@ -725,7 +727,7 @@ class ProtocolTest {
 
     @Test
     void roundtripPatchFile() throws Exception {
-        Patch p = Patch.readFromFile(Slot.A,PATCH_FILE);
+        Patch p = Patch.readFromFile(Slot.A,PATCH_FILE,sender);
         ByteBuffer buf = p.writeFile();
         ByteBuffer filebuf = Util.readFile(PATCH_FILE);
         assertEquals(filebuf.rewind(),buf.rewind());
@@ -784,7 +786,7 @@ class ProtocolTest {
     @Test
     void readPerformanceSettingsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
-        Performance perf = new Performance().readFromMessage(buf);
+        Performance perf = new Performance(sender).readFromMessage(buf);
         assertEquals("eff new6",perf.getName());
         testPerformanceSettings(perf.getPerfSettings());
         /*
@@ -801,7 +803,7 @@ class ProtocolTest {
     @Test
     void readGlobalKnobsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_GlobalKnobs_850a.msg");
-        Performance perf = new Performance();
+        Performance perf = new Performance(sender);
         perf.readSectionMessage(buf,Sections.SGlobalKnobAssignments_5f);
         assertEquals(0,perf.getGlobalKnobAssignments().getActiveAssignments().size());
     }
@@ -863,7 +865,7 @@ class ProtocolTest {
 
     @Test
     void readPerformanceFile() throws Exception {
-        Performance perf = Performance.readFromFile("data/perf-20240802.prf2");
+        Performance perf = Performance.readFromFile("data/perf-20240802.prf2",sender);
         testPerformanceSettings(perf.getPerfSettings());
         testFilePatch(perf.getSlot(Slot.B),new int[]{0,1,2},new int[]{0,1,2,0,1});
 
@@ -872,7 +874,7 @@ class ProtocolTest {
     @Test
     void roundtripPerformanceFile() throws Exception {
         String filePath = "data/perf-20240802.prf2";
-        Performance perf = Performance.readFromFile(filePath);
+        Performance perf = Performance.readFromFile(filePath,sender);
         assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
                 Util.dumpBufferString(perf.writeFile().rewind()));
 
@@ -993,7 +995,7 @@ class ProtocolTest {
     @Test
     void readPatchLoad() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PatchLoadVA_b852.msg");
-        Patch patch = new Patch(Slot.A);
+        Patch patch = new Patch(Slot.A, sender);
         patch.setVersion(0);
         patch.readPatchLoadDataMsg(new UsbMessage(0,true,0,buf));
         PatchLoadData plVoice = patch.getArea(AreaId.Voice).getPatchLoadData();

@@ -6,6 +6,7 @@ import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.usb.UsbSlotSender;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ public class PatchModule {
     public static final int MAX_VARIATIONS = 10;
 
     private final UserModuleData userModuleData;
+    private final UsbSlotSender sender;
+    private final AreaId area;
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
     private ParamValues values = new ParamValues();
@@ -31,8 +34,10 @@ public class PatchModule {
     private List<LibProperty<String>> morphLabels;
 
     // constructor for user modules
-    public PatchModule(FieldValues userModuleFvs) {
+    public PatchModule(FieldValues userModuleFvs, UsbSlotSender sender, AreaId area) {
         this.userModuleData = new UserModuleData(userModuleFvs);
+        this.sender = sender;
+        this.area = area;
         this.index = userModuleData.getIndex();
         this.settingsModuleType = null;
         this.params = new ArrayList<>(userModuleData.getType().getParams());
@@ -40,16 +45,18 @@ public class PatchModule {
     }
 
 
-    public PatchModule(SettingsModules settingsModule) {
+    public PatchModule(SettingsModules settingsModule, UsbSlotSender sender, AreaId area) {
         this.index = settingsModule.getModIndex();
         this.settingsModuleType = settingsModule;
+        this.sender = sender;
+        this.area = area;
         this.userModuleData = null;
         this.params = settingsModule.mkParams();
         log = Util.getLogger(getClass().getName() + "." + settingsModuleType + "[" + index + "]");
     }
 
     public void setParamValues(List<FieldValues> varParams) {
-        values = new ParamValues(varParams);
+        values = new ParamValues(varParams,sender,area,index);
     }
 
     public List<Integer> getVarValues(int variation) {

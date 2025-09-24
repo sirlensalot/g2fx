@@ -5,6 +5,7 @@ import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.UsbMessage;
+import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.g2fx.g2lib.util.Util;
@@ -65,6 +66,8 @@ public class Device implements Dispatcher {
     public record EntryBank(int bank, int entry, List<Entry> entries) { }
     public record EntriesMsg(EntryType type,List<EntryBank> banks,boolean done) { }
 
+    private final UsbSender sender;
+
     protected EntriesMsg entriesMsg;
 
     protected final Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries = Map.of(
@@ -73,17 +76,24 @@ public class Device implements Dispatcher {
     );
 
 
-    protected Performance perf = new Performance();
+    protected Performance perf;
     protected SynthSettings synthSettings = new SynthSettings();
 
-    public Device() {}
+    public Device() {
+        this(new UsbSender.OfflineSender());
+    }
+
+    public Device(UsbSender sender) {
+        this.sender = sender;
+        perf = new Performance(sender);
+    }
 
     public Performance getPerf() {
         return perf;
     }
 
     public void loadPerfFile(String filePath) throws Exception {
-        perf = Performance.readFromFile(filePath);
+        perf = Performance.readFromFile(filePath,sender);
         String name = new File(filePath).getName();
         String pn = name.substring(0, name.length() - 5);
         perf.setFileName(pn);

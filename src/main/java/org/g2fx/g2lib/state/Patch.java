@@ -6,6 +6,8 @@ import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
 import org.g2fx.g2lib.usb.UsbMessage;
+import org.g2fx.g2lib.usb.UsbSender;
+import org.g2fx.g2lib.usb.UsbSlotSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
@@ -99,6 +101,7 @@ public class Patch {
     private final PatchArea voiceArea;
     private final PatchArea fxArea;
     private final PatchArea settingsArea;
+    private final UsbSlotSender slotSender;
     private KnobAssignments knobAssignments;
     private ControlAssignments controls;
     private MorphParameters morphParams;
@@ -107,12 +110,13 @@ public class Patch {
     private final List<PatchVisual> metersAndGroups = new ArrayList<>();
 
     // file-perf
-    public Patch(Slot slot) {
+    public Patch(Slot slot, UsbSender sender) {
         this.log = Util.getLogger(getClass().getName() + ":" + slot);
         this.slot = slot;
-        voiceArea = new PatchArea(slot,AreaId.Voice);
-        fxArea = new PatchArea(slot,AreaId.Fx);
-        settingsArea = new PatchArea(slot);
+        this.slotSender = new UsbSlotSender(sender,this);
+        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender);
+        fxArea = new PatchArea(slot,AreaId.Fx,slotSender);
+        settingsArea = new PatchArea(slot,slotSender);
     }
 
     public int getVersion() {
@@ -158,8 +162,8 @@ public class Patch {
     }
 
     // test
-    public static Patch readFromMessage(int version, Slot slot, ByteBuffer buf) {
-        Patch patch = new Patch(slot);
+    public static Patch readFromMessage(int version, Slot slot, ByteBuffer buf, UsbSender sender) {
+        Patch patch = new Patch(slot, sender);
         patch.setVersion(version);
         patch.readMessageHeader(buf);
         patch.readPatchDescription(buf);
@@ -203,14 +207,14 @@ public class Patch {
     }
 
     // file-patch
-    public static Patch readFromFile(Slot slot, String filePath) throws Exception {
+    public static Patch readFromFile(Slot slot, String filePath, UsbSender sender) throws Exception {
         ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
         ByteBuffer slice = fileBuffer.slice();
         int crc = CRC16.crc16(slice,0,slice.limit()-2);
 
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
-        Patch patch = new Patch(slot);
+        Patch patch = new Patch(slot, sender);
         patch.setVersion(fileBuffer.get());
 
         patch.readFileSections(fileBuffer);
@@ -356,13 +360,13 @@ public class Patch {
         switch (s) {
             case SPatchDescription_21 ->
                 this.patchSettings = new PatchSettings(section.values);
-            case SPatchParams_4d -> settingsArea.setUserModuleParams(section.values);
+            case SPatchParams_4d -> settingsArea.setModuleParamValues(section.values);
             case STextPad_6f -> this.textPad = section.values;
             case SCurrentNote_69 -> this.currentNote = section.values;
             case SModuleList0_4a -> fxArea.addModules(section.values);
             case SModuleList1_4a -> voiceArea.addModules(section.values);
-            case SModuleParams0_4d -> fxArea.setUserModuleParams(section.values);
-            case SModuleParams1_4d -> voiceArea.setUserModuleParams(section.values);
+            case SModuleParams0_4d -> fxArea.setModuleParamValues(section.values);
+            case SModuleParams1_4d -> voiceArea.setModuleParamValues(section.values);
             case SModuleLabels0_5b -> fxArea.setModuleLabels(section.values);
             case SModuleLabels1_5b -> voiceArea.setModuleLabels(section.values);
             case SModuleNames0_5a -> fxArea.setModuleNames(section.values);

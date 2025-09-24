@@ -2,22 +2,21 @@ package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.Usb;
-import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Device subclass around Usb instance
+ */
 public class UsbDevice extends Device implements Dispatcher {
+
     private final Logger log = Util.getLogger(getClass());
-
-
     private final Usb usb;
-
 
     public UsbDevice(Usb usb) {
         this.usb = usb;
@@ -43,7 +42,7 @@ public class UsbDevice extends Device implements Dispatcher {
         usb.sendBulk("Init", true, Util.asBytes(R_INIT));
 
         // perf version
-        perf = new Performance();
+        perf = new Performance(usb);
         usb.sendSystemRequest("perf version"
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
@@ -198,11 +197,6 @@ public class UsbDevice extends Device implements Dispatcher {
         }
         usb.shutdown();
     }
-
-    private BitBuffer sliceAhead(ByteBuffer buf) {
-        return BitBuffer.sliceAhead(buf, Util.getShort(buf));
-    }
-
 
     public void loadEntry(int slotCode, int bank, int entry) throws Exception {
         log.info(String.format("loadEntry: slot=%s, bank=%s, entry=%s",slotCode,bank,entry));
