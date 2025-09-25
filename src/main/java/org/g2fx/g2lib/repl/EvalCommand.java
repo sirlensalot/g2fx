@@ -36,9 +36,9 @@ public enum EvalCommand {
             argDesc("perfOrPatch","'perf' or 'patch'"),
             argDesc("index","bank index: 1-8 for perfs, 1-32 for patches"))
             .run(c -> {
-                Device.EntryType type = Device.EntryType.LC_NAME_LOOKUP.get(c.nextArg());
+                Entries.EntryType type = Entries.EntryType.LC_NAME_LOOKUP.get(c.nextArg());
                 int bank = c.nextInt() - 1;
-                c.devices.runWithCurrent(d -> d.dumpEntries(c.writer,type,bank));
+                c.devices.runWithCurrent(d -> d.getEntries().dumpEntries(c.writer,type,bank));
             })),
 
     fileLoad(cmd("Load perf or patch file",

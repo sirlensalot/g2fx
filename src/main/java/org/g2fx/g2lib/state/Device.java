@@ -1,22 +1,15 @@
 package org.g2fx.g2lib.state;
 
-import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
-import org.g2fx.g2lib.util.SafeLookup;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,26 +48,9 @@ public class Device implements Dispatcher {
     public static final int R_INIT = 0x80;
 
 
-    public enum EntryType {
-        Patch,
-        Perf;
-        public static final SafeLookup<Integer, EntryType> LOOKUP =
-                SafeLookup.makeEnumOrdLookup(values());
-        public static final SafeLookup<String, EntryType> LC_NAME_LOOKUP =
-                SafeLookup.makeLowerCaseNameLookup(values());
-    }
-    public record Entry(String name,int category) { }
-    public record EntryBank(int bank, int entry, List<Entry> entries) { }
-    public record EntriesMsg(EntryType type,List<EntryBank> banks,boolean done) { }
-
     private final UsbSender usb;
 
-    protected EntriesMsg entriesMsg;
-
-    protected final Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries = Map.of(
-            EntryType.Patch,new TreeMap<>(),
-            EntryType.Perf,new TreeMap<>()
-    );
+    private Entries entries;
 
 
     protected Performance perf;
@@ -88,6 +64,7 @@ public class Device implements Dispatcher {
         this.usb = usb;
         perf = new Performance(usb);
         usb.setDispatcher(this);
+        entries = new Entries(usb);
     }
 
     public Performance getPerf() {
@@ -170,8 +147,8 @@ public class Device implements Dispatcher {
                 0x04 //Q_ASSIGNED_VOICES
         );
 
-        readEntries(EntryType.Patch);
-        readEntries(EntryType.Perf);
+        entries.readEntries(Entries.EntryType.Patch);
+        entries.readEntries(Entries.EntryType.Perf);
 
         //sendStartStopComm(true);
 
@@ -234,36 +211,6 @@ public class Device implements Dispatcher {
     }
 
 
-
-    private void readEntries(EntryType type) throws Exception {
-        entriesMsg = new EntriesMsg(type,List.of(new EntryBank(0,0,List.of())),false);
-        entries.get(type).clear();
-        while (!entriesMsg.done() && !entriesMsg.banks().isEmpty()) {
-            EntryBank lastBank = entriesMsg.banks().getLast();
-            int lastEntry = lastBank.entry() + lastBank.entries().size();
-            log.info(() -> "sending entries request: " + type + ":" + lastBank.bank() + "," + lastEntry);
-            entriesMsg = null;
-            usb.sendSystemRequest("entries request"
-                    , 0x14 // Q_LIST_NAMES
-                    , type.ordinal()
-                    , lastBank.bank()
-                    , lastEntry
-            );
-            if (entriesMsg == null) {
-                throw new IllegalStateException("Did not receive entries message!");
-            }
-            log.info(() -> "received entry data: " + entriesMsg);
-            entriesMsg.banks().forEach(bank -> {
-                Map<Integer, Entry> bm = entries.get(type).computeIfAbsent(bank.bank(),b -> new TreeMap<>());
-                int i = bank.entry();
-                for (Entry e : bank.entries()) {
-                    bm.put(i++,e);
-                }
-            });
-        }
-        log.info(() -> "readEntries: received " + entries.get(type).size() + " banks");
-
-    }
 
 
 
@@ -367,7 +314,7 @@ public class Device implements Dispatcher {
             case T_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
             case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
             case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
-            case T_ENTRY_LIST -> dispatchEntryList(buf.slice());
+            case T_ENTRY_LIST -> entries.dispatchEntryList(buf.slice());
             case T_CHANGE_SLOT -> readSlotChange(buf);
             default -> dispatchFailure("dispatchPerfCmd: unrecognized type: %02x",t);
         };
@@ -475,59 +422,14 @@ public class Device implements Dispatcher {
     }
 
 
-    public boolean dispatchEntryList(ByteBuffer buf) {
-        buf.position(4); //skip constant header fields
-        BitBuffer bb = new BitBuffer(buf.slice());
-        EntryType type = EntryType.LOOKUP.get(bb.get());
-        List<EntryBank> banks = new ArrayList<>();
-        EntryBank bank = null;
-        while (true) {
-            switch (bb.peek(8)) {
-                case 0x03:
-                    bb.get();
-                    banks.add(bank = new EntryBank(bb.get(),bb.get(),new ArrayList<>()));
-                    break;
-                case 0x04:
-                case 0x05:
-                    entriesMsg = new EntriesMsg(type,banks,bb.get() == 0x04);
-                    return dispatchSuccess(() -> "dispatchEntryList: terminate: " + entriesMsg.done());
-                default:
-                    if (bank == null) { throw new IllegalStateException("invalid message, no current bank"); }
-                    FieldValues fvs = Protocol.EntryData.FIELDS.read(bb);
-                    bank.entries().add(new Entry(Protocol.EntryData.Name.stringValue(fvs),
-                            Protocol.EntryData.Category.intValue(fvs)));
-            }
-        }
-    }
-
-
-    public EntriesMsg getEntriesMsg() {
-        return entriesMsg;
-    }
-
-
-    public void dumpEntries(PrintWriter writer, EntryType type, int bank) {
-        entries.get(type).forEach((bi,b) -> {
-            if (bank == -1 || bi == bank) {
-                writer.format("%s bank %s:\n", type, bi + 1);
-                b.forEach((ei, e) ->
-                        writer.format("  %02d: %s [%s]\n", ei + 1, e.name(), e.category()));
-            }
-        });
-        writer.flush();
-    }
-
-
-
-
     private BitBuffer sliceAhead(ByteBuffer buf) {
         return BitBuffer.sliceAhead(buf, Util.getShort(buf));
     }
 
 
-
-
-
+    public Entries getEntries() {
+        return entries;
+    }
 
     public SynthSettings getSynthSettings() {
         return synthSettings;
