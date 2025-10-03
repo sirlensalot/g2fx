@@ -35,6 +35,7 @@ public class Device implements Dispatcher {
     public static final int T_GLOBAL_KNOB_ASSIGMENTS = 0x5f;
     public static final int T_ASSIGNED_VOICES = 0x05;
     public static final int T_EXT_MASTER_CLOCK = 0x5d;
+    public static final int T_SET_MASTER_CLOCK = 0x3f;
     public static final int T_ENTRY_LIST = 0x13;
     public static final int T_VOLUME_DATA = 0x3a;
     public static final int T_LED_DATA = 0x39;
@@ -312,6 +313,7 @@ public class Device implements Dispatcher {
             case T_PERFORMANCE_NAME -> perf.readPerformanceNameAndSettings(buf);
             case T_RESERVED_1E -> dispatchSuccess(() -> "reserved 1e");
             case T_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
+            case T_SET_MASTER_CLOCK -> setMasterClock(buf);
             case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
             case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
             case T_ENTRY_LIST -> entries.dispatchEntryList(buf.slice());
@@ -396,6 +398,20 @@ public class Device implements Dispatcher {
             default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + sc);
         };
 
+    }
+
+
+    private boolean setMasterClock(ByteBuffer buf) {
+        //3f ff 01 79
+        buf.get(); // 0xff
+        byte ty = buf.get();
+        byte val = buf.get();
+        switch (ty) {
+            case 0: perf.getPerfSettings().masterClockRun().set(val==1); break;
+            case 1: perf.getPerfSettings().masterClock().set(Util.b2i(val)); break;
+            default: return dispatchFailure("setMasterClock: unrecognized type: %s", ty);
+        }
+        return dispatchSuccess(() -> "setMasterClock, type=" + ty + ", value=" + val);
     }
 
 
