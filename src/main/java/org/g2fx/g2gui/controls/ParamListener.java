@@ -20,8 +20,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public class ParamListener {
+
+    private final Logger log = Util.getLogger(getClass());
 
     public enum IntOrBool {
         Int, Bool
@@ -202,7 +205,7 @@ public class ParamListener {
     }
 
     public Node empty(UIElement e, String msg) {
-        System.out.println(msg + " TODO: " + e + ": " + modulePane);
+        log.info(msg + " TODO: " + e + ": " + modulePane);
         return new Pane();
     }
 

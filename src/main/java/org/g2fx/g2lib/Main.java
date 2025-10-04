@@ -8,7 +8,6 @@ import org.g2fx.g2lib.util.Util;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main {
@@ -32,7 +31,7 @@ public class Main {
             }
         }
 
-        Util.configureLogging(Level.INFO);  // WARNING is quiet, INFO is pretty loud
+        Util.configureLogging();  // WARNING is quiet, INFO is pretty loud
         log = Util.getLogger(Main.class);
 
         Devices devices = new Devices();

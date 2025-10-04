@@ -25,7 +25,7 @@ import static org.g2fx.g2lib.util.Util.forEachIndexed;
 
 public class Patch {
 
-    private final Logger log;
+    private final Logger log = Util.getLogger(getClass());
 
     public static ByteBuffer fileHeader(int bufSize, String[] headerMsg) {
         ByteBuffer header = ByteBuffer.allocate(bufSize);
@@ -111,7 +111,6 @@ public class Patch {
 
     // file-perf
     public Patch(Slot slot, UsbSender sender) {
-        this.log = Util.getLogger(getClass().getName() + ":" + slot);
         this.slot = slot;
         this.slotSender = new UsbSlotSender(sender,this);
         voiceArea = new PatchArea(slot,AreaId.Voice,slotSender);

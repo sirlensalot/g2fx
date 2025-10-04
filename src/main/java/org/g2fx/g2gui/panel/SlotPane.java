@@ -373,14 +373,6 @@ public class SlotPane {
         return cb;
     }
 
-    private static void logColor(CableColor color) {
-        var f = color.getFill();
-        System.out.printf("%s: rgba(%d, %d, %d, %.2f)\n", color, (int)(f.getRed() * 255),
-                (int)(f.getGreen() * 255),
-                (int)(f.getBlue() * 255),
-                f.getOpacity());
-    }
-
     public void manageCables(boolean redraw) {
         areaPanes.values().forEach(a -> a.manageCables(redraw));
     }

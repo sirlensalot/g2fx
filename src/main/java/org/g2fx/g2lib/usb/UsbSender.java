@@ -4,6 +4,7 @@ import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 public interface UsbSender {
 
@@ -41,11 +42,14 @@ public interface UsbSender {
 
     class OfflineSender implements UsbSender {
 
+        private final Logger log = Util.getLogger(getClass());
+
         public static final int LENGTH_OK = 1;
 
         @Override
         public int sendBulk(String msg, boolean dispatch, byte[] data) throws Exception {
-            System.out.format("sendBulk: %s %s %s\n",msg,dispatch, Util.dumpBufferString(ByteBuffer.wrap(data)));
+            log.info(String.format("sendBulk: %s %s %s\n",
+                    msg,dispatch, Util.dumpBufferString(ByteBuffer.wrap(data))));
             return LENGTH_OK;
         }
 

@@ -46,7 +46,6 @@ import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -55,7 +54,7 @@ import static org.g2fx.g2gui.FXUtil.*;
 
 public class G2GuiApplication extends Application implements Devices.DeviceListener {
 
-    private final Logger log = Logger.getLogger(getClass().getName());
+    private final Logger log;
 
     public static final String TITLE = "g2fx nord modular g2 editor";
 
@@ -75,9 +74,14 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     private ScriptWindow scriptWindow;
     private final Map<Integer, ObservableValue<String>> morphNames = new TreeMap<>();
 
+    public G2GuiApplication() {
+        super();
+        Util.configureLogging();
+        log = Logger.getLogger(getClass().getName());
+    }
+
     @Override
     public void init() throws Exception {
-        Util.configureLogging(Level.WARNING);
         fxQueue = new FXQueue();
         devices = new Devices();
         bridges = new Bridges(devices,fxQueue,undos);

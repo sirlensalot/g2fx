@@ -8,18 +8,16 @@ import com.google.common.collect.Streams;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.logging.*;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Util {
-
-    private static final Set<String> logNames = new HashSet<>();
-    private static volatile Level DEFAULT_LEVEL = Level.FINE;
 
     private static final Logger log = getLogger(Util.class);
 
@@ -38,44 +36,13 @@ public class Util {
         void accept(A a, B b, C c);
     }
 
-    static class DualConsoleHandler extends StreamHandler {
-
-        private final ConsoleHandler stderrHandler = new ConsoleHandler();
-
-        public DualConsoleHandler() {
-            super(System.out, new SimpleFormatter());
-            setLevel(DEFAULT_LEVEL);
+    public static void configureLogging() {
+        try (InputStream in = Util.class.getResourceAsStream("/org/g2fx/g2gui/logging.properties")) {
+            LogManager.getLogManager().readConfiguration(in);
+        } catch (Exception e) {
+            System.out.println("Logging configuration failed: " + e);
+            e.printStackTrace();
         }
-
-        @Override
-        public void publish(LogRecord record) {
-            if (record.getLevel().intValue() <= Level.INFO.intValue()) {
-                super.publish(record);
-                super.flush();
-            } else {
-                stderrHandler.publish(record);
-                stderrHandler.flush();
-            }
-        }
-    }
-
-    public static void configureLogging(Level defaultLevel) {
-        String p = System.getProperty("g2lib.loglevel");
-        System.setProperty("java.util.logging.SimpleFormatter.format",
-                "%1$tF %1$tT.%1$tL %4$s %3$s: %5$s%6$s%n");
-        String ll = p != null ? p : defaultLevel.toString();
-        try {
-            DEFAULT_LEVEL = Level.parse(ll);
-        } catch (Exception ignore) {
-            DEFAULT_LEVEL = defaultLevel;
-            ll = defaultLevel.toString();
-        }
-        final String fll = ll;
-        try {
-            LogManager.getLogManager().updateConfiguration(key -> (oldVal, newVal) ->
-                    key.equals(".level") || key.equals("java.util.logging.ConsoleHandler.level")
-                            ? fll : newVal);
-        } catch (IOException ignore) {}
     }
 
     public static Logger getLogger(Class<?> c) {
@@ -83,12 +50,7 @@ public class Util {
     }
 
     public static Logger getLogger(String name) {
-        Logger l = Logger.getLogger(name);
-        if (logNames.add(name)) {
-            l.setUseParentHandlers(false);
-            l.addHandler(new DualConsoleHandler());
-        }
-        return l;
+        return Logger.getLogger(name);
     }
 
     public static void dumpBuffer(ByteBuffer buffer) {
@@ -221,7 +183,6 @@ public class Util {
         Util.dumpBuffer(buf);
         for (int i = 1; i < 7; i++) {
             buf.rewind();
-            System.out.println("Shift " + i);
             Util.dumpBuffer(shiftLeft(buf,i));
         }
         buf.rewind();
