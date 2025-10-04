@@ -28,13 +28,13 @@ public class PatchArea {
     public PatchArea(Slot slot, AreaId id, UsbSlotSender sender) {
         this.id = id;
         this.sender = sender;
-        this.log = Util.getLogger(getClass().getName() + ":" + slot + ":" + id);
+        this.log = Util.getLogger(getClass().getName() + "." + slot + ":" + id);
     }
 
     public PatchArea(Slot slot, UsbSlotSender sender) {
         this.sender = sender;
         this.id = AreaId.Settings;
-        this.log = Util.getLogger(getClass().getName() + ":" + slot + ":" + id);
+        this.log = Util.getLogger(getClass().getName() + "." + slot + ":" + id);
         Arrays.stream(SettingsModules.values()).forEach(sm -> {
             PatchModule m = new PatchModule(sm,sender,id);
             modules.put(m.getIndex(),m);

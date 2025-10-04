@@ -22,11 +22,13 @@ import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.UserModuleData;
+import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static org.controlsfx.control.CheckComboBox.COMBO_BOX_ROWS_TO_MEASURE_WIDTH_KEY;
@@ -37,6 +39,8 @@ import static org.g2fx.g2gui.ui.UIElements.SymbolType.Amplifier;
 import static org.g2fx.g2gui.ui.UIElements.SymbolType.Box;
 
 public class ModulePane {
+
+    private final Logger log;
 
     public static final int GRID_X = 255;
     public static final int GRID_Y = 15;
@@ -72,24 +76,17 @@ public class ModulePane {
 
     private final Visuals visuals;
 
-
-    /**
-     * Captures initial module info that is then one-way UI -> backend from then on.
-     */
-    public record ModuleSpec(
-            int index,
-            ModuleType type,
-            int uprate,
-            boolean leds,
-            List<Integer> modes) {}
-
     private final Pane pane;
     private final ModuleType type;
 
-    private final SimpleObjectProperty<UserModuleData.Coords> coords =
+    private final Property<UserModuleData.Coords> coords =
             new SimpleObjectProperty<>(new UserModuleData.Coords(0,0));
 
-    private final SimpleObjectProperty<Integer> color = new SimpleObjectProperty<>();
+    private final Property<Integer> color = new SimpleObjectProperty<>();
+
+    private final Property<Integer> uprate = new SimpleObjectProperty<>();
+    private final Property<Boolean> leds = new SimpleBooleanProperty();
+
 
     private final Map<Connector.PortType,List<Connectors.Conn>> conns = Map.of(
             Connector.PortType.In,new ArrayList<>(),
@@ -98,22 +95,23 @@ public class ModulePane {
     private Graphs graphs;
     private final Map<Integer, ObservableValue<String>> paramNames = new TreeMap<>();
 
-    public ModulePane(UIModule<UIElement> ui, ModuleSpec m,
+    public ModulePane(UIModule<UIElement> ui, int index, ModuleType type,
                       FXUtil.TextFieldFocusListener textFocusListener,
                       Bridges globalBridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
         height = ui.Height();
-        type = m.type;
+        this.type = type;
         paramListener = new ParamListener(type,this);
         graphs = new Graphs(paramListener,type);
-        this.index = m.index;
+        this.index = index;
         this.bridges = new LocalBridger(globalBridges);
         this.patchModule = pm;
         this.ui = ui;
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
         this.areaPane = areaPane;
-        moduleSelector = new ModuleSelector(m.index, "", m.type, textFocusListener);
+        moduleSelector = new ModuleSelector(index, "", type, textFocusListener);
         textFieldBuilder = new ModuleTextFieldBuilder(paramListener);
+        log = Util.getLogger(getClass().getName() + "." + this);
 
         visuals = new Visuals(bridges,paramListener,patchModule,slotPane);
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
@@ -127,8 +125,15 @@ public class ModulePane {
 
 
         bridges.bridge(moduleSelector.name(), dd -> patchModule.name());
+        moduleSelector.name().addListener((c,o,n)-> log.info(() -> "name: " + n));
 
         bridges.bridge(color, d -> patchModule.getUserModuleData().color());
+
+        bridges.bridge(uprate, d -> patchModule.getUserModuleData().uprate());
+        uprate.addListener((c,o,n) -> log.info(() -> "uprate: " + n));
+
+        bridges.bridge(leds, d -> patchModule.getUserModuleData().leds());
+        leds.addListener((c,o,n) -> log.info(() -> "leds: " + n));
 
         color.addListener((c,o,n) -> pane.setBackground(FXUtil.rgbFill(ParamConstants.MODULE_COLORS[n])));
 
@@ -138,7 +143,9 @@ public class ModulePane {
         coords.addListener((c,o,n) -> {
             pane.setLayoutX(n.column()* GRID_X);
             pane.setLayoutY(n.row()* GRID_Y);
+            log.info(() -> "coords: " + n);
         });
+
     }
 
 
@@ -587,7 +594,7 @@ public class ModulePane {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type,index);
+        return String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type.shortName,index);
     }
 
 

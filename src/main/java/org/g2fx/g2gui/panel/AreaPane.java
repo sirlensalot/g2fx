@@ -14,7 +14,6 @@ import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
-import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;
 
@@ -133,10 +132,7 @@ public class AreaPane {
         PatchArea area = d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
         for (PatchModule m : area.getModules()) {
             UserModuleData md = m.getUserModuleData();
-            ModulePane.ModuleSpec spec = new ModulePane.ModuleSpec(md.getIndex(), md.getType(),
-                    md.uprate().get(),
-                    md.leds().get(), md.getModes().stream().map(LibProperty::get).toList());
-            l.add(() -> renderModule(spec, m, d, uiModules.get(md.getType())));
+            l.add(() -> renderModule(md.getIndex(), md.getType(), m, d, uiModules.get(md.getType())));
         }
         l.add(() -> renderCables(new ArrayList<>(area.getCables()))); //assuming fvs are one-off, should be thread-safe
     }
@@ -191,10 +187,10 @@ public class AreaPane {
     }
 
 
-    private void renderModule(ModulePane.ModuleSpec m, PatchModule pm, Device d, UIModule<UIElement> ui) {
+    private void renderModule(int index, ModuleType type, PatchModule pm, Device d, UIModule<UIElement> ui) {
         // on fx thread
-        ModulePane modulePane = new ModulePane(ui,m, textFocusListener, bridges, pm, slotPane, this);
-        modulePanes.put(m.index(),modulePane);
+        ModulePane modulePane = new ModulePane(ui,index,type, textFocusListener, bridges, pm, slotPane, this);
+        modulePanes.put(index,modulePane);
         areaPane.getChildren().add(modulePane.getPane());
         setupModuleMouseHandling(modulePane);
         modulePane.getModuleBridges().forEach(b -> b.finalizeInit(d).run());
