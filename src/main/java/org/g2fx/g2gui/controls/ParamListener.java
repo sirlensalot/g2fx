@@ -6,7 +6,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
-import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.ui.ControlDependencies;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
@@ -24,7 +23,7 @@ import java.util.logging.Logger;
 
 public class ParamListener {
 
-    private final Logger log = Util.getLogger(getClass());
+    private final Logger log;
 
     public enum IntOrBool {
         Int, Bool
@@ -107,11 +106,13 @@ public class ParamListener {
     private final Map<Integer,ObservableValue<Integer>> modeProps = new TreeMap<>();
     private final Map<Integer,Property<Boolean>> boolProps = new TreeMap<>();
     private final ModuleType type;
-    private final ModulePane modulePane;
+    private final String ctx;
 
-    public ParamListener(ModuleType type, ModulePane modulePane) {
+    public ParamListener(ModuleType type, String ctx) {
         this.type = type;
-        this.modulePane = modulePane;
+        this.ctx = ctx;
+        log = Util.getLogger(getClass(),ctx);
+
     }
 
 
@@ -186,14 +187,14 @@ public class ParamListener {
         int cr = uc.CodeRef();
         if (cr > type.getParams().size()) { throw new IllegalArgumentException("resolveParam: bad index: " + uc); }
         NamedParam p = type.getParams().get(cr);
-        return new IndexParam(p,cr,modulePane.toString());
+        return new IndexParam(p,cr,ctx);
     }
 
     public IndexParam resolveParam(int index) {
         if (index > type.getParams().size()) {
             throw new IllegalArgumentException("Bad param index: " + index + ", module: " + this);
         }
-        return new IndexParam(type.getParams().get(index),index,modulePane.toString());
+        return new IndexParam(type.getParams().get(index),index,ctx);
     }
 
 
@@ -201,11 +202,11 @@ public class ParamListener {
         if (index > type.modes.size()) {
             throw new IllegalArgumentException("Bad param index: " + index + ", module: " + this);
         }
-        return new IndexParam(type.modes.get(index),index,modulePane.toString());
+        return new IndexParam(type.modes.get(index),index,ctx);
     }
 
     public Node empty(UIElement e, String msg) {
-        log.info(msg + " TODO: " + e + ": " + modulePane);
+        log.info(msg + " TODO: " + e);
         return new Pane();
     }
 

@@ -41,7 +41,7 @@ public class PatchModule {
         this.index = userModuleData.getIndex();
         this.settingsModuleType = null;
         this.params = new ArrayList<>(userModuleData.getType().getParams());
-        log = Util.getLogger(getClass().getName() + "." + userModuleData.getType() + "[" + index + "]");
+        log = Util.getLogger(getClass(),userModuleData.getType(),index);
     }
 
 
@@ -52,7 +52,7 @@ public class PatchModule {
         this.area = area;
         this.userModuleData = null;
         this.params = settingsModule.mkParams();
-        log = Util.getLogger(getClass().getName() + "." + settingsModuleType + "[" + index + "]");
+        log = Util.getLogger(getClass(), settingsModuleType,index);
     }
 
     public void setParamValues(List<FieldValues> varParams) {

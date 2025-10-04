@@ -45,13 +45,12 @@ public class Util {
         }
     }
 
-    public static Logger getLogger(Class<?> c) {
-        return getLogger(c.getName());
+    public static Logger getLogger(Class<?> c, Object... names) {
+        return Logger.getLogger(names.length == 0 ? c.getName() :
+                c.getName() + "." + c.getSimpleName() + ":" + String.join(":",
+                Arrays.stream(names).map(Object::toString).toList()));
     }
 
-    public static Logger getLogger(String name) {
-        return Logger.getLogger(name);
-    }
 
     public static void dumpBuffer(ByteBuffer buffer) {
         log.info(dumpBufferString(buffer));

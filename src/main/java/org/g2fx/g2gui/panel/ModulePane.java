@@ -93,6 +93,7 @@ public class ModulePane {
             Connector.PortType.Out,new ArrayList<>());
 
     private Graphs graphs;
+    private final String ctx;
     private final Map<Integer, ObservableValue<String>> paramNames = new TreeMap<>();
 
     public ModulePane(UIModule<UIElement> ui, int index, ModuleType type,
@@ -100,18 +101,19 @@ public class ModulePane {
                       Bridges globalBridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
         height = ui.Height();
         this.type = type;
-        paramListener = new ParamListener(type,this);
-        graphs = new Graphs(paramListener,type);
         this.index = index;
+        this.areaPane = areaPane;
+        this.slotPane = slotPane;
+        ctx = String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type.shortName,index);
+        paramListener = new ParamListener(type,ctx);
+        log = Util.getLogger(getClass(),ctx);
+        graphs = new Graphs(paramListener,type);
         this.bridges = new LocalBridger(globalBridges);
         this.patchModule = pm;
         this.ui = ui;
-        this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
-        this.areaPane = areaPane;
         moduleSelector = new ModuleSelector(index, "", type, textFocusListener);
         textFieldBuilder = new ModuleTextFieldBuilder(paramListener);
-        log = Util.getLogger(getClass().getName() + "." + this);
 
         visuals = new Visuals(bridges,paramListener,patchModule,slotPane);
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
@@ -594,7 +596,7 @@ public class ModulePane {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type.shortName,index);
+        return ctx;
     }
 
 
