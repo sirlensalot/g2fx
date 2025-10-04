@@ -13,7 +13,7 @@ public class LibProperty<T> {
 
     @FunctionalInterface
     public interface LibPropertyListener<T> {
-        void propertyChanged(T oldValue, T newValue);
+        void propertyChanged(T oldValue, T newValue) throws Exception;
     }
 
     public interface LibPropertyGetterSetter<T> {

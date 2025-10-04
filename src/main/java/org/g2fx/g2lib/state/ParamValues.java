@@ -29,8 +29,8 @@ public class ParamValues {
     }
     public ParamValues(List<FieldValues> values, UsbSlotSender sender, AreaId area,int index) {
         this.values = values;
-        props = mapWithIndex(values,(vfv,v) ->
-                mapWithIndex(Protocol.VarParams.Params.subfieldsValue(vfv),(fvs,i) -> {
+        props = mapWithIndex(values,(vfv,var) ->
+                mapWithIndex(Protocol.VarParams.Params.subfieldsValue(vfv),(fvs,param) -> {
                     LibProperty<Integer> p = new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
                         @Override
                         public Integer get() {
@@ -41,24 +41,13 @@ public class ParamValues {
                             fvs.update(Protocol.Data7.Datum.value(newValue));
                         }
                     });
-                    p.addListener((o,n) -> update(v,i,n,sender,area,index));
+                    p.addListener((o,n) ->
+                            sender.sendSlotCommand("update-param",
+                                    0x40, //S_SET_PARAM
+                                    area.ordinal(), index, param, n, var
+                            ));
                     return p;
                 }));
-    }
-
-    private void update(int var, int param, int value, UsbSlotSender sender, AreaId area, int index) {
-        try {
-            sender.sendSlotCommand("update-param",
-                    0x40, //S_SET_PARAM
-                    area.ordinal(),
-                    index,
-                    param,
-                    value,
-                    var
-                    );
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public LibProperty<Integer> param(int variation,int idx) {
