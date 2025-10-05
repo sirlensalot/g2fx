@@ -4,19 +4,24 @@ import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSlotSender;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.state.PatchModule.MAX_VARIATIONS;
 import static org.g2fx.g2lib.util.Util.mapWithIndex;
 
 public class ParamValues {
 
+    private final Logger log;
+
     private final List<FieldValues> values;
     private final List<List<LibProperty<Integer>>> props;
 
     public ParamValues() {
+        log = Util.getLogger(getClass());
         values = new ArrayList<>(MAX_VARIATIONS);
         props = new ArrayList<>(MAX_VARIATIONS);
         for (int v = 0 ; v < MAX_VARIATIONS; v++) {
@@ -28,6 +33,7 @@ public class ParamValues {
         }
     }
     public ParamValues(List<FieldValues> values, UsbSlotSender sender, AreaId area,int index) {
+        log = Util.getLogger(getClass(),area,index);
         this.values = values;
         props = mapWithIndex(values,(vfv,var) ->
                 mapWithIndex(Protocol.VarParams.Params.subfieldsValue(vfv),(fvs,param) -> {
@@ -41,11 +47,13 @@ public class ParamValues {
                             fvs.update(Protocol.Data7.Datum.value(newValue));
                         }
                     });
-                    p.addListener((o,n) ->
-                            sender.sendSlotCommand("update-param",
-                                    0x40, //S_SET_PARAM
-                                    area.ordinal(), index, param, n, var
-                            ));
+                    p.addListener((o,n) -> {
+                        log.info(() -> "updateParam: " + param + " -> " + n);
+                        sender.sendSlotCommand("update-param",
+                                0x40, //S_SET_PARAM
+                                area.ordinal(), index, param, n, var
+                        );
+                    });
                     return p;
                 }));
     }

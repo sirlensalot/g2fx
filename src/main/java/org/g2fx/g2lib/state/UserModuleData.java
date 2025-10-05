@@ -4,14 +4,22 @@ import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.usb.UsbSlotSender;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.List;
+import java.util.logging.Logger;
+
+import static org.g2fx.g2lib.util.Util.mapWithIndex;
 
 /**
  * All data in here can only be set/changed by the editor, thus these
  * represent one-way dataflow (ui->backend) after patch/perf load.
  */
 public class UserModuleData {
+
+    private final Logger log;
+
     private final FieldValues fvs;
     private final ModuleType type;
     private final int index;
@@ -31,17 +39,30 @@ public class UserModuleData {
     private final List<LibProperty<Integer>> modes;
 
 
-    public UserModuleData(FieldValues fvs) {
+    public UserModuleData(FieldValues fvs, UsbSlotSender sender, AreaId area) {
         this.fvs = fvs;
         this.type = ModuleType.getById(Protocol.UserModule.Id.intValue(fvs));
         this.index = Protocol.UserModule.Index.intValue(fvs);
+        log = Util.getLogger(getClass(),type,index);
         column = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Column);
         row = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Row);
         color = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Color);
         uprate = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Uprate);
         leds = LibProperty.booleanFieldProperty(fvs,Protocol.UserModule.Leds);
-        modes = Protocol.UserModule.Modes.subfieldsValue(fvs).stream().map(mfs ->
-                LibProperty.intFieldProperty(mfs, Protocol.ModuleModes.Data)).toList();
+        modes = mapWithIndex(Protocol.UserModule.Modes.subfieldsValue(fvs),(mfs,param) -> {
+            LibProperty<Integer> p = LibProperty.intFieldProperty(mfs, Protocol.ModuleModes.Data);
+            p.addListener((o,n)-> {
+                log.info(() -> "setMode: " + index + " -> " + n);
+                sender.sendSlotRequest("setMode",
+                        0x2b, // S_SET_MODE
+                        area.ordinal(),
+                        index,
+                        param,
+                        n
+                );
+            });
+            return p;
+        });
         coords = new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
             @Override
             public Coords get() {

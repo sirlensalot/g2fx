@@ -35,7 +35,7 @@ public class PatchModule {
 
     // constructor for user modules
     public PatchModule(FieldValues userModuleFvs, UsbSlotSender sender, AreaId area) {
-        this.userModuleData = new UserModuleData(userModuleFvs);
+        this.userModuleData = new UserModuleData(userModuleFvs,sender,area);
         this.sender = sender;
         this.area = area;
         this.index = userModuleData.getIndex();
