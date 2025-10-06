@@ -129,13 +129,13 @@ public enum EvalCommand {
 
             c.writer.println("LEDs:");
             Patch patch = c.getCurrentSlot(d);
-            forEachIndexed(patch.getLeds(), (pv,ix) -> {
+            forEachIndexed(patch.getVisuals().getLeds(), (pv,ix) -> {
                 if (notNull(pv).getModule() == m) {
                     c.writer.format("  %s: %s\n", ix, pv);
                 }
             });
             c.writer.println("Meters/Groups:");
-            forEachIndexed(patch.getMetersAndGroups(), (pv,ix) -> {
+            forEachIndexed(patch.getVisuals().getMetersAndGroups(), (pv,ix) -> {
                 if (notNull(pv).getModule() == m) {
                     c.writer.format("  %s: %s\n", ix, pv);
                 }
@@ -216,7 +216,7 @@ public enum EvalCommand {
                 String name = c.nextArg();
                 c.devices.runWithCurrent(d -> {
                     PatchModule pm = c.getCurrentModule(d);
-                    c.getCurrentSlot(d).getLeds().forEach(v -> {
+                    c.getCurrentSlot(d).getVisuals().getLeds().forEach(v -> {
                         if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
                             int nv = v.value().get() == 0 ? 1 : 0;
                             v.value().set(nv);
@@ -231,7 +231,7 @@ public enum EvalCommand {
                 int val = c.nextInt();
                 c.devices.runWithCurrent(d -> {
                     PatchModule pm = c.getCurrentModule(d);
-                    c.getCurrentSlot(d).getMetersAndGroups().forEach(v -> {
+                    c.getCurrentSlot(d).getVisuals().getMetersAndGroups().forEach(v -> {
                         if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
                             v.value().set(val);
                         }

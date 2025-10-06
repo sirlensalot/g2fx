@@ -343,8 +343,8 @@ public class Device implements Dispatcher {
             case T_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
             case T_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
             case T_SELECTED_PARAM -> patch.readSelectedParam(buf);
-            case T_VOLUME_DATA -> patch.readVolumeData(buf);
-            case T_LED_DATA -> patch.readLedData(buf);
+            case T_VOLUME_DATA -> patch.getVisuals().readVolumeData(buf);
+            case T_LED_DATA -> patch.getVisuals().readLedData(buf);
             case T_SET_PARAM -> patch.readParamUpdate(buf);
             case T_CHANGE_VARIATION -> patch.readVarChange(buf);
             default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);

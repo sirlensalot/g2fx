@@ -61,7 +61,7 @@ public class Visuals {
 
     private void bridgeGroupLed(UIElements.Led c, LedControl ctl) {
         bridges.bridge(d -> {
-                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getMetersAndGroups();
+                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getVisuals().getMetersAndGroups();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.LedGroup);
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
@@ -94,7 +94,7 @@ public class Visuals {
     private Node mkSingleLed(UIElements.Led c) {
         LedControl ctl = mkGreenLed(c);
         bridges.bridge(d -> {
-                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getLeds();
+                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getVisuals().getLeds();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.Led);
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
@@ -121,7 +121,7 @@ public class Visuals {
     public Node mkMeter(UIElements.MiniVU c) {
         VuMeter v = new VuMeter(c);
         bridges.bridge(v.level(),d -> {
-                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getMetersAndGroups();
+                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getVisuals().getMetersAndGroups();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.Meter);
                 });
         return v.getControl();

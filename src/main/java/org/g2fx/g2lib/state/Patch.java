@@ -1,7 +1,6 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -14,14 +13,11 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.state.Device.dispatchSuccess;
-import static org.g2fx.g2lib.util.Util.forEachIndexed;
 
 public class Patch {
 
@@ -106,8 +102,7 @@ public class Patch {
     private ControlAssignments controls;
     private MorphParameters morphParams;
     private LibProperty<Integer> assignedVoices = new LibProperty<>(0);
-    private final List<PatchVisual> leds = new ArrayList<>();
-    private final List<PatchVisual> metersAndGroups = new ArrayList<>();
+    private final PatchVisuals visuals;
 
     // file-perf
     public Patch(Slot slot, UsbSender sender) {
@@ -117,6 +112,7 @@ public class Patch {
         voiceArea = new PatchArea(slot,AreaId.Voice,slotSender);
         fxArea = new PatchArea(slot,AreaId.Fx,slotSender);
         settingsArea = new PatchArea(slot,slotSender);
+        visuals = new PatchVisuals(slot,voiceArea,fxArea);
     }
 
     public int getVersion() {
@@ -127,13 +123,6 @@ public class Patch {
         return slot;
     }
 
-    public List<PatchVisual> getLeds() {
-        return leds;
-    }
-
-    public List<PatchVisual> getMetersAndGroups() {
-        return metersAndGroups;
-    }
 
     // usb, file-perf, test, file-patch
     public void setVersion(int version) {
@@ -169,7 +158,7 @@ public class Patch {
                 Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }
         }
-        updateVisualIndex();
+        visuals.updateVisualIndex();
     }
 
     // test
@@ -243,7 +232,7 @@ public class Patch {
         for (Sections ss : FILE_SECTIONS) {
             readSection(fileBuffer,ss);
         }
-        updateVisualIndex();
+        visuals.updateVisualIndex();
     }
 
 
@@ -421,50 +410,6 @@ public class Patch {
         readSection(buf,s);
     }
 
-    // usb, file-patch
-    private void updateVisualIndex() {
-        leds.clear();
-        voiceArea.addVisuals(Visual.VisualType.Led,leds);
-        fxArea.addVisuals(Visual.VisualType.Led,leds);
-        log.info(() -> "leds: " + leds);
-
-        metersAndGroups.clear();
-        voiceArea.addVisuals(null,metersAndGroups);
-        fxArea.addVisuals(null,metersAndGroups);
-        log.info(() -> "metersAndGroups: " + metersAndGroups);
-    }
-
-    // usb
-    public boolean readVolumeData(ByteBuffer buf) {
-        List<PatchVisual> updated = new ArrayList<>();
-        metersAndGroups.forEach(v -> {
-            buf.get(); // unknown
-            int i = Util.b2i(buf.get());
-            if (v.update(i)) {
-                updated.add(v);
-            }
-        });
-        log.info(() -> "readVolumeData: " + updated);
-        return true;
-    }
-
-    // usb
-    public boolean readLedData(ByteBuffer buf) {
-        buf.get(); //unknown
-        ByteBuffer buf2 = buf.slice();
-        List<PatchVisual> updated = new ArrayList<>();
-        forEachIndexed(leds,(v,i) ->  {
-            int bi = Math.floorDiv(i,4);
-            int bm = Math.floorMod(i,4) * 2;
-            int b = (buf2.get(bi) & (0x03 << bm)) >>> bm;
-            //log.info(String.format("%s %s %s %s %s",i,bi,bm,b,Integer.toBinaryString(buf2.get(bi))));
-            if (v.update(b)) {
-                updated.add(v);
-            }
-        });
-        log.info(() -> "readLedData: " + updated);
-        return true;
-    }
 
     // usb
     public boolean readParamUpdate(ByteBuffer buf) {
@@ -507,5 +452,9 @@ public class Patch {
 
     public MorphParameters getMorphParams() {
         return morphParams;
+    }
+
+    public PatchVisuals getVisuals() {
+        return visuals;
     }
 }
