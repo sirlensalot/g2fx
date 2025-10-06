@@ -25,7 +25,7 @@ import static org.g2fx.g2lib.util.Util.forEachIndexed;
 
 public class Patch {
 
-    private final Logger log = Util.getLogger(getClass());
+    private final Logger log;
 
     public static ByteBuffer fileHeader(int bufSize, String[] headerMsg) {
         ByteBuffer header = ByteBuffer.allocate(bufSize);
@@ -112,6 +112,7 @@ public class Patch {
     // file-perf
     public Patch(Slot slot, UsbSender sender) {
         this.slot = slot;
+        log = Util.getLogger(getClass(),slot);
         this.slotSender = new UsbSlotSender(sender,this);
         voiceArea = new PatchArea(slot,AreaId.Voice,slotSender);
         fxArea = new PatchArea(slot,AreaId.Fx,slotSender);
@@ -136,6 +137,7 @@ public class Patch {
 
     // usb, file-perf, test, file-patch
     public void setVersion(int version) {
+        if (this.version == version) { return; }
         this.version = version;
         log.info(() -> "setVersion: " + version);
     }
@@ -148,11 +150,21 @@ public class Patch {
         return knobAssignments;
     }
 
+    /**
+     * The big patch message starts with 0x21 section and dispatches here, as
+     * does patch settings messages which are only an 0x21 section.
+     */
     // usb, test
     public void readPatchDescription(ByteBuffer buf) {
         for (Sections ss : MSG_SECTIONS) {
             readSection(buf,ss);
+            // 0x21 is first in either case
             if (ss == Sections.SPatchDescription_21) {
+                // test for solo solo on patch settings change from synth
+                if (buf.remaining() == 2) {
+                    log.info(()->"readPatchDescription: just 0x21 message read");
+                    return;
+                }
                 Util.expectWarn(buf,0x2d,"Message","USB extra 1");
                 Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }

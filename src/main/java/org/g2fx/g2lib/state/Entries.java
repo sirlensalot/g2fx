@@ -44,6 +44,10 @@ public class Entries {
         this.usb = usb;
     }
 
+    public EntriesMsg getEntriesMsg() {
+        return entriesMsg;
+    }
+
     public void readEntries(EntryType type) throws Exception {
         entriesMsg = new EntriesMsg(type,List.of(new EntryBank(0,0,List.of())),false);
         entries.get(type).clear();

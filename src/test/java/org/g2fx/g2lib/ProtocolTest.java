@@ -1043,4 +1043,18 @@ class ProtocolTest {
         assertTrue(d.dispatch(new UsbMessage(buf.limit(),true,0xff63,buf)));
         //WARNING: dispatchCmd: unrecognized perf or sys version: 7 <- gotta figure this out.
     }
+
+    @Test
+    void testPatchDescrMsg() throws Exception {
+        String data = """
+                01 01 01 21 00 0f 00 ec 00 00 01 00 00 21 81 76
+                3f c0 10 00 00 13 a9                          \s""";
+        ByteBuffer buf = Util.readTextColsByteBuffer(data);
+        Device d = new Device();
+        d.getPerf().setVersion(7);
+        assertTrue(d.dispatch(new UsbMessage(buf.limit(),true,0x13a9,buf)));
+        PatchSettings ps = d.getPerf().getSlot(Slot.B).getPatchSettings();
+        //just testing for nonzero values
+        assertEquals(6,ps.voices().get());
+    }
 }

@@ -328,8 +328,7 @@ public class Device implements Dispatcher {
      */
     private boolean dispatchSlotCmd(Slot slot, ByteBuffer buf) {
         Patch patch = perf.getSlot(slot);
-        byte pv = Util.expectWarn(buf, patch.getVersion(), "usb", "patch version for slot " + slot);
-        patch.setVersion(Util.b2i(pv));
+        patch.setVersion(Util.b2i(buf.get()));
         int t = Util.b2i(buf.get());
         return switch (t) {
             case T_PATCH_DESCRIPTION -> {
