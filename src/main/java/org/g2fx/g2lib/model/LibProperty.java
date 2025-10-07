@@ -3,6 +3,8 @@ package org.g2fx.g2lib.model;
 import org.g2fx.g2lib.protocol.FieldEnum;
 import org.g2fx.g2lib.protocol.FieldValues;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
@@ -75,6 +77,10 @@ public class LibProperty<T> {
         }
     }
 
+    public void refresh() {
+        notifyListeners(get(),get());
+    }
+
     public static LibProperty<Integer> intFieldProperty(FieldValues fvs, FieldEnum f) {
         return new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
             @Override
@@ -115,5 +121,61 @@ public class LibProperty<T> {
                 fvs.update(f.value(newValue));
             }
         });
+    }
+
+    public static class FieldValuesLibProperties {
+
+        private FieldValues fvs;
+        private final List<LibProperty<?>> properties = new ArrayList<>();
+
+        public void update(FieldValues fvs) {
+            this.fvs = fvs;
+            properties.forEach(LibProperty::refresh);
+        }
+
+        public LibProperty<Integer> intFieldProperty(FieldEnum f) {
+            return register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+                @Override
+                public Integer get() {
+                    return f.intValue(fvs);
+                }
+
+                @Override
+                public void set(Integer newValue) {
+                    fvs.update(f.value(newValue));
+                }
+            }));
+        }
+        public LibProperty<String> stringFieldProperty(FieldEnum f) {
+            return register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+                @Override
+                public String get() {
+                    return f.stringValue(fvs);
+                }
+
+                @Override
+                public void set(String newValue) {
+                    fvs.update(f.value(newValue));
+                }
+            }));
+        }
+
+        public LibProperty<Boolean> booleanFieldProperty(FieldEnum f) {
+            return register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+                @Override
+                public Boolean get() {
+                    return f.booleanIntValue(fvs);
+                }
+
+                @Override
+                public void set(Boolean newValue) {
+                    fvs.update(f.value(newValue));
+                }
+            }));
+        }
+        public <T> LibProperty<T> register(LibProperty<T> prop) {
+            properties.add(prop);
+            return prop;
+        }
     }
 }

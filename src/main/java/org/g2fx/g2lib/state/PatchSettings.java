@@ -4,10 +4,13 @@ import org.g2fx.g2gui.controls.VoiceMode;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.util.Util;
+
+import java.util.logging.Logger;
 
 public class PatchSettings {
 
-    private final FieldValues fvs;
+    private final LibProperty.FieldValuesLibProperties props = new LibProperty.FieldValuesLibProperties();
 
     private final LibProperty<Integer> voices;
     private final LibProperty<Integer> height;
@@ -23,24 +26,24 @@ public class PatchSettings {
     private final LibProperty<Integer> category;
 
     private final LibProperty<VoiceMode> voiceMode;
+    private final Logger log;
 
+    public PatchSettings(Slot slot) {
+        this.log = Util.getLogger(getClass(),slot);
+        voices = props.intFieldProperty(Protocol.PatchDescription.Voices);
+        height = props.intFieldProperty(Protocol.PatchDescription.Height);
+        red = props.booleanFieldProperty(Protocol.PatchDescription.Red);
+        blue = props.booleanFieldProperty(Protocol.PatchDescription.Blue);
+        yellow = props.booleanFieldProperty(Protocol.PatchDescription.Yellow);
+        orange = props.booleanFieldProperty(Protocol.PatchDescription.Orange);
+        green = props.booleanFieldProperty(Protocol.PatchDescription.Green);
+        purple = props.booleanFieldProperty(Protocol.PatchDescription.Purple);
+        white = props.booleanFieldProperty(Protocol.PatchDescription.White);
+        monoPoly = props.intFieldProperty(Protocol.PatchDescription.MonoPoly);
+        variation = props.intFieldProperty(Protocol.PatchDescription.Variation);
+        category = props.intFieldProperty(Protocol.PatchDescription.Category);
 
-    public PatchSettings(FieldValues fvs) {
-        this.fvs = fvs;
-        voices = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Voices);
-        height = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Height);
-        red = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Red);
-        blue = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Blue);
-        yellow = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Yellow);
-        orange = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Orange);
-        green = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Green);
-        purple = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.Purple);
-        white = LibProperty.booleanFieldProperty(fvs,Protocol.PatchDescription.White);
-        monoPoly = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.MonoPoly);
-        variation = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Variation);
-        category = LibProperty.intFieldProperty(fvs,Protocol.PatchDescription.Category);
-
-        voiceMode = new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+        voiceMode = props.register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
             @Override
             public VoiceMode get() {
                 return VoiceMode.fromMonoPolyAndVoices(monoPoly().get(), voices().get());
@@ -51,9 +54,29 @@ public class PatchSettings {
                 monoPoly.set(newValue.getMonoPoly());
                 voices.set(newValue.getVoices());
             }
-        });
+        }));
 
     }
+
+    public void update(FieldValues fvs) {
+        props.update(fvs);
+    }
+
+    /*
+    function TG2MessSlot.CreateSelectVariationMessage( aVariationIndex: byte): TG2SendMessage;
+begin
+  add_log_line('Select variation ' + IntToStr(aVariationIndex) + ', slot ' + IntToStr(SlotIndex) + ', patch_version ' + IntToStr(FPatchVersion), LOGCMD_HDR);
+
+  Result := TG2SendMessage.Create;
+  Result.WriteMessage( $01);
+  Result.WriteMessage( CMD_REQ + CMD_SLOT + SlotIndex );
+  Result.WriteMessage( FPatchVersion);
+  Result.WriteMessage( S_SEL_VARIATION); 0x6a
+  Result.WriteMessage( aVariationIndex);
+end;
+
+
+     */
 
     public LibProperty<Integer> voices() { return voices; }
     public LibProperty<Integer> height() { return height; }

@@ -31,6 +31,7 @@ import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import static org.g2fx.g2gui.FXUtil.UI_MAX_VARIATIONS;
@@ -47,6 +49,7 @@ import static org.g2fx.g2gui.controls.CableColor.*;
 
 public class SlotPane {
 
+    private final Logger log;
     private final Bridges bridges;
     private final Slot slot;
     private final FXUtil.TextFieldFocusListener textFocusListener;
@@ -70,6 +73,7 @@ public class SlotPane {
                     Undos undos) {
         this.bridges = bridges;
         this.slot = slot;
+        log = Util.getLogger(getClass(),slot);
         this.textFocusListener = textFocusListener;
         this.morphControls = morphControls;
         this.undos = undos;

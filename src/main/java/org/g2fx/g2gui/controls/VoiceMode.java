@@ -30,10 +30,8 @@ public sealed interface VoiceMode permits VoiceMode.Legato, VoiceMode.Mono, Voic
     static VoiceMode fromMonoPolyAndVoices(int monoPoly, int voices) {
         return switch (monoPoly) {
             case 0 -> {
-                if (voices < 2 || voices > 32) {
-                    throw new IllegalArgumentException("Illegal voices value: " + voices);
-                }
-                yield ALL[voices];
+                int v = voices < 1 ? 1 : Math.min(voices, 31);
+                yield ALL[voices+1];
             }
             case 1 -> MONO;
             case 2 -> LEGATO;
@@ -69,7 +67,7 @@ public sealed interface VoiceMode permits VoiceMode.Legato, VoiceMode.Mono, Voic
 
         @Override
         public String getDisplayName(int assigned) {
-            return voices + " (" + assigned + ")";
+            return assigned + " (" + voices + ")";
         }
     }
 }

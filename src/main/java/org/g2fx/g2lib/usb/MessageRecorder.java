@@ -10,7 +10,6 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.List;
 
 public class MessageRecorder {
@@ -89,11 +88,17 @@ public class MessageRecorder {
         }
     }
 
+    public record Script(Double mult, Integer constant, List<RecordMsg> msgs) {}
+
     public static List<RecordedUsbMessage> readSessionFile(File f) throws Exception {
         ObjectMapper mapper = Util.mkYamlMapper();
-        HashMap<String, List<RecordMsg>> y = mapper.readValue(f, new TypeReference<>() {});
-        List<RecordMsg> rms = y.get("msgs");
-        return rms.stream().map(rm -> new RecordedUsbMessage(rm.time,new UsbMessage(rm.data.limit(),rm.extended,rm.crc,rm.data))).toList();
+        Script y = mapper.readValue(f, new TypeReference<>() {});
+        double mult = y.mult == null ? 1.0 : y.mult;
+        return y.msgs.stream().map(rm -> {
+            long time = y.constant != null ? y.constant.longValue() : ((long) (rm.time * mult));
+            return new RecordedUsbMessage(time,
+                new UsbMessage(rm.data.limit(),rm.extended,rm.crc,rm.data));
+        }).toList();
     }
 
     public static class CrcDesz extends JsonDeserializer<Integer> {

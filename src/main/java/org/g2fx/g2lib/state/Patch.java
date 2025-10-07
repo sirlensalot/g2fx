@@ -91,7 +91,7 @@ public class Patch {
     private int version;
 
 
-    private PatchSettings patchSettings;
+    private final PatchSettings patchSettings;
     private FieldValues textPad;
     private FieldValues currentNote;
     private final PatchArea voiceArea;
@@ -113,6 +113,7 @@ public class Patch {
         fxArea = new PatchArea(slot,AreaId.Fx,slotSender);
         settingsArea = new PatchArea(slot,slotSender);
         visuals = new PatchVisuals(slot,voiceArea,fxArea);
+        patchSettings = new PatchSettings(slot);
     }
 
     public int getVersion() {
@@ -358,8 +359,7 @@ public class Patch {
         sections.put(s, section);
         log.info("updateSection: " + s);
         switch (s) {
-            case SPatchDescription_21 ->
-                this.patchSettings = new PatchSettings(section.values);
+            case SPatchDescription_21 -> patchSettings.update(section.values);
             case SPatchParams_4d -> settingsArea.setModuleParamValues(section.values);
             case STextPad_6f -> this.textPad = section.values;
             case SCurrentNote_69 -> this.currentNote = section.values;
