@@ -62,7 +62,7 @@ public sealed interface VoiceMode permits VoiceMode.Legato, VoiceMode.Mono, Voic
 
         @Override
         public int getVoices() {
-            return voices;
+            return voices-1;
         }
 
         @Override
