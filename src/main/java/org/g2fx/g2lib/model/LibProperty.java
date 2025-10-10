@@ -123,18 +123,37 @@ public class LibProperty<T> {
         });
     }
 
+    @FunctionalInterface
+    public interface FieldValuesChangeListener {
+        void changed(FieldValues fvs) throws Exception;
+    }
+
     public static class FieldValuesLibProperties {
 
         private FieldValues fvs;
         private final List<LibProperty<?>> properties = new ArrayList<>();
+        private boolean refreshing = false;
+        private final FieldValuesChangeListener updater;
+
+        public FieldValuesLibProperties(FieldValuesChangeListener updater) {
+            this.updater = updater;
+        }
 
         public void update(FieldValues fvs) {
             this.fvs = fvs;
-            properties.forEach(LibProperty::refresh);
+            refreshing = true;
+            try {
+                properties.forEach(LibProperty::refresh);
+            } finally {
+                refreshing = false;
+            }
         }
 
         public LibProperty<Integer> intFieldProperty(FieldEnum f) {
-            return register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+            return intFieldProperty(f, true);
+        }
+        public LibProperty<Integer> intFieldProperty(FieldEnum f, boolean register) {
+            LibProperty<Integer> prop = new LibProperty<>(new LibPropertyGetterSetter<>() {
                 @Override
                 public Integer get() {
                     return f.intValue(fvs);
@@ -144,10 +163,15 @@ public class LibProperty<T> {
                 public void set(Integer newValue) {
                     fvs.update(f.value(newValue));
                 }
-            }));
+            });
+            return register ? register(prop) : prop;
         }
+
         public LibProperty<String> stringFieldProperty(FieldEnum f) {
-            return register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+            return stringFieldProperty(f,true);
+        }
+        public LibProperty<String> stringFieldProperty(FieldEnum f,boolean register) {
+            LibProperty<String> prop = new LibProperty<>(new LibPropertyGetterSetter<>() {
                 @Override
                 public String get() {
                     return f.stringValue(fvs);
@@ -157,11 +181,15 @@ public class LibProperty<T> {
                 public void set(String newValue) {
                     fvs.update(f.value(newValue));
                 }
-            }));
+            });
+            return register ? register(prop) : prop;
+        }
+        public LibProperty<Boolean> booleanFieldProperty(FieldEnum f) {
+            return booleanFieldProperty(f,true);
         }
 
-        public LibProperty<Boolean> booleanFieldProperty(FieldEnum f) {
-            return register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+        public LibProperty<Boolean> booleanFieldProperty(FieldEnum f, boolean register) {
+            LibProperty<Boolean> prop = new LibProperty<>(new LibPropertyGetterSetter<>() {
                 @Override
                 public Boolean get() {
                     return f.booleanIntValue(fvs);
@@ -171,10 +199,16 @@ public class LibProperty<T> {
                 public void set(Boolean newValue) {
                     fvs.update(f.value(newValue));
                 }
-            }));
+            });
+            return register? register(prop) : prop;
         }
+
         public <T> LibProperty<T> register(LibProperty<T> prop) {
             properties.add(prop);
+            prop.addListener((o, n) -> {
+                if (refreshing) { return; }
+                updater.changed(fvs);
+            });
             return prop;
         }
     }

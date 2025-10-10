@@ -37,6 +37,11 @@ class MainTest {
         );
         assertEquals(0x3e24,CRC16.crc16(msg,0,msg.length));
 
+        assertEquals(0xb017,CRC16.crc16(Util.readTextColsByteBuffer(
+            "01 28 01 21 00 0f 00 00 00 00 00 00 00 00 " +
+                    "c2 58 4f c0 00 00 00"
+        ).rewind()));
+
         assertEquals(8, Util.b2i((byte) 0x82) >> 4);
 
         assertEquals(0x1bd6, Util.addb((byte) 0x1b, (byte) 0xd6));

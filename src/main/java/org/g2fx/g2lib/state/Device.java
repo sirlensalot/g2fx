@@ -100,29 +100,33 @@ public class Device implements Dispatcher {
 
         usb.sendBulk("Init", true, Util.asBytes(R_INIT));
 
+
+        // load 01: first request is 0x0a // S_RETREIVE, response is 0x40
+
+
         // perf version
         perf = new Performance(usb);
-        usb.sendSystemRequest("perf version"
+        usb.sendSystemRequest("perf version"  // load 02
                 ,0x35 // Q_VERSION_CNT
                 ,0x04 // perf version??
         );
 
-        sendStartStopComm(false);
+        sendStartStopComm(false); // not load?
 
         //synth settings
-        usb.sendSystemRequest("Synth settings"
+        usb.sendSystemRequest("Synth settings" // not load
                 ,0x02 // Q_SYNTH_SETTINGS
         );
 
-        usb.sendSystemRequest("unknown 1"
+        usb.sendSystemRequest("unknown 1" // not load
                 ,0x81 // M_UNKNOWN_1
         );
 
-        usb.sendPerfRequest(perf.getVersion(),"perf settings"
+        usb.sendPerfRequest(perf.getVersion(),"perf settings" // load 03
                 ,0x10 // Q_PERF_SETTINGS
         );
 
-        usb.sendPerfRequest(perf.getVersion(),"unknown 2"
+        usb.sendPerfRequest(perf.getVersion(),"unknown 2" // load 04
                 ,0x59 // M_UNKNOWN_2
         );
 
@@ -132,11 +136,11 @@ public class Device implements Dispatcher {
         //  TODO master clock can be R_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
         // ext master clock:
         // 92 01 0c 00 5d 01 00 78 37 90 00 00 00 00 00 00
-        usb.sendSystemRequest("master clock",
+        usb.sendSystemRequest("master clock", // not load
                 0x3b //Q_MASTER_CLOCK
         );
 
-        usb.sendPerfRequest(perf.getVersion(),"global knobs",
+        usb.sendPerfRequest(perf.getVersion(),"global knobs", // load 13
                 0x5e //Q_GLOBAL_KNOBS
         );
 
@@ -151,51 +155,51 @@ public class Device implements Dispatcher {
         entries.readEntries(Entries.EntryType.Patch);
         entries.readEntries(Entries.EntryType.Perf);
 
-        //sendStartStopComm(true);
+        //sendStartStopComm(true); // load 14
 
     }
 
 
     private void readSlot(final Slot slot) throws Exception {
 
-        usb.sendSystemRequest("slot version " + slot
+        usb.sendSystemRequest("slot version " + slot // not load
                 ,0x35 // Q_VERSION_CNT
                 , slot.ordinal() // slot index
         );
         Patch patch = perf.getSlot(slot);
         int pv = patch.getVersion();
 
-        usb.sendSlotRequest(slot,pv,"slot patch" + slot,
+        usb.sendSlotRequest(slot,pv,"slot patch" + slot, // load 05
                 0x3c // Q_PATCH
         );
 
-        usb.sendSlotRequest(slot,pv,"slot name" + slot,
+        usb.sendSlotRequest(slot,pv,"slot name" + slot, // load 06
                 0x28 // Q_PATCH_NAME
         );
 
-        usb.sendSlotRequest(slot,pv,"slot note" + slot,
+        usb.sendSlotRequest(slot,pv,"slot note" + slot, // load 07
                 0x68 // Q_CURRENT_NOTE
         );
 
-        usb.sendSlotRequest(slot,pv,"slot text " + slot,
+        usb.sendSlotRequest(slot,pv,"slot text " + slot, // load 08
                 0x6e //Q_PATCH_TEXT
         );
 
-        usb.sendSlotRequest(slot,pv,"patch load VA",
+        usb.sendSlotRequest(slot,pv,"patch load VA", // load 09
                 0x71, // Q_RESOURCES_USED
                 AreaId.Voice.ordinal() // LOCATION_VA
         );
 
-        usb.sendSlotRequest(slot,pv,"patch load FX",
+        usb.sendSlotRequest(slot,pv,"patch load FX", // load 10
                 0x71, // Q_RESOURCES_USED
                 AreaId.Fx.ordinal() // LOCATION_VA
         );
 
-        usb.sendSlotRequest(slot,pv,"unknown 6",
+        usb.sendSlotRequest(slot,pv,"unknown 6",  // load 11
                 0x70 // M_UNKNOWN_6
         );
 
-        usb.sendSlotRequest(slot,pv,"selected param",
+        usb.sendSlotRequest(slot,pv,"selected param", // load 12
                 0x2e // Q_SELECTED_PARAM
         );
 

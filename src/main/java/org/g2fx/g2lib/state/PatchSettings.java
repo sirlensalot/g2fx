@@ -4,13 +4,15 @@ import org.g2fx.g2gui.controls.VoiceMode;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.protocol.Sections;
+import org.g2fx.g2lib.usb.UsbSlotSender;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.logging.Logger;
 
-public class PatchSettings {
+public class PatchSettings implements LibProperty.FieldValuesChangeListener {
 
-    private final LibProperty.FieldValuesLibProperties props = new LibProperty.FieldValuesLibProperties();
+    private final LibProperty.FieldValuesLibProperties props = new LibProperty.FieldValuesLibProperties(this);
 
     private final LibProperty<Integer> voices;
     private final LibProperty<Integer> height;
@@ -27,10 +29,12 @@ public class PatchSettings {
 
     private final LibProperty<VoiceMode> voiceMode;
     private final Logger log;
+    private final UsbSlotSender sender;
 
-    public PatchSettings(Slot slot) {
+    public PatchSettings(Slot slot, UsbSlotSender sender) {
         this.log = Util.getLogger(getClass(),slot);
-        voices = props.intFieldProperty(Protocol.PatchDescription.Voices);
+        this.sender = sender;
+        voices = props.intFieldProperty(Protocol.PatchDescription.Voices, false);
         height = props.intFieldProperty(Protocol.PatchDescription.Height);
         red = props.booleanFieldProperty(Protocol.PatchDescription.Red);
         blue = props.booleanFieldProperty(Protocol.PatchDescription.Blue);
@@ -39,8 +43,8 @@ public class PatchSettings {
         green = props.booleanFieldProperty(Protocol.PatchDescription.Green);
         purple = props.booleanFieldProperty(Protocol.PatchDescription.Purple);
         white = props.booleanFieldProperty(Protocol.PatchDescription.White);
-        monoPoly = props.intFieldProperty(Protocol.PatchDescription.MonoPoly);
-        variation = props.intFieldProperty(Protocol.PatchDescription.Variation);
+        monoPoly = props.intFieldProperty(Protocol.PatchDescription.MonoPoly, false);
+        variation = props.intFieldProperty(Protocol.PatchDescription.Variation, false);
         category = props.intFieldProperty(Protocol.PatchDescription.Category);
 
         voiceMode = props.register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
@@ -60,6 +64,14 @@ public class PatchSettings {
 
     public void update(FieldValues fvs) {
         props.update(fvs);
+    }
+
+    @Override
+    public void changed(FieldValues fvs) throws Exception {
+        log.info(() -> "sending patch settings");
+        Protocol.PatchDescription.Reserved.subfieldsValue(fvs).forEach(sfvs -> sfvs.update(Protocol.Data8.Datum.value(0)));
+        fvs.update(Protocol.PatchDescription.Reserved2.value(0));
+        sender.sendSectionMessage(new Patch.Section(Sections.SPatchDescription_21,fvs));
     }
 
     /*

@@ -113,7 +113,7 @@ public class Patch {
         fxArea = new PatchArea(slot,AreaId.Fx,slotSender);
         settingsArea = new PatchArea(slot,slotSender);
         visuals = new PatchVisuals(slot,voiceArea,fxArea);
-        patchSettings = new PatchSettings(slot);
+        patchSettings = new PatchSettings(slot,slotSender);
     }
 
     public int getVersion() {
@@ -254,13 +254,18 @@ public class Patch {
         if (ss == null) {
             throw new IllegalArgumentException("No section in patch: " + s);
         }
-        BitBuffer bb = new BitBuffer(0xffff); //TODO need dynamic allocation
+        writeSection(buf, ss);
+
+    }
+
+    public static void writeSection(ByteBuffer buf, Section ss) throws Exception {
+        BitBuffer bb = new BitBuffer(0xffff); //TODO need dynamic allocation or reuse
+        Sections s = ss.sections;
         if (s.location != null) {
-            bb.put(2,s.location);
+            bb.put(2, s.location);
         }
         ss.values.write(bb);
         writeSectionContents(buf, s, bb);
-
     }
 
     public static void writeSectionContents(ByteBuffer buf, Sections s, BitBuffer bb) {
