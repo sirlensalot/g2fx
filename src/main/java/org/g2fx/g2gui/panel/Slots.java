@@ -20,6 +20,7 @@ import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
@@ -190,5 +191,11 @@ public class Slots {
 
     public void addListener(ChangeListener<Slot> l) {
         slotTabs.getSelectionModel().selectedIndexProperty().addListener((c,o,n) -> l.changed(null,null,Slot.fromIndex(n.intValue())));
+    }
+
+    public void startToolbarModuleDrag(ModuleType mt) {
+        SlotPane sp = getSelectedSlotPane();
+        sp.getAreaPane(AreaId.Voice).startToolbarDrag(mt);
+        sp.getAreaPane(AreaId.Fx).startToolbarDrag(mt);
     }
 }

@@ -18,6 +18,14 @@ public class Undos {
         return inUndoRedo;
     }
 
+    public void withMulti(Runnable r) {
+        beginMulti();
+        try {
+            r.run();
+        } finally {
+            commitMulti();
+        }
+    }
     public void beginMulti() {
         if (inMulti()) { throw new IllegalStateException("Undos.beginMulti: in multi already"); }
         multi = new ArrayList<>();

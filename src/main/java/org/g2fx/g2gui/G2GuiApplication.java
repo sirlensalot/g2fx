@@ -12,6 +12,9 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -360,14 +363,22 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         return undoRedoModColorBox;
     }
 
-    private static VBox mkModuleSelectBox() {
+    private VBox mkModuleSelectBox() {
         ToggleGroup moduleSectionSelector = new ToggleGroup();
 
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
         ModuleType.BY_PAGE.forEach((mp,l) -> modsByType.put(mp,l.stream().map(mt -> {
-            ImageView iv = FXUtil.getImageViewResource("module-icons" +
+            ImageView iv = getImageViewResource("module-icons" +
                     File.separator + String.format("%03d.png", mt.ix));
             Button tb = withClass(new Button("",iv),"module-select-button");
+            tb.setOnDragDetected(e -> {
+                slots.startToolbarModuleDrag(mt);
+                Dragboard db = tb.startDragAndDrop(TransferMode.COPY);
+                ClipboardContent c = new ClipboardContent();
+                c.putString("G2_TOOLBAR_DRAG");
+                db.setContent(c);
+                e.consume();
+            });
             return new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb);
         }).toList()));
 
