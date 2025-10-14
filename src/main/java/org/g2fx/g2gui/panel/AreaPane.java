@@ -267,7 +267,7 @@ public class AreaPane {
         PatchArea area = d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
         for (PatchModule m : area.getModules()) {
             UserModuleData md = m.getUserModuleData();
-            l.add(() -> renderModule(md.getIndex(), md.getType(), m, d, uiModules.get(md.getType())));
+            l.add(() -> renderModule(md.getIndex(), md.getType(), m, uiModules.get(md.getType())));
         }
         l.add(() -> renderCables(new ArrayList<>(area.getCables()))); //assuming fvs are one-off, should be thread-safe
     }
@@ -322,13 +322,15 @@ public class AreaPane {
     }
 
 
-    private void renderModule(int index, ModuleType type, PatchModule pm, Device d, UIModule<UIElement> ui) {
+    private void renderModule(int index, ModuleType type, PatchModule pm, UIModule<UIElement> ui) {
         // on fx thread
         ModulePane modulePane = new ModulePane(ui,index,type, textFocusListener, bridges, pm, slotPane, this);
         modulePanes.put(index,modulePane);
         areaPane.getChildren().add(modulePane.getPane());
         setupModuleMouseHandling(modulePane);
-        modulePane.getModuleBridges().forEach(b -> b.finalizeInit(d).run());
+        bridges.getDeviceExecutor().invokeWithCurrent(dd ->
+            modulePane.getModuleBridges().stream().map(b -> b.finalizeInit(dd)).toList()
+        ).forEach(Runnable::run);
         modulePane.coords().addListener((c,o,l) -> updateCables(modulePane));
     }
 

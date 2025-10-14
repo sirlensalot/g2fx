@@ -93,6 +93,7 @@ public class PropertyBridge<T,F> {
     }
 
     public Runnable finalizeInit(Device d) {
+        // lib thread
         return initFinalizer.apply(d);
     }
 

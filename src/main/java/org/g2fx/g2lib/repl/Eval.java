@@ -180,6 +180,7 @@ public class Eval {
     }
 
     public Path updatePath() {
+        if (devices.getCurrent() == null) { return null; }
         if (path == null || path.device() == null || path.perf() == null) {
             path = devices.invokeWithCurrent(cur -> {
                 Patch patch = cur.getPerf().getSelectedPatch();
