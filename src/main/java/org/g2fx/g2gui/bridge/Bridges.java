@@ -1,8 +1,6 @@
 package org.g2fx.g2gui.bridge;
 
 import javafx.beans.property.Property;
-import javafx.scene.control.Toggle;
-import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.Undos;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.state.Device;
@@ -48,24 +46,6 @@ public class Bridges implements Bridger {
 
     public List<Runnable> dispose() {
         return bridges.stream().map(PropertyBridge::dispose).toList();
-    }
-
-
-    public void bridgeSegmentedButton(SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
-        bridge(libPropBuilder,
-                FxProperty.adaptReadOnly(button.getToggleGroup().selectedToggleProperty(),
-                        value -> value.setSelected(true)),
-                new Iso<>() {
-                    @Override
-                    public Toggle to(Integer integer) {
-                        return button.getToggleGroup().getToggles().get(integer);
-                    }
-
-                    @Override
-                    public Integer from(Toggle tab) {
-                        return (Integer) tab.getUserData();
-                    }
-                });
     }
 
     public void remove(List<PropertyBridge<?,?>> bridges) {

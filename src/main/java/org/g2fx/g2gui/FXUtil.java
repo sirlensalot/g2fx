@@ -4,10 +4,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.css.Styleable;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -16,6 +13,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import org.controlsfx.control.SegmentedButton;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
+import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.state.Device;
 
 import java.net.URL;
 import java.util.Collection;
@@ -23,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.prefs.Preferences;
 
 public class FXUtil {
@@ -156,4 +160,22 @@ public class FXUtil {
         stage.widthProperty().addListener(l);
         stage.heightProperty().addListener(l);
     }
+
+    public static void bridgeSegmentedButton(Bridges bridges, SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
+        bridges.bridge(libPropBuilder,
+                FxProperty.adaptReadOnly(button.getToggleGroup().selectedToggleProperty(),
+                        value -> value.setSelected(true)),
+                new Iso<>() {
+                    @Override
+                    public Toggle to(Integer integer) {
+                        return button.getToggleGroup().getToggles().get(integer);
+                    }
+
+                    @Override
+                    public Integer from(Toggle tab) {
+                        return (Integer) tab.getUserData();
+                    }
+                });
+    }
+
 }

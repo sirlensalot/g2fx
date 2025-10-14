@@ -43,8 +43,7 @@ import java.util.function.IntFunction;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import static org.g2fx.g2gui.FXUtil.UI_MAX_VARIATIONS;
-import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.FXUtil.*;
 import static org.g2fx.g2gui.controls.CableColor.*;
 
 public class SlotPane {
@@ -327,7 +326,7 @@ public class SlotPane {
             FXUtil.radioToToggle(b);
         }
         varSelector = new SegmentedButton(varButtons);
-        bridges.bridgeSegmentedButton(varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
+        bridgeSegmentedButton(bridges, varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
 
         varSelector.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
                 varChanged((Integer) n.getUserData()));

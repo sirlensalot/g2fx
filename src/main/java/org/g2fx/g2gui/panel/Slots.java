@@ -33,6 +33,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
+import static org.g2fx.g2gui.FXUtil.bridgeSegmentedButton;
 import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class Slots {
@@ -142,7 +143,7 @@ public class Slots {
 
 
         slotBar = withClass(new SegmentedButton(sbs), "slot-bar");
-        bridges.bridgeSegmentedButton(slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
+        bridgeSegmentedButton(bridges, slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
 
         slotBar.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
                 slotChanged(o == null ? null : (Integer) o.getUserData(),
