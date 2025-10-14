@@ -1,7 +1,6 @@
 package org.g2fx.g2lib.repl;
 
 import org.g2fx.g2gui.Commands;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.util.SafeLookup;
@@ -182,9 +181,7 @@ public class Eval {
 
     public Path updatePath() {
         if (path == null || path.device() == null || path.perf() == null) {
-            path = devices.invoke(true,() -> {
-                Device cur = devices.getCurrent();
-                if (cur == null || cur.getPerf() == null) { return null; }
+            path = devices.invokeWithCurrent(cur -> {
                 Patch patch = cur.getPerf().getSelectedPatch();
                 return Path.pathForPatch(cur, patch);
             });

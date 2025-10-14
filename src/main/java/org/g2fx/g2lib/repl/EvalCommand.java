@@ -51,7 +51,7 @@ public enum EvalCommand {
                 if (!(filePath.endsWith("prf2") || filePath.endsWith("pch2"))) {
                     throw c.bad("Not a G2 file");
                 }
-                c.eval.setPath(c.devices.invoke(true,() -> {
+                c.eval.setPath(c.devices.invoke(() -> {
                     c.devices.loadFile(filePath);
                     return c.devices.withCurrent(d -> Path.pathForPatch(d,d.getPerf().getSelectedPatch()));
                 }));

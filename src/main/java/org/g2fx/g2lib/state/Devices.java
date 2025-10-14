@@ -11,23 +11,9 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Devices implements UsbService.UsbConnectionListener, Executor {
+public class Devices implements UsbService.UsbConnectionListener, DeviceExecutor {
 
     private static final Logger log = Util.getLogger(Devices.class);
-
-    public interface ThrowingRunnable {
-        void run() throws Exception;
-    }
-
-    @FunctionalInterface
-    public interface ThrowingConsumer<T> {
-        void accept(T t) throws Exception;
-    }
-
-    @FunctionalInterface
-    public interface ThrowingFunction<A,R> {
-        R invoke(A a) throws Exception;
-    }
 
     public interface DeviceListener {
         void onDeviceInitialized(Device d) throws Exception;
@@ -197,13 +183,10 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
             return result;
         }
     }
-    public <V> V invoke(Callable<V> c) { return invoke(false,c); }
 
-    public <V> V invoke(boolean offlineOk, Callable<V> c) {
+    @Override
+    public <V> V invoke(Callable<V> c) {
         Future<FailableResult<V>> f = executorService.submit(() -> {
-            if (enforceOnline(offlineOk)) {
-                return FailableResult.failed(new IllegalStateException("Device offline"));
-            }
             try {
                 return FailableResult.success(c.call());
             } catch (RuntimeException e) {
@@ -220,16 +203,14 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
 
     }
 
-    private boolean enforceOnline(boolean offlineOk) {
-        return !offlineOk && !online();
+    @Override
+    public <V> V invokeWithCurrent(ThrowingFunction<Device, V> f) {
+        return invoke(() -> withCurrent(f));
     }
 
-    public <V> V invokeWithCurrent(ThrowingFunction<Device,V> f) {
-        return invoke(true,() -> withCurrent(f));
-    }
-
+    @Override
     public void runWithCurrent(ThrowingConsumer<Device> f) {
-        execute(true,() -> {
+        execute(() -> {
             if (current == null) {
                 throw new IllegalStateException("Current device not initialized");
             }
@@ -237,18 +218,10 @@ public class Devices implements UsbService.UsbConnectionListener, Executor {
         });
     }
 
+
     @Override
-    public void execute(Runnable command) {
-        execute(true, command::run);
-    }
-
     public void execute(ThrowingRunnable r) {
-        execute(false,r);
-    }
-
-    public void execute(boolean offlineOk, ThrowingRunnable r) {
         executorService.execute(() -> {
-            enforceOnline(offlineOk);
             try {
                 r.run();
             } catch (Exception e) {

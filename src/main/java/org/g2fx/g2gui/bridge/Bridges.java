@@ -4,6 +4,7 @@ import javafx.beans.property.Property;
 import org.g2fx.g2gui.Undos;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.state.DeviceExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +14,11 @@ import java.util.function.Function;
 public class Bridges implements Bridger {
     
     private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
-    private final Executor devices;
+    private final DeviceExecutor devices;
     private final Executor fxQueue;
     private final Undos undos;
 
-    public Bridges(Executor devices, Executor fxQueue, Undos undos) {
+    public Bridges(DeviceExecutor devices, Executor fxQueue, Undos undos) {
         this.devices = devices;
         this.fxQueue = fxQueue;
         this.undos = undos;
@@ -49,7 +50,7 @@ public class Bridges implements Bridger {
     }
 
     public void remove(List<PropertyBridge<?,?>> bridges) {
-        //must be on fx thread, and does NOT dispose
+        //must be on fx thread, and does NOT dispose b/c all resources are GC'd (test?)
         this.bridges.removeAll(bridges);
     }
 }

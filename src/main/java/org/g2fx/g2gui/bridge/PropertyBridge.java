@@ -5,6 +5,7 @@ import org.g2fx.g2gui.Undos;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.LibProperty.LibPropertyListener;
 import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.state.DeviceExecutor;
 
 import java.util.concurrent.Executor;
 import java.util.function.Function;
@@ -45,7 +46,7 @@ public class PropertyBridge<T,F> {
     private volatile boolean active = false;
 
     public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
-                          Executor libExecutor,
+                          DeviceExecutor libExecutor,
                           FxProperty<F> fxProperty,
                           Executor fxExecutor,
                           Iso<T,F> iso,

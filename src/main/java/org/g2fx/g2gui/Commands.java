@@ -121,7 +121,7 @@ public class Commands {
 
             Platform.runLater(Commands.this::updateRecentFiles);
 
-            devices.execute(true,() -> devices.loadFile(f.getAbsolutePath()));
+            devices.execute(() -> devices.loadFile(f.getAbsolutePath()));
         }
 
 
@@ -199,7 +199,7 @@ public class Commands {
         Menu menu = new Menu("Tools");
         MenuItem dumpYaml = new MenuItem("Dump Yaml");
         dumpYaml.setOnAction(e -> {
-            String pname = devices.invoke(true,() -> devices.withCurrent(d -> d.getPerf().getName()));
+            String pname = devices.invokeWithCurrent(d -> d.getPerf().getName());
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Dump Yaml File");
             fileChooser.getExtensionFilters().addAll(
@@ -207,9 +207,8 @@ public class Commands {
             fileChooser.setInitialFileName(pname + ".yaml");
             File file = fileChooser.showSaveDialog(stage);
             if (file != null) {
-                devices.execute(true,() -> devices.runWithCurrent(d ->
-                        d.getPerf().dumpYaml(file.getAbsolutePath())));
-
+                devices.runWithCurrent(d ->
+                        d.getPerf().dumpYaml(file.getAbsolutePath()));
             }});
 
 
