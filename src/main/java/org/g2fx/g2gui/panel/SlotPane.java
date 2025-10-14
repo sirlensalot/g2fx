@@ -401,7 +401,7 @@ public class SlotPane {
     public void updateModuleColor(int index) {
         undos.beginMulti();
         try {
-            areaPanes.forEach((a, p) -> p.getSelectedModules().forEach(m -> m.color().setValue(index)));
+            areaPanes.forEach((a, p) -> p.updateModuleColor(index));
         } finally {
             undos.commitMulti();
         }

@@ -1,5 +1,8 @@
 package org.g2fx.g2gui.panel;
 
+import com.google.common.collect.Sets;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -10,6 +13,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2gui.G2GuiApplication;
 import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Cables;
@@ -19,8 +23,13 @@ import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.FXUtil.withClass1;
@@ -33,27 +42,34 @@ public class AreaPane {
 
     public static final String CSS_SELECTED_RECT = "selected-rect";
 
+    private final Logger log;
     private final AreaId areaId;
     private final Bridges bridges;
-    private final SlotPane slotPane;
-    private final Pane areaPane;
-    private final FXUtil.TextFieldFocusListener textFocusListener;
     private final Undos undos;
+    private final FXUtil.TextFieldFocusListener textFocusListener;
+    private final SlotPane slotPane;
+
     private final ScrollPane scrollPane;
+    private final Pane areaPane;
+    private final Label areaLabel;
 
     private final Map<Integer,ModulePane> modulePanes = new TreeMap<>();
 
     private final Set<ModulePane> selectedModules = new HashSet<>();
     private final Rectangle selectedRect;
-    private final List<Rectangle> dragGhosts = new ArrayList<>();
-    private final Label areaLabel;
-    private Point2D dragOrigin;
     private Runnable selectionListener;
+    private final List<Rectangle> dragGhosts = new ArrayList<>();
+    private Point2D dragOrigin;
+
     private List<Cables.Cable> cables = new ArrayList<>();
     private final Connectors conns = new Connectors(this);
 
     private ModuleType pendingToolbarDragModuleType = null;
     private Rectangle pendingToolbarDragRect = null;
+
+    public record ModuleAdd(ModuleType type, int index, String name, int color, UserModuleData.Coords coods) {}
+    private Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
+    private int moduleColor = 0;
 
     public AreaId getAreaId() {
         return areaId;
@@ -83,6 +99,7 @@ public class AreaPane {
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
         this.undos = undos;
+        this.log = Util.getLogger(getClass(),slotPane.getSlot(),areaId);
 
         areaLabel = withClass(new Label(areaId == AreaId.Voice ? "VA" : "FX"),"area-label");
         areaPane = withClass(new Pane(areaLabel),"area-pane","gfont");
@@ -92,12 +109,31 @@ public class AreaPane {
         selectedRect = withClass(new Rectangle(),"selected-rect");
         selectedRect.setVisible(false);
         setupSelectionDragging();
+        moduleAdds.addListener((c,o,n) -> {
+            undoAddModule(Sets.difference(o,n));
+            doAddModule(Sets.difference(n,o));
+        });
+        bridges.bridge(moduleAdds,d ->
+                d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId).getDummyModuleAddProp());
         areaPane.getChildren().add(selectedRect);
+    }
+
+    private void doAddModule(Sets.SetView<ModuleAdd> adds) {
+        adds.forEach(ma -> {
+            log.info(() -> "doAddModule: " + ma);
+
+        });
+    }
+
+    private void undoAddModule(Sets.SetView<ModuleAdd> adds) {
+        adds.forEach(ma -> {
+            log.info(() -> "undoAddModule: " + ma);
+        });
+
     }
 
     private void setupSelectionDragging() {
         areaPane.setOnMousePressed(e -> {
-            clearToolbarDrag();
             for (ModulePane mp : modulePanes.values()) {
                 if (mp.getPane().getBoundsInParent().contains(e.getX(),e.getY())) {
                     selectedRect.setUserData(SelectionStatus.IN_MODULE);
@@ -143,14 +179,13 @@ public class AreaPane {
         //
         EventHandler<DragEvent> dragEntered = e -> {
             if (pendingToolbarDragModuleType == null) return;
-            if (e.getGestureSource() == areaPane) return;
-            if (!e.getDragboard().hasString()) return;
+            if (!G2GuiApplication.G2_TOOLBAR_DRAG.equals(e.getDragboard().getString())) return;
 
             if (pendingToolbarDragRect == null) {
                 pendingToolbarDragRect = withClass1(CSS_SELECTED_RECT, new Rectangle(
                         GRID_X, pendingToolbarDragModuleType.height * GRID_Y));
                 areaPane.getChildren().add(pendingToolbarDragRect);
-                pendingToolbarDragRect.setVisible(true);
+//                pendingToolbarDragRect.setVisible(true);
             }
             e.consume();
         };
@@ -159,43 +194,61 @@ public class AreaPane {
 
         EventHandler<DragEvent> dragOver = e -> {
             if (pendingToolbarDragRect == null) return;
-
             e.acceptTransferModes(TransferMode.COPY);
 
             pendingToolbarDragRect.setX(e.getX() - pendingToolbarDragRect.getWidth() / 2);
             pendingToolbarDragRect.setY(e.getY() - pendingToolbarDragRect.getHeight() / 2);
+
             e.consume();
         };
         areaPane.setOnDragOver(dragOver);
         scrollPane.setOnDragOver(dragOver);
 
-        EventHandler<DragEvent> dragExit = e -> {
-            if (pendingToolbarDragRect != null) {
-                areaPane.getChildren().remove(pendingToolbarDragRect);
-                pendingToolbarDragRect = null;
-            }
-        };
-        areaPane.setOnDragExited(dragExit);
-        scrollPane.setOnDragExited(dragExit);
+        areaPane.setOnDragExited(e -> clearToolbarDrag());
+        scrollPane.setOnDragExited(e -> clearToolbarDrag());
 
         EventHandler<DragEvent> dragDone = e -> {
-            if (pendingToolbarDragModuleType == null) return;
             if (pendingToolbarDragRect == null) return;
 
             // Calculate grid position and add new module
             int col = (int) Math.round(e.getX() / GRID_X);
             int row = (int) Math.round(e.getY() / GRID_Y);
-//                    undos.withMulti(()->{
-//                        addModule(pendingToolbarDragModuleType, col, row);
-//                        resolveCollisions();
-//                    });
-            areaPane.getChildren().remove(pendingToolbarDragRect);
-            pendingToolbarDragRect = null;
+            int index = getNewModuleIndex();
+            undos.withMulti(() -> {
+                HashSet<ModuleAdd> as = new HashSet<>(moduleAdds.getValue());
+                as.add(new ModuleAdd(pendingToolbarDragModuleType,index,
+                        getNewModuleName(pendingToolbarDragModuleType),moduleColor,
+                        new UserModuleData.Coords(col,row)));
+                moduleAdds.setValue(as);
+                resolveCollisions();
+            });
             clearToolbarDrag();
             e.consume();
         };
         areaPane.setOnDragDropped(dragDone);
         scrollPane.setOnDragDropped(dragDone);
+    }
+
+    private String getNewModuleName(ModuleType mt) {
+        AtomicInteger i = new AtomicInteger(0);
+        modulePanes.values().forEach(mp -> {
+            if (mp.getType() == mt) {
+                Matcher m = Pattern.compile("^" + mt.shortName + "(\\d+)$").matcher(mp.getName());
+                if (m.matches()) {
+                    i.set(Math.max(i.get(), Integer.parseInt(m.group(1))));
+                }
+            }
+        });
+        return mt.shortName + (i.get() + 1);
+    }
+
+    private int getNewModuleIndex() {
+        int ix = 1;
+        for (Integer i : modulePanes.keySet()) {
+            if (ix < i) { return ix; }
+            ix = i+1;
+        }
+        return ix;
     }
 
 //    private void addModule(ModuleType mt, int col, int row) {
@@ -506,6 +559,14 @@ public class AreaPane {
 
     private void clearToolbarDrag() {
         pendingToolbarDragModuleType = null;
+        if (pendingToolbarDragRect != null) {
+            areaPane.getChildren().remove(pendingToolbarDragRect);
+            pendingToolbarDragRect = null;
+        }
     }
 
+    public void updateModuleColor(int index) {
+        getSelectedModules().forEach(m -> m.color().setValue(index));
+        this.moduleColor = index;
+    }
 }

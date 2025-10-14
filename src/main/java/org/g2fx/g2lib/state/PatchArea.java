@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2gui.panel.AreaPane;
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.model.Visual;
@@ -21,6 +23,7 @@ public class PatchArea {
     private final List<PatchCable> cables = new ArrayList<>();
     private PatchLoadData patchLoadData = new PatchLoadData();
 
+    private final LibProperty<Set<AreaPane.ModuleAdd>> dummyModuleAddProp = new LibProperty<>(Set.of());
 
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
@@ -41,6 +44,9 @@ public class PatchArea {
         });
     }
 
+    public LibProperty<Set<AreaPane.ModuleAdd>> getDummyModuleAddProp() {
+        return dummyModuleAddProp;
+    }
 
     public void addVisuals(Visual.VisualType type, List<PatchVisual> visuals) {
         for (PatchModule mod : modules.values()) {

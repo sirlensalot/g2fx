@@ -57,6 +57,7 @@ import static org.g2fx.g2gui.FXUtil.*;
 
 public class G2GuiApplication extends Application implements Devices.DeviceListener {
 
+    public static final String G2_TOOLBAR_DRAG = "G2_TOOLBAR_DRAG";
     private final Logger log;
 
     public static final String TITLE = "g2fx nord modular g2 editor";
@@ -375,7 +376,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
                 slots.startToolbarModuleDrag(mt);
                 Dragboard db = tb.startDragAndDrop(TransferMode.COPY);
                 ClipboardContent c = new ClipboardContent();
-                c.putString("G2_TOOLBAR_DRAG");
+                c.putString(G2_TOOLBAR_DRAG);
                 db.setContent(c);
                 e.consume();
             });
