@@ -17,7 +17,6 @@ import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
-import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
@@ -28,7 +27,6 @@ import org.g2fx.g2lib.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -47,7 +45,7 @@ public class Slots {
     private final RebindableControls<Integer> slotControls = new RebindableControls<>();
 
 
-    private final Map<ModuleType, UIModule<UIElement>> uiModules;
+    private final UIModule.UIModules uiModules;
     private final Undos undos;
 
 
@@ -72,7 +70,7 @@ public class Slots {
 
     public List<Runnable> initModules(Device d) {
         List<Runnable> fxUpdates = new ArrayList<>();
-        slotPanes.forEach(s -> s.initModules(d,uiModules,fxUpdates));
+        slotPanes.forEach(s -> s.initModules(d,fxUpdates));
         return fxUpdates;
     }
 
@@ -90,7 +88,7 @@ public class Slots {
     public TabPane mkSlotTabs(FXUtil.TextFieldFocusListener textFocusListener) {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
-            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot, slotVarControls,undos);
+            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot, slotVarControls,undos,uiModules);
             slotPanes.add(slotPane);
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());

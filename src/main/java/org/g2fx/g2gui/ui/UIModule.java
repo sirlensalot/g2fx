@@ -23,7 +23,13 @@ public record UIModule<C> (
         int Height,
         List<C> Controls) {
 
-    public static Map<ModuleType,UIModule<UIElement>> readModuleUIs() throws Exception {
+    public record UIModules(Map<ModuleType,UIModule<UIElement>> modules) {
+        public UIModule<UIElement> get(ModuleType mt) {
+            return modules.get(mt);
+        }
+    }
+
+    public static UIModules readModuleUIs() throws Exception {
         Map<ModuleType, UIModule<UIElement>> m = new TreeMap<>();
         ObjectMapper mapper = Util.mkYamlMapper();
         HashMap<String,UIModule<Map<String,Object>>> y = mapper.readValue(
@@ -50,7 +56,7 @@ public record UIModule<C> (
         //doBipUniQry(m);
         //doTf(m);
         //doGraph(m);
-        return m;
+        return new UIModules(m);
     }
     private static void doTypeParamQry(Map<ModuleType, UIModule<UIElement>> m, String cls,
                                        boolean inclModule, boolean modFirst, String... params) throws Exception {
@@ -136,7 +142,7 @@ public record UIModule<C> (
     }
 
     public static void main(String[] args) throws Exception {
-        Map<ModuleType, UIModule<UIElement>> m = readModuleUIs();
+        Map<ModuleType, UIModule<UIElement>> m = readModuleUIs().modules;
         ObjectMapper mapper = Util.mkYamlMapper();
         mapper.writeValue(new File("data/module-uis-output.yaml"),m);
 

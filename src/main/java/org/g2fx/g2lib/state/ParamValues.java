@@ -1,6 +1,7 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSlotSender;
@@ -56,6 +57,17 @@ public class ParamValues {
                     });
                     return p;
                 }));
+    }
+
+    public static List<FieldValues> mkDefaultParams(ModuleType mt) {
+        List<FieldValues> vfvs = new ArrayList<>();
+        for (int v = 0; v < MAX_VARIATIONS; v++) {
+            vfvs.add(Protocol.VarParams.FIELDS.init().addAll(
+                    Protocol.VarParams.Variation.value(v),
+                    Protocol.VarParams.Params.value(mt.getParams().stream().map(np ->
+                            Protocol.Data7.FIELDS.init().add(Protocol.Data7.Datum.value(np.param().def))).toList())));
+        }
+        return vfvs;
     }
 
     public LibProperty<Integer> param(int variation,int idx) {

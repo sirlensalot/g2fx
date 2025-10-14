@@ -46,6 +46,7 @@ public class AreaPane {
     private final AreaId areaId;
     private final Bridges bridges;
     private final Undos undos;
+    private final UIModule.UIModules uiModules;
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final SlotPane slotPane;
 
@@ -67,7 +68,7 @@ public class AreaPane {
     private ModuleType pendingToolbarDragModuleType = null;
     private Rectangle pendingToolbarDragRect = null;
 
-    public record ModuleAdd(ModuleType type, int index, String name, int color, UserModuleData.Coords coods) {}
+    public record ModuleAdd(ModuleType type, int index, String name, int color, UserModuleData.Coords coords) {}
     private Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
     private int moduleColor = 0;
 
@@ -93,12 +94,14 @@ public class AreaPane {
 
 
     public AreaPane(AreaId areaId, Bridges bridges, SlotPane slotPane,
-                    FXUtil.TextFieldFocusListener textFocusListener, Undos undos) {
+                    FXUtil.TextFieldFocusListener textFocusListener, Undos undos,
+                    UIModule.UIModules uiModules) {
         this.areaId = areaId;
         this.bridges = bridges;
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
         this.undos = undos;
+        this.uiModules = uiModules;
         this.log = Util.getLogger(getClass(),slotPane.getSlot(),areaId);
 
         areaLabel = withClass(new Label(areaId == AreaId.Voice ? "VA" : "FX"),"area-label");
@@ -113,16 +116,24 @@ public class AreaPane {
             undoAddModule(Sets.difference(o,n));
             doAddModule(Sets.difference(n,o));
         });
-        bridges.bridge(moduleAdds,d ->
-                d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId).getDummyModuleAddProp());
+        bridges.bridge(moduleAdds,d -> getPatchArea(d).getDummyModuleAddProp());
         areaPane.getChildren().add(selectedRect);
     }
 
     private void doAddModule(Sets.SetView<ModuleAdd> adds) {
         adds.forEach(ma -> {
             log.info(() -> "doAddModule: " + ma);
-
+            PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrent(d -> {
+                PatchModule m = getPatchArea(d).createModule(ma);
+                d.getPerf().getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
+                return m;
+            });
+            renderModule(ma.index(),ma.type(),pm,uiModules.get(ma.type()));
         });
+    }
+
+    private PatchArea getPatchArea(Device d) {
+        return d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
     }
 
     private void undoAddModule(Sets.SetView<ModuleAdd> adds) {
@@ -262,9 +273,9 @@ public class AreaPane {
 //    }
 
 
-    public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
+    public void initModules(Device d, List<Runnable> l) {
         // on device thread
-        PatchArea area = d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
+        PatchArea area = getPatchArea(d);
         for (PatchModule m : area.getModules()) {
             UserModuleData md = m.getUserModuleData();
             l.add(() -> renderModule(md.getIndex(), md.getType(), m, uiModules.get(md.getType())));

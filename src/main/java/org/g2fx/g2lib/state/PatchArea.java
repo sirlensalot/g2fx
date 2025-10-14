@@ -68,9 +68,10 @@ public class PatchArea {
         Protocol.ModuleList.Modules.subfieldsValue(modListFvs).forEach(this::addModule);
     }
 
-    private void addModule(FieldValues fvs) {
+    private PatchModule addModule(FieldValues fvs) {
         PatchModule m = new PatchModule(fvs,sender,id);
         modules.put(m.getIndex(),m);
+        return m;
     }
 
     public PatchModule getModule(int index) {
@@ -143,5 +144,27 @@ public class PatchArea {
 
     public void updateParam(FieldValues fvs) {
         getModule(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
+    }
+
+    public PatchModule createModule(AreaPane.ModuleAdd ma) {
+        PatchModule pm = addModule(Protocol.UserModule.FIELDS.init().addAll(
+                Protocol.UserModule.Id.value(ma.type().ix),
+                Protocol.UserModule.Index.value(ma.index()),
+                Protocol.UserModule.Column.value(ma.coords().column()),
+                Protocol.UserModule.Row.value(ma.coords().row()),
+                Protocol.UserModule.Color.value(ma.color()),
+                Protocol.UserModule.Uprate.value(0),
+                Protocol.UserModule.Leds.value(ma.type().isLed),
+                Protocol.UserModule.Reserved.value(0), // TODO implement defaults
+                Protocol.UserModule.ModeCount.value(ma.type().modes.size()),
+                Protocol.UserModule.Modes.value(ma.type().modes.stream().map(np ->
+                        Protocol.ModuleModes.FIELDS.init().add(Protocol.ModuleModes.Data.value(np.param().def)
+                        )).toList())
+        ));
+        pm.setParamValues(ParamValues.mkDefaultParams(ma.type()));
+        pm.setModuleName(Protocol.ModuleName.FIELDS.init().addAll(
+                Protocol.ModuleName.ModuleIndex.value(ma.index()),
+                Protocol.ModuleName.Name.value(ma.name())));
+        return pm;
     }
 }

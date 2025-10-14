@@ -21,11 +21,9 @@ import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.*;
-import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
-import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
@@ -54,6 +52,7 @@ public class SlotPane {
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final RebindableControls<Slots.SlotAndVar> morphControls;
     private final Undos undos;
+    private final UIModule.UIModules uiModules;
 
     private SplitPane.Divider divider;
     private SplitPane patchSplit;
@@ -67,20 +66,21 @@ public class SlotPane {
     private ToggleButton hideCables;
 
 
-    public SlotPane(Bridges bridges, FXUtil.TextFieldFocusListener textFocusListener,
+    public SlotPane(Bridges bridges, TextFieldFocusListener textFocusListener,
                     Slot slot, RebindableControls<Slots.SlotAndVar> morphControls,
-                    Undos undos) {
+                    Undos undos, UIModule.UIModules uiModules) {
         this.bridges = bridges;
         this.slot = slot;
         log = Util.getLogger(getClass(),slot);
         this.textFocusListener = textFocusListener;
         this.morphControls = morphControls;
         this.undos = undos;
+        this.uiModules = uiModules;
     }
 
-    public void initModules(Device d, Map<ModuleType, UIModule<UIElement>> uiModules, List<Runnable> l) {
+    public void initModules(Device d, List<Runnable> l) {
         // on device thread
-        areaPanes.values().forEach(a -> a.initModules(d,uiModules,l));
+        areaPanes.values().forEach(a -> a.initModules(d,l));
         // add var rebind, as it will get skipped if the var selector doesn't change.
         l.add(() -> updateVarBinds(getCurrentVar()));
     }
@@ -109,9 +109,9 @@ public class SlotPane {
 
         HBox patchBar = mkPatchBar();
 
-        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener, undos);
+        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener, undos, uiModules);
         areaPanes.put(AreaId.Voice,voicePane);
-        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos);
+        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos, uiModules);
         areaPanes.put(AreaId.Fx,fxPane);
 
         voicePane.addSelectionListener(fxPane::clearModuleSelection);
