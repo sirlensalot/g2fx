@@ -11,6 +11,7 @@ import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -29,6 +30,10 @@ class ProtocolTest {
     public static final String TEXTPAD_MSG = "data/msg_Slot1TextPad_5f41.msg";
     private UsbSender sender = new UsbSender.OfflineSender();
 
+    @BeforeAll
+    public static void beforeAll() {
+        Util.configureLogging();
+    }
     public static int assertFieldEquals(FieldValues values, int expected, FieldEnum field) {
         int actual = assertValue(values, field);
         assertEquals(String.format("%#02x",expected),

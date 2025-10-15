@@ -3,6 +3,7 @@ package org.g2fx.g2lib;
 import org.g2fx.g2lib.state.Entries;
 import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.util.Util;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -13,6 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 
 class DeviceTest {
+
+    @BeforeAll
+    public static void beforeAll() {
+        Util.configureLogging();
+    }
+
 
     @Test
     public void dispatchEntryList() throws Exception {
