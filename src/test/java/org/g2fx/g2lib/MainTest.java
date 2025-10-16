@@ -1,6 +1,7 @@
 package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.state.Coords;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -82,6 +84,18 @@ class MainTest {
     void loadRecording() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> msgs = MessageRecorder.readSessionFile(new File("data/recording1.yaml"));
         assertEquals(192,msgs.size());
+    }
+
+    @Test
+    void coords() {
+        assertEquals(List.of(new Coords(0,0),
+                new Coords(0,1),
+                new Coords(1,0),
+                new Coords(1,1)),
+                Stream.of(new Coords(1,0),
+                new Coords(0,0),
+                new Coords(0,1),
+                new Coords(1,1)).sorted().toList());
     }
 
 }

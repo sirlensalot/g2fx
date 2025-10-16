@@ -24,6 +24,7 @@ import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
+import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Device;
@@ -413,5 +414,13 @@ public class SlotPane {
 
     public void toggleShowCables() {
         hideCables.setSelected(!hideCables.isSelected());
+    }
+
+    public void addNewModule(ModuleType mt) {
+        if (!getAreaPane(AreaId.Fx).getSelectedModules().isEmpty()) {
+            getAreaPane(AreaId.Fx).addNewModule(mt);
+            return;
+        }
+        getAreaPane(AreaId.Voice).addNewModule(mt);
     }
 }

@@ -68,7 +68,7 @@ public class AreaPane {
     private ModuleType pendingToolbarDragModuleType = null;
     private Rectangle pendingToolbarDragRect = null;
 
-    public record ModuleAdd(ModuleType type, int index, String name, int color, UserModuleData.Coords coords) {}
+    public record ModuleAdd(ModuleType type, int index, String name, int color, Coords coords) {}
     private Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
     private int moduleColor = 0;
 
@@ -226,11 +226,10 @@ public class AreaPane {
             int row = (int) Math.round(e.getY() / GRID_Y);
             int index = getNewModuleIndex();
             undos.withMulti(() -> {
-                HashSet<ModuleAdd> as = new HashSet<>(moduleAdds.getValue());
-                as.add(new ModuleAdd(pendingToolbarDragModuleType,index,
-                        getNewModuleName(pendingToolbarDragModuleType),moduleColor,
-                        new UserModuleData.Coords(col,row)));
-                moduleAdds.setValue(as);
+                ModuleAdd ma = new ModuleAdd(pendingToolbarDragModuleType, index,
+                        getNewModuleName(pendingToolbarDragModuleType), moduleColor,
+                        new Coords(col, row));
+                addNewModule(ma);
                 resolveCollisions();
             });
             clearToolbarDrag();
@@ -238,6 +237,12 @@ public class AreaPane {
         };
         areaPane.setOnDragDropped(dragDone);
         scrollPane.setOnDragDropped(dragDone);
+    }
+
+    private void addNewModule(ModuleAdd ma) {
+        HashSet<ModuleAdd> as = new HashSet<>(moduleAdds.getValue());
+        as.add(ma);
+        moduleAdds.setValue(as);
     }
 
     private String getNewModuleName(ModuleType mt) {
@@ -391,7 +396,7 @@ public class AreaPane {
         pane.setOnMouseReleased(e -> {
             if (dragOrigin != null && !dragGhosts.isEmpty()) {
                 undos.withMulti(() ->
-                        moveSelectedModules(new UserModuleData.Coords(
+                        moveSelectedModules(new Coords(
                             (int) Math.round((e.getSceneX() - dragOrigin.getX()) / GRID_X),
                             (int) Math.round((e.getSceneY() - dragOrigin.getY()) / GRID_Y))));
             }
@@ -402,11 +407,11 @@ public class AreaPane {
 
     }
 
-    public void moveSelectedModules(UserModuleData.Coords delta) {
+    public void moveSelectedModules(Coords delta) {
         if (selectedModules.isEmpty()) { return; }
         for (ModulePane pane : selectedModules) {
-            UserModuleData.Coords oldCoords = pane.coords().getValue();
-            pane.coords().setValue(new UserModuleData.Coords(
+            Coords oldCoords = pane.coords().getValue();
+            pane.coords().setValue(new Coords(
                     oldCoords.column() + delta.column(),
                     oldCoords.row() + delta.row()));
         }
@@ -471,7 +476,7 @@ public class AreaPane {
                                 || isOccupiedRange(nonSelectedInCol, currentRow, nonSelHeight)) {
                             currentRow++;
                         }
-                        nonSelPane.coords().setValue(new UserModuleData.Coords(
+                        nonSelPane.coords().setValue(new Coords(
                                 nonSelPane.coords().getValue().column(), currentRow));
                         currentRow += nonSelHeight;
                     }
@@ -581,5 +586,22 @@ public class AreaPane {
     public void updateModuleColor(int index) {
         getSelectedModules().forEach(m -> m.color().setValue(index));
         this.moduleColor = index;
+    }
+
+    public void addNewModule(ModuleType mt) {
+        Coords coords;
+        if (selectedModules.isEmpty()) {
+            coords = new Coords(0,0);
+        } else {
+            ModulePane m = selectedModules.stream().sorted(
+                    Comparator.comparing(o -> o.coords().getValue())).toList().getLast();
+            coords = new Coords(m.coords().getValue().column(),m.coords().getValue().row()+m.getHeight());
+        }
+        int ix = getNewModuleIndex();
+        undos.withMulti(() -> {
+            addNewModule(new ModuleAdd(mt, ix,getNewModuleName(mt),moduleColor,coords));
+            resolveCollisions();
+        });
+        selectModule(ix);
     }
 }

@@ -380,6 +380,10 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
                 db.setContent(c);
                 e.consume();
             });
+            tb.setOnMouseClicked(e -> {
+                if (e.getClickCount() != 2) return;
+                slots.getSelectedSlotPane().addNewModule(mt);
+            });
             return new ModuleButtonInfo(mt.modPageIx.ix(),mt.ix,tb);
         }).toList()));
 

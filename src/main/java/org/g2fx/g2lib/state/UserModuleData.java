@@ -29,7 +29,6 @@ public class UserModuleData {
     private final LibProperty<Integer> uprate;
     private final LibProperty<Boolean> leds;
 
-    public record Coords(int column, int row) {}
     private final LibProperty<Coords> coords;
 
     /**

@@ -19,9 +19,9 @@ import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2gui.ui.UIParamControl;
 import org.g2fx.g2lib.model.*;
+import org.g2fx.g2lib.state.Coords;
 import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
-import org.g2fx.g2lib.state.UserModuleData;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
@@ -79,8 +79,8 @@ public class ModulePane {
     private final Pane pane;
     private final ModuleType type;
 
-    private final Property<UserModuleData.Coords> coords =
-            new SimpleObjectProperty<>(new UserModuleData.Coords(0,0));
+    private final Property<Coords> coords =
+            new SimpleObjectProperty<>(new Coords(0,0));
 
     private final Property<Integer> color = new SimpleObjectProperty<>();
 
@@ -588,7 +588,7 @@ public class ModulePane {
 
     public Property<Integer> color() { return color; }
 
-    public Property<UserModuleData.Coords> coords() { return coords; }
+    public Property<Coords> coords() { return coords; }
 
     public int getHeight() {
         return height;
