@@ -65,8 +65,8 @@ public class AreaPane {
     private List<Cables.Cable> cables = new ArrayList<>();
     private final Connectors conns = new Connectors(this);
 
-    private ModuleType pendingToolbarDragModuleType = null;
-    private Rectangle pendingToolbarDragRect = null;
+    private ModuleType toolbarDragModuleType = null;
+    private Rectangle toolbarDragRect = null;
 
     public record ModuleAdd(ModuleType type, int index, String name, int color, Coords coords) {}
     private Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
@@ -114,6 +114,7 @@ public class AreaPane {
         selectedRect = withClass(new Rectangle(),"selected-rect");
         selectedRect.setVisible(false);
         setupSelectionDragging();
+        setupModuleDrag();
         moduleAdds.addListener((c,o,n) -> {
             undoAddModule(Sets.difference(o,n));
             doAddModule(Sets.difference(n,o));
@@ -141,39 +142,21 @@ public class AreaPane {
         }
     }
 
-    private void doAddModule(Sets.SetView<ModuleAdd> adds) {
-        adds.forEach(ma -> {
-            log.info(() -> "doAddModule: " + ma);
-            PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrent(d -> {
-                PatchModule m = getPatchArea(d).createModule(ma);
-                d.getPerf().getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
-                return m;
-            });
-            renderModule(ma.index(),ma.type(),pm,uiModules.get(ma.type()));
-        });
-    }
-
     private PatchArea getPatchArea(Device d) {
         return d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
-    }
-
-    private void undoAddModule(Sets.SetView<ModuleAdd> adds) {
-        adds.forEach(ma -> {
-            log.info(() -> "undoAddModule: " + ma);
-        });
-
     }
 
     private void setupSelectionDragging() {
         areaPane.setOnMousePressed(e -> {
             for (ModulePane mp : modulePanes.values()) {
-                if (mp.getPane().getBoundsInParent().contains(e.getX(),e.getY())) {
+                if (mp.getPane().getBoundsInParent().contains(e.getX(), e.getY())) {
                     selectedRect.setUserData(SelectionStatus.IN_MODULE);
                     return;
                 }
             }
             selectedRect.setX(e.getX());
             selectedRect.setY(e.getY());
+            selectedRect.getProperties().put("startPoint",new Point2D(e.getX(),e.getY()));
             selectedRect.setWidth(0);
             selectedRect.setHeight(0);
             selectedRect.setUserData(SelectionStatus.IN_PANEL);
@@ -185,8 +168,11 @@ public class AreaPane {
                 selectedRect.setUserData(SelectionStatus.DRAGGING);
             }
             if (selectedRect.isVisible()) {
-                selectedRect.setWidth(e.getX() - selectedRect.getX());
-                selectedRect.setHeight(e.getY() - selectedRect.getY());
+                Point2D start = (Point2D) selectedRect.getProperties().get("startPoint");
+                selectedRect.setX(Math.min(start.getX(), e.getX()));
+                selectedRect.setY(Math.min(start.getY(), e.getY()));
+                selectedRect.setWidth(Math.abs(e.getX() - start.getX()));
+                selectedRect.setHeight(Math.abs(e.getY() - start.getY()));
             }
         });
         areaPane.setOnMouseReleased(e -> {
@@ -208,28 +194,29 @@ public class AreaPane {
             e.consume();
         });
 
-        //
-        // -------------- handle module drag-ins
-        //
+    }
+
+    private void setupModuleDrag() {
+
         areaPane.setOnDragEntered(e -> {
-            if (pendingToolbarDragModuleType == null) return;
+            if (toolbarDragModuleType == null) return;
             if (!G2GuiApplication.G2_TOOLBAR_DRAG.equals(e.getDragboard().getString())) return;
 
-            if (pendingToolbarDragRect == null) {
-                pendingToolbarDragRect = withClass1(CSS_SELECTED_RECT, new Rectangle(
-                        GRID_X, pendingToolbarDragModuleType.height * GRID_Y));
-                areaPane.getChildren().add(pendingToolbarDragRect);
+            if (toolbarDragRect == null) {
+                toolbarDragRect = withClass1(CSS_SELECTED_RECT, new Rectangle(
+                        GRID_X, toolbarDragModuleType.height * GRID_Y));
+                areaPane.getChildren().add(toolbarDragRect);
 //                pendingToolbarDragRect.setVisible(true);
             }
             e.consume();
         });
 
         areaPane.setOnDragOver(e -> {
-            if (pendingToolbarDragRect == null) return;
+            if (toolbarDragRect == null) return;
             e.acceptTransferModes(TransferMode.COPY);
 
-            pendingToolbarDragRect.setX(e.getX() - pendingToolbarDragRect.getWidth() / 2);
-            pendingToolbarDragRect.setY(e.getY() - pendingToolbarDragRect.getHeight() / 2);
+            toolbarDragRect.setX(e.getX() - toolbarDragRect.getWidth() / 2);
+            toolbarDragRect.setY(e.getY() - toolbarDragRect.getHeight() / 2);
 
             e.consume();
         });
@@ -237,17 +224,19 @@ public class AreaPane {
         areaPane.setOnDragExited(e -> clearToolbarDrag());
 
         areaPane.setOnDragDropped(e -> {
-            if (pendingToolbarDragRect == null) return;
+            if (toolbarDragRect == null) return;
 
             // Calculate grid position and add new module
             int col = (int) Math.round(e.getX() / GRID_X);
             int row = (int) Math.round(e.getY() / GRID_Y);
             int index = getNewModuleIndex();
             undos.withMulti(() -> {
-                ModuleAdd ma = new ModuleAdd(pendingToolbarDragModuleType, index,
-                        getNewModuleName(pendingToolbarDragModuleType), moduleColor,
+                ModuleAdd ma = new ModuleAdd(toolbarDragModuleType, index,
+                        getNewModuleName(toolbarDragModuleType), moduleColor,
                         new Coords(col, row));
                 addNewModule(ma);
+                clearModuleSelection();
+                selectModule(ma.index);
                 resolveCollisions(modulePanes.values());
             });
             clearToolbarDrag();
@@ -255,11 +244,6 @@ public class AreaPane {
         });
     }
 
-    private void addNewModule(ModuleAdd ma) {
-        HashSet<ModuleAdd> as = new HashSet<>(moduleAdds.getValue());
-        as.add(ma);
-        moduleAdds.setValue(as);
-    }
 
     private String getNewModuleName(ModuleType mt) {
         AtomicInteger i = new AtomicInteger(0);
@@ -577,23 +561,31 @@ public class AreaPane {
         return modulePanes.get(module);
     }
 
-    public void startToolbarDrag(ModuleType mt) {
-        pendingToolbarDragModuleType = mt;
-    }
-
-    private void clearToolbarDrag() {
-        pendingToolbarDragModuleType = null;
-        if (pendingToolbarDragRect != null) {
-            areaPane.getChildren().remove(pendingToolbarDragRect);
-            pendingToolbarDragRect = null;
-        }
-    }
-
     public void updateModuleColor(int index) {
         getSelectedModules().forEach(m -> m.color().setValue(index));
         this.moduleColor = index;
     }
 
+    /**
+     * Optimistic module add via drag from toolbar, happens
+     * before mouse has entered pane.
+     */
+    public void startToolbarDrag(ModuleType mt) {
+        toolbarDragModuleType = mt;
+    }
+
+    private void clearToolbarDrag() {
+        toolbarDragModuleType = null;
+        if (toolbarDragRect != null) {
+            areaPane.getChildren().remove(toolbarDragRect);
+            toolbarDragRect = null;
+        }
+    }
+
+    /**
+     * Double-click add from toolbar. If selection, adds below lower-right selected;
+     * if no selection add top-right.
+     */
     public void addNewModule(ModuleType mt) {
         Coords coords;
         if (selectedModules.isEmpty()) {
@@ -603,12 +595,46 @@ public class AreaPane {
                     Comparator.comparing(o -> o.coords().getValue())).toList().getLast();
             coords = new Coords(m.coords().getValue().column(),m.coords().getValue().row()+m.getHeight());
         }
+        clearModuleSelection();
         int ix = getNewModuleIndex();
         undos.withMulti(() -> {
             addNewModule(new ModuleAdd(mt, ix,getNewModuleName(mt),moduleColor,coords));
+            selectModule(ix);
             resolveCollisions(modulePanes.values());
         });
-        clearModuleSelection();
-        selectModule(ix);
     }
+
+
+    /**
+     * Internal, fire add-module property event.
+     */
+    private void addNewModule(ModuleAdd ma) {
+        HashSet<ModuleAdd> as = new HashSet<>(moduleAdds.getValue());
+        as.add(ma);
+        moduleAdds.setValue(as);
+    }
+
+
+    /**
+     * Module-add property event handler.
+     */
+    private void doAddModule(Sets.SetView<ModuleAdd> adds) {
+        adds.forEach(ma -> {
+            log.info(() -> "doAddModule: " + ma);
+            PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrent(d -> {
+                PatchModule m = getPatchArea(d).createModule(ma);
+                d.getPerf().getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
+                return m;
+            });
+            renderModule(ma.index(),ma.type(),pm,uiModules.get(ma.type()));
+        });
+    }
+
+    private void undoAddModule(Sets.SetView<ModuleAdd> adds) {
+        adds.forEach(ma -> {
+            log.info(() -> "undoAddModule: " + ma);
+        });
+
+    }
+
 }
