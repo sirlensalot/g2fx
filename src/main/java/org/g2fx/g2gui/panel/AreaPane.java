@@ -3,12 +3,12 @@ package org.g2fx.g2gui.panel;
 import com.google.common.collect.Sets;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.EventHandler;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
@@ -92,6 +92,8 @@ public class AreaPane {
         DRAGGING
     }
 
+    private boolean resizing = false;
+
 
     public AreaPane(AreaId areaId, Bridges bridges, SlotPane slotPane,
                     FXUtil.TextFieldFocusListener textFocusListener, Undos undos,
@@ -118,6 +120,25 @@ public class AreaPane {
         });
         bridges.bridge(moduleAdds,d -> getPatchArea(d).getDummyModuleAddProp());
         areaPane.getChildren().add(selectedRect);
+        scrollPane.boundsInLocalProperty().addListener((c,o,n) -> resizeAreaPane());
+        areaPane.getChildren().addListener((ListChangeListener<? super Node>) c -> resizeAreaPane());
+    }
+
+    private void resizeAreaPane() {
+        if (resizing) return;
+        resizing = true;
+        Bounds scrollBounds = scrollPane.getBoundsInLocal();
+        try {
+            double x = scrollBounds.getMaxX(), y = scrollBounds.getMaxY();
+            for (Node n : areaPane.getChildren()) {
+                Bounds b = n.getBoundsInParent();
+                x = Math.max(x, b.getMaxX()+5);
+                y = Math.max(y, b.getMaxY()+5);
+            }
+            areaPane.setPrefSize(x, y);
+        } finally {
+            resizing = false;
+        }
     }
 
     private void doAddModule(Sets.SetView<ModuleAdd> adds) {
@@ -156,6 +177,7 @@ public class AreaPane {
             selectedRect.setWidth(0);
             selectedRect.setHeight(0);
             selectedRect.setUserData(SelectionStatus.IN_PANEL);
+            e.consume();
         });
         areaPane.setOnMouseDragged(e -> {
             if (selectedRect.getUserData() == SelectionStatus.IN_PANEL) {
@@ -183,12 +205,13 @@ public class AreaPane {
                 clearModuleSelection();
             }
             selectedRect.setUserData(null);
+            e.consume();
         });
 
         //
         // -------------- handle module drag-ins
         //
-        EventHandler<DragEvent> dragEntered = e -> {
+        areaPane.setOnDragEntered(e -> {
             if (pendingToolbarDragModuleType == null) return;
             if (!G2GuiApplication.G2_TOOLBAR_DRAG.equals(e.getDragboard().getString())) return;
 
@@ -199,11 +222,9 @@ public class AreaPane {
 //                pendingToolbarDragRect.setVisible(true);
             }
             e.consume();
-        };
-        areaPane.setOnDragEntered(dragEntered);
-        scrollPane.setOnDragEntered(dragEntered);
+        });
 
-        EventHandler<DragEvent> dragOver = e -> {
+        areaPane.setOnDragOver(e -> {
             if (pendingToolbarDragRect == null) return;
             e.acceptTransferModes(TransferMode.COPY);
 
@@ -211,14 +232,11 @@ public class AreaPane {
             pendingToolbarDragRect.setY(e.getY() - pendingToolbarDragRect.getHeight() / 2);
 
             e.consume();
-        };
-        areaPane.setOnDragOver(dragOver);
-        scrollPane.setOnDragOver(dragOver);
+        });
 
         areaPane.setOnDragExited(e -> clearToolbarDrag());
-        scrollPane.setOnDragExited(e -> clearToolbarDrag());
 
-        EventHandler<DragEvent> dragDone = e -> {
+        areaPane.setOnDragDropped(e -> {
             if (pendingToolbarDragRect == null) return;
 
             // Calculate grid position and add new module
@@ -230,13 +248,11 @@ public class AreaPane {
                         getNewModuleName(pendingToolbarDragModuleType), moduleColor,
                         new Coords(col, row));
                 addNewModule(ma);
-                resolveCollisions();
+                resolveCollisions(modulePanes.values());
             });
             clearToolbarDrag();
             e.consume();
-        };
-        areaPane.setOnDragDropped(dragDone);
-        scrollPane.setOnDragDropped(dragDone);
+        });
     }
 
     private void addNewModule(ModuleAdd ma) {
@@ -266,16 +282,6 @@ public class AreaPane {
         }
         return ix;
     }
-
-//    private void addModule(ModuleType mt, int col, int row) {
-//        int newIdx = modulePanes.isEmpty() ? 0 : Collections.max(modulePanes.keySet()) + 1; //TODO legacy tries to fill in gaps
-//        UserModuleData.Coords coords = new UserModuleData.Coords(col, row);
-//        moduleAdds.setValue(Set.of(new ModuleAdd(newIdx,mt,coords)));
-//        PatchModule pm = ... // create with coords and type
-//        UIModule<UIElement> ui = ... // fetch or make one
-//        renderModule(newIdx, type, pm, /* Device? */ null, ui);
-//
-//    }
 
 
     public void initModules(Device d, List<Runnable> l) {
@@ -415,32 +421,32 @@ public class AreaPane {
                     oldCoords.column() + delta.column(),
                     oldCoords.row() + delta.row()));
         }
-        resolveCollisions();
+        resolveCollisions(modulePanes.values());
     }
 
-    private void resolveCollisions() {
+    public static void resolveCollisions(Collection<? extends MoveableModule> values) {
 
-        Map<Integer, List<ModulePane>> modulesByColumn = new TreeMap<>();
+        Map<Integer, List<MoveableModule>> modulesByColumn = new TreeMap<>();
         // Group modules by column
-        for (ModulePane pane : modulePanes.values()) {
+        for (MoveableModule pane : values) {
             modulesByColumn.computeIfAbsent(pane.coords().getValue().column(),
                     k -> new ArrayList<>()).add(pane);
         }
 
         // Comparator to sort panes by their row value ascending
-        Comparator<ModulePane> rowComparator = Comparator.comparingInt(p -> p.coords().getValue().row());
+        Comparator<MoveableModule> rowComparator = Comparator.comparingInt(p -> p.coords().getValue().row());
 
-        for (List<ModulePane> columnModules : modulesByColumn.values()) {
+        for (List<MoveableModule> columnModules : modulesByColumn.values()) {
 
             // Sort column modules by row ascending for consistent order
             columnModules.sort(rowComparator);
 
             // Separate selected and non-selected modules into TreeSets sorted by row
-            Set<ModulePane> selectedInCol = new TreeSet<>(rowComparator);
-            Set<ModulePane> nonSelectedInCol = new TreeSet<>(rowComparator);
+            Set<MoveableModule> selectedInCol = new TreeSet<>(rowComparator);
+            Set<MoveableModule> nonSelectedInCol = new TreeSet<>(rowComparator);
             Set<Integer> selectedRows = new HashSet<>();
 
-            for (ModulePane pane : columnModules) {
+            for (MoveableModule pane : columnModules) {
                 if (pane.isSelected()) {
                     selectedInCol.add(pane);
                     // Add all rows occupied by the selected module (multi-row height)
@@ -456,12 +462,12 @@ public class AreaPane {
 
             // For each moved selected module in this column (top-down),
             // move non-selected modules down to resolve collisions
-            for (ModulePane selPane : selectedInCol) {
+            for (MoveableModule selPane : selectedInCol) {
                 int selStartRow = selPane.coords().getValue().row();
                 int selHeight = selPane.getHeight();
                 int currentRow = selStartRow + selHeight; // start just below the bottom of selected module
 
-                for (ModulePane nonSelPane : nonSelectedInCol) {
+                for (MoveableModule nonSelPane : nonSelectedInCol) {
                     int nonSelStartRow = nonSelPane.coords().getValue().row();
                     int nonSelHeight = nonSelPane.getHeight();
 
@@ -488,7 +494,7 @@ public class AreaPane {
     /**
      * Checks if any rows in the range [startRow, startRow + height) are occupied in the given set of row ints.
      */
-    private boolean isOccupiedRange(Set<Integer> occupiedRows, int startRow, int height) {
+    private static boolean isOccupiedRange(Set<Integer> occupiedRows, int startRow, int height) {
         for (int r = startRow; r < startRow + height; r++) {
             if (occupiedRows.contains(r)) {
                 return true;
@@ -498,10 +504,10 @@ public class AreaPane {
     }
 
     /**
-     * Checks if any ModulePane rows in the vertical range [startRow, startRow + height) are occupied by any pane in the collection.
+     * Checks if any MoveableModule rows in the vertical range [startRow, startRow + height) are occupied by any pane in the collection.
      */
-    private boolean isOccupiedRange(Collection<ModulePane> modules, int startRow, int height) {
-        for (ModulePane pane : modules) {
+    private static boolean isOccupiedRange(Collection<MoveableModule> modules, int startRow, int height) {
+        for (MoveableModule pane : modules) {
             int paneStartRow = pane.coords().getValue().row();
             int paneHeight = pane.getHeight();
             // Check vertical overlap between the pane's occupied rows and [startRow, startRow + height)
@@ -600,8 +606,9 @@ public class AreaPane {
         int ix = getNewModuleIndex();
         undos.withMulti(() -> {
             addNewModule(new ModuleAdd(mt, ix,getNewModuleName(mt),moduleColor,coords));
-            resolveCollisions();
+            resolveCollisions(modulePanes.values());
         });
+        clearModuleSelection();
         selectModule(ix);
     }
 }

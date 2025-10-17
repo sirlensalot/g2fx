@@ -38,7 +38,7 @@ import static org.g2fx.g2gui.ui.UIElements.Orientation.Vertical;
 import static org.g2fx.g2gui.ui.UIElements.SymbolType.Amplifier;
 import static org.g2fx.g2gui.ui.UIElements.SymbolType.Box;
 
-public class ModulePane {
+public class ModulePane implements MoveableModule {
 
     private final Logger log;
 
@@ -157,6 +157,7 @@ public class ModulePane {
         moduleSelector.setSelected(selected);
     }
 
+    @Override
     public boolean isSelected() {
         return selected;
     }
@@ -588,8 +589,10 @@ public class ModulePane {
 
     public Property<Integer> color() { return color; }
 
+    @Override
     public Property<Coords> coords() { return coords; }
 
+    @Override
     public int getHeight() {
         return height;
     }
