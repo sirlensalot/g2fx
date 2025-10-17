@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.FXUtil.withClass1;
@@ -408,98 +409,68 @@ public class AreaPane {
         resolveCollisions(modulePanes.values());
     }
 
-    public static void resolveCollisions(Collection<? extends MoveableModule> values) {
+    /**
+     * Resolve module bounds collisions, where selected modules represent "moved" modules/user intent,
+     * and unselected those to be moved. Moves are handled independently by column.
+     */
 
-        Map<Integer, List<MoveableModule>> modulesByColumn = new TreeMap<>();
-        // Group modules by column
-        for (MoveableModule pane : values) {
-            modulesByColumn.computeIfAbsent(pane.coords().getValue().column(),
-                    k -> new ArrayList<>()).add(pane);
-        }
-
-        // Comparator to sort panes by their row value ascending
-        Comparator<MoveableModule> rowComparator = Comparator.comparingInt(p -> p.coords().getValue().row());
-
-        for (List<MoveableModule> columnModules : modulesByColumn.values()) {
-
-            // Sort column modules by row ascending for consistent order
-            columnModules.sort(rowComparator);
-
-            // Separate selected and non-selected modules into TreeSets sorted by row
-            Set<MoveableModule> selectedInCol = new TreeSet<>(rowComparator);
-            Set<MoveableModule> nonSelectedInCol = new TreeSet<>(rowComparator);
-            Set<Integer> selectedRows = new HashSet<>();
-
-            for (MoveableModule pane : columnModules) {
-                if (pane.isSelected()) {
-                    selectedInCol.add(pane);
-                    // Add all rows occupied by the selected module (multi-row height)
-                    int startRow = pane.coords().getValue().row();
-                    int height = pane.getHeight();
-                    for (int r = startRow; r < startRow + height; r++) {
-                        selectedRows.add(r);
-                    }
-                } else {
-                    nonSelectedInCol.add(pane);
-                }
-            }
-
-            // For each moved selected module in this column (top-down),
-            // move non-selected modules down to resolve collisions
-            for (MoveableModule selPane : selectedInCol) {
-                int selStartRow = selPane.coords().getValue().row();
-                int selHeight = selPane.getHeight();
-                int currentRow = selStartRow + selHeight; // start just below the bottom of selected module
-
-                for (MoveableModule nonSelPane : nonSelectedInCol) {
-                    int nonSelStartRow = nonSelPane.coords().getValue().row();
-                    int nonSelHeight = nonSelPane.getHeight();
-
-                    // Detect vertical overlap between selected module and non-selected module
-                    boolean overlapsVertically =
-                            !(nonSelStartRow + nonSelHeight <= selStartRow || nonSelStartRow >= selStartRow + selHeight);
-
-                    // Only act on non-selected modules that overlap vertically with the selected module's original position
-                    if (overlapsVertically) {
-                        // Move non-selected module down until no collision with selected modules or other non-selected modules
-                        while (isOccupiedRange(selectedRows, currentRow, nonSelHeight)
-                                || isOccupiedRange(nonSelectedInCol, currentRow, nonSelHeight)) {
-                            currentRow++;
-                        }
-                        nonSelPane.coords().setValue(new Coords(
-                                nonSelPane.coords().getValue().column(), currentRow));
-                        currentRow += nonSelHeight;
-                    }
-                }
-            }
-        }
+    public static void resolveCollisions(Collection<? extends MoveableModule> allModules) {
+        // sort, group by column
+        Map<Integer, List<MoveableModule>> byColumn = allModules.stream()
+                .sorted(Comparator.comparing(MoveableModule::getColumn))
+                .collect(Collectors.groupingBy(MoveableModule::getColumn,
+                        TreeMap::new,Collectors.toList()));
+        byColumn.values().forEach(AreaPane::resolveCollisionsColumn);
     }
 
     /**
-     * Checks if any rows in the range [startRow, startRow + height) are occupied in the given set of row ints.
+     * Moves are handled with each selection top-to-bottom.
+     * For each selected, you have:
+     *  - selected module SEL
+     *  - remaining selecteds below SELS
+     *  - First colliding nonselected TOPCOLL
+     *  - List with colliding and every nonselected below COLLS
+     *  1. If TOPCOLL above SEL:
+     *    - remove TOPCALL from COLLS
+     *    - move SEL down OFFSET rows to be below TOPCOLL
+     *    - move all SELS down by OFFSET.
+     *  2. Initialize loop var TOP with SEL.
+     *  3. For each COLL in COLLS:
+     *    a. If COLL does not collide with TOP, break.
+     *    b. Move COLL below TOP.
+     *    c. Set TOP to COLL.
+     *  4. Loop to next selected.
      */
-    private static boolean isOccupiedRange(Set<Integer> occupiedRows, int startRow, int height) {
-        for (int r = startRow; r < startRow + height; r++) {
-            if (occupiedRows.contains(r)) {
-                return true;
+    private static void resolveCollisionsColumn(List<? extends MoveableModule> modules) {
+        //sort by row, group by selected
+        Map<Boolean, List<MoveableModule>> bySelected = modules.stream()
+                .sorted(Comparator.comparing(MoveableModule::getRow))
+                .collect(Collectors.groupingBy(MoveableModule::isSelected));
+        if (bySelected.size() != 2) { return; }
+        List<MoveableModule> selecteds = new ArrayList<>(bySelected.get(true));
+        List<MoveableModule> unselecteds = new ArrayList<>(bySelected.get(false));
+        while (!selecteds.isEmpty()) {
+            // get/remove top selected
+            MoveableModule sel = selecteds.removeFirst();
+            // remove unselecteds whose bottom edge is above or equal to sel row
+            unselecteds.removeIf(m -> m.getBottomEdge() <= sel.getRow());
+            if (unselecteds.isEmpty()) { return; }
+            MoveableModule topUnsel = unselecteds.getFirst();
+            if (topUnsel.getRow() < sel.getRow()) {
+                // keep top, move all sels immediately below
+                unselecteds.removeFirst();
+                int selInc = topUnsel.getBottomEdge() - sel.getRow();
+                sel.incRow(selInc);
+                selecteds.forEach(s -> s.incRow(selInc));
+            }
+            //iteratively move down unselecteds as needed
+            MoveableModule top = sel;
+            for (MoveableModule m : unselecteds) {
+                if (top.getBottomEdge() <= m.getRow()) { break; }
+                m.setRow(top.getBottomEdge());
+                top = m;
             }
         }
-        return false;
-    }
-
-    /**
-     * Checks if any MoveableModule rows in the vertical range [startRow, startRow + height) are occupied by any pane in the collection.
-     */
-    private static boolean isOccupiedRange(Collection<MoveableModule> modules, int startRow, int height) {
-        for (MoveableModule pane : modules) {
-            int paneStartRow = pane.coords().getValue().row();
-            int paneHeight = pane.getHeight();
-            // Check vertical overlap between the pane's occupied rows and [startRow, startRow + height)
-            if (!(paneStartRow + paneHeight <= startRow || paneStartRow >= startRow + height)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void selectModule(ModulePane modulePane) {

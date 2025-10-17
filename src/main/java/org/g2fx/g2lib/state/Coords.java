@@ -11,4 +11,12 @@ public record Coords(int column, int row) implements Comparable<Coords> {
                 (c= Integer.compare(column,o.column)) != 0 ? c :
                         Integer.compare(row,o.row);
     }
+
+    public Coords incRow(int inc) {
+        return new Coords(column,row+inc);
+    }
+
+    public Coords setRow(int r) {
+        return new Coords(column,r);
+    }
 }

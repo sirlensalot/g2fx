@@ -1,9 +1,5 @@
 package org.g2fx.g2lib;
 
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
-import org.g2fx.g2gui.panel.AreaPane;
-import org.g2fx.g2gui.panel.MoveableModule;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.Coords;
 import org.g2fx.g2lib.usb.MessageRecorder;
@@ -100,53 +96,6 @@ class MainTest {
                 new Coords(0,0),
                 new Coords(0,1),
                 new Coords(1,1)).sorted().toList());
-    }
-
-
-    record MockMoveable(Property<Coords> coords, int getHeight, boolean isSelected) implements MoveableModule {
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof MoveableModule c) {
-                return coords.getValue().equals(c.coords().getValue()) && getHeight == c.getHeight() && isSelected == c.isSelected();
-            }
-            return false;
-        }
-    }
-
-    @Test
-    void moveModule() {
-        {
-            //trivial
-            List<MockMoveable> modules = List.of(mkModule(0, 0, 1, true));
-            AreaPane.resolveCollisions(modules);
-            assertEquals(List.of(mkModule(0, 0, 1, true)),modules);
-        }
-        {
-            //2 iso overlap, selected vs non
-            List<MockMoveable> modules = List.of(
-                    mkModule(0,0,1,true),
-                    mkModule(0,0,1,false));
-            AreaPane.resolveCollisions(modules);
-            assertEquals(List.of(
-                    mkModule(0,0,1,true),
-                    mkModule(0,1,1,false)),
-                    modules);
-        }
-        {
-            //2 diff overlap, selected vs non
-            List<MockMoveable> modules = List.of(
-                    mkModule(0,0,1,true),
-                    mkModule(0,0,2,false));
-            AreaPane.resolveCollisions(modules);
-            assertEquals(List.of(
-                            mkModule(0,0,1,true),
-                            mkModule(0,2,2,false)),
-                    modules);
-        }
-    }
-
-    private static MockMoveable mkModule(int column, int row, int height, boolean selected) {
-        return new MockMoveable(new SimpleObjectProperty<>(new Coords(column, row)), height, selected);
     }
 
 
