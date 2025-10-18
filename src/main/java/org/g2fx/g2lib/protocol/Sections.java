@@ -81,7 +81,13 @@ public enum Sections {
         }
         fvs.write(bb);
 
-        bb.dumpToBuffer(buf);
+        ByteBuffer bbuf = bb.toBuffer();
+        Util.putShort(buf,bbuf.limit());
+
+        bbuf.rewind();
+        while(bbuf.hasRemaining()) {
+            buf.put(bbuf.get());
+        }
 
     }
 

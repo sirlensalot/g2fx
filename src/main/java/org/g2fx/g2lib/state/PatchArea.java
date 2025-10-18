@@ -153,6 +153,7 @@ public class PatchArea {
     }
 
     public PatchModule createModule(AreaPane.ModuleAdd ma) throws Exception {
+        //initialize PatchModule
         PatchModule pm = addModule(Protocol.UserModule.FIELDS.init().addAll(
                 Protocol.UserModule.Id.value(ma.type().ix),
                 Protocol.UserModule.Index.value(ma.index()),
@@ -167,13 +168,16 @@ public class PatchArea {
                         Protocol.ModuleModes.FIELDS.init().add(Protocol.ModuleModes.Data.value(np.param().def)
                         )).toList())
         ));
+        //initialize params
         List<FieldValues> paramValuesFvs = ParamValues.mkDefaultParams(ma.type());
         pm.setParamValues(paramValuesFvs);
-        FieldValues moduleNamesFvs = Protocol.ModuleName.FIELDS.init().addAll(
+        //initialize module name
+        FieldValues moduleNameFvs = Protocol.ModuleName.FIELDS.init().addAll(
                 Protocol.ModuleName.ModuleIndex.value(ma.index()),
                 Protocol.ModuleName.Name.value(ma.name()));
-        pm.setModuleName(moduleNamesFvs);
+        pm.setModuleName(moduleNameFvs);
 
+        //assemble message
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         BitBuffer bb = new BitBuffer(0xffff);
         Protocol.ModuleAdd.FIELDS.init().addAll(
@@ -189,7 +193,10 @@ public class PatchArea {
                 Protocol.ModuleAdd.Modes.value(List.of()),
                 Protocol.ModuleAdd.Name.value(ma.name())
         ).write(bb);
-        bb.dumpToBuffer(buf);
+        ByteBuffer bbuf = bb.toBuffer().rewind();
+        while(bbuf.hasRemaining()) {
+            buf.put(bbuf.get());
+        }
         writeSection(buf,id == AreaId.Fx ? Sections.SCableList0_52 : Sections.SCableList1_52,
                 Protocol.CableList.FIELDS.init().addAll(
                         Protocol.CableList.Reserved.value(0),
@@ -212,7 +219,11 @@ public class PatchArea {
                         Protocol.ModuleLabels.ModLabels.value(List.of())
                 ));
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleNames0_5a : Sections.SModuleNames1_5a,
-                moduleNamesFvs);
+                Protocol.ModuleNames.FIELDS.init().addAll(
+                        Protocol.ModuleNames.Reserved.value(0),
+                        Protocol.ModuleNames.NameCount.value(1),
+                        Protocol.ModuleNames.Names.value(List.of(moduleNameFvs))
+                ));
         buf.limit(buf.position());
         sender.sendSlotRequest("add-module",Util.getBytes(buf.rewind()));
 
