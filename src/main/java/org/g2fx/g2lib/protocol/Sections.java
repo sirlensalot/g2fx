@@ -50,6 +50,9 @@ public enum Sections {
         this.location = null;
     }
 
+
+    public record Section(Sections sections, FieldValues values) { }
+
     /**
      * A protocol "Section" starts with bytes [type,lmsb,llsb]
      * with LMSB+LLSB being the section length, then content.
@@ -62,6 +65,26 @@ public enum Sections {
         }
         return BitBuffer.sliceAhead(buf, Util.getShort(buf));
     }
+
+    public static void writeSection(ByteBuffer buf, Section ss) throws Exception {
+        writeSection(buf,ss.sections,ss.values);
+    }
+
+    public static void writeSection(ByteBuffer buf, Sections s, FieldValues fvs) throws Exception {
+
+        buf.put((byte) s.type);
+
+        BitBuffer bb = new BitBuffer(0xffff); //TODO need dynamic allocation or reuse
+
+        if (s.location != null) {
+            bb.put(2, s.location);
+        }
+        fvs.write(bb);
+
+        bb.dumpToBuffer(buf);
+
+    }
+
 
     @Override
     public String toString() {

@@ -322,7 +322,7 @@ class ProtocolTest {
     }
 
     private int testPatchSettings(Patch p, int vce) {
-        Patch.Section s = p.getSection(Sections.SPatchParams_4d);
+        Sections.Section s = p.getSection(Sections.SPatchParams_4d);
         assertEquals(2, Sections.SPatchParams_4d.location,"location"); //patch parameters
 
         FieldValues patchSettings = s.values();
@@ -722,7 +722,7 @@ class ProtocolTest {
         assertEquals(Util.dumpBufferString(msgfile.rewind()),
                 Util.dumpBufferString(msgbuf.rewind()));
 
-        Patch.Section pd = p.getSection(Sections.SPatchDescription_21);
+        Sections.Section pd = p.getSection(Sections.SPatchDescription_21);
         pd.values().update(PatchDescription.Reserved.value(Data8.asSubfield(0, 0, 0, 0, 0, 0, 0)));
         pd.values().update(PatchDescription.Reserved2.value(0x00));
         //this file is made by g2lib as a manual test, so this is a regression

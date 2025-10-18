@@ -10,7 +10,6 @@ import org.g2fx.g2lib.protocol.Sections;
 import org.g2fx.g2lib.usb.UsbPerfSender;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
-import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
@@ -21,7 +20,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import static org.g2fx.g2lib.state.Patch.*;
+import static org.g2fx.g2lib.state.Patch.fileHeader;
+import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
 import static org.g2fx.g2lib.util.Util.withYamlMap;
 
 public class Performance {
@@ -60,9 +60,6 @@ public class Performance {
     public static Performance readFromFile(String filePath,UsbSender sender) throws Exception {
         ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
-        ByteBuffer slice = fileBuffer.slice();
-        int crc = CRC16.crc16(slice,0,slice.limit()-2);
-
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
         Performance perf = new Performance(sender);
         perf.setVersion(fileBuffer.get());
@@ -90,19 +87,13 @@ public class Performance {
         buf.put(HEADER.rewind());
         int start = buf.position();
         buf.put(Util.asBytes(0x17,version));
-        writeSection(buf,Sections.SPerformanceSettings_11,perfSettings.getFieldValues());
+        Sections.writeSection(buf,Sections.SPerformanceSettings_11,perfSettings.getFieldValues());
         for (Patch patch : slots.values()) {
             patch.writeFileSections(buf);
         }
-        writeSection(buf,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
-        writeCrc(buf,start);
+        Sections.writeSection(buf,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
+        Util.writeCrc(buf,start);
         return buf;
-    }
-
-    private void writeSection(ByteBuffer buf, Sections ss, FieldValues fvs) throws Exception {
-        BitBuffer bb = new BitBuffer(1024);
-        fvs.write(bb);
-        writeSectionContents(buf,ss,bb);
     }
 
     // test

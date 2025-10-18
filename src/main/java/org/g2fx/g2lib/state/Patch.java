@@ -43,8 +43,6 @@ public class Patch {
             "Info=BUILD 320"
     });
 
-    public record Section(Sections sections, FieldValues values) { }
-
     public static final Sections[] FILE_SECTIONS = new Sections[] {
             Sections.SPatchDescription_21,
             Sections.SModuleList1_4a,
@@ -85,7 +83,7 @@ public class Patch {
             Sections.SModuleLabels0_5b
     };
 
-    public final LinkedHashMap<Sections,Section> sections = new LinkedHashMap<>();
+    public final LinkedHashMap<Sections, Sections.Section> sections = new LinkedHashMap<>();
     private LibProperty<String> name;
     private final Slot slot;
     private int version;
@@ -250,34 +248,12 @@ public class Patch {
 
 
     public void writeSection(ByteBuffer buf, Sections s) throws  Exception {
-        Section ss = getSection(s);
+        Sections.Section ss = getSection(s);
         if (ss == null) {
             throw new IllegalArgumentException("No section in patch: " + s);
         }
-        writeSection(buf, ss);
+        Sections.writeSection(buf, ss);
 
-    }
-
-    public static void writeSection(ByteBuffer buf, Section ss) throws Exception {
-        BitBuffer bb = new BitBuffer(0xffff); //TODO need dynamic allocation or reuse
-        Sections s = ss.sections;
-        if (s.location != null) {
-            bb.put(2, s.location);
-        }
-        ss.values.write(bb);
-        writeSectionContents(buf, s, bb);
-    }
-
-    public static void writeSectionContents(ByteBuffer buf, Sections s, BitBuffer bb) {
-        ByteBuffer bbuf = bb.toBuffer();
-//        log.info(String.format("Wrote: %s, len=%x, crc=%x: %s\n",s,bb.limit(),CRC16.crc16(bbuf),Util.dumpBufferString(bbuf)));
-
-        buf.put((byte) s.type);
-        Util.putShort(buf,bbuf.limit());
-        bbuf.rewind();
-        while(bbuf.hasRemaining()) {
-            buf.put(bbuf.get());
-        }
     }
 
     public ByteBuffer writeMessage() throws Exception {
@@ -309,17 +285,8 @@ public class Patch {
         }
         buf.put(Util.asBytes(0x17,version));
         writeFileSections(buf);
-        writeCrc(buf, start);
+        Util.writeCrc(buf, start);
         return buf;
-    }
-
-    public static void writeCrc(ByteBuffer buf, int start) {
-        buf.limit(buf.position());
-        buf.rewind();
-        int crc = CRC16.crc16(buf, start, buf.limit()- start);
-        buf.position(buf.limit());
-        buf.limit(buf.position()+2);
-        Util.putShort(buf,crc);
     }
 
     public void writeFileSections(ByteBuffer buf) throws Exception {
@@ -355,34 +322,34 @@ public class Patch {
             try { Util.writeBuffer(data,file); } catch (Exception ignored) {}
             throw e;
         }
-        updateSection(s, new Section(s, fvs));
+        updateSection(s, new Sections.Section(s, fvs));
         return true;
     }
 
     // via readSectionSlice only
-    private void updateSection(Sections s, Section section) {
+    private void updateSection(Sections s, Sections.Section section) {
         sections.put(s, section);
         log.info("updateSection: " + s);
         switch (s) {
-            case SPatchDescription_21 -> patchSettings.update(section.values);
-            case SPatchParams_4d -> settingsArea.setModuleParamValues(section.values);
-            case STextPad_6f -> this.textPad = section.values;
-            case SCurrentNote_69 -> this.currentNote = section.values;
-            case SModuleList0_4a -> fxArea.addModules(section.values);
-            case SModuleList1_4a -> voiceArea.addModules(section.values);
-            case SModuleParams0_4d -> fxArea.setModuleParamValues(section.values);
-            case SModuleParams1_4d -> voiceArea.setModuleParamValues(section.values);
-            case SModuleLabels0_5b -> fxArea.setModuleLabels(section.values);
-            case SModuleLabels1_5b -> voiceArea.setModuleLabels(section.values);
-            case SModuleNames0_5a -> fxArea.setModuleNames(section.values);
-            case SModuleNames1_5a -> voiceArea.setModuleNames(section.values);
-            case SCableList0_52 -> fxArea.addCables(section.values);
-            case SCableList1_52 -> voiceArea.addCables(section.values);
-            case SMorphLabels_5b -> settingsArea.setMorphLabels(section.values);
-            case SKnobAssignments_62 -> this.knobAssignments = new KnobAssignments(section.values,slot);
-            case SControlAssignments_60 -> this.controls = new ControlAssignments(section.values);
-            case SMorphParameters_65 -> this.morphParams = new MorphParameters(section.values);
-            case SPatchName_27 -> this.name = LibProperty.stringFieldProperty(section.values, Protocol.EntryName.Name);
+            case SPatchDescription_21 -> patchSettings.update(section.values());
+            case SPatchParams_4d -> settingsArea.setModuleParamValues(section.values());
+            case STextPad_6f -> this.textPad = section.values();
+            case SCurrentNote_69 -> this.currentNote = section.values();
+            case SModuleList0_4a -> fxArea.addModules(section.values());
+            case SModuleList1_4a -> voiceArea.addModules(section.values());
+            case SModuleParams0_4d -> fxArea.setModuleParamValues(section.values());
+            case SModuleParams1_4d -> voiceArea.setModuleParamValues(section.values());
+            case SModuleLabels0_5b -> fxArea.setModuleLabels(section.values());
+            case SModuleLabels1_5b -> voiceArea.setModuleLabels(section.values());
+            case SModuleNames0_5a -> fxArea.setModuleNames(section.values());
+            case SModuleNames1_5a -> voiceArea.setModuleNames(section.values());
+            case SCableList0_52 -> fxArea.addCables(section.values());
+            case SCableList1_52 -> voiceArea.addCables(section.values());
+            case SMorphLabels_5b -> settingsArea.setMorphLabels(section.values());
+            case SKnobAssignments_62 -> this.knobAssignments = new KnobAssignments(section.values(),slot);
+            case SControlAssignments_60 -> this.controls = new ControlAssignments(section.values());
+            case SMorphParameters_65 -> this.morphParams = new MorphParameters(section.values());
+            case SPatchName_27 -> this.name = LibProperty.stringFieldProperty(section.values(), Protocol.EntryName.Name);
         }
     }
 
@@ -443,7 +410,7 @@ public class Patch {
         return assignedVoices;
     }
 
-    public Section getSection(Sections key) {
+    public Sections.Section getSection(Sections key) {
         return sections.get(key);
     }
 

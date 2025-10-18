@@ -71,7 +71,7 @@ public class PatchSettings implements LibProperty.FieldValuesChangeListener {
         Protocol.PatchDescription.Reserved.subfieldsValue(fvs).forEach(sfvs -> sfvs.update(Protocol.Data8.Datum.value(0)));
         fvs.update(Protocol.PatchDescription.Reserved2.value(0));
         log.info(() -> "sending patch settings: " + fvs);
-        sender.sendSectionMessage(new Patch.Section(Sections.SPatchDescription_21,fvs));
+        sender.sendSectionMessage(new Sections.Section(Sections.SPatchDescription_21,fvs));
     }
 
     /*

@@ -258,4 +258,13 @@ public class Util {
         Arrays.stream(value).forEach(s -> buf.put((byte)Integer.parseUnsignedInt(s,16)));
         return buf;
     }
+
+    public static void writeCrc(ByteBuffer buf, int start) {
+        buf.limit(buf.position());
+        buf.rewind();
+        int crc = CRC16.crc16(buf, start, buf.limit()- start);
+        buf.position(buf.limit());
+        buf.limit(buf.position()+2);
+        putShort(buf,crc);
+    }
 }

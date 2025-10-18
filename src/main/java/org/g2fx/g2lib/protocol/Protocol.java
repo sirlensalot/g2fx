@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.protocol;
 
+import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.util.BitBuffer;
 
 import java.util.Arrays;
@@ -8,7 +9,7 @@ import java.util.List;
 public class Protocol {
 
     public enum CableList implements FieldEnum {
-        Reserved(12),
+        Reserved(12), // Always 0?
         CableCount(10),
         Cables(Cable.FIELDS,CableList.CableCount);
         CableList(int size) { f = new SizedField(this,size); }
@@ -71,6 +72,35 @@ public class Protocol {
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values());
 
+    }
+
+    public enum ModuleAdd implements FieldEnum {
+        ModuleAdd_30,
+        ModuleTypeIx,
+        Location,
+        Index,
+        Column,
+        Row,
+        Reserved_0,
+        Uprate,
+        Leds,
+        Modes(Data8.FIELDS),
+        Name(true,16);
+
+        ModuleAdd() { this(8); }
+        ModuleAdd(int size) { f = new SizedField(this,size); }
+        ModuleAdd(boolean term,int size) { f = new StringField(this,size,term); }
+        ModuleAdd(Fields fields) {
+            f=new SubfieldsField(this, fields, new SubfieldsField.SubfieldCount() {
+                @Override
+                public int getCount(List<FieldValues> values) {
+                    return ModuleType.getById(ModuleTypeIx.intValue(values.getFirst())).modes.size();
+                }
+            });
+        }
+        private final Field f;
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(values());
     }
 
     public enum PatchDescription implements FieldEnum {

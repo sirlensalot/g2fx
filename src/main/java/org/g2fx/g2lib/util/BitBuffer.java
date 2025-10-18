@@ -159,4 +159,14 @@ public class BitBuffer {
         buffer.limit(buffer.limit()-1);
         bindex = blength = buffer.limit()/8;
     }
+
+    public void dumpToBuffer(ByteBuffer buf) {
+        ByteBuffer bbuf = toBuffer();
+        Util.putShort(buf,bbuf.limit());
+
+        bbuf.rewind();
+        while(bbuf.hasRemaining()) {
+            buf.put(bbuf.get());
+        }
+    }
 }
