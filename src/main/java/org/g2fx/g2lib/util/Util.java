@@ -5,17 +5,17 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.Streams;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
 
@@ -255,8 +255,61 @@ public class Util {
     public static ByteBuffer readTextColsByteBuffer(String v) {
         String[] value = v.split("\\s+");
         ByteBuffer buf = ByteBuffer.allocateDirect(value.length);
-        Arrays.stream(value).forEach(s -> buf.put((byte)Integer.parseUnsignedInt(s,16)));
+        Arrays.stream(value).forEach(s -> buf.put((byte) parseByte(s)));
         return buf;
+    }
+
+    /**
+     * @throws NumberFormatException on failure
+     */
+    private static int parseByte(String s) {
+        return Integer.parseUnsignedInt(s, 16);
+    }
+
+    /**
+     * Reads a wireshark packet, terminated by a blank line.
+     * Comments allowed, line starts with #
+     * Blank lines allowed
+     * @return data, or null if EOF and no message read
+     * @throws ParseException on invalid lines
+     * @throws NumberFormatException on numeric parse failure
+     * @throws IOException on read failure
+     */
+    public static ByteBuffer readWireshark(BufferedReader reader) throws Exception {
+        int pos = 0;
+        List<Integer> bs = new ArrayList<>();
+        // off   data                                              [ascii]
+        // 0000  00 01 20 01 01 00 00 00 00 00 00 00 00 00 00 00   .. .............
+        Pattern posRe = Pattern.compile("^(\\p{XDigit}{4})\\s+");
+        Pattern wordRe = Pattern.compile("^(\\p{XDigit}\\p{XDigit} )");
+        while (true) {
+            String l = reader.readLine();
+            if (l == null) {
+                if (pos == 0) { return null; } //EOF w/ no message
+                break;
+            }
+            if (l.trim().isEmpty()) {
+                if (pos > 0) { break; } // if data was read, finalize
+                continue; //skip empty lines in middle
+            }
+            if (l.startsWith("#")) { continue; } // skip comments
+            Matcher posm = posRe.matcher(l);
+            if (!posm.find()) { throw new ParseException("Invalid wireshark line: " + l,0); }
+            int off = parseByte(posm.group(1));
+            if (off != pos) { throw new ParseException("Bad position: " + off,0); }
+            pos += 16;
+            Matcher wordm = wordRe.matcher(l).region(posm.end(),l.length());
+            while (wordm.find()) {
+                bs.add(parseByte(wordm.group(1).trim()));
+                wordm.region(wordm.end(),l.length());
+            }
+        }
+        ByteBuffer bb = ByteBuffer.allocateDirect(bs.size());
+        for (Integer b : bs) {
+            bb.put(b.byteValue());
+        }
+        return bb;
+
     }
 
     public static void writeCrc(ByteBuffer buf, int start) {
