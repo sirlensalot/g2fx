@@ -85,10 +85,10 @@ public class WiresharkTest {
             if (!pid.equals(opid)) { System.out.println(); }
             opid = pid;
             Integer t = p.get(0x1f);
-            System.out.printf("%04x %02x[%s] %s.%02x: 05=%02x, 1a=%02x, 1c=%02x, 1d=%02x, l=%02x:%02x\n",
+            System.out.printf("%04x %02x[%s] %s.%02x: 05=%02x, 1a=%02x, 1c=%02x, 1d=%02x, l=%02x%02x:%04x\n",
                     i++,
                     p.get(0x1e), t==3?"I":t==0?"C":"B",pid,p.get(0x03),
-                    p.get(0x05),p.get(0x1a),p.get(0x1c),p.get(0x1d),p.get(0x04),p.size()-0x20);
+                    p.get(0x05),p.get(0x1a),p.get(0x1c),p.get(0x1d),p.get(0x05),p.get(0x04),p.size()-0x20);
         }
 
     }
@@ -96,7 +96,7 @@ public class WiresharkTest {
 0000  00 01 20 01 01 00 00 00 00 00 00 00 00 00 00 00   .. .............
 ##00  == == ==          == == == == == == == == == ==
 #  03: {00,01} ^^ pair id? see 10+11
-#      04: length ^^ ^^ 05: {00,0d,0e,10}
+#                 ^^ ^^ 04+05: length bige
 0010  e9 14 d4 00 00 00 00 00 00 00 60 14 02 01 81 03   ..........`.....
 ##10        == == == == == == == ==    ==
 #     ^^ ^^ 10+11: big-e pair id + 03, skips by 2
@@ -105,10 +105,10 @@ public class WiresharkTest {
 #   1f:{00,02,03};02=bulk,03=interrupt,00=control? ^^
 # 1f by 1e: 00:00, 03:02, 80:00, 81:03, 82:02
 # 00: Control  04=0,05=0,10=[0f,13,17,2d],11=[15],1f=00
-# 03: OUT_BULK 05=0,11=[15,16,17,18],1a=61,1c=01,1d=0d,1f=02
-# 80: Control  05=0,11=15,1f=00
-# 81: IN_IRRPT 05=0,1f=03
-# 82: IN_BULK  05=[00,0d,0e,10],1a=61,1c=01,1d=0d,1f=02
+# 03: OUT_BULK 11=[15,16,17,18],1a=61,1c=01,1d=0d,1f=02
+# 80: Control  11=15,1f=00
+# 81: IN_IRRPT 1f=03
+# 82: IN_BULK  1a=61,1c=01,1d=0d,1f=02
 0020  02                                                .
 ##20  payload
 
