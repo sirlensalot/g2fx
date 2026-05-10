@@ -270,12 +270,23 @@ public class Util {
      * Reads a wireshark packet, terminated by a blank line.
      * Comments allowed, line starts with #
      * Blank lines allowed
+     *
      * @return data, or null if EOF and no message read
-     * @throws ParseException on invalid lines
+     * @throws ParseException        on invalid lines
      * @throws NumberFormatException on numeric parse failure
-     * @throws IOException on read failure
+     * @throws IOException           on read failure
      */
     public static ByteBuffer readWireshark(BufferedReader reader) throws Exception {
+        List<Integer> bs = readWiresharkList(reader);
+        if (bs == null) return null;
+        ByteBuffer bb = ByteBuffer.allocateDirect(bs.size());
+        for (Integer b : bs) {
+            bb.put(b.byteValue());
+        }
+        return bb;
+    }
+
+    public static List<Integer> readWiresharkList(BufferedReader reader) throws IOException, ParseException {
         int pos = 0;
         List<Integer> bs = new ArrayList<>();
         // off   data                                              [ascii]
@@ -298,18 +309,13 @@ public class Util {
             int off = parseByte(posm.group(1));
             if (off != pos) { throw new ParseException("Bad position: " + off,0); }
             pos += 16;
-            Matcher wordm = wordRe.matcher(l).region(posm.end(),l.length());
+            Matcher wordm = wordRe.matcher(l).region(posm.end(), l.length());
             while (wordm.find()) {
                 bs.add(parseByte(wordm.group(1).trim()));
-                wordm.region(wordm.end(),l.length());
+                wordm.region(wordm.end(), l.length());
             }
         }
-        ByteBuffer bb = ByteBuffer.allocateDirect(bs.size());
-        for (Integer b : bs) {
-            bb.put(b.byteValue());
-        }
-        return bb;
-
+        return bs;
     }
 
     public static void writeCrc(ByteBuffer buf, int start) {

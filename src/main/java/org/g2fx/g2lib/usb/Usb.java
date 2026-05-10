@@ -17,6 +17,11 @@ import static org.g2fx.g2lib.usb.UsbService.ERRORS;
 public class Usb implements UsbSender {
     private static final Logger log = Util.getLogger(Usb.class);
 
+    // Endpoints
+    public static final byte EP_OUT_BULK = (byte) 0x03;
+    public static final byte EP_IN_INTERRUPT = (byte) 0x81;
+    public static final byte EP_IN_BULK = (byte) 0x82;
+
     private final UsbService.UsbDevice device;
     private final UsbReadThread readThread;
 
@@ -58,7 +63,7 @@ public class Usb implements UsbSender {
         buffer.put((byte) (crc % 256));
         log.info(String.format("--------------- Send Bulk: %s ----------------", msg) + Util.dumpBufferString(buffer));
         IntBuffer transferred = BufferUtils.allocateIntBuffer();
-        int r = LibUsb.bulkTransfer(device.handle(), (byte) 0x03, buffer, transferred, 10000);
+        int r = LibUsb.bulkTransfer(device.handle(), EP_OUT_BULK, buffer, transferred, 10000);
         if (r >= 0) {
             //transferred.rewind();
             log.info("Sent: " + transferred.get(0));
@@ -90,7 +95,7 @@ public class Usb implements UsbSender {
     public UsbMessage readInterrupt(int timeout) {
         ByteBuffer buffer = BufferUtils.allocateByteBuffer(16);
         IntBuffer transferred = BufferUtils.allocateIntBuffer();
-        int r = LibUsb.interruptTransfer(device.handle(), (byte) 0x81, buffer, transferred, timeout);
+        int r = LibUsb.interruptTransfer(device.handle(), EP_IN_INTERRUPT, buffer, transferred, timeout);
         if (r < 0) {
             if (r != -7) { //timeout
                 log.info(String.format("--------------- Read Interrupt failure: %s ----------------",
@@ -160,7 +165,7 @@ public class Usb implements UsbSender {
     public UsbMessage readBulk(int size) {
         ByteBuffer buffer = BufferUtils.allocateByteBuffer(size);
         IntBuffer transferred = BufferUtils.allocateIntBuffer();
-        int r = LibUsb.bulkTransfer(device.handle(), (byte) 0x82, buffer, transferred, 5000);
+        int r = LibUsb.bulkTransfer(device.handle(), EP_IN_BULK, buffer, transferred, 5000);
         if (r < 0) {
             log.info("--------------- Read Bulk failure: " + ERRORS.get(r) + " ---------------");
             return new UsbMessage(r,true,-1,null);
