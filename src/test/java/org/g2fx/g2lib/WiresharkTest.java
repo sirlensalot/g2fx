@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.StringReader;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +30,14 @@ public class WiresharkTest {
         assertNull(Util.readWireshark(br));
     }
 
-
+    @Test
+    void testStartupNg() throws Exception {
+        ByteBuffer bb = Util.readFile("data/poweron2.pcapng");
+        List<ByteBuffer> bbs = Util.readPcapNg(bb);
+        for (ByteBuffer b : bbs) {
+            Util.dumpBuffer(b);
+        }
+    }
 
     @Test
     void testStartup() throws Exception{

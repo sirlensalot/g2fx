@@ -7,6 +7,7 @@ import com.google.common.collect.Streams;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.ParseException;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -267,7 +268,38 @@ public class Util {
     }
 
     /**
-     * Reads a wireshark packet, terminated by a blank line.
+     * pcapng file packet reader.
+     */
+    public static List<ByteBuffer> readPcapNg(ByteBuffer bb) throws Exception {
+        int boMagic = bb.getInt(8);
+        bb.order(boMagic == 0x4d3c2b1a ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
+        int shbLen = bb.getInt(4);
+        bb.position(shbLen); //skip shb
+        bb.getInt(); //IDB magic
+        int idbLen = bb.getInt();
+        bb.position((shbLen + idbLen)); // skip shb,idb
+
+        List<ByteBuffer> bbs = new ArrayList<>();
+
+        while (bb.hasRemaining()) {
+            int pos = bb.position();
+            bb.getInt(); //EPB magic
+            int epbLen = bb.getInt();
+            bb.getInt(); //interface
+            bb.getInt(); //ts upper
+            bb.getInt(); //ts lower
+            int capLen = bb.getInt();
+            int orgLen = bb.getInt();
+            ByteBuffer pbb = bb.slice(bb.position(), capLen);
+            bbs.add(pbb);
+            bb.position(pos + epbLen);
+        }
+
+        return bbs;
+    }
+
+    /**
+     * Reads a wireshark hexdump text packet, terminated by a blank line.
      * Comments allowed, line starts with #
      * Blank lines allowed
      *
