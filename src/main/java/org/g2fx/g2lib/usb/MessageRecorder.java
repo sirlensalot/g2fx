@@ -10,6 +10,7 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MessageRecorder {
@@ -99,6 +100,30 @@ public class MessageRecorder {
             return new RecordedUsbMessage(time,
                 new UsbMessage(rm.data.limit(),rm.extended,rm.crc,rm.data));
         }).toList();
+    }
+
+    public static List<RecordedUsbMessage> readCapture(List<Util.UsbPacket> packets) {
+        List<RecordedUsbMessage> l = new ArrayList<>();
+        for (Util.UsbPacket p : packets) {
+            byte ep = p.data().get(0x1e);
+            int len = p.data().limit() - 0x20;
+            if (len < 3) { continue; }
+            ByteBuffer bb = p.data().slice(0x20, len);
+            long t = p.elapsedMicros() / 1000;
+            switch (ep) {
+                case Usb.EP_IN_INTERRUPT:
+                    UsbMessage m = Usb.parseInterrupt(bb);
+                    if (!m.extended()) {
+                        l.add(new RecordedUsbMessage(t,m));
+                    }
+                    break;
+                case Usb.EP_IN_BULK:
+                    UsbMessage mb = Usb.parseBulk(len,bb);
+                    l.add(new RecordedUsbMessage(t,mb));
+                    break;
+            }
+        }
+        return l;
     }
 
     public static class CrcDesz extends JsonDeserializer<Integer> {

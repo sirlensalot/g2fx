@@ -103,30 +103,32 @@ public class Usb implements UsbSender {
             }
             return new UsbMessage(r,false,-1,null);
         } else {
-            int type = buffer.get(0) & 0xf;
-            boolean extended = type == 1;
-            //String s = Util.dumpBufferString(buffer);
-            boolean embedded = type == 2;
-            int crc = 0;
-            if (embedded) {
-                int dil = (buffer.get(0) & 0xf0) >> 4;
-                final int fcrc = crc = CRC16.crc16(buffer, 1, dil - 2);
-                log.info(() -> String.format("--------------- Read Interrupt embedded, crc: %x %x",
-                        fcrc, buffer.position(dil - 1).getShort()) +
-                        Util.dumpBufferString(buffer));
-
-            }
-            int size = buffer.position(1).getShort();
-            if (extended) {
-                log.info(() -> String.format("--------------- Read Interrupt extended, size: %x", size) +
-                        Util.dumpBufferString(buffer));
-            }
-            UsbMessage m = new UsbMessage(size, extended, crc, buffer);
+            UsbMessage m = parseInterrupt(buffer);
             if (!m.extended()) {
+                log.info(() -> String.format("--------------- Read Interrupt embedded, crc: %x", m.crc()) +
+                        Util.dumpBufferString(m.buffer()));
                 record(m);
+            } else {
+                log.info(() -> String.format("--------------- Read Interrupt extended, size: %x", m.size()) +
+                        Util.dumpBufferString(buffer));
             }
             return m;
         }
+    }
+
+    public static UsbMessage parseInterrupt(ByteBuffer buffer) {
+        int type = buffer.get(0) & 0xf;
+        boolean extended = type == 1;
+        //String s = Util.dumpBufferString(buffer);
+        boolean embedded = type == 2;
+        int crc = 0;
+        if (embedded) {
+            int dil = (buffer.get(0) & 0xf0) >> 4;
+            crc = CRC16.crc16(buffer, 1, dil - 2);
+        }
+        int size = buffer.getShort(1);
+        UsbMessage m = new UsbMessage(size, extended, crc, buffer);
+        return m;
     }
 
     public void startRecording(String sessionName, File dir) throws Exception {
@@ -172,17 +174,24 @@ public class Usb implements UsbSender {
         } else {
             int tfrd = transferred.get();
             if (tfrd > 0) {
-                // buffer.rewind();
-                int len = buffer.limit();
-                //dumpBytes(recd);
-                int ecrc = CRC16.crc16(buffer, 0, len - 2);
-                log.info(() -> String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, ecrc, buffer.position(len - 2).getShort()) +
-                    Util.dumpBufferString(buffer));
-                return record(new UsbMessage(size,true,ecrc,buffer));
+                UsbMessage msg = parseBulk(size, buffer);
+                log.info(() -> String.format("--------------- Read Bulk size: %x crc: %x %x", tfrd, msg.crc(),
+                        msg.buffer().getShort(size - 2)) + Util.dumpBufferString(msg.buffer()));
+                return record(msg);
             } else {
                 return new UsbMessage(0,true,-1,null);
             }
         }
+    }
+
+    public static UsbMessage parseBulk(int size, ByteBuffer buffer) {
+        // buffer.rewind();
+        int len = buffer.limit();
+        //dumpBytes(recd);
+        int ecrc = CRC16.crc16(buffer, 0, len - 2);
+
+        UsbMessage msg = new UsbMessage(size, true, ecrc, buffer);
+        return msg;
     }
 
     /**

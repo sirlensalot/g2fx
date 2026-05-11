@@ -5,18 +5,18 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.Streams;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.ParseException;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Util {
 
@@ -267,10 +267,19 @@ public class Util {
         return Integer.parseUnsignedInt(s, 16);
     }
 
+    public record UsbPacket(long elapsedMicros, ByteBuffer data) {
+
+        @Override
+        public String toString() {
+            return elapsedMicros + ": " + dumpBufferString(data);
+        }
+    }
+
     /**
      * pcapng file packet reader.
+     * only tested with macos XHC20 (linktype 266), timestamps are epoch micros.
      */
-    public static List<ByteBuffer> readPcapNg(ByteBuffer bb) throws Exception {
+    public static List<UsbPacket> readPcapNg(ByteBuffer bb) throws Exception {
         int boMagic = bb.getInt(8);
         bb.order(boMagic == 0x4d3c2b1a ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
         int shbLen = bb.getInt(4);
@@ -279,76 +288,31 @@ public class Util {
         int idbLen = bb.getInt();
         bb.position((shbLen + idbLen)); // skip shb,idb
 
-        List<ByteBuffer> bbs = new ArrayList<>();
+        List<UsbPacket> bbs = new ArrayList<>();
+
+        long now = 0;
 
         while (bb.hasRemaining()) {
             int pos = bb.position();
             bb.getInt(); //EPB magic
             int epbLen = bb.getInt();
             bb.getInt(); //interface
-            bb.getInt(); //ts upper
-            bb.getInt(); //ts lower
+            long hi = Integer.toUnsignedLong(bb.getInt());
+            long lo = Integer.toUnsignedLong(bb.getInt());
+            long ts = (hi << 32) | lo; // treating as epoch micros
+            if (now == 0) { now = ts; }
+            long elapsed = ts - now;
+            now = ts;
             int capLen = bb.getInt();
             int orgLen = bb.getInt();
             ByteBuffer pbb = bb.slice(bb.position(), capLen);
-            bbs.add(pbb);
+            bbs.add(new UsbPacket(elapsed,pbb));
             bb.position(pos + epbLen);
         }
 
         return bbs;
     }
 
-    /**
-     * Reads a wireshark hexdump text packet, terminated by a blank line.
-     * Comments allowed, line starts with #
-     * Blank lines allowed
-     *
-     * @return data, or null if EOF and no message read
-     * @throws ParseException        on invalid lines
-     * @throws NumberFormatException on numeric parse failure
-     * @throws IOException           on read failure
-     */
-    public static ByteBuffer readWireshark(BufferedReader reader) throws Exception {
-        List<Integer> bs = readWiresharkList(reader);
-        if (bs == null) return null;
-        ByteBuffer bb = ByteBuffer.allocateDirect(bs.size());
-        for (Integer b : bs) {
-            bb.put(b.byteValue());
-        }
-        return bb;
-    }
-
-    public static List<Integer> readWiresharkList(BufferedReader reader) throws IOException, ParseException {
-        int pos = 0;
-        List<Integer> bs = new ArrayList<>();
-        // off   data                                              [ascii]
-        // 0000  00 01 20 01 01 00 00 00 00 00 00 00 00 00 00 00   .. .............
-        Pattern posRe = Pattern.compile("^(\\p{XDigit}{4})\\s+");
-        Pattern wordRe = Pattern.compile("^(\\p{XDigit}\\p{XDigit} )");
-        while (true) {
-            String l = reader.readLine();
-            if (l == null) {
-                if (pos == 0) { return null; } //EOF w/ no message
-                break;
-            }
-            if (l.trim().isEmpty()) {
-                if (pos > 0) { break; } // if data was read, finalize
-                continue; //skip empty lines in middle
-            }
-            if (l.startsWith("#")) { continue; } // skip comments
-            Matcher posm = posRe.matcher(l);
-            if (!posm.find()) { throw new ParseException("Invalid wireshark line: " + l,0); }
-            int off = parseByte(posm.group(1));
-            if (off != pos) { throw new ParseException("Bad position: " + off,0); }
-            pos += 16;
-            Matcher wordm = wordRe.matcher(l).region(posm.end(), l.length());
-            while (wordm.find()) {
-                bs.add(parseByte(wordm.group(1).trim()));
-                wordm.region(wordm.end(), l.length());
-            }
-        }
-        return bs;
-    }
 
     public static void writeCrc(ByteBuffer buf, int start) {
         buf.limit(buf.position());

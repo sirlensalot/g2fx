@@ -1,64 +1,49 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.util.Util;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 public class WiresharkTest {
 
-
-    @Test
-    void wireshark() throws Exception {
-        BufferedReader br = new BufferedReader(new StringReader("""
-                0000  00 01 20 00 01 00 00 00 00 00 00 00 00 00 00 00   .. .............
-                0010  0b 15 d4 00 00 00 00 00 00 00 60 14 02 01 81 03   ..........`.....
-                
-                """));
-        List<Integer> l = Util.readWiresharkList(br);
-        assertEquals(List.of(
-                        0x00, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x0b, 0x15, 0xd4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x14, 0x02, 0x01, 0x81, 0x03),
-                l);
-        assertNull(Util.readWireshark(br));
+    @BeforeAll
+    public static void beforeAll() {
+        Util.configureLogging();
     }
 
     @Test
-    void testStartupNg() throws Exception {
+    void playStartup() throws Exception {
         ByteBuffer bb = Util.readFile("data/poweron2.pcapng");
-        List<ByteBuffer> bbs = Util.readPcapNg(bb);
-        for (ByteBuffer b : bbs) {
-            Util.dumpBuffer(b);
+        List<Util.UsbPacket> ps = Util.readPcapNg(bb);
+        List<MessageRecorder.RecordedUsbMessage> ms = MessageRecorder.readCapture(ps);
+        Device d = new Device();
+        for (MessageRecorder.RecordedUsbMessage m : ms) {
+            d.dispatch(m.msg());
         }
+        d.getPerf().dumpYaml("data/startup.yaml");
     }
-
     @Test
     void testStartup() throws Exception{
-        BufferedReader br = new BufferedReader(new FileReader("data/poweron.txt"));
+        ByteBuffer bb = Util.readFile("data/poweron2.pcapng");
         Map<String,Set<String>> endpointTypes = new TreeMap<>();
         Map<String,Map<String,Set<String>>> valsByEndpoint = new TreeMap<>();
         Map<String,Set<String>> vals = new TreeMap<>();
         int count=0;
-        List<List<Integer>> ps = new ArrayList<>();
-        List<Integer> l;
-        while ((l = Util.readWiresharkList(br))!=null) {
+        List<Util.UsbPacket> ps = Util.readPcapNg(bb);
+        for (Util.UsbPacket p : ps) {
 
-            ps.add(l);
-
-            String t = i2x(l.get(0x1f));
-            String ep = i2x(l.get(0x1e));
+            String t = i2x(p.data().get(0x1f));
+            String ep = i2x(p.data().get(0x1e));
             endpointTypes.compute(ep,(i,s) -> { s = s == null ? new TreeSet<>() : s; s.add(t); return s;});
 
             for (int i = 0; i < 0x20; i++) {
-                String v = i2x(l.get(i));
-                String k = i2x(i);
+                String v = i2x(p.data().get(i));
+                String k = i2x((byte) i);
                 vals.compute(k,
                         (k_,s) -> { s=s==null?new TreeSet<>():s;s.add(v);return s; });
                 valsByEndpoint.compute(ep,(ep_,m) -> {
@@ -88,15 +73,16 @@ public class WiresharkTest {
 
         int i = 0;
         String opid = "";
-        for (List<Integer> p : ps) {
-            String pid = String.format("%02x%02x",p.get(0x11),p.get(0x10));
+        for (Util.UsbPacket p : ps) {
+            String pid = String.format("%02x%02x",p.data().get(0x11),p.data().get(0x10));
             if (!pid.equals(opid)) { System.out.println(); }
             opid = pid;
-            Integer t = p.get(0x1f);
+            byte t = p.data().get(0x1f);
             System.out.printf("%04x %02x[%s] %s.%02x: 05=%02x, 1a=%02x, 1c=%02x, 1d=%02x, l=%02x%02x:%04x\n",
                     i++,
-                    p.get(0x1e), t==3?"I":t==0?"C":"B",pid,p.get(0x03),
-                    p.get(0x05),p.get(0x1a),p.get(0x1c),p.get(0x1d),p.get(0x05),p.get(0x04),p.size()-0x20);
+                    p.data().get(0x1e), t==3?"I":t==0?"C":"B",pid,p.data().get(0x03),
+                    p.data().get(0x05),p.data().get(0x1a),p.data().get(0x1c),p.data().get(0x1d),
+                    p.data().get(0x05),p.data().get(0x04),p.data().limit()-0x20);
         }
 
     }
@@ -122,7 +108,7 @@ public class WiresharkTest {
 
      */
 
-    private static String i2x(Integer v) {
+    private static String i2x(byte v) {
         return String.format("%02x",v);
     }
 }
