@@ -78,33 +78,37 @@ public class WiresharkTest {
             if (!pid.equals(opid)) { System.out.println(); }
             opid = pid;
             byte t = p.data().get(0x1f);
+            int len = p.data().limit() - 0x20;
             System.out.printf("%04x %02x[%s] %s.%02x: 05=%02x, 1a=%02x, 1c=%02x, 1d=%02x, l=%02x%02x:%04x\n",
                     i++,
                     p.data().get(0x1e), t==3?"I":t==0?"C":"B",pid,p.data().get(0x03),
                     p.data().get(0x05),p.data().get(0x1a),p.data().get(0x1c),p.data().get(0x1d),
-                    p.data().get(0x05),p.data().get(0x04),p.data().limit()-0x20);
+                    p.data().get(0x05),p.data().get(0x04), len);
+            if (len > 0) {
+                System.out.println(Util.dumpBufferString(p.data().slice(0x20,len)));
+            }
         }
 
     }
     /*
 0000  00 01 20 01 01 00 00 00 00 00 00 00 00 00 00 00   .. .............
-##00  == == ==          == == == == == == == == == ==
-#  03: {00,01} ^^ pair id? see 10+11
-#                 ^^ ^^ 04+05: length bige
+#     ^^ ^^ 00-01: darwin header version (0x0100)
+#           ^^ 02: darwin header length (32)
+#              ^^ 03: Request type: COMPLETE (1)
+#                                   SUBMIT (0)
+#                 ^^ ^^ 04-05: I/O Length (0x0001)
+# 06-09:status,success  ^^ ^^ ^^ ^^ (0x00000000)
+#  10: Isochronous tfr # frames (0) ^^
+#                          0a-0f: ???  ^^ ^^ ^^ ^^ ^^
 0010  e9 14 d4 00 00 00 00 00 00 00 60 14 02 01 81 03   ..........`.....
-##10        == == == == == == == ==    ==
-#     ^^ ^^ 10+11: big-e pair id + 03, skips by 2
-#  1a:{60,61};1c:{01,02};1d:{01,0d} ^^    ^^ ^^
+#     ^^ ^^ ^^ ^^ ^^ ^^ ^^ ^^ 10-17: I/O ID
+#   18-1b: Device location ID ^^ ^^ ^^ ^^
+#    1c: Device Speed: High (2), Full (1) ^^
+#          1d: Device index (1) {0x01,0x0d}  ^^
 #                 1e: {00,03,80,81,82} endpoint ^^
-#   1f:{00,02,03};02=bulk,03=interrupt,00=control? ^^
-# 1f by 1e: 00:00, 03:02, 80:00, 81:03, 82:02
-# 00: Control  04=0,05=0,10=[0f,13,17,2d],11=[15],1f=00
-# 03: OUT_BULK 11=[15,16,17,18],1a=61,1c=01,1d=0d,1f=02
-# 80: Control  11=15,1f=00
-# 81: IN_IRRPT 1f=03
-# 82: IN_BULK  1a=61,1c=01,1d=0d,1f=02
+#    1f:{00,02,03};02=bulk,03=interrupt,00=control ^^
 0020  02                                                .
-##20  payload
+#     20-...:"I/O" payload
 
      */
 

@@ -104,7 +104,9 @@ public class MessageRecorder {
 
     public static List<RecordedUsbMessage> readCapture(List<Util.UsbPacket> packets) {
         List<RecordedUsbMessage> l = new ArrayList<>();
+        int i = 0;
         for (Util.UsbPacket p : packets) {
+            i++;
             byte ep = p.data().get(0x1e);
             int len = p.data().limit() - 0x20;
             if (len < 3) { continue; }

@@ -111,7 +111,7 @@ public class Device implements Dispatcher {
                 ,0x04 // perf version??
         );
 
-        sendStartStopComm(false); // not load?
+        sendStartStopComm(false); // not load? // this goes out first in poweron2
 
         //synth settings
         usb.sendSystemRequest("Synth settings" // not load
@@ -383,6 +383,9 @@ public class Device implements Dispatcher {
                     perf.setVersion(version);
                     yield true;
                 } else if (id >= 0 && id <4) { // does this also support 8-11?
+                    //TODO this also seems to support multiple versions
+                    //0020  01 0c 40 36 00 04 36 01 04 36 02 04 36 03 04 36
+                    //0030  04 04 02 8a
                     perf.getSlot(Slot.fromIndex(id)).setVersion(version);
                     yield true;
                 } else {
