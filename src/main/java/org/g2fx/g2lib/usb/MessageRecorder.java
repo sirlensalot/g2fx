@@ -123,6 +123,10 @@ public class MessageRecorder {
                     UsbMessage mb = Usb.parseBulk(len,bb);
                     l.add(new RecordedUsbMessage(t,mb));
                     break;
+                case Usb.EP_OUT_BULK: //TODO this won't work for playback, need to factor a "full decode" or filter
+                    UsbMessage mo = Usb.parseBulk(len,bb);
+                    l.add(new RecordedUsbMessage(t,mo));
+                    break;
             }
         }
         return l;

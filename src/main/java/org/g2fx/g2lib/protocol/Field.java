@@ -2,12 +2,10 @@ package org.g2fx.g2lib.protocol;
 
 import org.g2fx.g2lib.util.BitBuffer;
 
-import java.util.List;
-
 public interface Field {
     String name();
 
-    void read(BitBuffer bb, List<FieldValues> values);
+    void read(BitBuffer bb, SzContext context);
 
     Class<?> getFieldEnumClass();
 
@@ -39,5 +37,5 @@ public interface Field {
         return this;
     }
 
-    void write(FieldValue fv, BitBuffer bb) throws Exception;
+    void write(FieldValue fv, BitBuffer bb, SzContext ctx) throws Exception;
 }

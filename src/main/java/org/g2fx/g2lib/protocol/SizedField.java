@@ -2,8 +2,6 @@ package org.g2fx.g2lib.protocol;
 
 import org.g2fx.g2lib.util.BitBuffer;
 
-import java.util.List;
-
 public class SizedField extends AbstractField implements Field {
     public final int size;
 
@@ -20,8 +18,10 @@ public class SizedField extends AbstractField implements Field {
     }
 
     @Override
-    public void read(BitBuffer bb, List<FieldValues> values) {
-        values.getFirst().add(new IntValue(this, readValue(bb)));
+    public void read(BitBuffer bb, SzContext values) {
+        int value = readValue(bb);
+        values.addEntry(value,bb);
+        values.addValue(new IntValue(this, value));
     }
 
     protected int readValue(BitBuffer bb) {

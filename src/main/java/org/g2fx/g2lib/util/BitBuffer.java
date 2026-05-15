@@ -3,21 +3,45 @@ package org.g2fx.g2lib.util;
 import org.usb4java.BufferUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class BitBuffer {
     private final ByteBuffer buffer;
     private int bindex = 0;
     private int blength;
 
+    /**
+     * Make a new BitBuffer for reading from provided buffer.
+     */
     public BitBuffer(ByteBuffer buffer) {
         this.buffer = buffer;
         this.blength = buffer.limit() * 8;
     }
 
+    /**
+     * Make a new BitBuffer/ByteBuffer for writing.
+     * @param capacity byte buffer capacity.
+     */
     public BitBuffer(int capacity) {
         this.buffer = BufferUtils.allocateByteBuffer(capacity);
         buffer.limit(0);
         blength = 0;
+    }
+
+    /**
+     * Make a new BitBuffer from a buffer that already has content,
+     * to write from current position.
+     */
+    public static BitBuffer fromSlice(ByteBuffer buf) {
+        int capacity = buf.capacity();
+        int limit = buf.limit();
+        int pos = buf.position();
+        ByteBuffer slice = buf.slice(0,capacity);
+        slice.position(pos);
+        slice.limit(pos);
+        BitBuffer bb = new BitBuffer(slice);
+        bb.bindex = bb.blength;
+        return bb;
     }
 
     public int limit() { return buffer.limit(); }
@@ -157,7 +181,22 @@ public class BitBuffer {
 
     public void trimToByte() {
         buffer.limit(buffer.limit()-1);
-        bindex = blength = buffer.limit()/8;
+        bindex = blength = buffer.limit()*8; //TODO this was divide before, but regression did not check.
     }
+
+    /**
+     * for writing, buffer limit is always >= blimit*8.
+     */
+    public void padToByte() {
+        bindex = blength = buffer.limit()*8;
+    }
+
+    public void writeLength(int pos, int len) {
+        ByteOrder o = buffer.order();
+        buffer.order(ByteOrder.BIG_ENDIAN); //TODO maybe we can just leave this?
+        buffer.putShort(pos, (short) len);
+        buffer.order(o);
+    }
+
 
 }

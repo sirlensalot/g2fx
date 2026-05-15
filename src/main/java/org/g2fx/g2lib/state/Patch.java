@@ -256,6 +256,9 @@ public class Patch {
 
     }
 
+    /*
+     * TODO this currently writes an inbound-style patch message, change to outbound
+     */
     public ByteBuffer writeMessage() throws Exception {
 
         ByteBuffer buf = ByteBuffer.allocateDirect(2048);
@@ -274,6 +277,27 @@ public class Patch {
         //log.info(String.format("%x",crc));
         Util.putShort(buf,crc);
         return buf;
+    }
+
+
+    /**
+     * write patch message to existing bitbuffer. TODO same as sending patch?
+     */
+    public void writeMessage(BitBuffer bb) throws Exception {
+        for (Sections s : FILE_SECTIONS) {
+            bb.put(8,s.type);
+            int lpos = bb.limit();
+            bb.put(16,0);
+            int ss = bb.limit();
+            if (s.location != null) {
+                bb.put(2, s.location);
+            }
+            getSection(s).values().write(bb);
+            int len = bb.limit() - ss;
+            bb.writeLength(lpos, len);
+            log.info(() -> String.format("writeMessage: %s, length %x, location %d",s,len,s.location));
+            bb.padToByte();
+        }
     }
 
     public ByteBuffer writeFile() throws Exception {
@@ -311,6 +335,7 @@ public class Patch {
             if (!loc.equals(s.location)) {
                 throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc, s));
             }
+            log.info(()->String.format("readSectionSlice: %s, location %d",s,loc));
         }
         FieldValues fvs;
         try {
@@ -429,4 +454,5 @@ public class Patch {
     public PatchVisuals getVisuals() {
         return visuals;
     }
+
 }

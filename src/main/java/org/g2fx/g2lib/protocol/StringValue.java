@@ -17,7 +17,7 @@ public record StringValue(StringField field, String value) implements FieldValue
     }
 
     @Override
-    public void write(BitBuffer bb) throws Exception {
-        field.write(bb,value);
+    public void write(BitBuffer bb, SzContext ctx) throws Exception {
+        field.writeString(bb,value,ctx);
     }
 }

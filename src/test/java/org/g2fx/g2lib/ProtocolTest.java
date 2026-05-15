@@ -7,6 +7,7 @@ import org.g2fx.g2lib.protocol.*;
 import org.g2fx.g2lib.state.PatchLoadData;
 import org.g2fx.g2lib.state.PerformanceSettings;
 import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
@@ -952,6 +953,7 @@ class ProtocolTest {
                                 VarMorph.MorphCount.value(0), VarMorph.VarMorphParams.value(List.of()), VarMorph.Reserved3.value(0)))));
         BitBuffer bb = new BitBuffer(0xfff);
         fvs.write(bb);
+        //TODO the following test is garbage, needs to test explicit position as there was a bug. maybe was OK b/c bitbuffers were not reused.
         assertEquals(0,bb.getBitIndex() % 8); // presumably with other payloads this could be > 4 which is "OK" in data seen thus far.
     }
 
@@ -1061,5 +1063,24 @@ class ProtocolTest {
         PatchSettings ps = d.getPerf().getSlot(Slot.B).getPatchSettings();
         //just testing for nonzero values
         assertEquals(6,ps.voices().get());
+    }
+
+    @Test
+    void writePerfMessage() throws Exception {
+
+        ByteBuffer bb = Util.readFile("data/capture/capture-001-load-g2fx-perf1.pcapng");
+        List<Util.UsbPacket> ps = Util.readPcapNg(bb);
+        List<MessageRecorder.RecordedUsbMessage> ms = MessageRecorder.readCapture(ps); //assumes full capture
+        UsbMessage m = ms.get(2).msg();
+        ByteBuffer mpb = m.buffer().slice(0xbd, 0x200);
+        BitBuffer mbb = new BitBuffer(mpb);
+        System.out.println("location: " + mbb.get(2));
+        System.out.println(ModuleParams.FIELDS.read(mbb));
+
+        Performance perf = Performance.readFromFile("data/perf/g2fx-perf-01.prf2",sender);
+        perf.setFileName("g2fx-perf-01");
+        ByteBuffer buf = perf.writeMessage();
+        System.out.println(Util.dumpBufferString(buf.rewind()));
+
     }
 }

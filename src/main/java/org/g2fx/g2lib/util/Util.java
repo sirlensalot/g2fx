@@ -57,7 +57,8 @@ public class Util {
         log.info(dumpBufferString(buffer));
     }
 
-    public static String dumpBufferString(ByteBuffer buffer) {
+    public static String dumpBufferString(ByteBuffer buffer1) {
+        ByteBuffer buffer = buffer1.slice(0,buffer1.limit());
         StringBuilder hex = new StringBuilder();
         StringBuilder ascii = new StringBuilder();
         StringBuilder output = new StringBuilder("\n");
@@ -67,7 +68,7 @@ public class Util {
         while (buffer.hasRemaining()) {
             byte d = buffer.get();
             hex.append(String.format("%02x ", d));
-            ascii.append((d >= 33 && d < 126) ? String.format("%c ", d) : ". ");
+            ascii.append((d >= 33 && d < 126) ? String.format("%c", d) : ".");
             if (i % 16 == 15) {
                 output.append(String.format("%s  %s\n", hex, ascii));
                 hex = new StringBuilder();
@@ -97,6 +98,9 @@ public class Util {
         return addb(buffer.get(),buffer.get());
     }
 
+    /**
+     * TODO could probably just use byte order BIG_ENDIAN + put(short)
+     */
     public static void putShort(ByteBuffer buffer, int value) {
         buffer.put((byte) ((value >> 8) & 0xff));
         buffer.put((byte) (value & 0xff));

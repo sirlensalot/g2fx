@@ -52,7 +52,15 @@ public class FieldValues {
     }
 
     public void write(BitBuffer bb) throws Exception {
-        fields.write(bb,values);
+        SzContext ctx = new SzContext();
+        write(bb, ctx);
+        fields.logWrite(ctx);
+    }
+
+    public void write(BitBuffer bb, SzContext ctx) throws Exception {
+        ctx.push(this);
+        fields.write(bb,values,ctx);
+        ctx.pop();
     }
 
     @Override

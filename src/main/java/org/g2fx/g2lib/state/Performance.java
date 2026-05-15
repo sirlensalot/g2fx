@@ -73,7 +73,6 @@ public class Performance {
         }
         perf.globalKnobAssignments = new GlobalKnobAssignments(
                 readSectionSlice(fileBuffer,Sections.SGlobalKnobAssignments_5f));
-
         return perf;
     }
 
@@ -104,6 +103,28 @@ public class Performance {
         return this;
     }
 
+    public ByteBuffer writeMessage() throws Exception {
+        ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
+        buf.position(2); // leave space for length
+        buf.put(Util.asBytes(0x01,0x2c,0x42,0x37,0x00,0x00,0x00));
+        BitBuffer bb = BitBuffer.fromSlice(buf);
+        FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(perfName.get()));
+        name.write(bb);
+        bb.put(8,0x1a);
+        bb.put(8,Sections.SPerformanceName_29.type);
+        name.write(bb);
+        bb.put(8,Sections.SPerformanceSettings_11.type);
+        int lpos = (short) bb.limit();
+        bb.put(16,0); //length holder
+        int ss = bb.limit();
+        perfSettings.getFieldValues().write(bb);
+        bb.writeLength(lpos, bb.limit()-ss);
+        for (Patch patch : slots.values()) {
+            patch.writeMessage(bb);
+        }
+        return buf;
+    }
+
     // usb, test
     public boolean readPerformanceNameAndSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf.slice());
@@ -114,6 +135,9 @@ public class Performance {
         return true;
     }
 
+    /**
+     * Read sections without support for location.
+     */
     // file-perf, test
     private static FieldValues readSectionSlice(ByteBuffer buf, Sections s) {
         return s.fields.read(Sections.sliceSection(s,buf));

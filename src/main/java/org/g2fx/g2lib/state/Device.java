@@ -76,7 +76,7 @@ public class Device implements Dispatcher {
         perf = Performance.readFromFile(filePath, usb);
         String name = new File(filePath).getName();
         String pn = name.substring(0, name.length() - 5);
-        perf.setFileName(pn);
+        perf.setFileName(pn); //TODO this seems to remove .prf2
         if (online()) {
             sendPerf();
         }

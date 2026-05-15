@@ -17,7 +17,8 @@ public record IntValue(SizedField field, int value) implements FieldValue {
     }
 
     @Override
-    public void write(BitBuffer bb) throws Exception {
+    public void write(BitBuffer bb, SzContext ctx) throws Exception {
         bb.put(field.size,value);
+        ctx.addEntry(value,bb);
     }
 }

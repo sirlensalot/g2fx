@@ -204,8 +204,8 @@ public class Protocol {
         public Field field() { return f; }
         public static final Fields FIELDS = new Fields(values()) {
             @Override
-            public void write(BitBuffer bb, List<FieldValue> values) throws Exception {
-                super.write(bb, values);
+            public void write(BitBuffer bb, List<FieldValue> values, SzContext ctx) throws Exception {
+                super.write(bb, values, ctx);
                 int over = bb.getBitIndex() % 8;
                 //trim up to 4 bits (see VarMorphParams.Reserved3)
                 if (over > 0 && over < 5) {

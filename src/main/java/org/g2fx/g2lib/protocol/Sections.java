@@ -4,6 +4,7 @@ import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
 
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 public enum Sections {
     // Perf sections
@@ -34,6 +35,8 @@ public enum Sections {
 
     SPatchLoadData_72(Protocol.PatchLoadData.FIELDS,0x72);
 
+    private static final Logger log = Util.getLogger(Sections.class);
+
     public final Fields fields;
     public final int type;
     public final Integer location;
@@ -63,7 +66,9 @@ public enum Sections {
         if (t != s.type) {
             throw new IllegalArgumentException(String.format("Section incorrect %s %x %x",s,s.type,t));
         }
-        return BitBuffer.sliceAhead(buf, Util.getShort(buf));
+        int len = Util.getShort(buf);
+        log.info(() -> String.format("sliceSection: %s, length %x",s,len));
+        return BitBuffer.sliceAhead(buf, len);
     }
 
     public static void writeSection(ByteBuffer buf, Section ss) throws Exception {

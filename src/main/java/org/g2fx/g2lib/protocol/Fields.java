@@ -31,15 +31,19 @@ public class Fields {
     }
 
     public FieldValues read(BitBuffer bb) {
-        return read(bb, new ArrayList<>());
+        SzContext c = new SzContext();
+        FieldValues fvs = read(bb, c);
+        log.info(() -> fields.getFirst().getFieldEnumClass().getSimpleName() + " [READ]: " + c.dumpEntries());
+        return fvs;
     }
 
-    public FieldValues read(BitBuffer bb, List<FieldValues> context) {
+    public FieldValues read(BitBuffer bb, SzContext context) {
         int fvsStart = bb.getBitIndex();
         FieldValues l = init();
-        context.addFirst(l);
+        context.push(l);
         fields.forEach(f -> {
             int fStart = bb.getBitIndex();
+            context.startField(f,fStart);
             try {
                 f.read(bb, context);
             } catch (Exception e) {
@@ -58,8 +62,9 @@ public class Fields {
                         "readFailed, field=" + f + ", context=" + context
                         ,e);
             }
+            context.endField(f,bb.getBitIndex());
         });
-        return context.removeFirst();
+        return context.pop();
     }
 
     private static String dumpBufContext(BitBuffer bb, int start, int pos) {
@@ -80,9 +85,13 @@ public class Fields {
         return init().addAll(vs);
     }
 
-    public void write(BitBuffer bb, List<FieldValue> values) throws Exception {
+    public void write(BitBuffer bb, List<FieldValue> values, SzContext ctx) throws Exception {
         for (FieldValue fv : values) {
-            fv.field().write(fv,bb);
+            fv.field().write(fv,bb,ctx);
         }
+    }
+
+    public void logWrite(SzContext ctx) {
+        log.info(() -> fields.getFirst().getFieldEnumClass().getSimpleName() + " [WRITE]: " + ctx.dumpEntries());
     }
 }

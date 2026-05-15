@@ -88,15 +88,15 @@ public class SubfieldsField extends AbstractField implements Field {
     }
 
     @Override
-    public void read(BitBuffer bb, List<FieldValues> values) {
+    public void read(BitBuffer bb, SzContext values) {
         List<FieldValues> vs = new ArrayList<>();
         readSubfields(bb, values, vs);
-        values.getFirst().add(new SubfieldsValue(this, vs));
+        values.addValue(new SubfieldsValue(this, vs));
     }
 
-    private void readSubfields(BitBuffer bb, List<FieldValues> values, List<FieldValues> result) {
-        SubfieldCounter counter = subfieldCount.makeCounter(values);
-        for (int i = 0; counter.hasMore(values,result,i); i++) {
+    private void readSubfields(BitBuffer bb, SzContext values, List<FieldValues> result) {
+        SubfieldCounter counter = subfieldCount.makeCounter(values.context());
+        for (int i = 0; counter.hasMore(values.context(),result,i); i++) {
             try {
                 result.add(subfields.read(bb, values));
             } catch (RuntimeException e) {
@@ -110,9 +110,9 @@ public class SubfieldsField extends AbstractField implements Field {
     }
 
 
-    public void write(BitBuffer bb, List<FieldValues> value) throws Exception {
+    public void writeSubfields(BitBuffer bb, List<FieldValues> value, SzContext ctx) throws Exception {
         for (FieldValues fvs : value) {
-            fvs.write(bb);
+            fvs.write(bb,ctx);
         }
     }
 

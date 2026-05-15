@@ -4,5 +4,5 @@ import org.g2fx.g2lib.util.BitBuffer;
 
 public interface FieldValue {
     Field field();
-    void write(BitBuffer bb) throws Exception;
+    void write(BitBuffer bb, SzContext ctx) throws Exception;
 }

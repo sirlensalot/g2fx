@@ -18,7 +18,7 @@ public record SubfieldsValue(SubfieldsField field, List<FieldValues> value) impl
     }
 
     @Override
-    public void write(BitBuffer bb) throws Exception {
-        field.write(bb,value);
+    public void write(BitBuffer bb, SzContext ctx) throws Exception {
+        field.writeSubfields(bb,value,ctx);
     }
 }
