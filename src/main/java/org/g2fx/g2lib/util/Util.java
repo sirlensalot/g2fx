@@ -66,6 +66,9 @@ public class Util {
         buffer.rewind();
         int i = 0;
         while (buffer.hasRemaining()) {
+            if (i % 16 == 0) {
+                output.append(String.format("%04x  ",i));
+            }
             byte d = buffer.get();
             hex.append(String.format("%02x ", d));
             ascii.append((d >= 33 && d < 126) ? String.format("%c", d) : ".");

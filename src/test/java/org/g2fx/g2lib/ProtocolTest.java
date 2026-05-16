@@ -11,11 +11,13 @@ import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
+import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.*;
 
 import static org.g2fx.g2lib.protocol.Protocol.*;
@@ -1068,19 +1070,47 @@ class ProtocolTest {
     @Test
     void writePerfMessage() throws Exception {
 
+        //regress from capture of loading perf file on macos legacy editor
+
         ByteBuffer bb = Util.readFile("data/capture/capture-001-load-g2fx-perf1.pcapng");
         List<Util.UsbPacket> ps = Util.readPcapNg(bb);
         List<MessageRecorder.RecordedUsbMessage> ms = MessageRecorder.readCapture(ps); //assumes full capture
         UsbMessage m = ms.get(2).msg();
-        ByteBuffer mpb = m.buffer().slice(0xbd, 0x200);
-        BitBuffer mbb = new BitBuffer(mpb);
-        System.out.println("location: " + mbb.get(2));
-        System.out.println(ModuleParams.FIELDS.read(mbb));
+        //this is to get logging for comparing bitbuffer images, turn on Fields,Sections,Patch in logging.properties
+        ByteBuffer mpb = m.buffer().slice(0x7d, m.buffer().capacity()-0x7d);
+        for (Slot s : Slot.values()) {
+            new Patch(s,sender).readFileSections(mpb);
+        }
 
+        //begin test. load same file and write data for sendBulk
         Performance perf = Performance.readFromFile("data/perf/g2fx-perf-01.prf2",sender);
         perf.setFileName("g2fx-perf-01");
-        ByteBuffer buf = perf.writeMessage();
-        System.out.println(Util.dumpBufferString(buf.rewind()));
+        ByteBuffer bulkMsg = perf.writeMessage();
+
+        //add length preface
+        ByteBuffer buf = ByteBuffer.allocate(bulkMsg.limit() + 4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+        buf.putShort((short) buf.limit());
+
+
+        // fix incompatibilities.
+        // unknown values in ModuleNames.Reserved(6)
+        bulkMsg.put(0x0311-2,(byte)0x42); // offset -2 from pcap (no length prefix)
+        bulkMsg.put(0x06a4-2,(byte)0x08);
+        bulkMsg.put(0x0a34-2,(byte)0x38);
+        // variation count saved as 9 in empty ModuleParams but 0 in message
+        // 2 per slot
+        for (int i : List.of(
+                0x0226,0x022c,
+                0x05a9,0x05af,
+                0x0939,0x093f,
+                0x0ced,0x0cf3)) {
+            bulkMsg.putShort(i-2,(byte) 0);
+        }
+
+        buf.put(bulkMsg.rewind());
+        buf.putShort((short) CRC16.crc16(bulkMsg, 0, bulkMsg.limit()));
+        assertEquals(Util.dumpBufferString(m.buffer()),Util.dumpBufferString(buf));
 
     }
 }

@@ -105,7 +105,6 @@ public class Performance {
 
     public ByteBuffer writeMessage() throws Exception {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
-        buf.position(2); // leave space for length
         buf.put(Util.asBytes(0x01,0x2c,0x42,0x37,0x00,0x00,0x00));
         BitBuffer bb = BitBuffer.fromSlice(buf);
         FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(perfName.get()));
@@ -113,16 +112,22 @@ public class Performance {
         bb.put(8,0x1a);
         bb.put(8,Sections.SPerformanceName_29.type);
         name.write(bb);
-        bb.put(8,Sections.SPerformanceSettings_11.type);
-        int lpos = (short) bb.limit();
-        bb.put(16,0); //length holder
-        int ss = bb.limit();
-        perfSettings.getFieldValues().write(bb);
-        bb.writeLength(lpos, bb.limit()-ss);
+        writeSection(bb, Sections.SPerformanceSettings_11, perfSettings.getFieldValues());
         for (Patch patch : slots.values()) {
             patch.writeMessage(bb);
         }
+        writeSection(bb, Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
+        buf.limit(bb.limit());
         return buf;
+    }
+
+    private static void writeSection(BitBuffer bb, Sections s, FieldValues fvs) throws Exception {
+        bb.put(8, s.type);
+        int lpos = (short) bb.limit();
+        bb.put(16,0); //length holder
+        int ss = bb.limit();
+        fvs.write(bb);
+        bb.writeLength(lpos, bb.limit()-ss);
     }
 
     // usb, test

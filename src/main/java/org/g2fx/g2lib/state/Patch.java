@@ -14,6 +14,7 @@ import org.g2fx.g2lib.util.Util;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -43,6 +44,9 @@ public class Patch {
             "Info=BUILD 320"
     });
 
+    /**
+     * Sections for patch/perf files and outbound perf usb (patch confirm TODO)
+     */
     public static final Sections[] FILE_SECTIONS = new Sections[] {
             Sections.SPatchDescription_21,
             Sections.SModuleList1_4a,
@@ -64,6 +68,9 @@ public class Patch {
             Sections.STextPad_6f
     };
 
+    /**
+     * Sections for inbound USB patch messages.
+     */
     public static final Sections[] MSG_SECTIONS = new Sections[] {
             Sections.SPatchDescription_21,
             Sections.SModuleList1_4a,
@@ -292,11 +299,32 @@ public class Patch {
             if (s.location != null) {
                 bb.put(2, s.location);
             }
-            getSection(s).values().write(bb);
+            FieldValues fvs = getSection(s).values();
+            addVariation(s, fvs);
+            fvs.write(bb);
             int len = bb.limit() - ss;
             bb.writeLength(lpos, len);
             log.info(() -> String.format("writeMessage: %s, length %x, location %d",s,len,s.location));
             bb.padToByte();
+        }
+    }
+
+    private static void addVariation(Sections s, FieldValues fvs) {
+        if (s.type == 0x4d && Protocol.ModuleParams.SetCount.intValue(fvs) > 0 &&
+                Protocol.ModuleParams.VariationCount.intValue(fvs) == 9) {
+            fvs.update(Protocol.ModuleParams.VariationCount.value(10));
+            for (FieldValues ps : Protocol.ModuleParams.ParamSet.subfieldsValue(fvs)) {
+                List<FieldValues> mpfvss = Protocol.ModuleParamSet.ModParams.subfieldsValue(ps);
+                FieldValues newFv = mpfvss.getLast().copy();
+                newFv.update(Protocol.VarParams.Variation.value(9));
+                mpfvss.add(newFv);
+            }
+        } else if (s.type == 0x65 && Protocol.MorphParameters.VariationCount.intValue(fvs) == 9) {
+            fvs.update(Protocol.MorphParameters.VariationCount.value(10));
+            List<FieldValues> vmfvs = Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs);
+            FieldValues newFv = vmfvs.getLast().copy();
+            newFv.update(Protocol.VarMorph.Variation.value(9));
+            vmfvs.add(newFv);
         }
     }
 

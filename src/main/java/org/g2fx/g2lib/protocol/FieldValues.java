@@ -81,4 +81,16 @@ public class FieldValues {
     public Fields getFields() {
         return fields;
     }
+
+    /**
+     * Shallow copy.
+     */
+    public FieldValues copy() {
+        FieldValues c = new FieldValues(values.size(), fields);
+        for (FieldValue value : values) {
+            c.add(value);
+        }
+        return c;
+    }
+
 }
