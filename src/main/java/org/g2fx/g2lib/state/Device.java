@@ -226,6 +226,8 @@ public class Device implements Dispatcher {
             case I_LED_DATA -> patch.getVisuals().readLedData(buf);
             case I_SET_PARAM -> patch.readParamUpdate(buf);
             case I_CHANGE_VARIATION -> patch.readVarChange(buf);
+            case I_PARAMS -> patch.readParams(buf);
+            case I_PARAM_LABELS -> patch.readParamLabels(buf);
             default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);
         };
     }

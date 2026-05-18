@@ -323,7 +323,6 @@ class ProtocolTest {
 
     private int testPatchSettings(Patch p, int vce) {
         Sections.Section s = p.getSection(Sections.SPatchParams_4d);
-        assertEquals(2, Sections.SPatchParams_4d.location,"location"); //patch parameters
 
         FieldValues patchSettings = s.values();
         int vc = assertFieldEquals(patchSettings,vce, ModuleParams.VariationCount);
@@ -1019,7 +1018,7 @@ class ProtocolTest {
     void readModNames1Test() throws Exception {
         ByteBuffer buf = Util.readFile("data/sect_SModuleNames1.msg");
         BitBuffer bb = new BitBuffer(buf);
-        assertEquals(Sections.SModuleNames1_5a.location,bb.get(2));
+        assertEquals(Sections.SModuleNames1_5a.area,AreaId.readLocation(bb));
         Sections.SModuleNames1_5a.fields.read(bb);
     }
 
@@ -1027,7 +1026,7 @@ class ProtocolTest {
     void readModLabels0Test() throws Exception {
         ByteBuffer buf = Util.readFile("data/sect_SModuleLabels0.msg");
         BitBuffer bb = new BitBuffer(buf);
-        assertEquals(Sections.SModuleLabels0_5b.location,bb.get(2));
+        assertEquals(Sections.SModuleLabels0_5b.area,AreaId.readLocation(bb));
         FieldValues fvs = Sections.SModuleLabels0_5b.fields.read(bb);
         //System.out.println(fvs);
     }

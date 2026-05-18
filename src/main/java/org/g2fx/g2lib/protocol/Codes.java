@@ -19,7 +19,7 @@ public class Codes {
     public static final int I_SET_MASTER_CLOCK = 0x3f;
     public static final int I_SET_PARAM = 0x40;
     public static final int I_PARAMS = 0x4d;
-    public static final int I_PARAM_NAMES = 0x5b;
+    public static final int I_PARAM_LABELS = 0x5b;
     public static final int I_EXT_MASTER_CLOCK = 0x5d;
     public static final int I_GLOBAL_KNOB_ASSIGMENTS = 0x5f;
     public static final int I_CURRENT_NOTE = 0x69;

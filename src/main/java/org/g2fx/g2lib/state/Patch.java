@@ -296,15 +296,15 @@ public class Patch {
             int lpos = bb.limit();
             bb.put(16,0);
             int ss = bb.limit();
-            if (s.location != null) {
-                bb.put(2, s.location);
-            }
+
+            s.writeLocation(bb);
+
             FieldValues fvs = getSection(s).values();
             addVariation(s, fvs);
             fvs.write(bb);
             int len = bb.limit() - ss;
             bb.writeLength(lpos, len);
-            log.info(() -> String.format("writeMessage: %s, length %x, location %d",s,len,s.location));
+            log.info(() -> String.format("writeMessage: %s, length %x",s,len));
             bb.padToByte();
         }
     }
@@ -348,6 +348,9 @@ public class Patch {
     }
 
 
+    /**
+     * Read section from byte buffer TYPE -> LENGTH -> [LOCATION] ->
+     */
     // file-perf, usb, file-patch
     public void readSection(ByteBuffer buf, Sections s) {
         BitBuffer bb = Sections.sliceSection(s,buf);
@@ -355,22 +358,31 @@ public class Patch {
         readSectionSlice(bb, s);
     }
 
+    /**
+     * read section from BitBuffer [LOCATION] -> ...
+     */
     // usb, and via readSection
     public boolean readSectionSlice(BitBuffer bb, Sections s) {
-        int startIx = bb.getBitIndex();
-        if (s.location != null) {
-            Integer loc = bb.get(2);
-            if (!loc.equals(s.location)) {
-                throw new IllegalArgumentException(String.format("Bad location: %x, %s",loc, s));
+        if (s.area != null) {
+            AreaId a = AreaId.readLocation(bb);
+            if (s.area != a) {
+                throw new IllegalArgumentException(String.format("Bad location: %s, %s",a, s));
             }
-            log.info(()->String.format("readSectionSlice: %s, location %d",s,loc));
         }
+        return readSection(bb, s);
+    }
+
+    /**
+     * read section from BitBuffer after [LOCATION], populating FieldValues and updating.
+     */
+    private boolean readSection(BitBuffer bb, Sections s) {
         FieldValues fvs;
+        int startIx = bb.getBitIndex();
         try {
             fvs = s.fields.read(bb);
         } catch (RuntimeException e) {
-            File file = new File(String.format("data/error_%s.msg",s.name()));
-            log.severe(String.format("Error reading section %s, dumping buffer to %s",s,file));
+            File file = new File(String.format("data/error_%s.msg", s.name()));
+            log.severe(String.format("Error reading section %s, dumping buffer to %s", s,file));
             ByteBuffer data = bb.setBitIndex(startIx).shiftedSlice();
             try { Util.writeBuffer(data,file); } catch (Exception ignored) {}
             throw e;
@@ -379,7 +391,6 @@ public class Patch {
         return true;
     }
 
-    // via readSectionSlice only
     private void updateSection(Sections s, Sections.Section section) {
         sections.put(s, section);
         log.info("updateSection: " + s);
@@ -483,4 +494,24 @@ public class Patch {
         return visuals;
     }
 
+    public boolean readParams(ByteBuffer buf) {
+        BitBuffer bb = BitBuffer.sliceAhead(buf,Util.getShort(buf));
+        Sections s = switch (AreaId.readLocation(bb)) {
+            case Voice -> Sections.SModuleParams1_4d;
+            case Fx -> Sections.SModuleParams0_4d;
+            case Settings -> Sections.SPatchParams_4d;
+        };
+        return readSection(bb,s);
+    }
+
+    public boolean readParamLabels(ByteBuffer buf) {
+        BitBuffer bb = BitBuffer.sliceAhead(buf,Util.getShort(buf));
+        AreaId a = AreaId.readLocation(bb);
+        Sections s = switch (a) {
+            case Voice -> Sections.SModuleLabels1_5b;
+            case Fx -> Sections.SModuleLabels0_5b;
+            case Settings -> Sections.SMorphLabels_5b;
+        };
+        return readSection(bb,s);
+    }
 }
