@@ -2,4 +2,4 @@
 
 fn="$1"
 
-tshark -r $fn -x | egrep -B 1 '^([1-9a-f]|0[1-9a-f]|00[2-9a-f])' | sed -e 's/^0010  .. .. .. .. .. .. .. .. .. .. .. .. .. .. \(..\) ..  .*/\1/'
+tshark -r $fn -x | awk -f filter.awk

@@ -105,7 +105,15 @@ public class Performance {
 
     public ByteBuffer writeMessage() throws Exception {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
-        buf.put(Util.asBytes(0x01,0x2c,0x42,0x37,0x00,0x00,0x00));
+        buf.put(Util.asBytes(
+                Device.M_CMD,
+                Device.S_PERF_REQ,
+                Device.V_NEW,
+                Device.O_CREATE,
+                0x00, // ??
+                0x00, // ??
+                0x00  // ??
+        ));
         BitBuffer bb = BitBuffer.fromSlice(buf);
         FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(perfName.get()));
         name.write(bb);
@@ -194,10 +202,6 @@ public class Performance {
 
     public PerformanceSettings getPerfSettings() {
         return perfSettings;
-    }
-
-    public void setPatch(Slot slot, Patch patch) {
-        slots.put(slot,patch);
     }
 
     public Patch getSlot(Slot slot) {

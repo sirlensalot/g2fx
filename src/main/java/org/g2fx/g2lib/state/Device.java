@@ -22,31 +22,72 @@ public class Device implements Dispatcher {
 
     private static final Logger log = Util.getLogger(Device.class);
 
-    public static final int T_PATCH_LOAD_DATA = 0x72;
-    public static final int T_TEXT_PAD = 0x6f;
-    public static final int T_CURRENT_NOTE = 0x69;
-    public static final int T_PATCH_NAME = 0x27;
-    public static final int T_PATCH_DESCRIPTION = 0x21;
-    public static final int T_SELECTED_PARAM = 0x2f;
-    public static final int T_OK = 0x7f;
-    public static final int T_SYNTH_SETTINGS = 0x03;
-    public static final int T_PERFORMANCE_NAME = 0x29;
-    public static final int T_RESERVED_1E = 0x1e;
-    public static final int T_GLOBAL_KNOB_ASSIGMENTS = 0x5f;
-    public static final int T_ASSIGNED_VOICES = 0x05;
-    public static final int T_EXT_MASTER_CLOCK = 0x5d;
-    public static final int T_SET_MASTER_CLOCK = 0x3f;
-    public static final int T_ENTRY_LIST = 0x13;
-    public static final int T_VOLUME_DATA = 0x3a;
-    public static final int T_LED_DATA = 0x39;
-    public static final int T_SET_PARAM = 0x40;
-    public static final int T_CHANGE_SLOT = 0x09;
-    public static final int T_CHANGE_VARIATION = 0x6a;
+    // Inbound command codes (endpoints 81/82)
+    public static final int I_SYNTH_SETTINGS = 0x03;
+    public static final int I_ASSIGNED_VOICES = 0x05;
+    public static final int I_CHANGE_SLOT = 0x09;
+    public static final int I_ENTRY_LIST = 0x13;
+    public static final int I_RESERVED_1E = 0x1e;
+    public static final int I_VERSION2 = 0x1f;
+    public static final int I_PATCH_DESCRIPTION = 0x21;
+    public static final int I_PATCH_NAME = 0x27;
+    public static final int I_PERFORMANCE_NAME = 0x29;
+    public static final int I_SELECTED_PARAM = 0x2f;
+    public static final int I_VERSION1 = 0x36;
+    public static final int I_LED_DATA = 0x39;
+    public static final int I_VOLUME_DATA = 0x3a;
+    public static final int I_SET_MASTER_CLOCK = 0x3f;
+    public static final int I_SET_PARAM = 0x40;
+    public static final int I_PARAMS = 0x4d;
+    public static final int I_PARAM_NAMES = 0x5b;
+    public static final int I_EXT_MASTER_CLOCK = 0x5d;
+    public static final int I_GLOBAL_KNOB_ASSIGMENTS = 0x5f;
+    public static final int I_CURRENT_NOTE = 0x69;
+    public static final int I_CHANGE_VARIATION = 0x6a;
+    public static final int I_TEXT_PAD = 0x6f;
+    public static final int I_PATCH_LOAD_DATA = 0x72;
+    public static final int I_OK = 0x7f;
 
+    // "Magic version" in patch/perf version position
     public static final int V_VERSION = 0x40;
+    // "System version" in perf requests
+    public static final int V_SYSTEM = 0x41;
+    // "New version" in perf (patch?) create
+    public static final int V_NEW = 0x42;
 
-    public static final int R_CMD = 0x01;
-    public static final int R_INIT = 0x80;
+    // Perf slot codes
+    public static final int S_SLOT_00 = 0x00;
+    public static final int S_PERF_04 = 0x04; // for slots 00-03
+    public static final int S_SLOT_08 = 0x08;
+    public static final int S_PERF_0C = 0x0c; // for slots 08-0b
+    public static final int S_PERF_REQ = 0x2c; // for slots 28-2b
+    public static final int S_SLOT_REQ = 0x28; // base for slot selector
+
+    // Message types
+    public static final int M_INIT = 0x80;
+    public static final int M_CMD = 0x01;
+
+    // Outbound command codes (endpoint 03)
+    public static final int O_SYNTH_SETTINGS = 0x02;
+    public static final int O_ASSIGNED_VOICES = 0x04;
+    public static final int O_LOAD_ENTRY = 0x0a;
+    public static final int O_PERF_SETTINGS = 0x10;
+    public static final int O_PATCH_NAME = 0x28;
+    public static final int O_SELECTED_PARAM = 0x2e;
+    public static final int O_VERSION = 0x35;
+    public static final int O_MASTER_CLOCK = 0x3b;
+    public static final int O_PATCH = 0x3c;
+    public static final int O_CREATE = 0x37;
+    public static final int O_PARAMS = 0x4c;
+    public static final int O_PARAM_NAMES = 0x4f;
+    public static final int O_UNKNOWN2 = 0x59;
+    public static final int O_GLOBAL_KNOBS = 0x5e;
+    public static final int O_CURRENT_NOTE = 0x68;
+    public static final int O_PATCH_TEXT = 0x6e;
+    public static final int O_UNKNOWN6 = 0x70;
+    public static final int O_RESOURCES_USED = 0x71;
+    public static final int O_START_STOP_COM = 0x7d;
+    public static final int O_UNKNOWN1 = 0x81;
 
 
     private final UsbSender usb;
@@ -98,120 +139,91 @@ public class Device implements Dispatcher {
 
     public void initialize() throws Exception {
 
-        usb.sendBulk("Init", true, Util.asBytes(R_INIT));
+        usb.sendBulk("Init", true, Util.asBytes(M_INIT));
 
-
-        // load 01: first request is 0x0a // S_RETREIVE, response is 0x40
-
-
-        // perf version
         perf = new Performance(usb);
-        usb.sendSystemRequest("perf version"  // load 02
-                ,0x35 // Q_VERSION_CNT
-                ,0x04 // perf version??
-        );
 
-        sendStartStopComm(false); // not load? // this goes out first in poweron2
+        usb.sendSystemRequest("perf version",
+                O_VERSION,
+                S_PERF_04);
 
-        //synth settings
-        usb.sendSystemRequest("Synth settings" // not load
-                ,0x02 // Q_SYNTH_SETTINGS
-        );
+        sendStartStopComm(false); // this goes out first in poweron2
 
-        usb.sendSystemRequest("unknown 1" // not load
-                ,0x81 // M_UNKNOWN_1
-        );
+        usb.sendSystemRequest("Synth settings",
+                O_SYNTH_SETTINGS);
 
-        usb.sendPerfRequest(perf.getVersion(),"perf settings" // load 03
-                ,0x10 // Q_PERF_SETTINGS
-        );
+        usb.sendSystemRequest("unknown 1",
+                O_UNKNOWN1);
 
-        usb.sendPerfRequest(perf.getVersion(),"unknown 2" // load 04
-                ,0x59 // M_UNKNOWN_2
-        );
+        usb.sendPerfRequest(perf.getVersion(),"perf settings",
+                O_PERF_SETTINGS);
 
+        usb.sendPerfRequest(perf.getVersion(),"unknown 2",
+                O_UNKNOWN2);
 
+        //  TODO master clock can be O_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
+        usb.sendSystemRequest("master clock",
+                O_MASTER_CLOCK);
 
-        // master clock
-        //  TODO master clock can be R_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
-        // ext master clock:
-        // 92 01 0c 00 5d 01 00 78 37 90 00 00 00 00 00 00
-        usb.sendSystemRequest("master clock", // not load
-                0x3b //Q_MASTER_CLOCK
-        );
-
-        usb.sendPerfRequest(perf.getVersion(),"global knobs", // load 13
-                0x5e //Q_GLOBAL_KNOBS
-        );
+        usb.sendPerfRequest(perf.getVersion(),"global knobs",
+                O_GLOBAL_KNOBS);
 
         for (Slot slot : Slot.values()) {
             readSlot(slot);
         }
 
         usb.sendSystemRequest("assigned voices",
-                0x04 //Q_ASSIGNED_VOICES
-        );
+                O_ASSIGNED_VOICES);
 
         entries.readEntries(Entries.EntryType.Patch);
         entries.readEntries(Entries.EntryType.Perf);
-
-        //sendStartStopComm(true); // load 14
 
     }
 
 
     private void readSlot(final Slot slot) throws Exception {
 
-        usb.sendSystemRequest("slot version " + slot // not load
-                ,0x35 // Q_VERSION_CNT
-                , slot.ordinal() // slot index
-        );
+        usb.sendSystemRequest("slot version " + slot,
+                O_VERSION,
+                slot.ordinal());
+
+        // version will be set from response to O_VERSION
         Patch patch = perf.getSlot(slot);
         int pv = patch.getVersion();
 
-        usb.sendSlotRequest(slot,pv,"slot patch" + slot, // load 05
-                0x3c // Q_PATCH
-        );
+        usb.sendSlotRequest(slot,pv,"slot patch" + slot,
+                O_PATCH);
 
-        usb.sendSlotRequest(slot,pv,"slot name" + slot, // load 06
-                0x28 // Q_PATCH_NAME
-        );
+        usb.sendSlotRequest(slot,pv,"slot name" + slot,
+                O_PATCH_NAME);
 
-        usb.sendSlotRequest(slot,pv,"slot note" + slot, // load 07
-                0x68 // Q_CURRENT_NOTE
-        );
+        usb.sendSlotRequest(slot,pv,"slot note" + slot,
+                O_CURRENT_NOTE);
 
-        usb.sendSlotRequest(slot,pv,"slot text " + slot, // load 08
-                0x6e //Q_PATCH_TEXT
-        );
+        usb.sendSlotRequest(slot,pv,"slot text " + slot,
+                O_PATCH_TEXT);
 
-        usb.sendSlotRequest(slot,pv,"patch load VA", // load 09
-                0x71, // Q_RESOURCES_USED
-                AreaId.Voice.ordinal() // LOCATION_VA
-        );
+        usb.sendSlotRequest(slot,pv,"patch load VA",
+                O_RESOURCES_USED,
+                AreaId.Voice.ordinal());
 
-        usb.sendSlotRequest(slot,pv,"patch load FX", // load 10
-                0x71, // Q_RESOURCES_USED
-                AreaId.Fx.ordinal() // LOCATION_VA
-        );
+        usb.sendSlotRequest(slot,pv,"patch load FX",
+                O_RESOURCES_USED,
+                AreaId.Fx.ordinal());
 
-        usb.sendSlotRequest(slot,pv,"unknown 6",  // load 11
-                0x70 // M_UNKNOWN_6
-        );
+        usb.sendSlotRequest(slot,pv,"unknown 6",
+                O_UNKNOWN6);
 
-        usb.sendSlotRequest(slot,pv,"selected param", // load 12
-                0x2e // Q_SELECTED_PARAM
-        );
-
-        perf.setPatch(slot,patch);
+        usb.sendSlotRequest(slot,pv,"selected param",
+                O_SELECTED_PARAM);
 
     }
 
 
     public void sendStartStopComm(boolean start) throws Exception {
         usb.sendSystemRequest(start ? "Start comm" : "Stop comm"
-                ,0x7d // S_START_STOP_COM
-                , start ? 0x00 : 0x01
+                , O_START_STOP_COM
+                , start ? 0 : 1
         );
     }
 
@@ -234,7 +246,7 @@ public class Device implements Dispatcher {
     public void loadEntry(int slotCode, int bank, int entry) throws Exception {
         log.info(String.format("loadEntry: slot=%s, bank=%s, entry=%s",slotCode,bank,entry));
         usb.sendSystemRequest("loadEntry",
-                0x0a, //S_RETREIVE
+                O_LOAD_ENTRY, //S_RETREIVE
                 slotCode,
                 bank,
                 entry
@@ -260,8 +272,8 @@ public class Device implements Dispatcher {
             ByteBuffer buf = msg.getBufferx().slice(); //skip embedded first byte
             int h = Util.b2i(buf.get());
             return switch (h) {
-                case R_CMD -> dispatchCmd(buf);
-                case R_INIT -> dispatchSuccess(() -> "System Init");
+                case M_CMD -> dispatchCmd(buf);
+                case M_INIT -> dispatchSuccess(() -> "System Init");
                 default -> dispatchFailure("dispatch: unrecognized response code: %02x", h);
             };
         } catch (RuntimeException e) {
@@ -283,11 +295,11 @@ public class Device implements Dispatcher {
             } else {
                 return dispatchFailure("dispatchCmd: unrecognized perf or sys version: " + v);
             }
-        } else if (h >= 8 && h < 12) {
+        } else if (h >= S_SLOT_08 && h < S_PERF_0C) {
             return dispatchSlotCmd(Slot.fromIndex(h - 8),buf);
-        } else if (h >=0 && h < 4) {
+        } else if (h >= S_SLOT_00 && h < S_PERF_04) {
             return dispatchSlotCmd(Slot.fromIndex(h), buf);
-        } else if (h == 4) {
+        } else if (h == S_PERF_04) {
             int pv = Util.b2i(buf.get());
             if (pv == V_VERSION) { // version msg in response to load from keyboard, indicates a reset, plus looks like comms stop?
                 return dispatchVersion(buf);
@@ -311,17 +323,17 @@ public class Device implements Dispatcher {
     private boolean dispatchPerfCmd(ByteBuffer buf) {
         int t = Util.b2i(buf.get());
         return switch (t) {
-            case T_OK -> dispatchSuccess(() -> "OK");
-            case T_SYNTH_SETTINGS -> setSynthSettings(buf.slice());
-            case R_INIT -> dispatchSuccess(() -> "Perf Init");
-            case T_PERFORMANCE_NAME -> perf.readPerformanceNameAndSettings(buf);
-            case T_RESERVED_1E -> dispatchSuccess(() -> "reserved 1e");
-            case T_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
-            case T_SET_MASTER_CLOCK -> setMasterClock(buf);
-            case T_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
-            case T_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
-            case T_ENTRY_LIST -> entries.dispatchEntryList(buf.slice());
-            case T_CHANGE_SLOT -> readSlotChange(buf);
+            case I_OK -> dispatchSuccess(() -> "OK");
+            case I_SYNTH_SETTINGS -> setSynthSettings(buf.slice());
+            case M_INIT -> dispatchSuccess(() -> "Perf Init");
+            case I_PERFORMANCE_NAME -> perf.readPerformanceNameAndSettings(buf);
+            case I_RESERVED_1E -> dispatchSuccess(() -> "reserved 1e");
+            case I_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
+            case I_SET_MASTER_CLOCK -> setMasterClock(buf);
+            case I_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
+            case I_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
+            case I_ENTRY_LIST -> entries.dispatchEntryList(buf.slice());
+            case I_CHANGE_SLOT -> readSlotChange(buf);
             default -> dispatchFailure("dispatchPerfCmd: unrecognized type: %02x",t);
         };
     }
@@ -335,29 +347,29 @@ public class Device implements Dispatcher {
         patch.setVersion(Util.b2i(buf.get()));
         int t = Util.b2i(buf.get());
         return switch (t) {
-            case T_PATCH_DESCRIPTION -> {
+            case I_PATCH_DESCRIPTION -> {
                 buf.position(buf.position()-1);
                 patch.readPatchDescription(buf);
                 log.info(() -> "patch description");
                 yield true;
             }
-            case T_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName_27);
-            case T_CURRENT_NOTE -> patch.readSectionSlice(sliceAhead(buf), Sections.SCurrentNote_69);
-            case T_TEXT_PAD -> patch.readSectionSlice(sliceAhead(buf), Sections.STextPad_6f);
-            case T_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
-            case T_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
-            case T_SELECTED_PARAM -> patch.readSelectedParam(buf);
-            case T_VOLUME_DATA -> patch.getVisuals().readVolumeData(buf);
-            case T_LED_DATA -> patch.getVisuals().readLedData(buf);
-            case T_SET_PARAM -> patch.readParamUpdate(buf);
-            case T_CHANGE_VARIATION -> patch.readVarChange(buf);
+            case I_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName_27);
+            case I_CURRENT_NOTE -> patch.readSectionSlice(sliceAhead(buf), Sections.SCurrentNote_69);
+            case I_TEXT_PAD -> patch.readSectionSlice(sliceAhead(buf), Sections.STextPad_6f);
+            case I_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
+            case I_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
+            case I_SELECTED_PARAM -> patch.readSelectedParam(buf);
+            case I_VOLUME_DATA -> patch.getVisuals().readVolumeData(buf);
+            case I_LED_DATA -> patch.getVisuals().readLedData(buf);
+            case I_SET_PARAM -> patch.readParamUpdate(buf);
+            case I_CHANGE_VARIATION -> patch.readVarChange(buf);
             default -> dispatchFailure("dispatchSlotCmd: unrecognized type: %02x",t);
         };
     }
 
 
         /*
-        3a: R_VOLUME_DATA (slot cmd)
+        3a: O_VOLUME_DATA (slot cmd)
 01 00 00 3a 00 00 00 00 00 00 00 00 00 00 00 07   . . . : . . . . . . . . . . . .
 00 00 00 00 00 00 00 00 00 00 30 00 00 00 00 00   . . . . . . . . . . 0 . . . . .
 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
@@ -365,7 +377,7 @@ public class Device implements Dispatcher {
 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
 00 00 00 00 00 6d 3d                              . . . . . m =
 
-  R_LED_DATA              = $39; (slot)
+  O_LED_DATA              = $39; (slot)
 01 00 00 39 00 00 00 00 00 15 00 00 00 00 00 b6   . . . 9 . . . . . . . . . . . .
 54                                                T
          */
@@ -376,13 +388,13 @@ public class Device implements Dispatcher {
     private boolean dispatchVersion(ByteBuffer buf) {
         int sc = Util.b2i(buf.get());
         return switch (sc) {
-            case 0x36 -> {
+            case I_VERSION1 -> {
                 int id = Util.b2i(buf.get());
                 int version = Util.b2i(buf.get());
-                if (id == 4) {
+                if (id == S_PERF_04) {
                     perf.setVersion(version);
                     yield true;
-                } else if (id >= 0 && id <4) { // does this also support 8-11?
+                } else if (id >= S_SLOT_00 && id < S_PERF_04 ) { // does this also support 8-11?
                     //TODO this also seems to support multiple versions
                     //0020  01 0c 40 36 00 04 36 01 04 36 02 04 36 03 04 36
                     //0030  04 04 02 8a
@@ -392,7 +404,7 @@ public class Device implements Dispatcher {
                     yield dispatchFailure("dispatchVersion: unrecognized id " + id);
                 }
             }
-            case 0x1f -> {
+            case I_VERSION2 -> {
                 perf.setVersion(buf.get());
                 while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
                     perf.getSlot(Slot.fromIndex(buf.get())).setVersion(Util.b2i(buf.get()));
