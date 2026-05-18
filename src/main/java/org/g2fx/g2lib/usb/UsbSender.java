@@ -1,11 +1,12 @@
 package org.g2fx.g2lib.usb;
 
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
+
+import static org.g2fx.g2lib.protocol.Codes.*;
 
 public interface UsbSender {
 
@@ -13,24 +14,24 @@ public interface UsbSender {
 
     default int sendSystemRequest(String msg, int... cdata) throws Exception {
         return sendBulk(msg, true, Util.concat(Util.asBytes(
-                Device.M_CMD,
-                Device.S_PERF_REQ,
-                Device.V_SYSTEM
+                M_CMD,
+                S_PERF_REQ,
+                V_SYSTEM
         ),Util.asBytes(cdata)));
     }
 
     default int sendPerfRequest(int perfVersion, String msg, int... cdata) throws Exception {
         return sendBulk(msg, true, Util.concat(Util.asBytes(
-                Device.M_CMD,
-                Device.S_PERF_REQ,
+                M_CMD,
+                S_PERF_REQ,
                 perfVersion
         ),Util.asBytes(cdata)));
     }
 
     default int sendSlotRequest(Slot slot, int version, String msg, int... cdata) throws Exception {
         return sendBulk(msg, true, Util.concat(Util.asBytes(
-                Device.M_CMD,
-                Device.S_SLOT_REQ + slot.ordinal(),
+                M_CMD,
+                S_SLOT_REQ + slot.ordinal(),
                 version
         ),Util.asBytes(cdata)));
     }

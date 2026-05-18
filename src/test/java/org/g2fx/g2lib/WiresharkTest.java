@@ -30,7 +30,7 @@ public class WiresharkTest {
     }
     @Test
     void testStartup() throws Exception{
-        ByteBuffer bb = Util.readFile("data/poweron2.pcapng");
+        ByteBuffer bb = Util.readFile("data/capture/poweron2.pcapng");
         Map<String,Set<String>> endpointTypes = new TreeMap<>();
         Map<String,Map<String,Set<String>>> valsByEndpoint = new TreeMap<>();
         Map<String,Set<String>> vals = new TreeMap<>();

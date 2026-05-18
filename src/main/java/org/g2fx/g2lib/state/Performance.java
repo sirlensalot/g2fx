@@ -7,7 +7,6 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
-import org.g2fx.g2lib.usb.UsbPerfSender;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
@@ -20,6 +19,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
 import static org.g2fx.g2lib.util.Util.withYamlMap;
@@ -44,12 +44,12 @@ public class Performance {
     private GlobalKnobAssignments globalKnobAssignments;
     private final Map<Slot,Patch> slots = new TreeMap<>();
 
-    private final UsbPerfSender sender;
+    private final UsbSender usb;
 
-    public Performance(UsbSender sysSender) {
-        this.sender = new UsbPerfSender(sysSender,this);
+    public Performance(UsbSender usb) {
+        this.usb = usb;
         for (Slot s : Slot.values()) {
-            slots.put(s,new Patch(s, sysSender));
+            slots.put(s,new Patch(s, usb));
         }
     }
 
@@ -106,10 +106,10 @@ public class Performance {
     public ByteBuffer writeMessage() throws Exception {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         buf.put(Util.asBytes(
-                Device.M_CMD,
-                Device.S_PERF_REQ,
-                Device.V_NEW,
-                Device.O_CREATE,
+                M_CMD,
+                S_PERF_REQ,
+                V_NEW,
+                O_CREATE,
                 0x00, // ??
                 0x00, // ??
                 0x00  // ??
@@ -270,4 +270,78 @@ public class Performance {
                 new File(fileName),
                 top);
     }
+
+    public void initialize() throws Exception {
+
+        usb.sendSystemRequest("perf version",
+                O_VERSION,
+                S_PERF_04);
+
+
+        usb.sendSystemRequest("Synth settings",
+                O_SYNTH_SETTINGS);
+
+        usb.sendSystemRequest("unknown 1",
+                O_UNKNOWN1);
+
+        usb.sendPerfRequest(getVersion(),"perf settings",
+                O_PERF_SETTINGS);
+
+        usb.sendPerfRequest(getVersion(),"unknown 2",
+                O_UNKNOWN2);
+
+        //  TODO master clock can be O_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
+        usb.sendSystemRequest("master clock",
+                O_MASTER_CLOCK);
+
+        usb.sendPerfRequest(getVersion(),"global knobs",
+                O_GLOBAL_KNOBS);
+
+        for (Slot slot : Slot.values()) {
+            readSlot(slot);
+        }
+
+        usb.sendSystemRequest("assigned voices",
+                O_ASSIGNED_VOICES);
+
+    }
+
+    private void readSlot(final Slot slot) throws Exception {
+
+        usb.sendSystemRequest("slot version " + slot,
+                O_VERSION,
+                slot.ordinal());
+
+        // version will be set from response to O_VERSION
+        Patch patch = getSlot(slot);
+        int pv = patch.getVersion();
+
+        usb.sendSlotRequest(slot,pv,"slot patch" + slot,
+                O_PATCH);
+
+        usb.sendSlotRequest(slot,pv,"slot name" + slot,
+                O_PATCH_NAME);
+
+        usb.sendSlotRequest(slot,pv,"slot note" + slot,
+                O_CURRENT_NOTE);
+
+        usb.sendSlotRequest(slot,pv,"slot text " + slot,
+                O_PATCH_TEXT);
+
+        usb.sendSlotRequest(slot,pv,"patch load VA",
+                O_RESOURCES_USED,
+                AreaId.Voice.ordinal());
+
+        usb.sendSlotRequest(slot,pv,"patch load FX",
+                O_RESOURCES_USED,
+                AreaId.Fx.ordinal());
+
+        usb.sendSlotRequest(slot,pv,"unknown 6",
+                O_UNKNOWN6);
+
+        usb.sendSlotRequest(slot,pv,"selected param",
+                O_SELECTED_PARAM);
+
+    }
+
 }
