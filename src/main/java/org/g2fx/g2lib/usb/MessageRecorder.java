@@ -12,6 +12,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class MessageRecorder {
     private long time = -1;
@@ -102,12 +103,16 @@ public class MessageRecorder {
         }).toList();
     }
 
-    public static List<RecordedUsbMessage> readCapture(List<Util.UsbPacket> packets) {
+    public static final Predicate<Byte> INBOUND = (b) -> b == Usb.EP_IN_BULK || b == Usb.EP_IN_INTERRUPT;
+    public static final Predicate<Byte> OUTBOUND = (b) -> b == Usb.EP_OUT_BULK;
+
+    public static List<RecordedUsbMessage> readCapture(List<Util.UsbPacket> packets, Predicate<Byte> epPred) {
         List<RecordedUsbMessage> l = new ArrayList<>();
         int i = 0;
         for (Util.UsbPacket p : packets) {
             i++;
             byte ep = p.data().get(0x1e);
+            if (!epPred.test(ep)) { continue; }
             int len = p.data().limit() - 0x20;
             if (len < 3) { continue; }
             ByteBuffer bb = p.data().slice(0x20, len);

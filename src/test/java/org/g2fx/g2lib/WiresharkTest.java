@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class WiresharkTest {
 
     @BeforeAll
@@ -18,14 +20,13 @@ public class WiresharkTest {
 
     @Test
     void playStartup() throws Exception {
-        ByteBuffer bb = Util.readFile("data/poweron2.pcapng");
-        List<Util.UsbPacket> ps = Util.readPcapNg(bb);
-        List<MessageRecorder.RecordedUsbMessage> ms = MessageRecorder.readCapture(ps);
+        List<MessageRecorder.RecordedUsbMessage> ms = DeviceTest.parseCapture("data/capture/poweron2.pcapng",
+                MessageRecorder.INBOUND);
         Device d = new Device();
         for (MessageRecorder.RecordedUsbMessage m : ms) {
-            d.dispatch(m.msg());
+            assertTrue(d.dispatch(m.msg()));
         }
-        d.getPerf().dumpYaml("data/startup.yaml");
+        //d.getPerf().dumpYaml("data/startup.yaml");
     }
     @Test
     void testStartup() throws Exception{

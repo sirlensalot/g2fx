@@ -383,28 +383,25 @@ public class Device implements Dispatcher {
          */
 
     /**
-     * Handle 01 0c 40 36 ...
+     * Handle 01 0c 40 ...
      */
     private boolean dispatchVersion(ByteBuffer buf) {
-        int sc = Util.b2i(buf.get());
-        return switch (sc) {
+        return switch (Util.b2i(buf.get(buf.position()))) {
             case I_VERSION1 -> {
-                int id = Util.b2i(buf.get());
-                int version = Util.b2i(buf.get());
-                if (id == S_PERF_04) {
-                    perf.setVersion(version);
-                    yield true;
-                } else if (id >= S_SLOT_00 && id < S_PERF_04 ) { // does this also support 8-11?
-                    //TODO this also seems to support multiple versions
-                    //0020  01 0c 40 36 00 04 36 01 04 36 02 04 36 03 04 36
-                    //0030  04 04 02 8a
-                    perf.getSlot(Slot.fromIndex(id)).setVersion(version);
-                    yield true;
-                } else {
-                    yield dispatchFailure("dispatchVersion: unrecognized id " + id);
-                }
+                buf.get();
+                do {
+                    byte s = buf.get();
+                    byte v = buf.get();
+                    if (s == S_PERF_04) {
+                        perf.setVersion(v);
+                    } else {
+                        perf.getSlot(Slot.fromIndex(s)).setVersion(v);
+                    }
+                } while (Util.b2i(buf.get()) == I_VERSION1);
+                yield true;
             }
             case I_VERSION2 -> {
+                buf.get();
                 perf.setVersion(buf.get());
                 while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
                     perf.getSlot(Slot.fromIndex(buf.get())).setVersion(Util.b2i(buf.get()));
@@ -413,7 +410,7 @@ public class Device implements Dispatcher {
                 //01 0d 01 00 00 00 00 ea cf                        . . . . . . . . .
                 yield true;
             }
-            default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + sc);
+            default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + buf.get(buf.position()));
         };
 
     }
