@@ -35,7 +35,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "4f") { c = "O_PARAM_NAMES" }
 
 
-        print i ":OUT[03] " s " " v " " c "[" $7 "]";
+        printf("%03d:OUT[3] %s %s %s[%s]\n",i,s,v,c,$7);
     }
     if (ty=="81") {
         ep="INI[81]"
@@ -57,11 +57,10 @@ ty != "03" && ty != "81" && ty != "82" { next }
     if (pos == "03" || pos == "0b") { pos = "SlotD" }
     if (pos == "04" || pos == "0c") { pos = "Perf" }
     cc=cmd;
-    if (ver=="40") {
-        ver=cmd;
-        cmd="I_VERSION1"
-        if (ver=="36") { ver="Slots[36]" }
-    }
+    if (ver=="40") { ver="V_VERSION" } else { ver="v=" ver }
+
+    if (cmd == "36") { cmd = "I_VERSION1" }
+    if (cmd == "1f") { cmd = "I_VERSION2" }
     if (cmd == "72") { cmd = "I_PATCH_LOAD_DATA" }
     if (cmd == "2f") { cmd = "I_SELECTED_PARAM" }
     if (cmd == "7f") { cmd = "I_OK" }
@@ -70,8 +69,13 @@ ty != "03" && ty != "81" && ty != "82" { next }
     if (cmd == "4d") { cmd = "I_PARAMS" }
     if (cmd == "4d") { cmd = "I_PARAMS" }
     if (cmd == "5b") { cmd = "I_PARAM_NAMES" }
+    if (cmd == "05") { cmd = "I_ASSIGNED_VOICES" }
     if (ty=="81" || ty=="82") {
-        print i ":" ep " " pos " v=" ver " " cmd "[" cc "]"
+        printf("%03d:%s %s %s %s[%s]\n",i,ep,pos,ver,cmd,cc);
     }
 }
-{ print $0 }
+
+{
+    printf("%04x  %s\n",("0x" $1) - 32,
+        substr($0,6,length($0)-6))
+}
