@@ -1,6 +1,6 @@
 #!/bin/sh
 
-fn="capture-`date +%s`"
+fn="capture_`date +%s`"
 
 ssh musiker tcpdump -i XHC20 -w $fn.pcap
 

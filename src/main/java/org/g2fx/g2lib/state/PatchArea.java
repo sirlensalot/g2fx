@@ -147,6 +147,9 @@ public class PatchArea {
         log.fine("Selected param: " + selectedParam);
     }
 
+    public SelectedParam getSelectedParam() {
+        return selectedParam;
+    }
 
     public void updateParam(FieldValues fvs) {
         getModule(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);

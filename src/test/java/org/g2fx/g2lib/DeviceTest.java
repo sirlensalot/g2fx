@@ -1,5 +1,7 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2lib.model.ModParam;
+import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.UsbMessage;
@@ -151,122 +153,92 @@ class DeviceTest {
                 Util.dumpBufferString(m.msg().buffer()));
             i++;
         }
-        //TODO regress all perf data
-        assertEquals(4,d.getPerf().getSlot(Slot.A).getVersion());
-        /*
-2026-05-18 16:00:59.641 INFO Fields: PerformanceSettings [READ]: 0-280, 80.000 bytes
-0 0 0 0 78 0 0 0 [ 4e 6f 20 6e 61 6d 65 0 ]
-1 1 0 0 0 0 7f 20000 [ 4e 6f 20 6e 61 6d
-65 0 ] 1 0 0 0 0 0 7f 30000 [ 4e 6f 20 6e
-61 6d 65 0 ] 1 0 0 0 0 0 7f 40000 [ 4e 6f
-20 6e 61 6d 65 0 ] 1 0 0 0 0 0 7f 50000
+        Performance p = d.getPerf();
 
-2026-05-18 16:00:59.644 INFO Fields: ModuleParams [READ]: 2-b25, 356.375 bytes
-7 a 1 10 0 0 0 0 0 0 0 0 0 1 1 1 1 1
-1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1
-1 1 2 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1
-1 3 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 4
-0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 5 0
-0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 6 0 0
-0 0 0 0 0 0 1 1 1 1 1 1 1 1 7 0 0 0
-0 0 0 0 0 1 1 1 1 1 1 1 1 8 0 0 0 0
-0 0 0 0 1 1 1 1 1 1 1 1 9 0 0 0 0 0
-0 0 0 1 1 1 1 1 1 1 1 2 2 0 64 1 1 64
-1 2 64 1 3 64 1 4 64 1 5 64 1 6 64 1 7
-64 1 8 64 1 9 64 1 3 2 0 0 1c 1 0 1c 2 0
-1c 3 0 1c 4 0 1c 5 0 1c 6 0 1c 7 0 1c 8
-0 1c 9 0 1c 4 2 0 1 1 1 1 1 2 1 1 3 1
-1 4 1 1 5 1 1 6 1 1 7 1 1 8 1 1 9
-1 1 5 3 0 0 32 40 1 0 32 40 2 0 32 40 3 0
-32 40 4 0 32 40 5 0 32 40 6 0 32 40 7 0 32
-40 8 0 32 40 9 0 32 40 6 4 0 0 3 0 0 1 0
-3 0 0 2 0 3 0 0 3 0 3 0 0 4 0 3 0 0
-5 0 3 0 0 6 0 3 0 0 7 0 3 0 0 8 0 3
-0 0 9 0 3 0 0 7 2 0 2 1 1 2 1 2 2
-1 3 2 1 4 2 1 5 2 1 6 2 1 7 2 1 8 2
-1 9 2 1
-2026-05-18 16:00:59.645 INFO Patch:A: updateSection: SPatchParams_4d[4d:Settings]
-2026-05-18 16:00:59.651 INFO Fields: MorphLabels [READ]: 2-29a, 83.000 bytes
-1 1 50 1 8 8 [ 57 68 65 65 6c 0 0 ] 1 8 9
-[ 56 65 6c 0 0 0 0 ] 1 8 a [ 4b 65 79 62 0 0
-0 ] 1 8 b [ 41 66 74 2e 54 63 68 ] 1 8 c [ 53 75
-73 74 2e 50 64 ] 1 8 d [ 43 74 72 6c 2e 50 64 ] 1
-8 e [ 50 2e 53 74 69 63 6b ] 1 8 f [ 47 2e 57 68
-20 32 0 ]
-2026-05-18 16:00:59.651 INFO Patch:A: updateSection: SMorphLabels_5b[5b:Settings]
-2026-05-18 16:00:59.652 INFO Fields: SelectedParam [READ]: 0-20, 4.000 bytes
-1 2 1 0
-2026-05-18 16:00:59.661 INFO Fields: ModuleParams [READ]: 2-b25, 356.375 bytes
-7 a 1 10 0 0 0 0 0 0 0 0 0 1 1 1 1 1
-1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1
-1 1 2 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1
-1 3 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 4
-0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 5 0
-0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 6 0 0
-0 0 0 0 0 0 1 1 1 1 1 1 1 1 7 0 0 0
-0 0 0 0 0 1 1 1 1 1 1 1 1 8 0 0 0 0
-0 0 0 0 1 1 1 1 1 1 1 1 9 0 0 0 0 0
-0 0 0 1 1 1 1 1 1 1 1 2 2 0 64 1 1 64
-1 2 64 1 3 64 1 4 64 1 5 64 1 6 64 1 7
-64 1 8 64 1 9 64 1 3 2 0 0 1c 1 0 1c 2 0
-1c 3 0 1c 4 0 1c 5 0 1c 6 0 1c 7 0 1c 8
-0 1c 9 0 1c 4 2 0 1 1 1 1 1 2 1 1 3 1
-1 4 1 1 5 1 1 6 1 1 7 1 1 8 1 1 9
-1 1 5 3 0 0 32 40 1 0 32 40 2 0 32 40 3 0
-32 40 4 0 32 40 5 0 32 40 6 0 32 40 7 0 32
-40 8 0 32 40 9 0 32 40 6 4 0 0 3 0 0 1 0
-3 0 0 2 0 3 0 0 3 0 3 0 0 4 0 3 0 0
-5 0 3 0 0 6 0 3 0 0 7 0 3 0 0 8 0 3
-0 0 9 0 3 0 0 7 2 0 2 1 1 2 1 2 2
-1 3 2 1 4 2 1 5 2 1 6 2 1 7 2 1 8 2
-1 9 2 1
-2026-05-18 16:00:59.661 INFO Patch:B: updateSection: SPatchParams_4d[4d:Settings]
-2026-05-18 16:00:59.663 INFO Fields: MorphLabels [READ]: 2-29a, 83.000 bytes
-1 1 50 1 8 8 [ 57 68 65 65 6c 0 0 ] 1 8 9
-[ 56 65 6c 0 0 0 0 ] 1 8 a [ 4b 65 79 62 0 0
-0 ] 1 8 b [ 41 66 74 2e 54 63 68 ] 1 8 c [ 53 75
-73 74 2e 50 64 ] 1 8 d [ 43 74 72 6c 2e 50 64 ] 1
-8 e [ 50 2e 53 74 69 63 6b ] 1 8 f [ 47 2e 57 68
-20 32 0 ]
-2026-05-18 16:00:59.663 INFO Patch:B: updateSection: SMorphLabels_5b[5b:Settings]
-2026-05-18 16:00:59.664 INFO Fields: SelectedParam [READ]: 0-20, 4.000 bytes
-1 2 1 0
-2026-05-18 16:00:59.665 INFO Fields: ModuleParams [READ]: 2-b25, 356.375 bytes
-7 a 1 10 0 0 0 0 0 0 0 0 0 1 1 1 1 1
-1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1
-1 1 2 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1
-1 3 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 4
-0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 5 0
-0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 6 0 0
-0 0 0 0 0 0 1 1 1 1 1 1 1 1 7 0 0 0
-0 0 0 0 0 1 1 1 1 1 1 1 1 8 0 0 0 0
-0 0 0 0 1 1 1 1 1 1 1 1 9 0 0 0 0 0
-0 0 0 1 1 1 1 1 1 1 1 2 2 0 64 1 1 64
-1 2 64 1 3 64 1 4 64 1 5 64 1 6 64 1 7
-64 1 8 64 1 9 64 1 3 2 0 0 1c 1 0 1c 2 0
-1c 3 0 1c 4 0 1c 5 0 1c 6 0 1c 7 0 1c 8
-0 1c 9 0 1c 4 2 0 1 1 1 1 1 2 1 1 3 1
-1 4 1 1 5 1 1 6 1 1 7 1 1 8 1 1 9
-1 1 5 3 0 0 32 40 1 0 32 40 2 0 32 40 3 0
-32 40 4 0 32 40 5 0 32 40 6 0 32 40 7 0 32
-40 8 0 32 40 9 0 32 40 6 4 0 0 3 0 0 1 0
-3 0 0 2 0 3 0 0 3 0 3 0 0 4 0 3 0 0
-5 0 3 0 0 6 0 3 0 0 7 0 3 0 0 8 0 3
-0 0 9 0 3 0 0 7 2 0 2 1 1 2 1 2 2
-1 3 2 1 4 2 1 5 2 1 6 2 1 7 2 1 8 2
-1 9 2 1
-2026-05-18 16:00:59.665 INFO Patch:C: updateSection: SPatchParams_4d[4d:Settings]
-2026-05-18 16:00:59.667 INFO Fields: MorphLabels [READ]: 2-29a, 83.000 bytes
-1 1 50 1 8 8 [ 57 68 65 65 6c 0 0 ] 1 8 9
-[ 56 65 6c 0 0 0 0 ] 1 8 a [ 4b 65 79 62 0 0
-0 ] 1 8 b [ 41 66 74 2e 54 63 68 ] 1 8 c [ 53 75
-73 74 2e 50 64 ] 1 8 d [ 43 74 72 6c 2e 50 64 ] 1
-8 e [ 50 2e 53 74 69 63 6b ] 1 8 f [ 47 2e 57 68
-20 32 0 ]
-2026-05-18 16:00:59.667 INFO Patch:C: updateSection: SMorphLabels_5b[5b:Settings]
-2026-05-18 16:00:59.667 INFO Fields: SelectedParam [READ]: 0-20, 4.000 bytes
-1 2 1 0
-         */
+        //versions
+        assertEquals(4,p.getVersion());
+        assertEquals(4,p.getSlot(Slot.A).getVersion());
+        assertEquals(4,p.getSlot(Slot.B).getVersion());
+        assertEquals(4,p.getSlot(Slot.C).getVersion());
+        assertEquals(4,p.getSlot(Slot.D).getVersion());
+
+        //perf settings
+        assertEquals("Empty perf",p.getName());
+        assertEquals(Slot.A,p.getSelectedSlot());
+        PerformanceSettings perfSettings = p.getPerfSettings();
+        assertFalse(perfSettings.keyboardRangeEnabled().get());
+        assertEquals(120,perfSettings.masterClock().get());
+        assertFalse(perfSettings.masterClockRun().get());
+
+        // slot settings and patch
+        for (Slot s : Slot.values()) {
+
+            SlotSettings ss = perfSettings.getSlotSettings(s);
+            Patch patch = p.getSlot(s);
+            String n = s.toString();
+            assertTrue(ss.enabled().get(),n);
+            assertEquals(s==Slot.A,ss.keyboard().get(),n);//only A ena
+            assertEquals("No name",ss.patchName().get(),n);
+            assertFalse(ss.hold().get(),n);
+            assertEquals(0,ss.bankIndex().get(),n);
+            assertEquals(0,ss.patchIndex().get(),n);
+            assertEquals(0,ss.keyboardRangeFrom().get(),n);
+            assertEquals(127,ss.keyboardRangeTo().get(),n);
+
+            // WTF legacy editor doesn't request params,labels,selparam for slot D after new perf init.
+            if (s != Slot.D) {
+                // patch "settings module" settings
+                PatchArea psa = patch.getSettingsArea();
+                for (int v = 0; v < 9; v++) {
+                    String vn = n + ":" + v;
+                    PatchModule m = psa.getSettingsModule(SettingsModules.Misc);
+                    assertEquals(1, m.getSettingsValueProperty(ModParam.MiscSustain, v).get(), vn);
+                    assertEquals(2, m.getSettingsValueProperty(ModParam.MiscOctShift, v).get(), vn);
+                    m = psa.getSettingsModule(SettingsModules.Gain);
+                    assertEquals(100, m.getSettingsValueProperty(ModParam.GainVolume, v).get(), vn);
+                    assertEquals(1, m.getSettingsValueProperty(ModParam.GainActiveMuted, v).get(), vn);
+                    m = psa.getSettingsModule(SettingsModules.Glide);
+                    assertEquals(0, m.getSettingsValueProperty(ModParam.GlideControl, v).get(), vn);
+                    assertEquals(28, m.getSettingsValueProperty(ModParam.GlideSpeed, v).get(), vn);
+                    m = psa.getSettingsModule(SettingsModules.Bend);
+                    assertEquals(1, m.getSettingsValueProperty(ModParam.BendEnable, v).get(), vn);
+                    assertEquals(1, m.getSettingsValueProperty(ModParam.BendSemi, v).get(), vn);
+                    m = psa.getSettingsModule(SettingsModules.Vibrato);
+                    assertEquals(0, m.getSettingsValueProperty(ModParam.VibratoControl, v).get(), vn);
+                    assertEquals(50, m.getSettingsValueProperty(ModParam.VibCents, v).get(), vn);
+                    assertEquals(64, m.getSettingsValueProperty(ModParam.VibRate, v).get(), vn);
+                    m = psa.getSettingsModule(SettingsModules.Arpeggiator);
+                    assertEquals(0, m.getSettingsValueProperty(ModParam.ArpEnable, v).get(), vn);
+                    assertEquals(0, m.getSettingsValueProperty(ModParam.ArpDir, v).get(), vn);
+                    assertEquals(0, m.getSettingsValueProperty(ModParam.ArpOctaves, v).get(), vn);
+                    assertEquals(3, m.getSettingsValueProperty(ModParam.ArpTime, v).get(), vn);
+
+                    m = psa.getSettingsModule(SettingsModules.Morphs);
+                    for (int j = 0; j < 16; j++) {
+                        assertEquals(j < 8 ? 0 : 1,m.getParamValueProperty(v,j).get(),vn+":"+j);
+                    }
+                }
+
+                // morph labels
+                PatchModule m = psa.getSettingsModule(SettingsModules.Morphs);
+                assertEquals("Wheel",m.getMorphLabel(0).get(),n);
+                assertEquals("Vel",m.getMorphLabel(1).get(),n);
+                assertEquals("Keyb",m.getMorphLabel(2).get(),n);
+                assertEquals("Aft.Tch",m.getMorphLabel(3).get(),n);
+                assertEquals("Sust.Pd",m.getMorphLabel(4).get(),n);
+                assertEquals("Ctrl.Pd",m.getMorphLabel(5).get(),n);
+                assertEquals("P.Stick",m.getMorphLabel(6).get(),n);
+                assertEquals("G.Wh 2",m.getMorphLabel(7).get(),n);
+
+                //selected param TODO this logic is bad, needs to be area-level invariant
+                assertEquals(new PatchArea.SelectedParam(1,0),
+                        patch.getArea(AreaId.Settings).getSelectedParam(),n);
+
+            }
+
+
+        }
+
     }
 
 
