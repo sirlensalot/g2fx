@@ -20,6 +20,8 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.protocol.Codes.*;
+import static org.g2fx.g2lib.state.Device.dispatchFailure;
+import static org.g2fx.g2lib.state.Device.dispatchSuccess;
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
 import static org.g2fx.g2lib.util.Util.withYamlMap;
@@ -63,17 +65,51 @@ public class Performance {
         Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
         Performance perf = new Performance(sender);
         perf.setVersion(fileBuffer.get());
-        perf.perfSettings = new PerformanceSettings(
-                readSectionSlice(fileBuffer,Sections.SPerformanceSettings_11));
+        perf.readPerformanceSettings(fileBuffer);
         for (Slot s : Slot.values()) {
             Patch patch = new Patch(s, sender);
             patch.setVersion(0); //TODO source?
             patch.readFileSections(fileBuffer);
             perf.slots.put(s,patch);
         }
-        perf.globalKnobAssignments = new GlobalKnobAssignments(
-                readSectionSlice(fileBuffer,Sections.SGlobalKnobAssignments_5f));
+        perf.readGlobalKnobAssignmentsType(fileBuffer);
         return perf;
+    }
+
+    /**
+     * Read ahead perf settings.
+     */
+    private boolean readPerformanceSettings(ByteBuffer buf) {
+        perfSettings = new PerformanceSettings(
+                readSectionSlice(buf,Sections.SPerformanceSettings_11));
+        return true;
+    }
+
+
+    public boolean readGlobalKnobAssignments(ByteBuffer buf) {
+        log.info(() -> "readGlobalKnobAssignments");
+        BitBuffer bb = BitBuffer.sliceAheadLength(buf);
+        return readGlobalKnobAssignments(bb);
+    }
+
+    public boolean readGlobalKnobAssignmentsType(ByteBuffer buf) {
+        BitBuffer bb = Sections.sliceAheadSection(Sections.SGlobalKnobAssignments_5f,buf);
+        return readGlobalKnobAssignments(bb);
+    }
+
+    private boolean readGlobalKnobAssignments(BitBuffer bb) {
+        FieldValues fvs = Sections.SGlobalKnobAssignments_5f.fields.read(bb);
+        globalKnobAssignments = new GlobalKnobAssignments(fvs);
+        return true;
+    }
+
+    public void initNew() throws Exception {
+        sendVersionRequest(); //blocking if online, otherwise noop
+        perfSettings = new PerformanceSettings();
+
+
+
+
     }
 
     public void writeToFile(File file) throws Exception {
@@ -96,12 +132,6 @@ public class Performance {
     }
 
     // test
-    public Performance readFromMessage(ByteBuffer buf) {
-        readPerfMsgHeader(buf.rewind());
-        Util.expectWarn(buf,Sections.SPerformanceName_29.type,"Message","Perf name");
-        readPerformanceNameAndSettings(buf);
-        return this;
-    }
 
     public ByteBuffer writeMessage() throws Exception {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
@@ -138,51 +168,60 @@ public class Performance {
         bb.writeLength(lpos, bb.limit()-ss);
     }
 
-    // usb, test
+    /**
+     * Read (ahead) performance name + settings chunks.
+     */
     public boolean readPerformanceNameAndSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf.slice());
+        int pos = buf.position();
         perfName = LibProperty.stringFieldProperty(Protocol.EntryName.FIELDS.read(bb),Protocol.EntryName.Name);
-        perfSettings = new PerformanceSettings(
-                readSectionSlice(bb.slice(),Sections.SPerformanceSettings_11));
-        log.info(() -> "readPerformanceNameAndSettings");
+        pos += bb.getBitIndex()/8;
+        ByteBuffer buf2 = bb.slice();
+        readPerformanceSettings(buf2);
+        pos += buf2.position();
+        buf.position(pos);
         return true;
     }
 
     /**
-     * Read sections without support for location.
+     * Parse (ahead) section TYPE -> LENGTH -> data
      */
-    // file-perf, test
-    private static FieldValues readSectionSlice(ByteBuffer buf, Sections s) {
-        return s.fields.read(Sections.sliceSection(s,buf));
+    public static FieldValues readSectionSlice(ByteBuffer buf, Sections s) {
+        return s.fields.read(Sections.sliceAheadSection(s,buf));
     }
 
-    // test
-    private void readPerfMsgHeader(ByteBuffer buf) {
-        Util.expectWarn(buf,0x01,"Message","Cmd 0x01");
-        Util.expectWarn(buf,0x0c,"Message","Cmd 0x0c");
-        Util.expectWarn(buf,version,"Message","Perf version");
-    }
 
-    // test
-    public void readSectionMessage(ByteBuffer buf, Sections s) {
-        readPerfMsgHeader(buf.rewind());
-        FieldValues fvs = readSectionSlice(buf, s);
-        updateSection(s, fvs);
-    }
-
-    // usb, test
-    private void updateSection(Sections s, FieldValues fvs) {
-        switch (s) {
-            case SGlobalKnobAssignments_5f -> this.globalKnobAssignments = new GlobalKnobAssignments(fvs);
+    public boolean setMasterClock(ByteBuffer buf) {
+        //3f ff 01 79
+        buf.get(); // 0xff
+        byte ty = buf.get();
+        byte val = buf.get();
+        switch (ty) {
+            case 0: perfSettings.masterClockRun().set(val==1); break;
+            case 1: perfSettings.masterClock().set(Util.b2i(val)); break;
+            default: return dispatchFailure("setMasterClock: unrecognized type: %s", ty);
         }
+        return dispatchSuccess(() -> "setMasterClock, type=" + ty + ", value=" + val);
     }
+
 
     // usb
-    public boolean readSectionSlice(Sections s, BitBuffer bb) {
-        updateSection(s,s.fields.read(bb));
-        log.info(() -> "readSectionSlice: " + s);
-        return true;
+    public boolean readExtMasterClock(ByteBuffer buf) {
+        buf.get();
+        int v = Util.getShort(buf);
+        //TODO?????
+        return dispatchSuccess(() -> "readExtMasterClock: " + v);
     }
+
+
+
+    // 00 31 c8 00 00 00 00 00 00 00 00
+    public boolean readSlotChange(ByteBuffer buf) {
+        int slot = buf.get();
+        perfSettings.selectedSlot().set(slot);
+        return dispatchSuccess(() -> "readSlotChange: " + slot);
+    }
+
 
     public GlobalKnobAssignments getGlobalKnobAssignments() {
         return globalKnobAssignments;
@@ -273,9 +312,7 @@ public class Performance {
 
     public void initialize() throws Exception {
 
-        usb.sendSystemRequest("perf version",
-                O_VERSION,
-                S_PERF_04);
+        sendVersionRequest();
 
 
         usb.sendSystemRequest("Synth settings",
@@ -304,6 +341,12 @@ public class Performance {
         usb.sendSystemRequest("assigned voices",
                 O_ASSIGNED_VOICES);
 
+    }
+
+    private void sendVersionRequest() throws Exception {
+        usb.sendSystemRequest("perf version",
+                O_VERSION,
+                S_PERF_04);
     }
 
     private void readSlot(final Slot slot) throws Exception {

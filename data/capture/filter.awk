@@ -77,5 +77,5 @@ ty != "03" && ty != "81" && ty != "82" { next }
 
 {
     printf("%04x  %s\n",("0x" $1) - 32,
-        substr($0,6,length($0)-6))
+        substr($0,6,length($0)-5))
 }

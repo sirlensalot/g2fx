@@ -60,18 +60,15 @@ public enum Sections {
     public record Section(Sections sections, FieldValues values) { }
 
     /**
-     * A protocol "Section" starts with bytes [type,lmsb,llsb]
-     * with LMSB+LLSB being the section length, then content.
-     * @return a BitBuffer sliced at content start.
+     * Read/enforce type byte, then perform
+     * {@link BitBuffer#sliceAheadLength(ByteBuffer)}
      */
-    public static BitBuffer sliceSection(Sections s, ByteBuffer buf) {
+    public static BitBuffer sliceAheadSection(Sections s, ByteBuffer buf) {
         int t = buf.get();
         if (t != s.type) {
             throw new IllegalArgumentException(String.format("Section incorrect %s %x %x",s,s.type,t));
         }
-        int len = Util.getShort(buf);
-        log.info(() -> String.format("sliceSection: %s, length %x",s,len));
-        return BitBuffer.sliceAhead(buf, len);
+        return BitBuffer.sliceAheadLength(buf);
     }
 
     public static void writeSection(ByteBuffer buf, Section ss) throws Exception {

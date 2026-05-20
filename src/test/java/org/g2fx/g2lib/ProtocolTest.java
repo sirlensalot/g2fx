@@ -590,7 +590,7 @@ class ProtocolTest {
         assertEquals(0x09,buf.get()); // slot 0
         assertEquals(0x00,buf.get()); // patch version
         Patch p = new Patch(Slot.A, sender);
-        p.readSection(buf, Sections.STextPad_6f);
+        p.readAheadSection(buf, Sections.STextPad_6f);
         testTextPad(p);
 
     }
@@ -602,7 +602,7 @@ class ProtocolTest {
         assertEquals(0x09,buf.get()); // slot 0
         assertEquals(0x00,buf.get()); // patch version
         Patch p = new Patch(Slot.A, sender);
-        p.readSection(buf, Sections.SCurrentNote_69);
+        p.readAheadSection(buf, Sections.SCurrentNote_69);
         testCurrentNote(p);
     }
 
@@ -790,7 +790,9 @@ class ProtocolTest {
     @Test
     void readPerformanceSettingsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_PerfSettings_a69a.msg");
-        Performance perf = new Performance(sender).readFromMessage(buf);
+        Performance perf = new Performance(sender);
+        buf.position(4);
+        perf.readPerformanceNameAndSettings(buf);
         assertEquals("eff new6",perf.getName());
         testPerformanceSettings(perf.getPerfSettings());
         /*
@@ -808,7 +810,7 @@ class ProtocolTest {
     void readGlobalKnobsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg_GlobalKnobs_850a.msg");
         Performance perf = new Performance(sender);
-        perf.readSectionMessage(buf,Sections.SGlobalKnobAssignments_5f);
+        perf.readGlobalKnobAssignmentsType(buf.position(3));
         assertEquals(0,perf.getGlobalKnobAssignments().getActiveAssignments().size());
     }
 

@@ -152,7 +152,7 @@ public class Patch {
     // usb, test
     public void readPatchDescription(ByteBuffer buf) {
         for (Sections ss : MSG_SECTIONS) {
-            readSection(buf,ss);
+            readAheadSection(buf,ss);
             // 0x21 is first in either case
             if (ss == Sections.SPatchDescription_21) {
                 // test for solo solo on patch settings change from synth
@@ -236,7 +236,7 @@ public class Patch {
     // file-patch, file-perf
     public void readFileSections(ByteBuffer fileBuffer) {
         for (Sections ss : FILE_SECTIONS) {
-            readSection(fileBuffer,ss);
+            readAheadSection(fileBuffer,ss);
         }
         visuals.updateVisualIndex();
     }
@@ -349,12 +349,10 @@ public class Patch {
 
 
     /**
-     * Read section from byte buffer TYPE -> LENGTH -> [LOCATION] ->
+     * Read ahead+update section from byte buffer TYPE -> LENGTH -> [LOCATION] -> ...
      */
-    // file-perf, usb, file-patch
-    public void readSection(ByteBuffer buf, Sections s) {
-        BitBuffer bb = Sections.sliceSection(s,buf);
-        //log.info(s + ": length " + bb.limit());
+    public void readAheadSection(ByteBuffer buf, Sections s) {
+        BitBuffer bb = Sections.sliceAheadSection(s,buf);
         readSectionSlice(bb, s);
     }
 
@@ -443,7 +441,7 @@ public class Patch {
     // test
     public void readSectionMessage(ByteBuffer buf, Sections s) {
         readMessageHeader(buf);
-        readSection(buf,s);
+        readAheadSection(buf,s);
     }
 
 

@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.protocol.Codes.*;
+import static org.g2fx.g2lib.util.BitBuffer.sliceAheadLength;
 
 /**
  * Implements an offline device. Subclass ` has all transmission functionality,
@@ -191,12 +192,12 @@ public class Device implements Dispatcher {
             case M_INIT -> dispatchSuccess(() -> "Perf Init");
             case I_PERFORMANCE_NAME -> perf.readPerformanceNameAndSettings(buf);
             case I_RESERVED_1E -> dispatchSuccess(() -> "reserved 1e");
-            case I_EXT_MASTER_CLOCK -> readExtMasterClock(buf);
-            case I_SET_MASTER_CLOCK -> setMasterClock(buf);
-            case I_GLOBAL_KNOB_ASSIGMENTS -> perf.readSectionSlice(Sections.SGlobalKnobAssignments_5f,sliceAhead(buf));
+            case I_EXT_MASTER_CLOCK -> perf.readExtMasterClock(buf);
+            case I_SET_MASTER_CLOCK -> perf.setMasterClock(buf);
+            case I_GLOBAL_KNOB_ASSIGMENTS -> perf.readGlobalKnobAssignments(buf);
             case I_ASSIGNED_VOICES -> perf.readAssignedVoices(buf);
             case I_ENTRY_LIST -> entries.dispatchEntryList(buf.slice());
-            case I_CHANGE_SLOT -> readSlotChange(buf);
+            case I_CHANGE_SLOT -> perf.readSlotChange(buf);
             default -> dispatchFailure("dispatchPerfCmd: unrecognized type: %02x",t);
         };
     }
@@ -217,8 +218,8 @@ public class Device implements Dispatcher {
                 yield true;
             }
             case I_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName_27);
-            case I_CURRENT_NOTE -> patch.readSectionSlice(sliceAhead(buf), Sections.SCurrentNote_69);
-            case I_TEXT_PAD -> patch.readSectionSlice(sliceAhead(buf), Sections.STextPad_6f);
+            case I_CURRENT_NOTE -> patch.readSectionSlice(sliceAheadLength(buf), Sections.SCurrentNote_69);
+            case I_TEXT_PAD -> patch.readSectionSlice(sliceAheadLength(buf), Sections.STextPad_6f);
             case I_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
             case I_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
             case I_SELECTED_PARAM -> patch.readSelectedParam(buf);
@@ -281,33 +282,7 @@ public class Device implements Dispatcher {
     }
 
 
-    private boolean setMasterClock(ByteBuffer buf) {
-        //3f ff 01 79
-        buf.get(); // 0xff
-        byte ty = buf.get();
-        byte val = buf.get();
-        switch (ty) {
-            case 0: perf.getPerfSettings().masterClockRun().set(val==1); break;
-            case 1: perf.getPerfSettings().masterClock().set(Util.b2i(val)); break;
-            default: return dispatchFailure("setMasterClock: unrecognized type: %s", ty);
-        }
-        return dispatchSuccess(() -> "setMasterClock, type=" + ty + ", value=" + val);
-    }
 
-
-    // 00 31 c8 00 00 00 00 00 00 00 00
-    private boolean readSlotChange(ByteBuffer buf) {
-        int slot = buf.get();
-        perf.getPerfSettings().selectedSlot().set(slot);
-        return dispatchSuccess(() -> "readSlotChange: " + slot);
-    }
-
-    // usb
-    private boolean readExtMasterClock(ByteBuffer buf) {
-        buf.get();
-        int v = Util.getShort(buf);
-        return dispatchSuccess(() -> "readExtMasterClock: " + v);
-    }
 
 
     // usb
@@ -315,11 +290,6 @@ public class Device implements Dispatcher {
         BitBuffer bb = new BitBuffer(buf);
         synthSettings = new SynthSettings(Protocol.SynthSettings.FIELDS.read(bb));
         return dispatchSuccess(() -> "setSynthSettings");
-    }
-
-
-    private BitBuffer sliceAhead(ByteBuffer buf) {
-        return BitBuffer.sliceAhead(buf, Util.getShort(buf));
     }
 
 

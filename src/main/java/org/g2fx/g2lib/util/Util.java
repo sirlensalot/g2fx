@@ -195,14 +195,14 @@ public class Util {
         buf.rewind();
     }
 
+    /**
+     * Make a slice of BUFFER at position of LENGTH, advance BUFFER position
+     * to end of length, return slice.
+     */
     public static ByteBuffer sliceAhead(ByteBuffer buffer, int length) {
         ByteBuffer slice = buffer.slice().limit(length);
-        advanceBuffer(buffer, length);
-        return slice;
-    }
-
-    public static void advanceBuffer(ByteBuffer buffer, int length) {
         buffer.position(buffer.position()+ length);
+        return slice;
     }
 
     public static void writeBuffer(ByteBuffer data, File name) throws Exception {

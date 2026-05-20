@@ -173,6 +173,10 @@ public class BitBuffer {
     }
 
 
+    /**
+     * Adapt {@link Util#sliceAhead(ByteBuffer, int)} sliceAhead} with
+     * BitBuffer made from slice.
+     */
     public static BitBuffer sliceAhead(ByteBuffer buffer, int length) {
         ByteBuffer slice = Util.sliceAhead(buffer, length);
         BitBuffer bb = new BitBuffer(slice);
@@ -191,6 +195,9 @@ public class BitBuffer {
         bindex = blength = buffer.limit()*8;
     }
 
+    /**
+     * Write G2 length short to buffer.
+     */
     public void writeLength(int pos, int len) {
         ByteOrder o = buffer.order();
         buffer.order(ByteOrder.BIG_ENDIAN); //TODO maybe we can just leave this?
@@ -198,5 +205,13 @@ public class BitBuffer {
         buffer.order(o);
     }
 
+    /**
+     * {@link #sliceAhead(ByteBuffer, int)} by G2 length short at position.
+     */
+    public static BitBuffer sliceAheadLength(ByteBuffer buf) {
+        return sliceAhead(buf,Util.getShort(buf));
+    }
 
-}
+
+
+    }
