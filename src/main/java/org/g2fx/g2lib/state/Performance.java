@@ -105,6 +105,7 @@ public class Performance {
 
     public void initNew() throws Exception {
         sendVersionRequest(); //blocking if online, otherwise noop
+        initPerfName(Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value("Empty perf")));
         perfSettings = new PerformanceSettings();
         for (Patch patch : slots.values()) {
             patch.initNew();
@@ -174,13 +175,17 @@ public class Performance {
     public boolean readPerformanceNameAndSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf.slice());
         int pos = buf.position();
-        perfName = LibProperty.stringFieldProperty(Protocol.EntryName.FIELDS.read(bb),Protocol.EntryName.Name);
+        initPerfName(Protocol.EntryName.FIELDS.read(bb));
         pos += bb.getBitIndex()/8;
         ByteBuffer buf2 = bb.slice();
         readPerformanceSettings(buf2);
         pos += buf2.position();
         buf.position(pos);
         return true;
+    }
+
+    private void initPerfName(FieldValues nameFvs) {
+        perfName = LibProperty.stringFieldProperty(nameFvs,Protocol.EntryName.Name);
     }
 
     /**

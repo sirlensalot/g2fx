@@ -168,6 +168,7 @@ public class Patch {
         controls = new ControlAssignments();
         settingsArea.initMorphLabels();
         //module labels empty
+        textPad = Protocol.TextPad.FIELDS.values(Protocol.TextPad.Text.value(""));
 
     }
 
