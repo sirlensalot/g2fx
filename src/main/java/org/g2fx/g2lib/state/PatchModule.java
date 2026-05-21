@@ -33,7 +33,9 @@ public class PatchModule {
     private FieldValues morphLabelFvs;
     private List<LibProperty<String>> morphLabels;
 
-    // constructor for user modules
+    /**
+     * User module constructor
+     */
     public PatchModule(FieldValues userModuleFvs, UsbSlotSender sender, AreaId area) {
         this.userModuleData = new UserModuleData(userModuleFvs,sender,area);
         this.sender = sender;
@@ -45,6 +47,9 @@ public class PatchModule {
     }
 
 
+    /**
+     * Settings module constructor.
+     */
     public PatchModule(SettingsModules settingsModule, UsbSlotSender sender, AreaId area) {
         this.index = settingsModule.getModIndex();
         this.settingsModuleType = settingsModule;
@@ -140,5 +145,49 @@ public class PatchModule {
 
     public void updateParam(FieldValues fvs) {
         values.updateParam(fvs);
-     }
+    }
+
+    public void setDefaultParamValues() {
+        setParamValues(area == AreaId.Settings ?
+                ParamValues.mkDefaultParams(settingsModuleType.getModParams()) :
+                ParamValues.mkDefaultParams(userModuleData.getType()));
+    }
+
+    public ParamValues getValues() {
+        return values;
+    }
+
+    public FieldValues getParamsValues() {
+        int pc = area == AreaId.Settings ?
+                settingsModuleType.getModParams().size() :
+                userModuleData.getType().getParams().size();
+        return Protocol.ModuleParamSet.FIELDS.values(
+                Protocol.ModuleParamSet.ModIndex.value(index),
+                Protocol.ModuleParamSet.ParamCount.value(pc),
+                Protocol.ModuleParamSet.ModParams.value(values.getValues())
+        );
+    }
+
+    public FieldValues getMorphLabelValues() {
+        return morphLabelFvs;
+    }
+
+    public FieldValues getModuleLabelsValues() {
+        return Protocol.ModuleLabel.FIELDS.values(
+                Protocol.ModuleLabel.ModuleIndex.value(index),
+                Protocol.ModuleLabel.ModLabelLen.value(userLabels.size()),
+                Protocol.ModuleLabel.Labels.value(userLabels.entrySet().stream().map(e ->
+                                Protocol.ParamLabels.FIELDS.values(
+                                        Protocol.ParamLabels.IsString.value(1),
+                                        Protocol.ParamLabels.ParamLen.value(8),
+                                        Protocol.ParamLabels.ParamIndex.value(e.getKey()),
+                                        Protocol.ParamLabels.Labels.value(e.getValue().stream().map(s ->
+                                                        Protocol.ParamLabel.FIELDS.values(
+                                                                Protocol.ParamLabel.Label.value(s.get())
+                                                        )
+                                                ).toList())
+                                )
+                        ).toList())
+        );
+    }
 }

@@ -6,6 +6,7 @@ import org.g2fx.g2lib.protocol.Protocol;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 public class MorphParameters {
     private final Map<Integer,List<FieldValues>> varMorphs = new TreeMap<>();
@@ -20,6 +21,24 @@ public class MorphParameters {
             varMorphs.put(Protocol.VarMorph.Variation.intValue(vm),
                     Protocol.VarMorph.VarMorphParams.subfieldsValue(vm));
         });
+    }
+
+    public MorphParameters() {
+        this(Protocol.MorphParameters.FIELDS.values(
+                Protocol.MorphParameters.VariationCount.value(0xa),
+                Protocol.MorphParameters.MorphCount.value(8),
+                Protocol.MorphParameters.Reserved.value(0),
+                Protocol.MorphParameters.VarMorphs.value(
+                        IntStream.range(0,9).mapToObj(i ->
+                                Protocol.VarMorph.FIELDS.values(
+                                        Protocol.VarMorph.Variation.value(i),
+                                        Protocol.VarMorph.Reserved0.value(0),
+                                        Protocol.VarMorph.Reserved1.value(0),
+                                        Protocol.VarMorph.Reserved2.value(0),
+                                        Protocol.VarMorph.MorphCount.value(0),
+                                        Protocol.VarMorph.VarMorphParams.value(List.of()),
+                                        Protocol.VarMorph.Reserved3.value(0)
+                                )).toList())));
     }
 
     public MorphParam getMorphParam(int variation, AreaId area, int module, int param) {

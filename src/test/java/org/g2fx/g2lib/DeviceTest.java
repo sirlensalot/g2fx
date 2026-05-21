@@ -144,19 +144,6 @@ class DeviceTest {
 
     @Test
     void regressNewPerf() throws Exception {
-        {
-            List<MessageRecorder.RecordedUsbMessage> ms =
-                    parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.OUTBOUND);
-            Performance p = new Performance(new UsbSender.OfflineSender());
-            ByteBuffer b = ms.get(1).msg().buffer();
-            p.readPerformanceNameAndSettings(b.position(0x15));
-            for (Slot s : Slot.values()) {
-                p.getSlot(s).readFileSections(b);
-            }
-            p.readGlobalKnobAssignmentsType(b);
-            if (true) return;
-        }
-
 
         List<MessageRecorder.RecordedUsbMessage> ms =
                 parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND);

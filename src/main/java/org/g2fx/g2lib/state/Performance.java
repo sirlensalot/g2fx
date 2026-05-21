@@ -106,10 +106,10 @@ public class Performance {
     public void initNew() throws Exception {
         sendVersionRequest(); //blocking if online, otherwise noop
         perfSettings = new PerformanceSettings();
-
-
-
-
+        for (Patch patch : slots.values()) {
+            patch.initNew();
+        }
+        globalKnobAssignments = new GlobalKnobAssignments();
     }
 
     public void writeToFile(File file) throws Exception {

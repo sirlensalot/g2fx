@@ -1,7 +1,9 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSlotSender;
@@ -60,12 +62,17 @@ public class ParamValues {
     }
 
     public static List<FieldValues> mkDefaultParams(ModuleType mt) {
+        List<ModParam> params = mt.getParams().stream().map(NamedParam::param).toList();
+        return mkDefaultParams(params);
+    }
+
+    public static List<FieldValues> mkDefaultParams(List<ModParam> params) {
         List<FieldValues> vfvs = new ArrayList<>();
         for (int v = 0; v < MAX_VARIATIONS; v++) {
             vfvs.add(Protocol.VarParams.FIELDS.init().addAll(
                     Protocol.VarParams.Variation.value(v),
-                    Protocol.VarParams.Params.value(mt.getParams().stream().map(np ->
-                            Protocol.Data7.FIELDS.init().add(Protocol.Data7.Datum.value(np.param().def))).toList())));
+                    Protocol.VarParams.Params.value(params.stream().map(np ->
+                            Protocol.Data7.FIELDS.init().add(Protocol.Data7.Datum.value(np.def))).toList())));
         }
         return vfvs;
     }

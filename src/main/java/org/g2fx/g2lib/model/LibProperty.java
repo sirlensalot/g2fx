@@ -211,5 +211,9 @@ public class LibProperty<T> {
             });
             return prop;
         }
+
+        public FieldValues getValues() {
+            return fvs;
+        }
     }
 }

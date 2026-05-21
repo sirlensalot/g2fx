@@ -100,5 +100,7 @@ public class UserModuleData {
 
     public LibProperty<Coords> coords() { return coords; }
 
-
+    public FieldValues getValues() {
+        return fvs;
+    }
 }

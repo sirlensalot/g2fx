@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import com.google.common.collect.Streams;
 import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
@@ -34,12 +35,18 @@ public class PatchArea {
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
 
+    /**
+     * User module area constructor.
+     */
     public PatchArea(Slot slot, AreaId id, UsbSlotSender sender) {
         this.id = id;
         this.sender = sender;
         this.log = Util.getLogger(getClass(),slot,id);
     }
 
+    /**
+     * Settings area constructor
+     */
     public PatchArea(Slot slot, UsbSlotSender sender) {
         this.sender = sender;
         this.id = AreaId.Settings;
@@ -101,6 +108,13 @@ public class PatchArea {
                         .setParamValues(Protocol.ModuleParamSet.ModParams.subfieldsValue(fvs)));
     }
 
+    public void initSettingsParams() {
+        for (PatchModule m : modules.values()) {
+            m.setDefaultParamValues();
+        }
+
+    }
+
     public void addCable(FieldValues fvs) {
         cables.add(new PatchCable(fvs));
     }
@@ -130,6 +144,22 @@ public class PatchArea {
 
     public void setMorphLabels(FieldValues values) {
         getSettingsModule(SettingsModules.Morphs).setMorphLabels(values);
+    }
+
+    public void initMorphLabels() {
+        setMorphLabels(Protocol.MorphLabels.FIELDS.values(
+                Protocol.MorphLabels.LabelCount.value(1),
+                Protocol.MorphLabels.Entry.value(1),
+                Protocol.MorphLabels.Length.value(0x50),
+                Protocol.MorphLabels.Labels.value(
+                        Streams.mapWithIndex(
+                                Arrays.stream(SettingsModules.MORPH_LABELS),
+                                (s,i) -> Protocol.MorphLabel.FIELDS.values(
+                                        Protocol.MorphLabel.Index.value(1),
+                                        Protocol.MorphLabel.Length.value(8),
+                                        Protocol.MorphLabel.Entry.value(8+(int)i),
+                                        Protocol.MorphLabel.Label.value(s))).toList())
+                ));
     }
 
     public void setPatchLoadData(FieldValues fvs) {
@@ -172,8 +202,7 @@ public class PatchArea {
                         )).toList())
         ));
         //initialize params
-        List<FieldValues> paramValuesFvs = ParamValues.mkDefaultParams(ma.type());
-        pm.setParamValues(paramValuesFvs);
+        pm.setDefaultParamValues();
         //initialize module name
         FieldValues moduleNameFvs = Protocol.ModuleName.FIELDS.init().addAll(
                 Protocol.ModuleName.ModuleIndex.value(ma.index()),
@@ -213,7 +242,7 @@ public class PatchArea {
                         Protocol.ModuleParams.ParamSet.value(List.of(Protocol.ModuleParamSet.FIELDS.init().addAll(
                                 Protocol.ModuleParamSet.ModIndex.value(ma.index()),
                                 Protocol.ModuleParamSet.ParamCount.value(ma.type().getParams().size()),
-                                Protocol.ModuleParamSet.ModParams.value(paramValuesFvs)
+                                Protocol.ModuleParamSet.ModParams.value(pm.getValues().getValues())
                         )))
                 ));
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleLabels0_5b : Sections.SModuleLabels1_5b,
@@ -231,5 +260,56 @@ public class PatchArea {
         sender.sendSlotRequest("add-module",Util.getBytes(buf.rewind()));
 
         return pm;
+    }
+
+    public FieldValues getModuleListValues() {
+        return Protocol.ModuleList.FIELDS.values(
+                Protocol.ModuleList.ModuleCount.value(modules.size()),
+                Protocol.ModuleList.Modules.value(modules.values().stream().map(pm ->
+                        pm.getUserModuleData().getValues()).toList())
+                        );
+    }
+
+    public FieldValues getCableListValues() {
+        return Protocol.CableList.FIELDS.values(
+                Protocol.CableList.Reserved.value(0), // Always 0?
+                Protocol.CableList.CableCount.value(cables.size()),
+                Protocol.CableList.Cables.value(cables.stream().map(PatchCable::getFieldValues).toList())
+        );
+    }
+
+    public FieldValues getParamsValues() {
+        return Protocol.ModuleParams.FIELDS.values(
+                Protocol.ModuleParams.SetCount.value(modules.size()),
+                Protocol.ModuleParams.VariationCount.value(8), // always at least 8
+                Protocol.ModuleParams.ParamSet.value(
+                        modules.values().stream().map(PatchModule::getParamsValues).toList())
+        );
+    }
+
+    public FieldValues getMorphLabelValues() {
+        return getSettingsModule(SettingsModules.Morphs).getMorphLabelValues();
+    }
+
+    public FieldValues getModuleLabelValues() {
+        return Protocol.ModuleLabels.FIELDS.values(
+                Protocol.ModuleLabels.ModuleCount.value(modules.size()),
+                Protocol.ModuleLabels.ModLabels.value(
+                        modules.values().stream().map(PatchModule::getModuleLabelsValues).toList()
+                ));
+    }
+
+    public FieldValues getModuleNameValues() {
+        return Protocol.ModuleNames.FIELDS.values(
+                Protocol.ModuleNames.Reserved.value(1),
+                Protocol.ModuleNames.NameCount.value(modules.size()),
+                Protocol.ModuleNames.Names.value(
+                        modules.values().stream().map(m ->
+                                        Protocol.ModuleName.FIELDS.values(
+                                                Protocol.ModuleName.Name.value(m.name().get())
+                                        )
+                                ).toList()
+                )
+        );
     }
 }

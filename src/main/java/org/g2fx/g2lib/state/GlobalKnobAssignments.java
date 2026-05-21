@@ -6,6 +6,7 @@ import org.g2fx.g2lib.protocol.Protocol;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class GlobalKnobAssignments {
     private final FieldValues fvs;
@@ -32,6 +33,17 @@ public class GlobalKnobAssignments {
             }
             assignments.add(new LibProperty<>(k));
         }
+    }
+
+    public GlobalKnobAssignments() {
+        this(Protocol.GlobalKnobAssignments.FIELDS.values(
+                Protocol.GlobalKnobAssignments.KnobCount.value(0x78),
+                Protocol.GlobalKnobAssignments.Knobs.value(
+                        IntStream.range(0,0x77).mapToObj(i ->
+                                Protocol.GlobalKnobAssignment.FIELDS.values(
+                                        Protocol.GlobalKnobAssignment.Assigned.value(0),
+                                        Protocol.GlobalKnobAssignment.Params.value(List.of())
+                                )).toList())));
     }
 
     public List<LibProperty<KnobAssignment>> assignments() {

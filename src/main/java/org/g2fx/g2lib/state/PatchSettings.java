@@ -10,6 +10,8 @@ import org.g2fx.g2lib.util.Util;
 
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.protocol.Protocol.PatchDescription.*;
+
 public class PatchSettings implements LibProperty.FieldValuesChangeListener {
 
     private final LibProperty.FieldValuesLibProperties props = new LibProperty.FieldValuesLibProperties(this);
@@ -34,18 +36,18 @@ public class PatchSettings implements LibProperty.FieldValuesChangeListener {
     public PatchSettings(Slot slot, UsbSlotSender sender) {
         this.log = Util.getLogger(getClass(),slot);
         this.sender = sender;
-        voices = props.intFieldProperty(Protocol.PatchDescription.Voices, false);
-        height = props.intFieldProperty(Protocol.PatchDescription.Height);
-        red = props.booleanFieldProperty(Protocol.PatchDescription.Red);
-        blue = props.booleanFieldProperty(Protocol.PatchDescription.Blue);
-        yellow = props.booleanFieldProperty(Protocol.PatchDescription.Yellow);
-        orange = props.booleanFieldProperty(Protocol.PatchDescription.Orange);
-        green = props.booleanFieldProperty(Protocol.PatchDescription.Green);
-        purple = props.booleanFieldProperty(Protocol.PatchDescription.Purple);
-        white = props.booleanFieldProperty(Protocol.PatchDescription.White);
-        monoPoly = props.intFieldProperty(Protocol.PatchDescription.MonoPoly, false);
-        variation = props.intFieldProperty(Protocol.PatchDescription.Variation, false);
-        category = props.intFieldProperty(Protocol.PatchDescription.Category);
+        voices = props.intFieldProperty(Voices, false);
+        height = props.intFieldProperty(Height);
+        red = props.booleanFieldProperty(Red);
+        blue = props.booleanFieldProperty(Blue);
+        yellow = props.booleanFieldProperty(Yellow);
+        orange = props.booleanFieldProperty(Orange);
+        green = props.booleanFieldProperty(Green);
+        purple = props.booleanFieldProperty(Purple);
+        white = props.booleanFieldProperty(White);
+        monoPoly = props.intFieldProperty(MonoPoly, false);
+        variation = props.intFieldProperty(Variation, false);
+        category = props.intFieldProperty(Category);
 
         voiceMode = props.register(new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
             @Override
@@ -68,27 +70,11 @@ public class PatchSettings implements LibProperty.FieldValuesChangeListener {
 
     @Override
     public void changed(FieldValues fvs) throws Exception {
-        Protocol.PatchDescription.Reserved.subfieldsValue(fvs).forEach(sfvs -> sfvs.update(Protocol.Data8.Datum.value(0)));
-        fvs.update(Protocol.PatchDescription.Reserved2.value(0));
+        Reserved.subfieldsValue(fvs).forEach(sfvs -> sfvs.update(Protocol.Data8.Datum.value(0)));
+        fvs.update(Reserved2.value(0));
         log.info(() -> "sending patch settings: " + fvs);
         sender.sendSectionMessage(new Sections.Section(Sections.SPatchDescription_21,fvs));
     }
-
-    /*
-    function TG2MessSlot.CreateSelectVariationMessage( aVariationIndex: byte): TG2SendMessage;
-begin
-  add_log_line('Select variation ' + IntToStr(aVariationIndex) + ', slot ' + IntToStr(SlotIndex) + ', patch_version ' + IntToStr(FPatchVersion), LOGCMD_HDR);
-
-  Result := TG2SendMessage.Create;
-  Result.WriteMessage( $01);
-  Result.WriteMessage( CMD_REQ + CMD_SLOT + SlotIndex );
-  Result.WriteMessage( FPatchVersion);
-  Result.WriteMessage( S_SEL_VARIATION); 0x6a
-  Result.WriteMessage( aVariationIndex);
-end;
-
-
-     */
 
     public LibProperty<Integer> voices() { return voices; }
     public LibProperty<Integer> height() { return height; }
@@ -105,5 +91,30 @@ end;
 
     public LibProperty<VoiceMode> voiceMode() {
         return voiceMode;
+    }
+
+    public void initNew() {
+        update(FIELDS.values(
+                Reserved.value(Protocol.Data8.asSubfield(0,0,0,0,0,0,0)),
+                Reserved2.value(0),
+                Voices.value(1),
+                Height.value(0x258),
+                Unk2.value(2),
+                Red.value(1),
+                Blue.value(1),
+                Yellow.value(1),
+                Orange.value(1),
+                Green.value(1),
+                Purple.value(1),
+                White.value(1),
+                MonoPoly.value(1),
+                Variation.value(0),
+                Category.value(0),
+                Reserved3.value(0)
+        ));
+    }
+
+    public FieldValues values() {
+        return props.getValues();
     }
 }

@@ -400,7 +400,9 @@ public class Protocol {
         CurrentNote(int size) { f = new SizedField(this,size); }
         CurrentNote(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount c = new SubfieldsField.FieldCount(e);
-            f = new SubfieldsField(this, fs, (SubfieldsField.SubfieldCount) values -> c.getCount(values) + 1);
+            // NoteCount + 1 is actual subfield count
+            f = new SubfieldsField(this, fs,
+                    (SubfieldsField.SubfieldCount) values -> c.getCount(values) + 1);
         }
         private final Field f;
         public Field field() { return f; }

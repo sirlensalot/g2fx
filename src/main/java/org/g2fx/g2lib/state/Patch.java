@@ -145,6 +145,32 @@ public class Patch {
         return knobAssignments;
     }
 
+
+    public void initNew() {
+        patchSettings.initNew();
+        //user modules are empty so no-op
+        currentNote = Protocol.CurrentNote.FIELDS.values(
+                Protocol.CurrentNote.Note.value(0x40),
+                Protocol.CurrentNote.Attack.value(0),
+                Protocol.CurrentNote.Release.value(0),
+                Protocol.CurrentNote.NoteCount.value(0),//meaning 1
+                Protocol.CurrentNote.Notes.value(List.of(
+                        Protocol.NoteData.FIELDS.values(
+                                Protocol.NoteData.Note.value(0x40),
+                                Protocol.NoteData.Attack.value(0),
+                                Protocol.NoteData.Release.value(0)
+                        ))));
+        //cables empty
+        settingsArea.initSettingsParams();
+        //user module params empty
+        morphParams = new MorphParameters();
+        knobAssignments = new KnobAssignments(slot);
+        controls = new ControlAssignments();
+        settingsArea.initMorphLabels();
+        //module labels empty
+
+    }
+
     /**
      * The big patch message starts with 0x21 section and dispatches here, as
      * does patch settings messages which are only an 0x21 section.
@@ -296,11 +322,9 @@ public class Patch {
             int lpos = bb.limit();
             bb.put(16,0);
             int ss = bb.limit();
-
             s.writeLocation(bb);
-
-            FieldValues fvs = getSection(s).values();
-            addVariation(s, fvs);
+            FieldValues fvs = getSectionValues(s);
+            addVariation(s, fvs, 10);
             fvs.write(bb);
             int len = bb.limit() - ss;
             bb.writeLength(lpos, len);
@@ -309,22 +333,53 @@ public class Patch {
         }
     }
 
-    private static void addVariation(Sections s, FieldValues fvs) {
+    private FieldValues getSectionValues(Sections s) {
+        return switch (s) {
+            case SPatchDescription_21 -> patchSettings.values();
+            case SModuleList1_4a -> voiceArea.getModuleListValues();
+            case SModuleList0_4a -> fxArea.getModuleListValues();
+            case SCurrentNote_69 -> currentNote;
+            case SCableList1_52 -> voiceArea.getCableListValues();
+            case SCableList0_52 -> fxArea.getCableListValues();
+            case SPatchParams_4d -> settingsArea.getParamsValues();
+            case SModuleParams1_4d -> voiceArea.getParamsValues();
+            case SModuleParams0_4d -> fxArea.getParamsValues();
+            case SMorphParameters_65 -> morphParams.getFieldValues();
+            case SKnobAssignments_62 -> knobAssignments.values();
+            case SControlAssignments_60 -> controls.values();
+            case SMorphLabels_5b -> settingsArea.getMorphLabelValues();
+            case SModuleLabels1_5b -> voiceArea.getModuleLabelValues();
+            case SModuleLabels0_5b -> fxArea.getModuleLabelValues();
+            case SModuleNames1_5a -> voiceArea.getModuleNameValues();
+            case SModuleNames0_5a -> fxArea.getModuleNameValues();
+            case STextPad_6f -> textPad;
+            default -> throw new IllegalArgumentException("Unknown patch section: " + s);
+        };
+    }
+
+    /**
+     * Special-case for adding extra variations for outbound messages.
+     */
+    private static void addVariation(Sections s, FieldValues fvs, int count) {
         if (s.type == 0x4d && Protocol.ModuleParams.SetCount.intValue(fvs) > 0 &&
-                Protocol.ModuleParams.VariationCount.intValue(fvs) == 9) {
-            fvs.update(Protocol.ModuleParams.VariationCount.value(10));
+                Protocol.ModuleParams.VariationCount.intValue(fvs) < count) {
+            fvs.update(Protocol.ModuleParams.VariationCount.value(count));
             for (FieldValues ps : Protocol.ModuleParams.ParamSet.subfieldsValue(fvs)) {
                 List<FieldValues> mpfvss = Protocol.ModuleParamSet.ModParams.subfieldsValue(ps);
-                FieldValues newFv = mpfvss.getLast().copy();
-                newFv.update(Protocol.VarParams.Variation.value(9));
-                mpfvss.add(newFv);
+                for (int i = mpfvss.size(); i < count; i++) {
+                    FieldValues newFv = mpfvss.getLast().copy();
+                    newFv.update(Protocol.VarParams.Variation.value(i));
+                    mpfvss.add(newFv);
+                }
             }
         } else if (s.type == 0x65 && Protocol.MorphParameters.VariationCount.intValue(fvs) == 9) {
-            fvs.update(Protocol.MorphParameters.VariationCount.value(10));
+            fvs.update(Protocol.MorphParameters.VariationCount.value(count));
             List<FieldValues> vmfvs = Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs);
-            FieldValues newFv = vmfvs.getLast().copy();
-            newFv.update(Protocol.VarMorph.Variation.value(9));
-            vmfvs.add(newFv);
+            for (int i = vmfvs.size(); i < count; i++) {
+                FieldValues newFv = vmfvs.getLast().copy();
+                newFv.update(Protocol.VarMorph.Variation.value(i));
+                vmfvs.add(newFv);
+            }
         }
     }
 
@@ -392,26 +447,27 @@ public class Patch {
     private void updateSection(Sections s, Sections.Section section) {
         sections.put(s, section);
         log.info("updateSection: " + s);
+        final FieldValues fvs = section.values();
         switch (s) {
-            case SPatchDescription_21 -> patchSettings.update(section.values());
-            case SPatchParams_4d -> settingsArea.setModuleParamValues(section.values());
-            case STextPad_6f -> this.textPad = section.values();
-            case SCurrentNote_69 -> this.currentNote = section.values();
-            case SModuleList0_4a -> fxArea.addModules(section.values());
-            case SModuleList1_4a -> voiceArea.addModules(section.values());
-            case SModuleParams0_4d -> fxArea.setModuleParamValues(section.values());
-            case SModuleParams1_4d -> voiceArea.setModuleParamValues(section.values());
-            case SModuleLabels0_5b -> fxArea.setModuleLabels(section.values());
-            case SModuleLabels1_5b -> voiceArea.setModuleLabels(section.values());
-            case SModuleNames0_5a -> fxArea.setModuleNames(section.values());
-            case SModuleNames1_5a -> voiceArea.setModuleNames(section.values());
-            case SCableList0_52 -> fxArea.addCables(section.values());
-            case SCableList1_52 -> voiceArea.addCables(section.values());
-            case SMorphLabels_5b -> settingsArea.setMorphLabels(section.values());
-            case SKnobAssignments_62 -> this.knobAssignments = new KnobAssignments(section.values(),slot);
-            case SControlAssignments_60 -> this.controls = new ControlAssignments(section.values());
-            case SMorphParameters_65 -> this.morphParams = new MorphParameters(section.values());
-            case SPatchName_27 -> this.name = LibProperty.stringFieldProperty(section.values(), Protocol.EntryName.Name);
+            case SPatchDescription_21 -> patchSettings.update(fvs);
+            case SPatchParams_4d -> settingsArea.setModuleParamValues(fvs);
+            case STextPad_6f -> this.textPad = fvs;
+            case SCurrentNote_69 -> this.currentNote = fvs;
+            case SModuleList0_4a -> fxArea.addModules(fvs);
+            case SModuleList1_4a -> voiceArea.addModules(fvs);
+            case SModuleParams0_4d -> fxArea.setModuleParamValues(fvs);
+            case SModuleParams1_4d -> voiceArea.setModuleParamValues(fvs);
+            case SModuleLabels0_5b -> fxArea.setModuleLabels(fvs);
+            case SModuleLabels1_5b -> voiceArea.setModuleLabels(fvs);
+            case SModuleNames0_5a -> fxArea.setModuleNames(fvs);
+            case SModuleNames1_5a -> voiceArea.setModuleNames(fvs);
+            case SCableList0_52 -> fxArea.addCables(fvs);
+            case SCableList1_52 -> voiceArea.addCables(fvs);
+            case SMorphLabels_5b -> settingsArea.setMorphLabels(fvs);
+            case SKnobAssignments_62 -> this.knobAssignments = new KnobAssignments(fvs,slot);
+            case SControlAssignments_60 -> this.controls = new ControlAssignments(fvs);
+            case SMorphParameters_65 -> this.morphParams = new MorphParameters(fvs);
+            case SPatchName_27 -> this.name = LibProperty.stringFieldProperty(fvs, Protocol.EntryName.Name);
         }
     }
 
@@ -512,4 +568,5 @@ public class Patch {
         };
         return readSection(bb,s);
     }
+
 }
