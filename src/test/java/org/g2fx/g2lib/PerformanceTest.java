@@ -69,6 +69,32 @@ public class PerformanceTest {
 
     }
 
+
+    @Test
+    void regress002_LoadPerfSend() throws Exception {
+
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                parseCapture("data/capture/capture-002-load-g2fx-perf2.pcapng", (i) -> true);
+
+        ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
+        m.limit(m.limit()-2);
+//        readInboundPerf(m.buffer());
+//        if (true) return;
+
+        Performance perf = Performance.readFromFile("data/perf/g2fx-perf-002.prf2",new UsbSender.OfflineSender());
+        perf.setFileName("g2fx-perf-002"); //TODO!!
+        ByteBuffer bulkMsg = perf.writeMessage();
+
+        // overwrite ModuleNames reserved values
+//        m.put(0x30f,(byte)0x40);
+//        m.put(0x6a2,(byte)0);
+//        m.put(0xa32,(byte)0);
+
+        assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
+
+    }
+
+
     /**
      * outbound are not intended for app dispatch, call performance/slot read methods to adapt
      * to get logging. Enable INFO for Patch,Fields,Sections.
