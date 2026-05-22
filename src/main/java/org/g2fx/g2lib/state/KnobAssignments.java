@@ -37,7 +37,7 @@ public class KnobAssignments {
         this(Protocol.KnobAssignments.FIELDS.values(
                 Protocol.KnobAssignments.KnobCount.value(0x78),
                 Protocol.KnobAssignments.Knobs.value(
-                        IntStream.range(0,0x77).mapToObj(i ->
+                        IntStream.range(0,0x78).mapToObj(i ->
                                 Protocol.KnobAssignment.FIELDS.values(
                                         Protocol.KnobAssignment.Assigned.value(0),
                                         Protocol.KnobAssignment.Params.value(List.of())

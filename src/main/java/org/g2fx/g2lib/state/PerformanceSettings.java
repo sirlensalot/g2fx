@@ -57,7 +57,7 @@ public class PerformanceSettings {
                                 PatchIndex.value(0),
                                 KeyboardRangeFrom.value(0),
                                 KeyboardRangeTo.value(0x7f),
-                                Unknown.value(0x10000 * (s.ordinal()+2))
+                                Unknown.value(0)
                         )
                 ).toList())
         ));

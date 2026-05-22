@@ -72,7 +72,9 @@ public class ParamValues {
             vfvs.add(Protocol.VarParams.FIELDS.init().addAll(
                     Protocol.VarParams.Variation.value(v),
                     Protocol.VarParams.Params.value(params.stream().map(np ->
-                            Protocol.Data7.FIELDS.init().add(Protocol.Data7.Datum.value(np.def))).toList())));
+                            Protocol.Data7.FIELDS.init().add(
+                                    Protocol.Data7.Datum.value(np.def)
+                            )).toList())));
         }
         return vfvs;
     }

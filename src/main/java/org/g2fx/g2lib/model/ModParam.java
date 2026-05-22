@@ -513,27 +513,27 @@ public enum ModParam {
     (1,
      "Off","On"),
     GlideControl
-    (2,
+    (0,
      "Off","Normal","Auto"),
     GlideSpeed
-    (0,127,0,intF(n -> n + "?")), //TODO
+    (0,127,28,intF(n -> n + "?")), //TODO
     BendEnable
-    (0,
+    (1,
      "Off","On"),
     BendSemi
-    (0,23,2,intF(n -> (n+1)+" semi")),
+    (0,23,1,intF(n -> (n+1)+" semi")),
     VibratoControl
-    (2,
+    (0,
      "Off","AftTouch","Wheel"),
     VibCents
-    (0,100,0,intF(n -> n + " cnt")),
+    (0,100,50,intF(n -> n + " cnt")),
     VibRate
-    (0,127,0),
+    (0,127,64),
     ArpEnable
     (0,
      "Off","On"),
     ArpTime
-    (0,SELF_AREF_SENTINEL,
+    (3,SELF_AREF_SENTINEL,
      "1/8","1/8T","1/16","1/16T"),
     ArpDir
     (0,SELF_AREF_SENTINEL,

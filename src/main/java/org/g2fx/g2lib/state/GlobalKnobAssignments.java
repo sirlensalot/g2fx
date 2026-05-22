@@ -39,7 +39,7 @@ public class GlobalKnobAssignments {
         this(Protocol.GlobalKnobAssignments.FIELDS.values(
                 Protocol.GlobalKnobAssignments.KnobCount.value(0x78),
                 Protocol.GlobalKnobAssignments.Knobs.value(
-                        IntStream.range(0,0x77).mapToObj(i ->
+                        IntStream.range(0,0x78).mapToObj(i ->
                                 Protocol.GlobalKnobAssignment.FIELDS.values(
                                         Protocol.GlobalKnobAssignment.Assigned.value(0),
                                         Protocol.GlobalKnobAssignment.Params.value(List.of())

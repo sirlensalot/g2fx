@@ -29,7 +29,7 @@ public class MorphParameters {
                 Protocol.MorphParameters.MorphCount.value(8),
                 Protocol.MorphParameters.Reserved.value(0),
                 Protocol.MorphParameters.VarMorphs.value(
-                        IntStream.range(0,9).mapToObj(i ->
+                        IntStream.range(0,10).mapToObj(i ->
                                 Protocol.VarMorph.FIELDS.values(
                                         Protocol.VarMorph.Variation.value(i),
                                         Protocol.VarMorph.Reserved0.value(0),

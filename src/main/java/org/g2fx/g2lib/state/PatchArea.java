@@ -279,9 +279,10 @@ public class PatchArea {
     }
 
     public FieldValues getParamsValues() {
+        int count = modules.size();
         return Protocol.ModuleParams.FIELDS.values(
-                Protocol.ModuleParams.SetCount.value(modules.size()),
-                Protocol.ModuleParams.VariationCount.value(8), // always at least 8
+                Protocol.ModuleParams.SetCount.value(count),
+                Protocol.ModuleParams.VariationCount.value(count == 0 ? 0 : MAX_VARIATIONS), // always at least 8
                 Protocol.ModuleParams.ParamSet.value(
                         modules.values().stream().map(PatchModule::getParamsValues).toList())
         );
@@ -301,7 +302,7 @@ public class PatchArea {
 
     public FieldValues getModuleNameValues() {
         return Protocol.ModuleNames.FIELDS.values(
-                Protocol.ModuleNames.Reserved.value(1),
+                Protocol.ModuleNames.Reserved.value(0), // legacy init: A:1,1 B:21,8 C:1,0 D:0,0
                 Protocol.ModuleNames.NameCount.value(modules.size()),
                 Protocol.ModuleNames.Names.value(
                         modules.values().stream().map(m ->

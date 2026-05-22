@@ -62,6 +62,7 @@ public class PatchModule {
 
     public void setParamValues(List<FieldValues> varParams) {
         values = new ParamValues(varParams,sender,area,index);
+        //TODO conform var count to MAX_VARIATIONS here
     }
 
     public List<Integer> getVarValues(int variation) {
@@ -151,6 +152,7 @@ public class PatchModule {
         setParamValues(area == AreaId.Settings ?
                 ParamValues.mkDefaultParams(settingsModuleType.getModParams()) :
                 ParamValues.mkDefaultParams(userModuleData.getType()));
+        log.info(() -> "setDefaultParamsValues: " + values.getValues());
     }
 
     public ParamValues getValues() {

@@ -55,6 +55,10 @@ public class Performance {
         }
     }
 
+    public Performance() {
+        this(new UsbSender.OfflineSender());
+    }
+
     public int getVersion() {
         return version;
     }

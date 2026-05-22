@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 public enum SettingsModules {
-    Morphs {
+    Morphs { // 1
         @Override
         public List<ModParam> getModParams() {
             ArrayList<ModParam> ps = new ArrayList<>(Collections.nCopies(8, ModParam.MorphDial));
@@ -24,32 +24,32 @@ public enum SettingsModules {
             return ps;
         }
     },
-    Gain {
+    Gain { // 2
         public List<ModParam> getModParams() {
             return List.of(ModParam.GainVolume, ModParam.GainActiveMuted);
         }
     },
-    Glide {
+    Glide { // 3
         public List<ModParam> getModParams() {
             return List.of(ModParam.GlideControl, ModParam.GlideSpeed);
         }
     },
-    Bend {
+    Bend { // 4
         public List<ModParam> getModParams() {
             return List.of(ModParam.BendEnable, ModParam.BendSemi);
         }
     },
-    Vibrato {
+    Vibrato { // 5
         public List<ModParam> getModParams() {
             return List.of(ModParam.VibratoControl, ModParam.VibCents, ModParam.VibRate);
         }
     },
-    Arpeggiator {
+    Arpeggiator { // 6
         public List<ModParam> getModParams() {
             return List.of(ModParam.ArpEnable, ModParam.ArpTime, ModParam.ArpDir, ModParam.ArpOctaves);
         }
     },
-    Misc {
+    Misc { // 7
         public List<ModParam> getModParams() {
             return List.of(ModParam.MiscOctShift, ModParam.MiscSustain);
         }
