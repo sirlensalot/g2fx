@@ -2,6 +2,7 @@ package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.MessageRecorder;
+import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ public class PerformanceTest {
         ByteBuffer b = ms.get(1).msg().buffer().position(2).slice();
         b.limit(b.limit()-2);
 
-        //overwrite ModuleNames unknown reserved values
+        //overwrite ModuleNames reserved values
         b.put(0x2fa,(byte)0x40);
         b.put(0x2ff,(byte)0x00);
         b.put(0x58c,(byte)0x40);
@@ -41,5 +42,42 @@ public class PerformanceTest {
 
         assertEquals(Util.dumpBufferString(b),Util.dumpBufferString(pb));
 
+    }
+
+
+    @Test
+    void regress001_LoadPerfSend() throws Exception {
+
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                parseCapture("data/capture/capture-001-load-g2fx-perf1.pcapng", (i) -> true);
+
+        ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
+        m.limit(m.limit()-2);
+//        readInboundPerf(m.buffer());
+//        if (true) return;
+
+        Performance perf = Performance.readFromFile("data/perf/g2fx-perf-01.prf2",new UsbSender.OfflineSender());
+        perf.setFileName("g2fx-perf-01");
+        ByteBuffer bulkMsg = perf.writeMessage();
+
+        // overwrite ModuleNames reserved values
+        m.put(0x30f,(byte)0x40);
+        m.put(0x6a2,(byte)0);
+        m.put(0xa32,(byte)0);
+
+        assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
+
+    }
+
+    /**
+     * outbound are not intended for app dispatch, call performance/slot read methods to adapt
+     * to get logging. Enable INFO for Patch,Fields,Sections.
+     */
+    public static void readOutboundPerf(ByteBuffer buf) {
+        //System.out.println(Util.dumpBufferString(buf));
+        Performance p = new Performance();
+        ByteBuffer b = buf.position(0x18);
+        p.readPerformanceNameAndSettings(b);
+        p.slots().forEach(s -> s.readFileSections(b));
     }
 }

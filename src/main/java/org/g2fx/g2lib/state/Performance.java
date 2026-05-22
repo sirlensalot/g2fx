@@ -396,4 +396,7 @@ public class Performance {
 
     }
 
+    public Iterable<Patch> slots() {
+        return slots.values();
+    }
 }

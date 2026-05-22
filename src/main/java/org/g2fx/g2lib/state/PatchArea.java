@@ -279,13 +279,15 @@ public class PatchArea {
     }
 
     public FieldValues getParamsValues() {
-        int count = modules.size();
+        List<FieldValues> fvss = new ArrayList<>();
+        for (PatchModule m : modules.values()) {
+            FieldValues pvs = m.getParamsValues();
+            if (pvs != null) { fvss.add(pvs); }
+        }
         return Protocol.ModuleParams.FIELDS.values(
-                Protocol.ModuleParams.SetCount.value(count),
-                Protocol.ModuleParams.VariationCount.value(count == 0 ? 0 : MAX_VARIATIONS), // always at least 8
-                Protocol.ModuleParams.ParamSet.value(
-                        modules.values().stream().map(PatchModule::getParamsValues).toList())
-        );
+                Protocol.ModuleParams.SetCount.value(fvss.size()),
+                Protocol.ModuleParams.VariationCount.value(fvss.isEmpty() ? 0 : MAX_VARIATIONS),
+                Protocol.ModuleParams.ParamSet.value(fvss));
     }
 
     public FieldValues getMorphLabelValues() {
@@ -293,11 +295,14 @@ public class PatchArea {
     }
 
     public FieldValues getModuleLabelValues() {
+        List<FieldValues> fvss = new ArrayList<>();
+        for (PatchModule m : modules.values()) {
+            FieldValues vs = m.getModuleLabelsValues();
+            if (vs != null) { fvss.add(vs); }
+        }
         return Protocol.ModuleLabels.FIELDS.values(
-                Protocol.ModuleLabels.ModuleCount.value(modules.size()),
-                Protocol.ModuleLabels.ModLabels.value(
-                        modules.values().stream().map(PatchModule::getModuleLabelsValues).toList()
-                ));
+                Protocol.ModuleLabels.ModuleCount.value(fvss.size()),
+                Protocol.ModuleLabels.ModLabels.value(fvss));
     }
 
     public FieldValues getModuleNameValues() {
@@ -307,6 +312,7 @@ public class PatchArea {
                 Protocol.ModuleNames.Names.value(
                         modules.values().stream().map(m ->
                                         Protocol.ModuleName.FIELDS.values(
+                                                Protocol.ModuleName.ModuleIndex.value(m.getIndex()),
                                                 Protocol.ModuleName.Name.value(m.name().get())
                                         )
                                 ).toList()

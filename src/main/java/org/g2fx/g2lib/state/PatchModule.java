@@ -25,7 +25,7 @@ public class PatchModule {
     private final AreaId area;
     private final SettingsModules settingsModuleType;
     private final List<NamedParam> params;
-    private ParamValues values = new ParamValues();
+    private ParamValues values;// = new ParamValues();
     private final Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>();
     private LibProperty<String> name;
 
@@ -160,6 +160,7 @@ public class PatchModule {
     }
 
     public FieldValues getParamsValues() {
+        if (values == null) { return null; } // for param-less modules
         int pc = area == AreaId.Settings ?
                 settingsModuleType.getModParams().size() :
                 userModuleData.getType().getParams().size();
@@ -175,6 +176,7 @@ public class PatchModule {
     }
 
     public FieldValues getModuleLabelsValues() {
+        if (userLabels.isEmpty()) { return null; }
         return Protocol.ModuleLabel.FIELDS.values(
                 Protocol.ModuleLabel.ModuleIndex.value(index),
                 Protocol.ModuleLabel.ModLabelLen.value(userLabels.size()),

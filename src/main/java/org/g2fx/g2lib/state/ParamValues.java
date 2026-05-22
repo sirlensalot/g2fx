@@ -23,18 +23,6 @@ public class ParamValues {
     private final List<FieldValues> values;
     private final List<List<LibProperty<Integer>>> props;
 
-    public ParamValues() {
-        log = Util.getLogger(getClass());
-        values = new ArrayList<>(MAX_VARIATIONS);
-        props = new ArrayList<>(MAX_VARIATIONS);
-        for (int v = 0 ; v < MAX_VARIATIONS; v++) {
-            props.add(List.of());
-            FieldValues fvs = Protocol.VarParams.FIELDS.init();
-            fvs.add(Protocol.VarParams.Variation.value(v));
-            fvs.add(Protocol.VarParams.Params.value(List.of()));
-            values.add(fvs);
-        }
-    }
     public ParamValues(List<FieldValues> values, UsbSlotSender sender, AreaId area,int index) {
         log = Util.getLogger(getClass(),area,index);
         this.values = values;
