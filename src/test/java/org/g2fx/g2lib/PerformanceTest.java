@@ -1,5 +1,7 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2lib.model.NamedParam;
+import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.UsbSender;
@@ -8,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.g2fx.g2lib.DeviceTest.parseCapture;
@@ -110,6 +113,18 @@ public class PerformanceTest {
         Performance p = new Performance();
         ByteBuffer b = buf.position(0x18);
         p.readPerformanceNameAndSettings(b);
-        p.slots().forEach(s -> s.readFileSections(b));
+        p.slots().forEach(s -> {
+            s.readFileSections(b);
+            Arrays.stream(AreaId.USER_AREAS).forEach(a ->
+                s.getArea(a).getModules().forEach(m -> {
+                    if (m.getValues() == null) { return; }
+                    List<Integer> v9s = m.getValues().getVarValues(9);
+                    List<Integer> defs = m.getUserModuleData().getType().getParams().stream().map(NamedParam::def).toList();
+                    if (!v9s.equals(defs)) {
+                        System.out.printf("%s: OUT  V9: %s\n", m.getUserModuleData().getType(), v9s);
+                        System.out.printf("%s: DEFAULT: %s\n", m.getUserModuleData().getType(), defs);
+                    }
+            }));
+        });
     }
 }

@@ -20,7 +20,7 @@ public record NamedParam(ModParam param, String name, List<String> labels, Integ
     }
 
     public NamedParam label(String... labels) {
-        return new NamedParam(this.param, this.name, List.of(labels),null);
+        return new NamedParam(this.param, this.name, List.of(labels),null,def);
     }
 
 }
