@@ -65,7 +65,7 @@ public class PatchModule {
         // TODO this copy will be unnecessary once file-writing migrates to new method
         List<FieldValues> vps = new ArrayList<>(varParams);
         for (int i = varParams.size(); i < MAX_VARIATIONS; i++) {
-            vps.add(ParamValues.mkDefaultParams(getModParams(),i));
+            vps.add(ParamValues.mkDefaultParams(getDefaultParamValues(),i));
         }
         values = new ParamValues(vps,sender,area,index);
     }
@@ -146,12 +146,14 @@ public class PatchModule {
     }
 
     public void setDefaultParamValues() {
-        setParamValues(ParamValues.mkDefaultVarParams(getModParams()));
+        setParamValues(ParamValues.mkDefaultVarParams(getDefaultParamValues()));
         log.info(() -> "setDefaultParamsValues: " + values.getValues());
     }
 
-    private List<ModParam> getModParams() {
-        return area == AreaId.Settings ? settingsModuleType.getModParams() : userModuleData.getModParams();
+    private List<Integer> getDefaultParamValues() {
+        return area == AreaId.Settings ?
+                settingsModuleType.getModParams().stream().map(mp -> mp.def).toList() :
+                userModuleData.getDefaultParamValues();
     }
 
     public ParamValues getValues() {

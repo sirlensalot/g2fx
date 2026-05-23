@@ -1,7 +1,6 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.FieldValues;
@@ -106,7 +105,7 @@ public class UserModuleData {
         return fvs;
     }
 
-    public List<ModParam> getModParams() {
-        return type.getParams().stream().map(NamedParam::param).toList();
+    public List<Integer> getDefaultParamValues() {
+        return type.getParams().stream().map(NamedParam::def).toList();
     }
 }
