@@ -87,6 +87,10 @@ public class PerformanceTest {
 //        perf.dumpYaml("data/perf/g2fx-perf-002.yaml");
         ByteBuffer bulkMsg = perf.writeMessage();
 
+        //03fd: A 4d VA 07ae
+        //0ba0: A 4d FX 00ff
+
+
         // overwrite ModuleNames reserved values
 //        m.put(0x30f,(byte)0x40);
 //        m.put(0x6a2,(byte)0);
