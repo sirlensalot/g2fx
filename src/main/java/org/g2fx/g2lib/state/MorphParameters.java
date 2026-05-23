@@ -3,6 +3,7 @@ package org.g2fx.g2lib.state;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,11 +17,16 @@ public class MorphParameters {
     private final FieldValues fvs;
 
     public MorphParameters(FieldValues fvs) {
-        this.fvs = fvs;
-        Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs).forEach(vm -> {
-            varMorphs.put(Protocol.VarMorph.Variation.intValue(vm),
-                    Protocol.VarMorph.VarMorphParams.subfieldsValue(vm));
-        });
+        List<FieldValues> fvss =
+                new ArrayList<>(Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs)); // TODO copy won't be necessary later
+        for (int i = fvss.size(); i < PatchModule.MAX_VARIATIONS; i++) {
+            fvss.add(mkDefaultVarMorph(i));
+        }
+        this.fvs = fvs.copy();
+        this.fvs.update(Protocol.MorphParameters.VarMorphs.value(fvss));
+        this.fvs.update(Protocol.MorphParameters.VariationCount.value(PatchModule.MAX_VARIATIONS));
+        fvss.forEach(vm -> varMorphs.put(Protocol.VarMorph.Variation.intValue(vm),
+                Protocol.VarMorph.VarMorphParams.subfieldsValue(vm)));
     }
 
     public MorphParameters() {
@@ -29,16 +35,19 @@ public class MorphParameters {
                 Protocol.MorphParameters.MorphCount.value(8),
                 Protocol.MorphParameters.Reserved.value(0),
                 Protocol.MorphParameters.VarMorphs.value(
-                        IntStream.range(0,10).mapToObj(i ->
-                                Protocol.VarMorph.FIELDS.values(
-                                        Protocol.VarMorph.Variation.value(i),
-                                        Protocol.VarMorph.Reserved0.value(0),
-                                        Protocol.VarMorph.Reserved1.value(0),
-                                        Protocol.VarMorph.Reserved2.value(0),
-                                        Protocol.VarMorph.MorphCount.value(0),
-                                        Protocol.VarMorph.VarMorphParams.value(List.of()),
-                                        Protocol.VarMorph.Reserved3.value(0)
-                                )).toList())));
+                        IntStream.range(0,10).mapToObj(MorphParameters::mkDefaultVarMorph).toList())));
+    }
+
+    private static FieldValues mkDefaultVarMorph(int i) {
+        return Protocol.VarMorph.FIELDS.values(
+                Protocol.VarMorph.Variation.value(i),
+                Protocol.VarMorph.Reserved0.value(0),
+                Protocol.VarMorph.Reserved1.value(0),
+                Protocol.VarMorph.Reserved2.value(0),
+                Protocol.VarMorph.MorphCount.value(0),
+                Protocol.VarMorph.VarMorphParams.value(List.of()),
+                Protocol.VarMorph.Reserved3.value(0)
+        );
     }
 
     public MorphParam getMorphParam(int variation, AreaId area, int module, int param) {

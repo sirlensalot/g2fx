@@ -92,6 +92,10 @@ public class PerformanceTest {
 
         //03fd: A 4d VA 07ae
         //0ba0: A 4d FX 00ff
+        //0cb0: A 65 0122
+        //0dd5: A 62 011e
+        //0ef6: A 60
+        //0f78: A 5b FX?
 
 
         // overwrite ModuleNames reserved values

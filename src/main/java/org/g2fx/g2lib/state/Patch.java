@@ -325,7 +325,6 @@ public class Patch {
             int ss = bb.limit();
             s.writeLocation(bb);
             FieldValues fvs = getSectionValues(s);
-            addVariation(s, fvs);
             fvs.write(bb);
             int len = bb.limit() - ss;
             bb.writeLength(lpos, len);
@@ -358,20 +357,6 @@ public class Patch {
         };
     }
 
-    /**
-     * Special-case for adding extra variations for outbound messages.
-     */
-    private static void addVariation(Sections s, FieldValues fvs) {
-        if (s.type == 0x65) {
-            fvs.update(Protocol.MorphParameters.VariationCount.value(10)); // overwrite, don't check
-            List<FieldValues> vmfvs = Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs);
-            for (int i = vmfvs.size(); i < 10; i++) {
-                FieldValues newFv = vmfvs.getLast().copy();
-                newFv.update(Protocol.VarMorph.Variation.value(i));
-                vmfvs.add(newFv);
-            }
-        }
-    }
 
     public ByteBuffer writeFile() throws Exception {
         ByteBuffer buf = ByteBuffer.allocateDirect(2048);
