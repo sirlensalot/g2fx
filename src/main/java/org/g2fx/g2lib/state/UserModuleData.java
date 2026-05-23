@@ -1,7 +1,9 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSlotSender;
@@ -102,5 +104,9 @@ public class UserModuleData {
 
     public FieldValues getValues() {
         return fvs;
+    }
+
+    public List<ModParam> getModParams() {
+        return type.getParams().stream().map(NamedParam::param).toList();
     }
 }

@@ -78,11 +78,13 @@ public class PerformanceTest {
 
         ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
         m.limit(m.limit()-2);
-//        readInboundPerf(m.buffer());
+
+//        readOutboundPerf(m);
 //        if (true) return;
 
         Performance perf = Performance.readFromFile("data/perf/g2fx-perf-002.prf2",new UsbSender.OfflineSender());
         perf.setFileName("g2fx-perf-002"); //TODO!!
+//        perf.dumpYaml("data/perf/g2fx-perf-002.yaml");
         ByteBuffer bulkMsg = perf.writeMessage();
 
         // overwrite ModuleNames reserved values

@@ -325,7 +325,7 @@ public class Patch {
             int ss = bb.limit();
             s.writeLocation(bb);
             FieldValues fvs = getSectionValues(s);
-            addVariation(s, fvs, 10);
+            addVariation(s, fvs);
             fvs.write(bb);
             int len = bb.limit() - ss;
             bb.writeLength(lpos, len);
@@ -361,21 +361,11 @@ public class Patch {
     /**
      * Special-case for adding extra variations for outbound messages.
      */
-    private static void addVariation(Sections s, FieldValues fvs, int count) {
-        if (s.type == 0x4d && Protocol.ModuleParams.SetCount.intValue(fvs) > 0) {
-            fvs.update(Protocol.ModuleParams.VariationCount.value(count)); // could check but just overwrite instead
-            for (FieldValues ps : Protocol.ModuleParams.ParamSet.subfieldsValue(fvs)) {
-                List<FieldValues> mpfvss = Protocol.ModuleParamSet.ModParams.subfieldsValue(ps);
-                for (int i = mpfvss.size(); i < count; i++) {
-                    FieldValues newFv = mpfvss.getLast().copy();
-                    newFv.update(Protocol.VarParams.Variation.value(i));
-                    mpfvss.add(newFv);
-                }
-            }
-        } else if (s.type == 0x65) {
-            fvs.update(Protocol.MorphParameters.VariationCount.value(count)); // overwrite, don't check
+    private static void addVariation(Sections s, FieldValues fvs) {
+        if (s.type == 0x65) {
+            fvs.update(Protocol.MorphParameters.VariationCount.value(10)); // overwrite, don't check
             List<FieldValues> vmfvs = Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs);
-            for (int i = vmfvs.size(); i < count; i++) {
+            for (int i = vmfvs.size(); i < 10; i++) {
                 FieldValues newFv = vmfvs.getLast().copy();
                 newFv.update(Protocol.VarMorph.Variation.value(i));
                 vmfvs.add(newFv);

@@ -61,8 +61,13 @@ public class PatchModule {
     }
 
     public void setParamValues(List<FieldValues> varParams) {
-        values = new ParamValues(varParams,sender,area,index);
-        //TODO conform var count to MAX_VARIATIONS here
+        // add extra variations with defaults
+        // TODO this copy will be unnecessary once file-writing migrates to new method
+        List<FieldValues> vps = new ArrayList<>(varParams);
+        for (int i = varParams.size(); i < MAX_VARIATIONS; i++) {
+            vps.add(ParamValues.mkDefaultParams(getModParams(),i));
+        }
+        values = new ParamValues(vps,sender,area,index);
     }
 
     public List<Integer> getVarValues(int variation) {
@@ -136,23 +141,17 @@ public class PatchModule {
         return userLabels.get(paramIndex);
     }
 
-    private NamedParam getNamedParam(int paramIndex) {
-        if (params == null) { throw new UnsupportedOperationException("getModuleLabel: no params"); }
-        if (paramIndex < 0 || paramIndex >= params.size()) {
-            throw new IllegalArgumentException("Invalid param index: " + paramIndex);
-        }
-        return params.get(paramIndex);
-    }
-
     public void updateParam(FieldValues fvs) {
         values.updateParam(fvs);
     }
 
     public void setDefaultParamValues() {
-        setParamValues(area == AreaId.Settings ?
-                ParamValues.mkDefaultParams(settingsModuleType.getModParams()) :
-                ParamValues.mkDefaultParams(userModuleData.getType()));
+        setParamValues(ParamValues.mkDefaultVarParams(getModParams()));
         log.info(() -> "setDefaultParamsValues: " + values.getValues());
+    }
+
+    private List<ModParam> getModParams() {
+        return area == AreaId.Settings ? settingsModuleType.getModParams() : userModuleData.getModParams();
     }
 
     public ParamValues getValues() {
