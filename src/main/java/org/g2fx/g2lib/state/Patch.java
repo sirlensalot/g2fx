@@ -44,52 +44,6 @@ public class Patch {
             "Info=BUILD 320"
     });
 
-    /**
-     * Sections for patch/perf files and outbound perf usb (patch confirm TODO)
-     */
-    public static final Sections[] FILE_SECTIONS = new Sections[] {
-            Sections.SPatchDescription_21,
-            Sections.SModuleList1_4a,
-            Sections.SModuleList0_4a,
-            Sections.SCurrentNote_69,
-            Sections.SCableList1_52,
-            Sections.SCableList0_52,
-            Sections.SPatchParams_4d,
-            Sections.SModuleParams1_4d,
-            Sections.SModuleParams0_4d,
-            Sections.SMorphParameters_65,
-            Sections.SKnobAssignments_62,
-            Sections.SControlAssignments_60,
-            Sections.SMorphLabels_5b,
-            Sections.SModuleLabels1_5b,
-            Sections.SModuleLabels0_5b,
-            Sections.SModuleNames1_5a,
-            Sections.SModuleNames0_5a,
-            Sections.STextPad_6f
-    };
-
-    /**
-     * Sections for inbound USB patch messages.
-     */
-    public static final Sections[] MSG_SECTIONS = new Sections[] {
-            Sections.SPatchDescription_21,
-            Sections.SModuleList1_4a,
-            Sections.SModuleList0_4a,
-            Sections.SCableList1_52,
-            Sections.SCableList0_52,
-            Sections.SPatchParams_4d,
-            Sections.SModuleParams1_4d,
-            Sections.SModuleParams0_4d,
-            Sections.SMorphParameters_65,
-            Sections.SKnobAssignments_62,
-            Sections.SControlAssignments_60,
-            Sections.SModuleNames1_5a,
-            Sections.SModuleNames0_5a,
-            Sections.SMorphLabels_5b,
-            Sections.SModuleLabels1_5b,
-            Sections.SModuleLabels0_5b
-    };
-
     public final LinkedHashMap<Sections, Sections.Section> sections = new LinkedHashMap<>();
     private LibProperty<String> name;
     private final Slot slot;
@@ -178,7 +132,7 @@ public class Patch {
      */
     // usb, test
     public void readPatchDescription(ByteBuffer buf) {
-        for (Sections ss : MSG_SECTIONS) {
+        for (Sections ss : Sections.MSG_SECTIONS) {
             readAheadSection(buf,ss);
             // 0x21 is first in either case
             if (ss == Sections.SPatchDescription_21) {
@@ -262,7 +216,7 @@ public class Patch {
 
     // file-patch, file-perf
     public void readFileSections(ByteBuffer fileBuffer) {
-        for (Sections ss : FILE_SECTIONS) {
+        for (Sections ss : Sections.FILE_SECTIONS) {
             readAheadSection(fileBuffer,ss);
         }
         visuals.updateVisualIndex();
@@ -298,7 +252,7 @@ public class Patch {
         ByteBuffer buf = ByteBuffer.allocateDirect(2048);
 
         writeMessageHeader(buf);
-        for (Sections s : MSG_SECTIONS) {
+        for (Sections s : Sections.MSG_SECTIONS) {
             writeSection(buf,s);
             if (s == Sections.SPatchDescription_21) {
                 buf.put(Util.asBytes(0x2d,0x00));
@@ -317,14 +271,14 @@ public class Patch {
     /**
      * write patch message to existing bitbuffer. TODO same as sending patch?
      */
-    public void writeMessage(BitBuffer bb) throws Exception {
-        for (Sections s : FILE_SECTIONS) {
+    public void writeMessage(BitBuffer bb, int variationCount) throws Exception {
+        for (Sections s : Sections.FILE_SECTIONS) {
             bb.put(8,s.type);
             int lpos = bb.limit();
             bb.put(16,0);
             int ss = bb.limit();
             s.writeLocation(bb);
-            FieldValues fvs = getSectionValues(s);
+            FieldValues fvs = getSectionValues(s,variationCount);
             fvs.write(bb);
             int len = bb.limit() - ss;
             bb.writeLength(lpos, len);
@@ -333,7 +287,7 @@ public class Patch {
         }
     }
 
-    private FieldValues getSectionValues(Sections s) {
+    private FieldValues getSectionValues(Sections s, int variationCount) {
         return switch (s) {
             case SPatchDescription_21 -> patchSettings.values();
             case SModuleList1_4a -> voiceArea.getModuleListValues();
@@ -341,10 +295,10 @@ public class Patch {
             case SCurrentNote_69 -> currentNote;
             case SCableList1_52 -> voiceArea.getCableListValues();
             case SCableList0_52 -> fxArea.getCableListValues();
-            case SPatchParams_4d -> settingsArea.getParamsValues();
-            case SModuleParams1_4d -> voiceArea.getParamsValues();
-            case SModuleParams0_4d -> fxArea.getParamsValues();
-            case SMorphParameters_65 -> morphParams.getFieldValues();
+            case SPatchParams_4d -> settingsArea.getParamsValues(variationCount);
+            case SModuleParams1_4d -> voiceArea.getParamsValues(variationCount);
+            case SModuleParams0_4d -> fxArea.getParamsValues(variationCount);
+            case SMorphParameters_65 -> morphParams.getFieldValues(variationCount);
             case SKnobAssignments_62 -> knobAssignments.values();
             case SControlAssignments_60 -> controls.values();
             case SMorphLabels_5b -> settingsArea.getMorphLabelValues();
@@ -372,7 +326,7 @@ public class Patch {
     }
 
     public void writeFileSections(ByteBuffer buf) throws Exception {
-        for (Sections s : FILE_SECTIONS) {
+        for (Sections s : Sections.FILE_SECTIONS) {
             writeSection(buf,s);
         }
     }

@@ -37,6 +37,50 @@ public enum Sections {
     SPatchName_27(Protocol.EntryName.FIELDS,0x27),
 
     SPatchLoadData_72(Protocol.PatchLoadData.FIELDS,0x72);
+    /**
+     * Sections for inbound USB patch messages.
+     */
+    public static final Sections[] MSG_SECTIONS = new Sections[] {
+            SPatchDescription_21,
+            SModuleList1_4a,
+            SModuleList0_4a,
+            SCableList1_52,
+            SCableList0_52,
+            SPatchParams_4d,
+            SModuleParams1_4d,
+            SModuleParams0_4d,
+            SMorphParameters_65,
+            SKnobAssignments_62,
+            SControlAssignments_60,
+            SModuleNames1_5a,
+            SModuleNames0_5a,
+            SMorphLabels_5b,
+            SModuleLabels1_5b,
+            SModuleLabels0_5b
+    };
+    /**
+     * Sections for patch/perf files and outbound perf usb (patch confirm TODO)
+     */
+    public static final Sections[] FILE_SECTIONS = new Sections[] {
+            SPatchDescription_21,
+            SModuleList1_4a,
+            SModuleList0_4a,
+            SCurrentNote_69,
+            SCableList1_52,
+            SCableList0_52,
+            SPatchParams_4d,
+            SModuleParams1_4d,
+            SModuleParams0_4d,
+            SMorphParameters_65,
+            SKnobAssignments_62,
+            SControlAssignments_60,
+            SMorphLabels_5b,
+            SModuleLabels1_5b,
+            SModuleLabels0_5b,
+            SModuleNames1_5a,
+            SModuleNames0_5a,
+            STextPad_6f
+    };
 
     private static final Logger log = Util.getLogger(Sections.class);
 

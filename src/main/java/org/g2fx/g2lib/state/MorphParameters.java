@@ -14,6 +14,9 @@ public class MorphParameters {
 
     public record MorphParam(int morph, int range) { }
 
+    /**
+     * {@link org.g2fx.g2lib.protocol.Protocol.MorphParameters} field values
+     */
     private final FieldValues fvs;
 
     public MorphParameters(FieldValues fvs) {
@@ -68,7 +71,12 @@ public class MorphParameters {
         return varMorphs;
     }
 
-    public FieldValues getFieldValues() {
-        return fvs;
+    public FieldValues getFieldValues(int variationCount) {
+        if (variationCount == PatchModule.MAX_VARIATIONS) { return fvs; }
+        List<FieldValues> vvs = new ArrayList<>(Protocol.MorphParameters.VarMorphs.subfieldsValue(fvs));
+        vvs.removeLast();
+        return fvs.copy()
+                .update(Protocol.MorphParameters.VariationCount.value(variationCount))
+                .update(Protocol.MorphParameters.VarMorphs.value(vvs));
     }
 }

@@ -127,11 +127,13 @@ public class Performance {
         buf.put(HEADER.rewind());
         int start = buf.position();
         buf.put(Util.asBytes(0x17,version));
-        Sections.writeSection(buf,Sections.SPerformanceSettings_11,perfSettings.getFieldValues());
+        BitBuffer bb = BitBuffer.fromSlice(buf);
+        writeSection(bb,Sections.SPerformanceSettings_11,perfSettings.getFieldValues());
         for (Patch patch : slots.values()) {
-            patch.writeFileSections(buf);
+            patch.writeMessage(bb, PatchModule.FILE_VARIATIONS);
         }
-        Sections.writeSection(buf,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
+        writeSection(bb,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
+        buf.position(bb.limit());
         Util.writeCrc(buf,start);
         return buf;
     }
@@ -157,7 +159,7 @@ public class Performance {
         name.write(bb);
         writeSection(bb, Sections.SPerformanceSettings_11, perfSettings.getFieldValues());
         for (Patch patch : slots.values()) {
-            patch.writeMessage(bb);
+            patch.writeMessage(bb, PatchModule.MAX_VARIATIONS);
         }
         writeSection(bb, Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
         buf.limit(bb.limit());

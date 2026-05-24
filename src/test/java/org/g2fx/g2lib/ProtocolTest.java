@@ -878,15 +878,6 @@ class ProtocolTest {
     }
 
     @Test
-    void roundtripPerformanceFile() throws Exception {
-        String filePath = "data/perf-20240802.prf2";
-        Performance perf = Performance.readFromFile(filePath,sender);
-        assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
-                Util.dumpBufferString(perf.writeFile().rewind()));
-
-    }
-
-    @Test
     void regressMorphParamsWrite() throws Exception {
         FieldValues fvs = Protocol.MorphParameters.FIELDS.init().addAll(
                 Protocol.MorphParameters.VariationCount.value(9),
@@ -958,7 +949,7 @@ class ProtocolTest {
     }
 
 
-    void diffPerf(Performance iPerf, Performance aPerf) {
+    void diffPerf(Performance iPerf, Performance aPerf, int variationCount) {
         List<AssertionError> errors = new ArrayList<>();
         for (Slot slot : Slot.values()) {
             Patch iPatch = iPerf.getSlot(slot);
@@ -976,7 +967,8 @@ class ProtocolTest {
                 assertEquals(iArea.getCables().stream().map(PatchCable::getFieldValues).toList(),
                         aArea.getCables().stream().map(PatchCable::getFieldValues).toList());
             }
-            assertEquals(iPatch.getMorphParams().getFieldValues(), aPatch.getMorphParams().getFieldValues());
+            assertEquals(iPatch.getMorphParams().getFieldValues(variationCount),
+                    aPatch.getMorphParams().getFieldValues(variationCount));
         }
         assertEquals(List.of(),errors);
     }

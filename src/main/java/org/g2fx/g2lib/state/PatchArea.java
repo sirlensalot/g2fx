@@ -278,15 +278,16 @@ public class PatchArea {
         );
     }
 
-    public FieldValues getParamsValues() {
+    public FieldValues getParamsValues(int variationCount) {
         List<FieldValues> fvss = new ArrayList<>();
         for (PatchModule m : modules.values()) {
-            FieldValues pvs = m.getParamsValues();
+            FieldValues pvs = m.getParamsValues(variationCount);
             if (pvs != null) { fvss.add(pvs); }
         }
+        int vc = fvss.isEmpty() ? 0 : variationCount; // sigh this is sometimes, in files, 9 and sometimes not!
         return Protocol.ModuleParams.FIELDS.values(
                 Protocol.ModuleParams.SetCount.value(fvss.size()),
-                Protocol.ModuleParams.VariationCount.value(fvss.isEmpty() ? 0 : MAX_VARIATIONS),
+                Protocol.ModuleParams.VariationCount.value(vc),
                 Protocol.ModuleParams.ParamSet.value(fvss));
     }
 

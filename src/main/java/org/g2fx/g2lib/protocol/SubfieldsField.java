@@ -84,6 +84,7 @@ public class SubfieldsField extends AbstractField implements Field {
 
     public <T extends Enum<T>> SubfieldsField(Enum<T> e, Fields subfields, SubfieldCounterFactory subfieldCount) {
         super(e);
+        if (subfields == null) { throw new IllegalStateException(e.name() + ": Subfield initialization failed, Protocol fields value null"); }
         this.subfields = subfields;
         this.subfieldCount = subfieldCount;
     }

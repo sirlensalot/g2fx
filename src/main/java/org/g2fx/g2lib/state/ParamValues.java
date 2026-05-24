@@ -20,6 +20,10 @@ public class ParamValues {
     private final List<FieldValues> values;
     private final List<List<LibProperty<Integer>>> props;
 
+    /**
+     * @param values list of {@link Protocol.VarParams} field values,
+     *               size {@link PatchModule#MAX_VARIATIONS}
+     */
     public ParamValues(List<FieldValues> values, UsbSlotSender sender, AreaId area,int index) {
         log = Util.getLogger(getClass(),area,index);
         this.values = values;

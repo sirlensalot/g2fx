@@ -20,6 +20,7 @@ public class PatchModule {
 
     private final Logger log;
     public static final int MAX_VARIATIONS = 10;
+    public static final int FILE_VARIATIONS = 9;
 
     private final UserModuleData userModuleData;
     private final UsbSlotSender sender;
@@ -161,15 +162,20 @@ public class PatchModule {
         return values;
     }
 
-    public FieldValues getParamsValues() {
+    public FieldValues getParamsValues(int variationCount) {
         if (values == null) { return null; } // for param-less modules
         int pc = area == AreaId.Settings ?
                 settingsModuleType.getModParams().size() :
                 userModuleData.getType().getParams().size();
+
+        List<FieldValues> vvs = new ArrayList<>(values.getValues());
+        while (vvs.size() > variationCount) {
+            vvs.removeLast();
+        }
         return Protocol.ModuleParamSet.FIELDS.values(
                 Protocol.ModuleParamSet.ModIndex.value(index),
                 Protocol.ModuleParamSet.ParamCount.value(pc),
-                Protocol.ModuleParamSet.ModParams.value(values.getValues())
+                Protocol.ModuleParamSet.ModParams.value(vvs)
         );
     }
 

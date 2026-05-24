@@ -1,6 +1,7 @@
 package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.model.NamedParam;
+import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.MessageRecorder;
@@ -19,9 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class PerformanceTest {
 
 
+    public static final String PERF_001 = "data/perf/g2fx-perf-01.prf2";
+
     @BeforeAll
     public static void beforeAll() {
         Util.configureLogging();
+        //WARNING: Protocol subfield init can fail with tests running in multiple threads!!
+        Protocol.ModuleParams.ParamSet.toString(); // force fields init
     }
 
 
@@ -37,13 +42,24 @@ public class PerformanceTest {
         b.limit(b.limit()-2);
 
         //overwrite ModuleNames reserved values
-        b.put(0x2fa,(byte)0x40);
-        b.put(0x2ff,(byte)0x00);
-        b.put(0x58c,(byte)0x40);
-        b.put(0x591,(byte)0x00);
-        b.put(0x81e,(byte)0x40);
+        overwriteBytes(b,
+            0x2fa,0x40,
+            0x2ff,0x00,
+            0x58c,0x40,
+            0x591,0x00,
+            0x81e,0x40);
 
         assertEquals(Util.dumpBufferString(b),Util.dumpBufferString(pb));
+
+    }
+
+
+    @Test
+    void roundtripPerformanceFile() throws Exception {
+        String filePath = "data/perf-20240802.prf2";
+        Performance perf = Performance.readFromFile(filePath,new UsbSender.OfflineSender());
+        assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
+                Util.dumpBufferString(perf.writeFile().rewind()));
 
     }
 
@@ -59,17 +75,41 @@ public class PerformanceTest {
 //        readInboundPerf(m.buffer());
 //        if (true) return;
 
-        Performance perf = Performance.readFromFile("data/perf/g2fx-perf-01.prf2",new UsbSender.OfflineSender());
+        Performance perf = Performance.readFromFile(PERF_001,new UsbSender.OfflineSender());
         perf.setFileName("g2fx-perf-01");
         ByteBuffer bulkMsg = perf.writeMessage();
 
         // overwrite ModuleNames reserved values
-        m.put(0x30f,(byte)0x40);
-        m.put(0x6a2,(byte)0);
-        m.put(0xa32,(byte)0);
+        overwriteBytes(m,
+                0x30f,0x40,
+                0x6a2,0,
+                0xa32,0);
 
         assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
 
+    }
+
+    void overwriteBytes(ByteBuffer buf, int... addrValPairs) {
+        for (int i = 0; i < addrValPairs.length; i += 2) {
+            buf.put(addrValPairs[i], (byte) addrValPairs[i+1]);
+        }
+    }
+
+    @Test
+    void regress001_RoundtripFile() throws Exception {
+        Performance perf = Performance.readFromFile(PERF_001,new UsbSender.OfflineSender());
+        ByteBuffer wbuf = perf.writeFile();
+        ByteBuffer buf = Util.readFile(PERF_001);
+        //sigh ... here, empty ModuleParams have variation count :(
+        overwriteBytes(buf,
+            0x237,0,0x238,0,0x23d,0,0x23e,0,
+            0x58f,0,0x590,0,0x595,0,0x596,0,
+            0x8f4,0,0x8f5,0,0x8fa,0,0x8fb,0,
+            0xc7d,0,0xc7e,0,0xc83,0,0xc84,0
+        );
+        //have to skip CRC for overwrites
+        assertEquals(Util.dumpBufferString(buf.limit(buf.limit()-2)),
+                Util.dumpBufferString(wbuf.limit(wbuf.limit()-2)));
     }
 
 

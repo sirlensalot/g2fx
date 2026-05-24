@@ -41,7 +41,7 @@ public class FieldValues {
         return Optional.empty();
     }
 
-    public void update(FieldValue fv) {
+    public FieldValues update(FieldValue fv) {
         Field f = fv.field();
         int idx = f.ordinal();
         if (values.size() > idx && values.get(idx).field() == f) {
@@ -49,6 +49,7 @@ public class FieldValues {
         } else {
             throw new IllegalArgumentException("update: field not found: " + f);
         }
+        return this;
     }
 
     public void write(BitBuffer bb) throws Exception {
