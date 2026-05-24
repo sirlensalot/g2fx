@@ -44,5 +44,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### dev ephemera ###
 /.g2lib-history
 .g2lib-history
+tmp

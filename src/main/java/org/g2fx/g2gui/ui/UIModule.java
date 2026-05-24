@@ -144,7 +144,7 @@ public record UIModule<C> (
     public static void main(String[] args) throws Exception {
         Map<ModuleType, UIModule<UIElement>> m = readModuleUIs().modules;
         ObjectMapper mapper = Util.mkYamlMapper();
-        mapper.writeValue(new File("data/module-uis-output.yaml"),m);
+        mapper.writeValue(new File("data/codegen/module-uis-output.yaml"),m);
 
     }
 

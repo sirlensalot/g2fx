@@ -1,0 +1,14 @@
+msgs:
+
+- time: 43 #09: slot change
+  extended: false
+  crc: 31c8
+  data: >-
+    72 01 04 05 09 00 31 c8 00 00 00 00 00 00 00 00
+
+
+- time: 1000 # 6a: var change
+  extended: false
+  crc: b561
+  data: >-
+    72 01 00 05 6a 01 b5 61 00 00 00 00 00 00 00 00

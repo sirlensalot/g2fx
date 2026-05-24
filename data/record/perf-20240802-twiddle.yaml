@@ -1,0 +1,18 @@
+msgs:
+- time: 9
+  extended: false
+  crc: 2345
+  data: >-
+    b2 01 01 05 40 01 01 00 10 01 23 45 00 00 00 00
+
+- time: 1000
+  extended: false
+  crc: bad2
+  data: >-
+    b2 01 01 05 40 01 01 00 34 01 ba d2 00 00 00 00
+
+- time: 1000
+  extended: false
+  crc: 89e3
+  data: >-
+    b2 01 01 05 40 01 01 00 64 01 89 e3 00 00 00 00

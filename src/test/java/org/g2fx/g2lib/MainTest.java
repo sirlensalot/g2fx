@@ -82,7 +82,8 @@ class MainTest {
     }
     @Test
     void loadRecording() throws Exception {
-        List<MessageRecorder.RecordedUsbMessage> msgs = MessageRecorder.readSessionFile(new File("data/recording1.yaml"));
+        List<MessageRecorder.RecordedUsbMessage> msgs = MessageRecorder.readSessionFile(
+                new File("data/record/recording1.yaml"));
         assertEquals(192,msgs.size());
     }
 

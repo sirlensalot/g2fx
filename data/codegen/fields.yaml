@@ -1,0 +1,794 @@
+Bitmap:
+  CustomText:
+    count: 6
+    ty: "java.lang.Boolean"
+    values:
+    - true
+  Height:
+    count: 50
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 11"
+  ID:
+    count: 50
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 20"
+  ImageFile:
+    count: 44
+    ty: "java.lang.String"
+    values:
+    - "Size: 20"
+  Text:
+    count: 6
+    ty: "java.lang.String"
+    values:
+    - "Size: 6"
+  Width:
+    count: 50
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 14"
+  XPos:
+    count: 50
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 25"
+  YPos:
+    count: 50
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 18"
+ButtonFlat:
+  CodeRef:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 21"
+  Control:
+    count: 150
+    ty: "java.lang.String"
+    values:
+    - "Size: 38"
+  ID:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 48"
+  ImageCount:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  ImageWidth:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 5"
+  Images:
+    count: 19
+    ty: "java.util.ArrayList"
+    values:
+    - "Size: 4"
+  InfoFunc:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 46"
+  Text:
+    count: 150
+    ty: "java.lang.String"
+    values:
+    - "Size: 43"
+  Width:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 14"
+  XPos:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 75"
+  YPos:
+    count: 150
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 36"
+ButtonIncDec:
+  CodeRef:
+    count: 73
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 21"
+  Control:
+    count: 73
+    ty: "java.lang.String"
+    values:
+    - "Size: 62"
+  ID:
+    count: 73
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 49"
+  InfoFunc:
+    count: 73
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 15"
+  Type:
+    count: 73
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  XPos:
+    count: 73
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 55"
+  YPos:
+    count: 73
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 15"
+ButtonRadio:
+  ButtonCount:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 5"
+  ButtonWidth:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 6"
+  CodeRef:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 10"
+  Control:
+    count: 23
+    ty: "java.lang.String"
+    values:
+    - "Size: 9"
+  ID:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 12"
+  ImageWidth:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  Images:
+    count: 8
+    ty: "java.util.ArrayList"
+    values:
+    - "Size: 8"
+  InfoFunc:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 22"
+  Orientation:
+    count: 23
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  Text:
+    count: 23
+    ty: "java.lang.String"
+    values:
+    - "Size: 17"
+  XPos:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 14"
+  YPos:
+    count: 23
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 8"
+ButtonRadioEdit:
+  ButtonColumns:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 2"
+  ButtonRows:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 2"
+  CodeRef:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - 0
+  Control:
+    count: 6
+    ty: "java.lang.String"
+    values:
+    - "Sel"
+  ID:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  InfoFunc:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - 64
+  Text:
+    count: 6
+    ty: "java.lang.String"
+    values:
+    - "Size: 6"
+  XPos:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 3"
+  YPos:
+    count: 6
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 5"
+ButtonText:
+  CodeRef:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 35"
+  Control:
+    count: 196
+    ty: "java.lang.String"
+    values:
+    - "Size: 55"
+  ID:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 50"
+  ImageWidth:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 3"
+  Images:
+    count: 12
+    ty: "java.util.ArrayList"
+    values:
+    - "Size: 3"
+  InfoFunc:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 8"
+  Text:
+    count: 196
+    ty: "java.lang.String"
+    values:
+    - "Size: 23"
+  Type:
+    count: 196
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  Width:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 7"
+  XPos:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 87"
+  YPos:
+    count: 196
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 28"
+Graph:
+  Dependencies:
+    count: 40
+    ty: "java.lang.String"
+    values:
+    - "Size: 30"
+  GraphFunc:
+    count: 40
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 39"
+  Height:
+    count: 40
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 9"
+  ID:
+    count: 40
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 22"
+  Width:
+    count: 40
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 19"
+  XPos:
+    count: 40
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 22"
+  YPos:
+    count: 40
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 8"
+Input:
+  Bandwidth:
+    count: 440
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  CodeRef:
+    count: 440
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 10"
+  Control:
+    count: 440
+    ty: "java.lang.String"
+    values:
+    - "Size: 104"
+  ID:
+    count: 440
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 47"
+  InfoFunc:
+    count: 440
+    ty: "java.lang.Integer"
+    values:
+    - 0
+  Type:
+    count: 440
+    ty: "java.lang.String"
+    values:
+    - "Size: 3"
+  XPos:
+    count: 440
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 124"
+  YPos:
+    count: 440
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 45"
+Knob:
+  CodeRef:
+    count: 413
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 17"
+  Control:
+    count: 413
+    ty: "java.lang.String"
+    values:
+    - "Size: 170"
+  ID:
+    count: 413
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 58"
+  InfoFunc:
+    count: 413
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 54"
+  Type:
+    count: 413
+    ty: "java.lang.String"
+    values:
+    - "Size: 7"
+  XPos:
+    count: 413
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 164"
+  YPos:
+    count: 413
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 39"
+Led:
+  CodeRef:
+    count: 174
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 16"
+  Control:
+    count: 174
+    ty: "java.lang.String"
+    values:
+    - "Size: 24"
+  GroupId:
+    count: 174
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 2"
+  ID:
+    count: 174
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 56"
+  InfoFunc:
+    count: 174
+    ty: "java.lang.Integer"
+    values:
+    - 0
+  LedGroup:
+    count: 140
+    ty: "java.lang.Boolean"
+    values:
+    - true
+  Type:
+    count: 174
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  XPos:
+    count: 174
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 92"
+  YPos:
+    count: 174
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 24"
+LevelShift:
+  CodeRef:
+    count: 14
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 8"
+  Control:
+    count: 14
+    ty: "java.lang.String"
+    values:
+    - "OutputType"
+  ID:
+    count: 14
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 10"
+  InfoFunc:
+    count: 14
+    ty: "java.lang.Integer"
+    values:
+    - 46
+  XPos:
+    count: 14
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 9"
+  YPos:
+    count: 14
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 6"
+Line:
+  ID:
+    count: 301
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 85"
+  Length:
+    count: 301
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 54"
+  Orientation:
+    count: 301
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  Weight:
+    count: 301
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  XPos:
+    count: 301
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 122"
+  YPos:
+    count: 301
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 54"
+MiniVU:
+  CodeRef:
+    count: 29
+    ty: "java.lang.Integer"
+    values:
+    - 0
+  Control:
+    count: 29
+    ty: "java.lang.String"
+    values:
+    - "Size: 11"
+  GroupId:
+    count: 29
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  ID:
+    count: 29
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 19"
+  InfoFunc:
+    count: 29
+    ty: "java.lang.Integer"
+    values:
+    - 0
+  Orientation:
+    count: 29
+    ty: "java.lang.String"
+    values:
+    - "Vertical"
+  XPos:
+    count: 29
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 9"
+  YPos:
+    count: 29
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 6"
+Output:
+  Bandwidth:
+    count: 307
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  CodeRef:
+    count: 307
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 9"
+  Control:
+    count: 307
+    ty: "java.lang.String"
+    values:
+    - "Size: 76"
+  ID:
+    count: 307
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 43"
+  InfoFunc:
+    count: 307
+    ty: "java.lang.Integer"
+    values:
+    - 0
+  Type:
+    count: 307
+    ty: "java.lang.String"
+    values:
+    - "Size: 3"
+  XPos:
+    count: 307
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 58"
+  YPos:
+    count: 307
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 32"
+PartSelector:
+  CodeRef:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 2"
+  Control:
+    count: 24
+    ty: "java.lang.String"
+    values:
+    - "Size: 10"
+  Height:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 5"
+  ID:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 13"
+  ImageCount:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 6"
+  ImageWidth:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 8"
+  Images:
+    count: 14
+    ty: "java.util.ArrayList"
+    values:
+    - "Size: 12"
+  InfoFunc:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 2"
+  MenuOffset:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 3"
+  Width:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 8"
+  XPos:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 14"
+  YPos:
+    count: 24
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 7"
+Symbol:
+  Height:
+    count: 65
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  ID:
+    count: 65
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 32"
+  Type:
+    count: 65
+    ty: "java.lang.String"
+    values:
+    - "Size: 4"
+  Width:
+    count: 65
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  XPos:
+    count: 65
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 19"
+  YPos:
+    count: 65
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 25"
+Text:
+  ID:
+    count: 894
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 78"
+  Text:
+    count: 894
+    ty: "java.lang.String"
+    values:
+    - "Size: 236"
+  XPos:
+    count: 894
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 220"
+  YPos:
+    count: 894
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 67"
+TextEdit:
+  CodeRef:
+    count: 28
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 16"
+  Control:
+    count: 28
+    ty: "java.lang.String"
+    values:
+    - "Size: 11"
+  ID:
+    count: 28
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 18"
+  InfoFunc:
+    count: 28
+    ty: "java.lang.Integer"
+    values:
+    - 3
+  Text:
+    count: 28
+    ty: "java.lang.String"
+    values:
+    - "Size: 15"
+  Type:
+    count: 28
+    ty: "java.lang.String"
+    values:
+    - "Size: 2"
+  Width:
+    count: 28
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+  XPos:
+    count: 28
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 24"
+  YPos:
+    count: 28
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 4"
+TextField:
+  Dependencies:
+    count: 227
+    ty: "java.lang.String"
+    values:
+    - "Size: 58"
+  ID:
+    count: 228
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 59"
+  MasterRef:
+    count: 228
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 22"
+  TextFunc:
+    count: 228
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 35"
+  Width:
+    count: 228
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 28"
+  XPos:
+    count: 228
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 124"
+  YPos:
+    count: 228
+    ty: "java.lang.Integer"
+    values:
+    - "Size: 40"

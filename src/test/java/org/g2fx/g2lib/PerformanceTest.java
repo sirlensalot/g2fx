@@ -57,7 +57,7 @@ public class PerformanceTest {
 
     @Test
     void roundtripPerformanceFile() throws Exception {
-        String filePath = "data/perf-20240802.prf2";
+        String filePath = "data/perf/perf-20240802.prf2";
         Performance perf = Performance.readFromFile(filePath,new UsbSender.OfflineSender());
         assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
                 Util.dumpBufferString(perf.writeFile().rewind()));

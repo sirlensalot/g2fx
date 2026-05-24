@@ -27,7 +27,7 @@ class DeviceTest {
     @Test
     public void dispatchEntryList() throws Exception {
         Entries d = new Entries(new UsbSender.OfflineSender());
-        ByteBuffer buf = Util.readFile("data/msg_PatchListMessage00_19f4.msg");
+        ByteBuffer buf = Util.readFile("data/msg/msg_PatchListMessage00_19f4.msg");
         d.dispatchEntryList(buf.position(4).slice());
         Entries.EntriesMsg m = d.getEntriesMsg();
         assertEquals(Entries.EntryType.Patch, m.type());

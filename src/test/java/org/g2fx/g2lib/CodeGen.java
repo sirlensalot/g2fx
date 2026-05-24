@@ -28,7 +28,7 @@ public class CodeGen {
         ObjectMapper mapper = Util.mkYamlMapper();
         Map<String,Object> images = new HashMap<>();
         TreeMap<String,UiModule> m = mapper.readValue(
-                new File("data/module-uis-input.yaml")
+                new File("data/codegen/module-uis-input.yaml")
                 , new TypeReference<>() {});
         m.put("Name",new UiModule("Name","Name",1, List.of()));
         List<ModuleType> all = new ArrayList<>(
@@ -74,7 +74,7 @@ public class CodeGen {
         mapper.writeValue(
                 new File("data/fields.yaml"),
                 fields);
-        mapper.writeValue(new File("data/fieldUse.yaml"),fieldCounts);
+        mapper.writeValue(new File("data/codegen/fieldUse.yaml"),fieldCounts);
         try (PrintWriter w = new PrintWriter(new FileWriter("src/main/java/org/g2fx/g2gui/controls/UIElements.java"))) {
             w.println("""
                     package org.g2fx.g2gui.controls;
