@@ -52,7 +52,14 @@ public class SubfieldsField extends AbstractField implements Field {
     }
 
     public interface SubfieldCounter {
-        boolean hasMore(List<FieldValues> values, List<FieldValues> result, int index);
+        /**
+         * Stateful context-aware iteration control.
+         * @param context Parent/context FieldValues for subfield.
+         * @param result Accumulator with previously-added values.
+         * @param index Accumulator index.
+         * @return true to accumulate value.
+         */
+        boolean hasMore(List<FieldValues> context, List<FieldValues> result, int index);
     }
 
 

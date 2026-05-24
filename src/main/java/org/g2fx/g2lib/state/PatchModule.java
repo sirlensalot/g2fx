@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class PatchModule {
@@ -178,21 +179,22 @@ public class PatchModule {
 
     public FieldValues getModuleLabelsValues() {
         if (userLabels.isEmpty()) { return null; }
+        AtomicInteger labelCount = new AtomicInteger(0);
+        List<FieldValues> modLabels = userLabels.entrySet().stream().map(e ->
+                Protocol.ParamLabels.FIELDS.values(
+                        Protocol.ParamLabels.IsString.value(1),
+                        Protocol.ParamLabels.ParamLen.value(8),
+                        Protocol.ParamLabels.ParamIndex.value(e.getKey()),
+                        Protocol.ParamLabels.Labels.value(e.getValue().stream().map(s -> {
+                                labelCount.incrementAndGet();
+                                return Protocol.ParamLabel.FIELDS.values(
+                                        Protocol.ParamLabel.Label.value(s.get()));
+                        }).toList())
+                )).toList();
         return Protocol.ModuleLabel.FIELDS.values(
                 Protocol.ModuleLabel.ModuleIndex.value(index),
-                Protocol.ModuleLabel.ModLabelLen.value(userLabels.size()),
-                Protocol.ModuleLabel.Labels.value(userLabels.entrySet().stream().map(e ->
-                                Protocol.ParamLabels.FIELDS.values(
-                                        Protocol.ParamLabels.IsString.value(1),
-                                        Protocol.ParamLabels.ParamLen.value(8),
-                                        Protocol.ParamLabels.ParamIndex.value(e.getKey()),
-                                        Protocol.ParamLabels.Labels.value(e.getValue().stream().map(s ->
-                                                        Protocol.ParamLabel.FIELDS.values(
-                                                                Protocol.ParamLabel.Label.value(s.get())
-                                                        )
-                                                ).toList())
-                                )
-                        ).toList())
+                Protocol.ModuleLabel.ModLabelLen.value(userLabels.size() * 3 + labelCount.get() * 7),
+                Protocol.ModuleLabel.Labels.value(modLabels)
         );
     }
 }

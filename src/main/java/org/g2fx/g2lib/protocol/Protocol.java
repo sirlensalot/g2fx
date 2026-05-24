@@ -437,12 +437,14 @@ public class Protocol {
         ModuleLabel(Fields fs,FieldEnum e) {
             final SubfieldsField.FieldCount fc = new SubfieldsField.FieldCount(e);
             SubfieldsField.SubfieldCounterFactory ff = values -> {
-                int bytes = fc.getCount(values);
+                int bytes = fc.getCount(values); // value from ModLabelLen
                 return (SubfieldsField.SubfieldCounter) (values1, result, index) -> {
+                    //compute size of labels thus far. slow but correct.
                     int labels = 0;
                     for (FieldValues fvs : result) {
                         labels += ParamLabels.Labels.subfieldsValue(fvs).size();
                     }
+                    // length math is (7*total length) + 3 for each index
                     int bytesRead = (index * 3) + (labels * 7);
                     return bytesRead < bytes;
                 };
