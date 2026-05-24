@@ -180,17 +180,18 @@ public class PatchModule {
     public FieldValues getModuleLabelsValues() {
         if (userLabels.isEmpty()) { return null; }
         AtomicInteger labelCount = new AtomicInteger(0);
-        List<FieldValues> modLabels = userLabels.entrySet().stream().map(e ->
-                Protocol.ParamLabels.FIELDS.values(
+        List<FieldValues> modLabels = userLabels.entrySet().stream().map(e -> {
+            int lc = e.getValue().size();
+            labelCount.addAndGet(lc);
+            int plen = lc * 8 - (lc - 1); // TODO this works for 1, 2 values, try more
+            return Protocol.ParamLabels.FIELDS.values(
                         Protocol.ParamLabels.IsString.value(1),
-                        Protocol.ParamLabels.ParamLen.value(8),
+                        Protocol.ParamLabels.ParamLen.value(plen),
                         Protocol.ParamLabels.ParamIndex.value(e.getKey()),
-                        Protocol.ParamLabels.Labels.value(e.getValue().stream().map(s -> {
-                                labelCount.incrementAndGet();
-                                return Protocol.ParamLabel.FIELDS.values(
-                                        Protocol.ParamLabel.Label.value(s.get()));
-                        }).toList())
-                )).toList();
+                        Protocol.ParamLabels.Labels.value(e.getValue().stream().map(s ->
+                                Protocol.ParamLabel.FIELDS.values(
+                                Protocol.ParamLabel.Label.value(s.get()))).toList()));
+        }).toList();
         return Protocol.ModuleLabel.FIELDS.values(
                 Protocol.ModuleLabel.ModuleIndex.value(index),
                 Protocol.ModuleLabel.ModLabelLen.value(userLabels.size() * 3 + labelCount.get() * 7),

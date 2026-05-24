@@ -90,20 +90,16 @@ public class PerformanceTest {
 //        perf.dumpYaml("data/perf/g2fx-perf-002.yaml");
         ByteBuffer bulkMsg = perf.writeMessage();
 
-        //03fd: A 4d VA 07ae
-        //0ba0: A 4d FX 00ff
-        //0cb0: A 65 0122
-        //0dd5: A 62 011e
-        //0ef6: A 60
-        //0f21: 5b Morph
-        //0f78: A 5b VA
-        //0f89: A 5b Fx, 5a VA 133
-
-
-        // overwrite ModuleNames reserved values
-//        m.put(0x30f,(byte)0x40);
-//        m.put(0x6a2,(byte)0);
-//        m.put(0xa32,(byte)0);
+        /*
+        image breadcrumb:
+        03fd Patch A => 4d VA, 0ba0 4d FX, 0cb0 65 0122,
+        0dd5 62 011e, 0ef6 60, 0f21 5b Morph, 0f78 5b VA
+        0f89 5b Fx, 5a VA 133, 10c4 5a
+        10f8 Patch B => 1100 4a, 1160 4a, 69
+        1170 52, 11b0 52, 11c0 4d 165, 1328 4d 362, 168c 4d
+        1693 65, 1726 62, 17aa 60, 17d6 5b morph,
+        182c 5b VA, 185a 5b+5a
+        */
 
         assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
 
