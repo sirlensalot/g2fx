@@ -21,6 +21,7 @@ public class PerformanceTest {
 
 
     public static final String PERF_001 = "data/perf/g2fx-perf-01.prf2";
+    public static final String PERF_002 = "data/perf/g2fx-perf-002.prf2";
 
     @BeforeAll
     public static void beforeAll() {
@@ -122,12 +123,8 @@ public class PerformanceTest {
         ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
         m.limit(m.limit()-2);
 
-//        readOutboundPerf(m);
-//        if (true) return;
-
-        Performance perf = Performance.readFromFile("data/perf/g2fx-perf-002.prf2",new UsbSender.OfflineSender());
+        Performance perf = Performance.readFromFile(PERF_002,new UsbSender.OfflineSender());
         perf.setFileName("g2fx-perf-002"); //TODO!!
-//        perf.dumpYaml("data/perf/g2fx-perf-002.yaml");
         ByteBuffer bulkMsg = perf.writeMessage();
 
         /*
@@ -143,6 +140,19 @@ public class PerformanceTest {
 
         assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
 
+    }
+
+
+    @Test
+    void regress002_RoundtripFile() throws Exception {
+        Performance perf = Performance.readFromFile(PERF_002,new UsbSender.OfflineSender());
+        ByteBuffer wbuf = perf.writeFile();
+        ByteBuffer buf = Util.readFile(PERF_002);
+        //module names reserved values
+        overwriteBytes(buf,0x2aae,0x40);
+        //have to skip CRC for overwrites
+        assertEquals(Util.dumpBufferString(buf.limit(buf.limit()-2)),
+                Util.dumpBufferString(wbuf.limit(wbuf.limit()-2)));
     }
 
 

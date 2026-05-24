@@ -66,7 +66,7 @@ public class SzContext {
         int pos = 0;
         int start = records.getFirst().fStart;
         int end = records.getLast().fEnd;
-        sb.append(String.format("%x-%x, %.03f bytes\n", start,end,(end-start)/8.0));
+        sb.append(String.format("%x-%x, %.03f bytes\n", start/8,end/8,(end-start)/8.0));
         for (SzRecord r : records) {
             boolean multiple = r.entries.size()>1;
             if (multiple) { sb.append("[ "); }
