@@ -24,16 +24,28 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($6 == "42") { v = "V_NEW" }
 
         c = $7;
+        
+        if ($7 == "02") { c = "O_SYNTH_SETTINGS" }
+        if ($7 == "04") { c = "O_ASSIGNED_VOICES" }
+        if ($7 == "0a") { c = "O_LOAD_ENTRY" }
+        if ($7 == "10") { c = "O_PERF_SETTINGS" }
+        if ($7 == "28") { c = "O_PATCH_NAME" }
         if ($7 == "2e") { c = "O_SELECTED_PARAM" }
         if ($7 == "35") { c = "O_VERSION" }
+        if ($7 == "3b") { c = "O_MASTER_CLOCK" }
+        if ($7 == "3c") { c = "O_PATCH" }
         if ($7 == "37") { c = "O_CREATE" }
-        if ($7 == "70") { c = "O_UNKNOWN6" }
-        if ($7 == "71") { c = "O_RESOURCES_USED" }
-        if ($7 == "10") { c = "O_PERF_SETTINGS" }
-        if ($7 == "59") { c = "O_UNKNOWN2" }
         if ($7 == "4c") { c = "O_PARAMS" }
         if ($7 == "4f") { c = "O_PARAM_NAMES" }
-
+        if ($7 == "59") { c = "O_UNKNOWN2" }
+        if ($7 == "5e") { c = "O_GLOBAL_KNOBS" }
+        if ($7 == "68") { c = "O_CURRENT_NOTE" }
+        if ($7 == "6e") { c = "O_PATCH_TEXT" }
+        if ($7 == "70") { c = "O_UNKNOWN6" }
+        if ($7 == "71") { c = "O_RESOURCES_USED" }
+        if ($7 == "7d") { c = "O_START_STOP_COM" }
+        if ($7 == "81") { c = "O_UNKNOWN1" }
+        
 
         printf("%03d:OUT[3] %s %s %s[%s]\n",i,s,v,c,$7);
     }
@@ -59,17 +71,31 @@ ty != "03" && ty != "81" && ty != "82" { next }
     cc=cmd;
     if (ver=="40") { ver="V_VERSION" } else { ver="v=" ver }
 
-    if (cmd == "36") { cmd = "I_VERSION1" }
-    if (cmd == "1f") { cmd = "I_VERSION2" }
-    if (cmd == "72") { cmd = "I_PATCH_LOAD_DATA" }
-    if (cmd == "2f") { cmd = "I_SELECTED_PARAM" }
-    if (cmd == "7f") { cmd = "I_OK" }
-    if (cmd == "29") { cmd = "I_PERFORMANCE_NAME" }
-    if (cmd == "1e") { cmd = "I_RESERVED_1E" }
-    if (cmd == "4d") { cmd = "I_PARAMS" }
-    if (cmd == "4d") { cmd = "I_PARAMS" }
-    if (cmd == "5b") { cmd = "I_PARAM_NAMES" }
+    if (cmd == "03") { cmd = "I_SYNTH_SETTINGS" }
     if (cmd == "05") { cmd = "I_ASSIGNED_VOICES" }
+    if (cmd == "09") { cmd = "I_CHANGE_SLOT" }
+    if (cmd == "13") { cmd = "I_ENTRY_LIST" }
+    if (cmd == "1e") { cmd = "I_RESERVED_1E" }
+    if (cmd == "1f") { cmd = "I_VERSION2" }
+    if (cmd == "21") { cmd = "I_PATCH_DESCRIPTION" }
+    if (cmd == "27") { cmd = "I_PATCH_NAME" }
+    if (cmd == "29") { cmd = "I_PERFORMANCE_NAME" }
+    if (cmd == "2f") { cmd = "I_SELECTED_PARAM" }
+    if (cmd == "36") { cmd = "I_VERSION1" }
+    if (cmd == "39") { cmd = "I_LED_DATA" }
+    if (cmd == "3a") { cmd = "I_VOLUME_DATA" }
+    if (cmd == "3f") { cmd = "I_SET_MASTER_CLOCK" }
+    if (cmd == "40") { cmd = "I_SET_PARAM" }
+    if (cmd == "4d") { cmd = "I_PARAMS" }
+    if (cmd == "5b") { cmd = "I_PARAM_LABELS" }
+    if (cmd == "5d") { cmd = "I_EXT_MASTER_CLOCK" }
+    if (cmd == "5f") { cmd = "I_GLOBAL_KNOB_ASSIGMENTS" }
+    if (cmd == "69") { cmd = "I_CURRENT_NOTE" }
+    if (cmd == "6a") { cmd = "I_CHANGE_VARIATION" }
+    if (cmd == "6f") { cmd = "I_TEXT_PAD" }
+    if (cmd == "72") { cmd = "I_PATCH_LOAD_DATA" }
+    if (cmd == "7f") { cmd = "I_OK" }
+    
     if (ty=="81" || ty=="82") {
         printf("%03d:%s %s %s %s[%s]\n",i,ep,pos,ver,cmd,cc);
     }
