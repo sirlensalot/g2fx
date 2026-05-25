@@ -8,7 +8,6 @@ import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -49,9 +48,6 @@ public class Device implements Dispatcher {
 
     public void loadPerfFile(String filePath) throws Exception {
         perf = Performance.readFromFile(filePath, usb);
-        String name = new File(filePath).getName();
-        String pn = name.substring(0, name.length() - 5);
-        perf.setFileName(pn); //TODO this seems to remove .prf2
         if (online()) {
             sendPerf();
         }

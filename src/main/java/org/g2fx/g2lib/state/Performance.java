@@ -39,9 +39,8 @@ public class Performance {
 
     private int version;
 
-    private LibProperty<String> perfName;
+    private final LibProperty<String> perfName = new LibProperty<>("Empty perf");
 
-    private String fileName;
     private PerformanceSettings perfSettings;
     private GlobalKnobAssignments globalKnobAssignments;
     private final Map<Slot,Patch> slots = new TreeMap<>();
@@ -77,6 +76,10 @@ public class Performance {
             perf.slots.put(s,patch);
         }
         perf.readGlobalKnobAssignmentsType(fileBuffer);
+
+        String name = new File(filePath).getName();
+        perf.perfName.set(name.substring(0,name.length()-".prf2".length()));
+
         return perf;
     }
 
@@ -109,7 +112,7 @@ public class Performance {
 
     public void initNew() throws Exception {
         sendVersionRequest(); //blocking if online, otherwise noop
-        initPerfName(Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value("Empty perf")));
+        perfName.set("Empty perf");
         perfSettings = new PerformanceSettings();
         for (Patch patch : slots.values()) {
             patch.initNew();
@@ -181,17 +184,13 @@ public class Performance {
     public boolean readPerformanceNameAndSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf.slice());
         int pos = buf.position();
-        initPerfName(Protocol.EntryName.FIELDS.read(bb));
+        perfName.set(Protocol.EntryName.Name.stringValue(Protocol.EntryName.FIELDS.read(bb)));
         pos += bb.getBitIndex()/8;
         ByteBuffer buf2 = bb.slice();
         readPerformanceSettings(buf2);
         pos += buf2.position();
         buf.position(pos);
         return true;
-    }
-
-    private void initPerfName(FieldValues nameFvs) {
-        perfName = LibProperty.stringFieldProperty(nameFvs,Protocol.EntryName.Name);
     }
 
     /**
@@ -244,10 +243,6 @@ public class Performance {
 
     public String getName() {
         return perfName.get();
-    }
-
-    public void setFileName(String fileName) {
-        perfName = new LibProperty<>(fileName);
     }
 
     public PerformanceSettings getPerfSettings() {

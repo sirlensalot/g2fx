@@ -77,7 +77,7 @@ public class PerformanceTest {
 //        if (true) return;
 
         Performance perf = Performance.readFromFile(PERF_001,new UsbSender.OfflineSender());
-        perf.setFileName("g2fx-perf-01");
+
         ByteBuffer bulkMsg = perf.writeMessage();
 
         // overwrite ModuleNames reserved values
@@ -124,7 +124,7 @@ public class PerformanceTest {
         m.limit(m.limit()-2);
 
         Performance perf = Performance.readFromFile(PERF_002,new UsbSender.OfflineSender());
-        perf.setFileName("g2fx-perf-002"); //TODO!!
+
         ByteBuffer bulkMsg = perf.writeMessage();
 
         /*
