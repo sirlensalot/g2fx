@@ -1,5 +1,12 @@
 BEGIN { i = -1 }
 
+/Time since reference/ {
+    ptime=sprintf("%s %s",substr($7,0,5),substr($8,0,3));
+    next
+}
+/^[A-Z]/ { next }
+/^   / { next }
+
 /^0000/ { next }
 /^$/ { next }
 
@@ -28,6 +35,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "02") { c = "O_SYNTH_SETTINGS" }
         if ($7 == "04") { c = "O_ASSIGNED_VOICES" }
         if ($7 == "0a") { c = "O_LOAD_ENTRY" }
+        if ($7 == "0b") { c = "O_STORE_ENTRY" }
         if ($7 == "10") { c = "O_PERF_SETTINGS" }
         if ($7 == "28") { c = "O_PATCH_NAME" }
         if ($7 == "2e") { c = "O_SELECTED_PARAM" }
@@ -47,7 +55,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "81") { c = "O_UNKNOWN1" }
         
 
-        printf("%03d:OUT[3] %s %s %s[%s]\n",i,s,v,c,$7);
+        printf("%03d:OUT[3] %s %s %s[%s]  %s\n",i,s,v,c,$7,ptime);
     }
     if (ty=="81") {
         ep="INI[81]"
@@ -97,7 +105,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
     if (cmd == "7f") { cmd = "I_OK" }
     
     if (ty=="81" || ty=="82") {
-        printf("%03d:%s %s %s %s[%s]\n",i,ep,pos,ver,cmd,cc);
+        printf("%03d:%s %s %s %s[%s]  %s\n",i,ep,pos,ver,cmd,cc,ptime);
     }
 }
 

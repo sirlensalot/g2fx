@@ -2,6 +2,7 @@ package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.*;
@@ -245,6 +246,51 @@ class DeviceTest {
         assertEquals(Util.dumpBufferString(dropCrcTrailer(fbuf)),
                 Util.dumpBufferString(dropCrcTrailer(pbuf)));
 
+    }
+
+    @Test
+    void testVersionDispatch() throws Exception {
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                parseCapture("data/capture/capture-004-poweron-init-save.pcapng", MessageRecorder.INBOUND)
+                        .stream().filter(m -> List.of(Codes.I_VERSION1, Codes.I_VERSION2).contains(
+                                (int) m.msg().buffer().get(m.msg().extended() ? 3 : 4))).toList();
+        Device d = new Device();
+        //init device to version 10; device inits to 0 at power on, but hard to diff below.
+        d.getPerf().setVersion(10);
+        d.getPerf().slots().forEach(s -> s.setVersion(10));
+        int i = 0;
+        for (MessageRecorder.RecordedUsbMessage m : ms) {
+            d.dispatch(m.msg());
+            assertEquals(
+                    switch (i++) {
+                        // 40 36 04 00 (perf -> 0)
+                        case 0 -> List.of(0,10,10,10,10);
+                        // 40 36 00 00 (A -> 0)
+                        case 1 -> List.of(0, 0,10,10,10);
+                        // 40 36 01 00 (B -> 0)
+                        case 2 -> List.of(0, 0, 0,10,10);
+                        // 40 36 02 00 (C -> 0)
+                        case 3 -> List.of(0, 0, 0, 0,10);
+                        // 40 36 03 00 (D -> 0)
+                        case 4 -> List.of(0, 0, 0, 0, 0);
+                        // 40 36 04 00 (perf -> 0)
+                        case 5 -> List.of(0, 0, 0, 0, 0);
+                        // 40 36 00 01 36 01 01 36 02 01 36 03 01 36 04 01 (all -> 1)
+                        case 6 -> List.of(1, 1, 1, 1, 1);
+                        // 40 1f 01 36 00 02 36 01 02 36 02 02 36 03 02 (slots -> 2)
+                        case 7 -> List.of(1, 2, 2, 2, 2);
+                        // 40 36 04 01 (perf -> 1)
+                        case 8 -> List.of(1, 2, 2, 2, 2);
+                        default -> fail("Only expecting 8 version msgs");
+                    },
+                List.of(d.getPerf().getVersion(),
+                        d.getPerf().getSlot(Slot.A).getVersion(),
+                        d.getPerf().getSlot(Slot.B).getVersion(),
+                        d.getPerf().getSlot(Slot.C).getVersion(),
+                        d.getPerf().getSlot(Slot.D).getVersion()),
+                    "msg " + i + ": " + Util.dumpBufferString(m.msg().buffer()));
+
+        }
     }
 
 

@@ -51,6 +51,7 @@ public class Codes {
     public static final int O_SYNTH_SETTINGS = 0x02;
     public static final int O_ASSIGNED_VOICES = 0x04;
     public static final int O_LOAD_ENTRY = 0x0a;
+    public static final int O_STORE_ENTRY = 0x0b;
     public static final int O_PERF_SETTINGS = 0x10;
     public static final int O_PATCH_NAME = 0x28;
     public static final int O_SELECTED_PARAM = 0x2e;
