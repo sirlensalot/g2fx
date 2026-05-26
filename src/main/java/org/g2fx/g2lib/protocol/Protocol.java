@@ -105,11 +105,11 @@ public class Protocol {
 
     public enum PatchDescription implements FieldEnum {
         //skip 7
-        Reserved(Data8.FIELDS,7),
+        Reserved(Data8.FIELDS,7), //0
         Reserved2(5),
         Voices(5),
         Height(14),
-        Unk2(3),
+        Unk2(3), //2
         Red(1),
         Blue(1),
         Yellow(1),

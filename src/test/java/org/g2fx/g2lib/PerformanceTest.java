@@ -40,7 +40,7 @@ public class PerformanceTest {
         List<MessageRecorder.RecordedUsbMessage> ms =
                     parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.OUTBOUND);
         ByteBuffer b = ms.get(1).msg().buffer().position(2).slice();
-        b.limit(b.limit()-2);
+        dropCrcTrailer(b);
 
         //overwrite ModuleNames reserved values
         overwriteBytes(b,
@@ -59,8 +59,17 @@ public class PerformanceTest {
     void roundtripPerformanceFile() throws Exception {
         String filePath = "data/perf/perf-20240802.prf2";
         Performance perf = Performance.readFromFile(filePath,new UsbSender.OfflineSender());
-        assertEquals(Util.dumpBufferString(Util.readFile(filePath).rewind()),
-                Util.dumpBufferString(perf.writeFile().rewind()));
+        ByteBuffer fbuf = Util.readFile(filePath).rewind();
+
+        // B description has different Unk2 (3 bits)
+        // 0 0 0 0 0 0 0 0 5 176 >1 1 1 1 1 1< 1 1 0 1 0 0
+        // 0 0 0 0 0 0 0 0 5 176 >2 1 1 1 1 1< 1 1 0 1 0 0
+        overwriteBytes(fbuf,
+                //       2..11111
+                0x181b,0b01011111);
+
+        assertEquals(Util.dumpBufferString(dropCrcTrailer(fbuf)),
+                Util.dumpBufferString(dropCrcTrailer(perf.writeFile())));
 
     }
 
@@ -72,7 +81,7 @@ public class PerformanceTest {
                 parseCapture("data/capture/capture-001-load-g2fx-perf1.pcapng", (i) -> true);
 
         ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
-        m.limit(m.limit()-2);
+        dropCrcTrailer(m);
 //        readInboundPerf(m.buffer());
 //        if (true) return;
 
@@ -90,7 +99,7 @@ public class PerformanceTest {
 
     }
 
-    void overwriteBytes(ByteBuffer buf, int... addrValPairs) {
+    public static void overwriteBytes(ByteBuffer buf, int... addrValPairs) {
         for (int i = 0; i < addrValPairs.length; i += 2) {
             buf.put(addrValPairs[i], (byte) addrValPairs[i+1]);
         }
@@ -109,8 +118,8 @@ public class PerformanceTest {
             0xc7d,0,0xc7e,0,0xc83,0,0xc84,0
         );
         //have to skip CRC for overwrites
-        assertEquals(Util.dumpBufferString(buf.limit(buf.limit()-2)),
-                Util.dumpBufferString(wbuf.limit(wbuf.limit()-2)));
+        assertEquals(Util.dumpBufferString(dropCrcTrailer(buf)),
+                Util.dumpBufferString(dropCrcTrailer(wbuf)));
     }
 
 
@@ -121,7 +130,7 @@ public class PerformanceTest {
                 parseCapture("data/capture/capture-002-load-g2fx-perf2.pcapng", (i) -> true);
 
         ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
-        m.limit(m.limit()-2);
+        dropCrcTrailer(m);
 
         Performance perf = Performance.readFromFile(PERF_002,new UsbSender.OfflineSender());
 
@@ -137,7 +146,16 @@ public class PerformanceTest {
         1693 65, 1726 62, 17aa 60, 17d6 5b morph,
         182c 5b VA, 185a 5b+5a
         */
-
+        overwriteBytes(m,
+        //0 0 0 0 0 0 0 0 17 1ef 1 0 0 1 1 1 1 1 0 1 b 0
+        //0 0 0 0 0 0 0 0 17 1ef 2 0 0 1 1 1 1 1 0 1 b 0
+                //       2--
+                0x0094,0b01000111,
+        //0 0 0 0 0 0 0 0 1 258 0 1 1 1 1 1 1 1 1 6 3 0
+        //0 0 0 0 0 0 0 0 1 258 2 1 1 1 1 1 1 1 1 6 3 0
+                //       2--
+                0x1105,0b01011111
+        );
         assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
 
     }
@@ -149,10 +167,18 @@ public class PerformanceTest {
         ByteBuffer wbuf = perf.writeFile();
         ByteBuffer buf = Util.readFile(PERF_002);
         //module names reserved values
-        overwriteBytes(buf,0x2aae,0x40);
+        overwriteBytes(buf,0x2aae,0x40,
+                //patch description unk3
+                0x00c7,0b01000111,
+                0x1033,0b01011111
+        );
         //have to skip CRC for overwrites
-        assertEquals(Util.dumpBufferString(buf.limit(buf.limit()-2)),
-                Util.dumpBufferString(wbuf.limit(wbuf.limit()-2)));
+        assertEquals(Util.dumpBufferString(dropCrcTrailer(buf)),
+                Util.dumpBufferString(dropCrcTrailer(wbuf)));
+    }
+
+    public static ByteBuffer dropCrcTrailer(ByteBuffer buf) {
+        return buf.limit(buf.limit() - 2);
     }
 
 

@@ -115,6 +115,23 @@ public class PatchSettings implements LibProperty.FieldValuesChangeListener {
     }
 
     public FieldValues values() {
-        return props.getValues();
+        return FIELDS.values(
+                Reserved.value(Protocol.Data8.asSubfield(0,0,0,0,0,0,0)),
+                Reserved2.value(0),
+                Voices.value(voices.get()),
+                Height.value(height.get()),
+                Unk2.value(2),
+                Red.value(red.get()),
+                Blue.value(blue.get()),
+                Yellow.value(yellow.get()),
+                Orange.value(orange.get()),
+                Green.value(green.get()),
+                Purple.value(purple.get()),
+                White.value(white.get()),
+                MonoPoly.value(monoPoly.get()),
+                Variation.value(variation.get()),
+                Category.value(category.get()),
+                Reserved3.value(0)
+        );
     }
 }

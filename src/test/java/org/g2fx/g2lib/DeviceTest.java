@@ -2,6 +2,8 @@ package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.protocol.FieldValues;
+import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.UsbMessage;
@@ -14,6 +16,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static org.g2fx.g2lib.PerformanceTest.dropCrcTrailer;
+import static org.g2fx.g2lib.PerformanceTest.overwriteBytes;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DeviceTest {
@@ -199,6 +203,47 @@ class DeviceTest {
 
 
         }
+
+    }
+
+    @Test
+    void regress003_Inbound() throws Exception {
+
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND);
+        Device d = new Device();
+        int i = 0;
+        for (MessageRecorder.RecordedUsbMessage m : ms) {
+            assertTrue(d.dispatch(m.msg()), "dispatch message " + i + ": " +
+                    Util.dumpBufferString(m.msg().buffer()));
+            i++;
+        }
+
+        Performance p = d.getPerf();
+        // match file version and current notes
+        p.setVersion(1);
+        for (Patch s : p.slots()) {
+            s.getCurrentNote().update(Protocol.CurrentNote.NoteCount.value(0));
+            List<FieldValues> ns = Protocol.CurrentNote.Notes.subfieldsValue(s.getCurrentNote());
+            FieldValues n = ns.get(0);
+            ns.clear();
+            ns.add(n);
+        }
+
+        ByteBuffer pbuf = p.writeFile();
+
+        ByteBuffer fbuf = Util.readFile(PerformanceTest.PERF_001);
+
+        //fix module params version count
+        overwriteBytes(fbuf,
+                0x237,0,0x238,0,0x23d,0,0x23e,0,
+                0x58f,0,0x590,0,0x595,0,0x596,0,
+                0x8f4,0,0x8f5,0,0x8fa,0,0x8fb,0,
+                0xc7d,0,0xc7e,0,0xc83,0,0xc84,0
+        );
+
+        assertEquals(Util.dumpBufferString(dropCrcTrailer(fbuf)),
+                Util.dumpBufferString(dropCrcTrailer(pbuf)));
 
     }
 

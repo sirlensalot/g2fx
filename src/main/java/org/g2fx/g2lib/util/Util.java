@@ -62,8 +62,6 @@ public class Util {
         StringBuilder hex = new StringBuilder();
         StringBuilder ascii = new StringBuilder();
         StringBuilder output = new StringBuilder("\n");
-        int pos = buffer.position();
-        buffer.rewind();
         int i = 0;
         while (buffer.hasRemaining()) {
             if (i % 16 == 0) {
@@ -84,7 +82,6 @@ public class Util {
             //System.out.printf("pad %d %d\n",pad,i % 16);
             output.append(String.format("%s %" + pad + "s %s\n", hex, "", ascii));
         }
-        buffer.position(pos);
         return output.toString();
     }
 

@@ -498,4 +498,7 @@ public class Patch {
         return readSection(bb,s);
     }
 
+    public FieldValues getCurrentNote() {
+        return currentNote;
+    }
 }
