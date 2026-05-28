@@ -22,12 +22,19 @@ public class Entries {
     private static final Logger log = Util.getLogger(Entries.class);
 
     public enum EntryType {
-        Patch,
-        Perf;
+        Patch(32),
+        Perf(8);
         public static final SafeLookup<Integer, EntryType> LOOKUP =
                 SafeLookup.makeEnumOrdLookup(values());
         public static final SafeLookup<String, EntryType> LC_NAME_LOOKUP =
                 SafeLookup.makeLowerCaseNameLookup(values());
+        private final int banks;
+        EntryType(int banks) {
+            this.banks = banks;
+        }
+        public int getBanks() {
+            return banks;
+        }
     }
     public record Entry(String name,int category) { }
     public record EntryBank(int bank, int entry, List<Entry> entries) { }

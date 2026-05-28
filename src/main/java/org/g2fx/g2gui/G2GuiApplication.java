@@ -27,10 +27,7 @@ import org.g2fx.g2gui.controls.LoadMeter;
 import org.g2fx.g2gui.controls.MultiStateToggle;
 import org.g2fx.g2gui.controls.TextOrImage;
 import org.g2fx.g2gui.panel.Slots;
-import org.g2fx.g2gui.window.ParameterOverview;
-import org.g2fx.g2gui.window.PatchSettingsWindow;
-import org.g2fx.g2gui.window.PerformanceSettingsWindow;
-import org.g2fx.g2gui.window.ScriptWindow;
+import org.g2fx.g2gui.window.*;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
@@ -144,6 +141,8 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         ParameterOverview parameterOverview = new ParameterOverview(slots,bridges,morphNames);
         PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,bridges);
         PerformanceSettingsWindow perfSettings = new PerformanceSettingsWindow(bridges);
+        PatchBrowser patchBrowser = new PatchBrowser();
+
 
         commands.setScriptWindow(scriptWindow);
         commands.setParameterOverview(parameterOverview);
