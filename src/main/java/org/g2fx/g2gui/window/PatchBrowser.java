@@ -1,13 +1,15 @@
 package org.g2fx.g2gui.window;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.g2fx.g2lib.state.Device;
-import org.g2fx.g2lib.state.Devices;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.state.Entries;
 
 import java.util.*;
@@ -17,7 +19,7 @@ import java.util.*;
  * Patch Browser UI with Performance and Patch tabs
  * Each tab displays a TreeView of Banks (root) and Entries (children)
  */
-public class PatchBrowser implements G2Window, Devices.DeviceListener {
+public class PatchBrowser implements G2Window {
 
     private final VBox root;
     private final Stage primaryStage;
@@ -27,7 +29,7 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
         Entry
     }
 
-    record TreeNode (Entries.EntryType tab, ItemType type, String name, int index) {
+    record TreeNode (Entries.EntryType tab, ItemType type, String name, int index, int parent) {
         @Override
         public String toString() {
             return name;
@@ -35,12 +37,16 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
     }
 
     private final Map<Entries.EntryType,List<TreeItem<TreeNode>>> banks = new TreeMap<>();
+    private final Slots slots;
 
+    private Map<Entries.EntryType, Map<Integer, Map<Integer, Entries.Entry>>> entries = null;
 
-    private Device device;
-    private Map<Entries.EntryType, Map<Integer, Map<Integer, Entries.Entry>>> entries;
+    private ObjectProperty<Entries.EntriesEvent> eventProperty = new SimpleObjectProperty<>();
 
-    public PatchBrowser() {
+    private ContextMenu contextMenu;
+
+    public PatchBrowser(Slots slots, Bridges bridges) {
+        this.slots = slots;
 
         primaryStage = new Stage();
 
@@ -49,7 +55,7 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
 
         Tab performanceTab = new Tab("Performance");
         performanceTab.setClosable(false);
-        performanceTab.setContent(createTreeView(Entries.EntryType.Perf)); // false = performance
+        performanceTab.setContent(createTreeView(Entries.EntryType.Performance)); // false = performance
 
         Tab patchTab = new Tab("Patch");
         patchTab.setClosable(false);
@@ -57,41 +63,48 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
 
         tabPane.getTabs().addAll(performanceTab, patchTab);
 
+        bridges.bridge(eventProperty,d->d.getEntries().getEventProp());
+        eventProperty.addListener((c,o,n) -> handleEvent(n));
+
         // Create main layout
         root = new VBox(10);
         root.getChildren().add(tabPane);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
         // Create scene and stage
-        Scene scene = new Scene(root, 600, 400);
+        Scene scene = new Scene(root, 250, 600);
         primaryStage.setTitle("Patch Browser");
         primaryStage.setScene(scene);
         primaryStage.show();
 
+        populateDummy();
+
+    }
+
+    private void handleEvent(Entries.EntriesEvent e) {
+        switch (e.type()) {
+            case RefreshAll -> updateEntries(e.entries());
+            default -> System.out.println(e);
+        }
+    }
+
+    private void populateDummy() {
         Map<Integer,Map<Integer, Entries.Entry>> dummy = new TreeMap<>();
         for (int b = 0; b < 32; b++) {
             Map<Integer, Entries.Entry> es = new HashMap<>();
-            for (int e = 0; e < b%3; e++) {
+            for (int e = 0; e < b%4; e++) {
                 es.put(e+b,new Entries.Entry(e == 0 ? "Foo" : e == 1 ? "Bar" : "Baz",e));
             }
             dummy.put(b,es);
         }
-        updateEntries(Map.of(Entries.EntryType.Perf,dummy, Entries.EntryType.Patch, dummy));
-
+        updateEntries(Map.of(Entries.EntryType.Performance,dummy, Entries.EntryType.Patch, dummy));
     }
 
-
-    @Override
-    public void onDeviceInitialized(Device d) throws Exception {
-        device = d;
-    }
-
-    @Override
-    public void onDeviceDisposal(Device d) throws Exception {
-        device = null;
-    }
 
     public void updateEntries(Map<Entries.EntryType,Map<Integer, Map<Integer, Entries.Entry>>> entries) {
+        for (List<TreeItem<TreeNode>> bis : banks.values()) {
+            bis.forEach(bi -> bi.getChildren().clear());
+        }
         this.entries = entries;
         for (Entries.EntryType type : entries.keySet()) {
             for (TreeItem<TreeNode> bi : banks.get(type)) {
@@ -99,7 +112,8 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
                 bi.getChildren().clear();
                 for (Map.Entry<Integer, Entries.Entry> e : entries.get(type).get(bn.index()).entrySet()) {
                     bi.getChildren().add(new TreeItem<>(new TreeNode(type,ItemType.Entry,
-                            bn.index + "-" + e.getKey() + ": " + e.getValue().name(),e.getKey()
+                            bn.index + "-" + e.getKey() + ": " + e.getValue().name(),e.getKey(),
+                            bn.index
                             )));
                 }
             }
@@ -108,38 +122,26 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
 
     private TreeView<TreeNode> createTreeView(Entries.EntryType type) {
         TreeView<TreeNode> treeView = new TreeView<>();
-        treeView.setShowRoot(false); // No root node, banks are roots
+        treeView.setShowRoot(false);
 
-        treeView.setOnContextMenuRequested(event ->
-                createContextMenu(treeView.getSelectionModel().getSelectedItem().getValue()).show(
-                        treeView,event.getScreenX(),event.getScreenY()));
+        contextMenu = new ContextMenu();
+        treeView.setOnContextMenuRequested(event -> {
+                createContextMenu(treeView.getSelectionModel().getSelectedItem().getValue());
+                contextMenu.show(treeView,event.getScreenX(),event.getScreenY());
+        });
+        treeView.setOnMousePressed(e -> contextMenu.hide());
 
-        boolean isPatch = type == Entries.EntryType.Patch;
-        String entryIcon = isPatch ? "\uD83D\uDCDC" : "\uD83C\uDFB5"; // Document vs Music note
-
-        // Create root tree item (hidden)
-        TreeItem<TreeNode> rootItem = new TreeItem<>(new TreeNode(type,null,"",0));
+        TreeItem<TreeNode> rootItem = new TreeItem<>(new TreeNode(type,null,"",-1,-1));
         treeView.setRoot(rootItem);
 
         int itemCount = type.getBanks();
 
         List<TreeItem<TreeNode>> banks = new ArrayList<>();
-        // Add all banks as root children
+
         for (int bankIdx = 0; bankIdx < itemCount; bankIdx++) {
             TreeItem<TreeNode> bankItem = new TreeItem<>(new TreeNode(type,ItemType.Bank,
-                    "Bank " + (bankIdx +1),bankIdx));
+                    "Bank " + (bankIdx +1),bankIdx,-1));
             bankItem.setExpanded(false);
-
-
-            //bankItem.setGraphic(createFolderIcon(false, true));
-
-//        // Add entries as children
-//        for (Entry entry : entries) {
-//            TreeItem<String> entryItem = createEntryTreeItem(entry, entryIcon);
-//            bankItem.getChildren().add(entryItem);
-//        }
-
-            //bankItem.setContextMenu(createBankContextMenu(idx,isPatch,isPatch ? "Patch" : "Performance"));
             rootItem.getChildren().add(bankItem);
             banks.add(bankItem);
         }
@@ -148,30 +150,52 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
         return treeView;
     }
 
-    private ContextMenu createContextMenu(TreeNode node) {
-        return switch (node.type()) {
+    private void createContextMenu(TreeNode node) {
+        if (contextMenu != null) {
+            contextMenu.getItems().clear();
+        }
+        switch (node.type()) {
             case Bank -> createBankContextMenu(node);
             case Entry -> createEntryContextMenu(node);
-        };
+        }
     }
 
-    private ContextMenu createEntryContextMenu(TreeNode node) {
-        return new ContextMenu();
+    private void createEntryContextMenu(TreeNode node) {
+        if (entries == null) { return; }
+        Map<Integer, Entries.Entry> es = entries.get(node.tab).get(node.index());
+        MenuItem deleteMenuItem = new MenuItem("Delete");
+        deleteMenuItem.setOnAction(e -> {
+            if (confirmDelete()) {
+                eventProperty.set(Entries.EntriesEvent.deleteEntry(node.tab,node.parent,node.index));
+            }
+        });
+        MenuItem saveSubMenu = new MenuItem(
+                "Save " +
+                (node.tab == Entries.EntryType.Performance ? "current performance" :
+                        "Slot " + slots.getSelectedSlotPane().getSlot()) +
+                        " to " + node.name);
+        saveSubMenu.setOnAction(e ->
+            eventProperty.set(Entries.EntriesEvent.saveEntry(node.tab,node.index,node.parent)));
+        contextMenu.getItems().addAll(deleteMenuItem,saveSubMenu,makeSortByMenu());
+
     }
 
-    private ContextMenu createBankContextMenu(TreeNode node) {
-        ContextMenu contextMenu = new ContextMenu();
-        Menu saveSubMenu = new Menu("Save current " + node.tab + " to");
+    private void createBankContextMenu(TreeNode node) {
 
-        if (entries != null) {
+        Menu saveSubMenu = new Menu(
+                node.tab == Entries.EntryType.Performance ?
+                "Save current performance to" :
+                "Save Slot " + slots.getSelectedSlotPane().getSlot() + " to");
+
+        if (entries != null && ! entries.isEmpty()) {
             Map<Integer, Entries.Entry> es = entries.get(node.tab).get(node.index());
             for (int loc = 0; loc < 128; loc++) {
                 MenuItem locItem = new MenuItem();
-                Entries.Entry e = es.get(loc);
-                int loc1 = loc + 1;
-                locItem.setText(loc1 + (e == null ?  " Empty Location" : " " + e.name()));
+                Entries.Entry e1 = es.get(loc);
+                locItem.setText((loc + 1) + (e1 == null ? " Empty Location" : " " + e1.name()));
+                final int lloc = loc;
                 locItem.setOnAction(ev -> {
-                    System.out.println("Save current " + node.tab + " to location: " + (loc1-1));
+                    eventProperty.set(Entries.EntriesEvent.saveEntry(node.tab,node.index,lloc));
                 });
                 saveSubMenu.getItems().add(locItem);
             }
@@ -179,11 +203,34 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
 
         MenuItem deleteMenuItem = new MenuItem("Delete Bank " + (node.index + 1));
         deleteMenuItem.setOnAction(e -> {
-            System.out.println("Delete Bank " + node.index );
-            // TODO: Implement delete logic
+            if (confirmDelete()) {
+                eventProperty.set(Entries.EntriesEvent.deleteBank(node.tab,node.index));
+            }
         });
 
-        // Item 3: "Sort By" submenu
+        Menu sortByMenu = makeSortByMenu();
+
+        contextMenu.getItems().addAll(saveSubMenu, deleteMenuItem, sortByMenu);
+
+    }
+
+    public boolean confirmDelete() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm delete");
+        alert.setHeaderText(null);
+        alert.setContentText("Delete this item?");
+
+        ButtonType deleteButton = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(deleteButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        return result.isPresent() && result.get() == deleteButton;
+    }
+
+    private static Menu makeSortByMenu() {
         Menu sortByMenu = new Menu("Sort By");
 
         MenuItem sortByProgram = new MenuItem("Program");
@@ -196,12 +243,8 @@ public class PatchBrowser implements G2Window, Devices.DeviceListener {
         sortByCategory.setOnAction(e -> System.out.println("Sort by Category"));
 
         sortByMenu.getItems().addAll(sortByProgram, sortByName, sortByCategory);
-
-        contextMenu.getItems().addAll(saveSubMenu, deleteMenuItem, sortByMenu);
-
-        return contextMenu;
+        return sortByMenu;
     }
-
 
 
     /**

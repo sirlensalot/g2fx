@@ -141,7 +141,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         ParameterOverview parameterOverview = new ParameterOverview(slots,bridges,morphNames);
         PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,bridges);
         PerformanceSettingsWindow perfSettings = new PerformanceSettingsWindow(bridges);
-        PatchBrowser patchBrowser = new PatchBrowser();
+        PatchBrowser patchBrowser = new PatchBrowser(slots,bridges);
 
 
         commands.setScriptWindow(scriptWindow);

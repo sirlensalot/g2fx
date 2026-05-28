@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.state;
 
+import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSender;
@@ -9,10 +10,7 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.state.Device.dispatchSuccess;
@@ -23,7 +21,7 @@ public class Entries {
 
     public enum EntryType {
         Patch(32),
-        Perf(8);
+        Performance(8);
         public static final SafeLookup<Integer, EntryType> LOOKUP =
                 SafeLookup.makeEnumOrdLookup(values());
         public static final SafeLookup<String, EntryType> LC_NAME_LOOKUP =
@@ -40,12 +38,43 @@ public class Entries {
     public record EntryBank(int bank, int entry, List<Entry> entries) { }
     public record EntriesMsg(EntryType type,List<EntryBank> banks,boolean done) { }
 
+    public enum EntriesEventType {
+        RefreshAll,
+        DeleteBank,
+        DeleteEntry,
+        SaveEntry,
+        LoadEntry
+    }
+
+    public record EntryMsg(EntryType type, int bank, int entry) {}
+
+    public record EntriesEvent(
+            EntriesEventType type,
+            Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries,
+            EntryMsg msg) {
+        public static EntriesEvent deleteBank(EntryType type, int bank) {
+            return new EntriesEvent(EntriesEventType.DeleteBank,null,new EntryMsg(type,bank,-1));
+        }
+        public static EntriesEvent deleteEntry(EntryType type, int bank, int entry) {
+            return new EntriesEvent(EntriesEventType.DeleteEntry,null,new EntryMsg(type,bank,entry));
+        }
+        public static EntriesEvent saveEntry(EntryType type, int bank, int entry) {
+            return new EntriesEvent(EntriesEventType.SaveEntry,null,new EntryMsg(type,bank,entry));
+        }
+        public static EntriesEvent loadEntry(EntryType type, int bank, int entry) {
+            return new EntriesEvent(EntriesEventType.LoadEntry,null,new EntryMsg(type,bank,entry));
+        }
+        public static EntriesEvent refreshAll(Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries) {
+            return new EntriesEvent(EntriesEventType.RefreshAll,entries,null);
+        }
+
+    }
+
     private EntriesMsg entriesMsg;
     private final UsbSender usb;
-    protected final Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries = Map.of(
-            EntryType.Patch,new TreeMap<>(),
-            EntryType.Perf,new TreeMap<>()
-    );
+
+    private Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries;
+    private LibProperty<EntriesEvent> eventProp = new LibProperty<>(EntriesEvent.refreshAll(Map.of()));
 
     public Entries(UsbSender usb) {
         this.usb = usb;
@@ -55,6 +84,12 @@ public class Entries {
         return entriesMsg;
     }
 
+    public void readEntries() throws Exception {
+        entries = Map.of(EntryType.Performance,new HashMap<>(),EntryType.Patch,new HashMap<>());
+        readEntries(EntryType.Performance);
+        readEntries(EntryType.Patch);
+        eventProp.set(EntriesEvent.refreshAll(entries));
+    }
     public void readEntries(EntryType type) throws Exception {
         entriesMsg = new EntriesMsg(type,List.of(new EntryBank(0,0,List.of())),false);
         entries.get(type).clear();
@@ -122,10 +157,7 @@ public class Entries {
         writer.flush();
     }
 
-
-
-
-
-
-
+    public LibProperty<EntriesEvent> getEventProp() {
+        return eventProp;
+    }
 }

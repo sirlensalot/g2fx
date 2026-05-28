@@ -78,8 +78,7 @@ public class Device implements Dispatcher {
         perf.initialize();
 
 
-        entries.readEntries(Entries.EntryType.Patch);
-        entries.readEntries(Entries.EntryType.Perf);
+        entries.readEntries();
 
     }
 
