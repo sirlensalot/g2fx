@@ -148,6 +148,7 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
         commands.setParameterOverview(parameterOverview);
         commands.setPatchSettings(patchSettings);
         commands.setPerfSettings(perfSettings);
+        commands.setPatchBrowser(patchBrowser);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);

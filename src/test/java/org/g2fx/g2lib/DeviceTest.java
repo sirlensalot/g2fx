@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DeviceTest {
 
+    public static final String CAP_OO4_POWERON = "data/capture/capture-004-poweron-init-save.pcapng";
+
     @BeforeAll
     public static void beforeAll() {
         Util.configureLogging();
@@ -57,6 +59,21 @@ class DeviceTest {
                 )),m.banks());
 
     }
+
+    @Test
+    public void testEntriesDispatch() throws Exception {
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                captureCmd(List.of(Codes.I_VERSION1, Codes.I_ENTRY_LIST), CAP_OO4_POWERON);
+        Device d = dispatchMsgs(ms);
+        //TODO actually verify something
+        //System.out.println(d.getEntries().getEventProp().get());
+//        MessageRecorder mr = new MessageRecorder("entries2",new File("data/record"));
+//        for (MessageRecorder.RecordedUsbMessage m : ms) {
+//            mr.record(m.msg());
+//        }
+//        mr.stop();
+    }
+
 
 
     @Test
@@ -109,15 +126,7 @@ class DeviceTest {
     void regressNewPerf() throws Exception {
 
         //dispatch inbound messages
-        List<MessageRecorder.RecordedUsbMessage> ms =
-                parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND);
-        Device d = new Device();
-        int i = 0;
-        for (MessageRecorder.RecordedUsbMessage m : ms) {
-            assertTrue(d.dispatch(m.msg()), "dispatch message " + i + ": " +
-                Util.dumpBufferString(m.msg().buffer()));
-            i++;
-        }
+        Device d = dispatchMsgs(parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND));
         Performance p = d.getPerf();
 
         //regress resulting values
@@ -207,18 +216,22 @@ class DeviceTest {
 
     }
 
-    @Test
-    void regress003_Inbound() throws Exception {
-
-        List<MessageRecorder.RecordedUsbMessage> ms =
-                parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND);
+    private static Device dispatchMsgs(List<MessageRecorder.RecordedUsbMessage> ms) {
         Device d = new Device();
         int i = 0;
         for (MessageRecorder.RecordedUsbMessage m : ms) {
             assertTrue(d.dispatch(m.msg()), "dispatch message " + i + ": " +
-                    Util.dumpBufferString(m.msg().buffer()));
+                Util.dumpBufferString(m.msg().buffer()));
             i++;
         }
+        return d;
+    }
+
+    @Test
+    void regress003_Inbound() throws Exception {
+
+        Device d = dispatchMsgs(
+                parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND));
 
         Performance p = d.getPerf();
         // match file version and current notes
@@ -250,10 +263,9 @@ class DeviceTest {
 
     @Test
     void testVersionDispatch() throws Exception {
-        List<MessageRecorder.RecordedUsbMessage> ms =
-                parseCapture("data/capture/capture-004-poweron-init-save.pcapng", MessageRecorder.INBOUND)
-                        .stream().filter(m -> List.of(Codes.I_VERSION1, Codes.I_VERSION2).contains(
-                                (int) m.msg().buffer().get(m.msg().extended() ? 3 : 4))).toList();
+        List<MessageRecorder.RecordedUsbMessage> ms = captureCmd(
+                List.of(Codes.I_VERSION1, Codes.I_VERSION2),
+                CAP_OO4_POWERON);
         Device d = new Device();
         //init device to version 10; device inits to 0 at power on, but hard to diff below.
         d.getPerf().setVersion(10);
@@ -293,6 +305,18 @@ class DeviceTest {
         }
     }
 
+
+    private static List<MessageRecorder.RecordedUsbMessage> captureCmd(List<Integer> cmdCodes, String capFile) throws Exception {
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                parseCapture(capFile, MessageRecorder.INBOUND)
+                        .stream().filter(mkCmdFilter(cmdCodes)).toList();
+        return ms;
+    }
+
+    private static Predicate<MessageRecorder.RecordedUsbMessage> mkCmdFilter(List<Integer> cmdCodes) {
+        return m -> cmdCodes.contains(
+                (int) m.msg().buffer().get(m.msg().extended() ? 3 : 4));
+    }
 
 
 }

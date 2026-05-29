@@ -25,7 +25,7 @@ public class Device implements Dispatcher {
     private static final Logger log = Util.getLogger(Device.class);
     private final UsbSender usb;
 
-    private Entries entries;
+    private final Entries entries;
 
 
     protected Performance perf;

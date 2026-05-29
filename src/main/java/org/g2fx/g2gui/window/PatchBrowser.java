@@ -14,6 +14,9 @@ import org.g2fx.g2lib.state.Entries;
 
 import java.util.*;
 
+import static org.g2fx.g2gui.FXUtil.withClass;
+import static org.g2fx.g2gui.G2GuiApplication.addGlobalStylesheet;
+
 
 /**
  * Patch Browser UI with Performance and Patch tabs
@@ -34,6 +37,8 @@ public class PatchBrowser implements G2Window {
         public String toString() {
             return name;
         }
+        int index1() { return index+1; }
+        int bank1() { return parent+1; }
     }
 
     private final Map<Entries.EntryType,List<TreeItem<TreeNode>>> banks = new TreeMap<>();
@@ -74,7 +79,7 @@ public class PatchBrowser implements G2Window {
         // Create scene and stage
         Scene scene = new Scene(root, 250, 600);
         primaryStage.setTitle("Patch Browser");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(addGlobalStylesheet(scene));
         primaryStage.show();
 
         populateDummy();
@@ -110,18 +115,22 @@ public class PatchBrowser implements G2Window {
             for (TreeItem<TreeNode> bi : banks.get(type)) {
                 TreeNode bn = bi.getValue();
                 bi.getChildren().clear();
-                for (Map.Entry<Integer, Entries.Entry> e : entries.get(type).get(bn.index()).entrySet()) {
-                    bi.getChildren().add(new TreeItem<>(new TreeNode(type,ItemType.Entry,
-                            bn.index + "-" + e.getKey() + ": " + e.getValue().name(),e.getKey(),
-                            bn.index
-                            )));
+                Map<Integer, Map<Integer, Entries.Entry>> bankEs = entries.get(type);
+                Map<Integer, Entries.Entry> es = bankEs.get(bn.index());
+                if (es != null) {
+                    for (Map.Entry<Integer, Entries.Entry> e : es.entrySet()) {
+                        bi.getChildren().add(new TreeItem<>(new TreeNode(type, ItemType.Entry,
+                                bn.index1() + "-" + (e.getKey()+1) + ": " + e.getValue().name(), e.getKey(),
+                                bn.index
+                        )));
+                    }
                 }
             }
         }
     }
 
     private TreeView<TreeNode> createTreeView(Entries.EntryType type) {
-        TreeView<TreeNode> treeView = new TreeView<>();
+        TreeView<TreeNode> treeView = withClass(new TreeView<>(),"entries-tree");
         treeView.setShowRoot(false);
 
         contextMenu = new ContextMenu();
@@ -129,7 +138,17 @@ public class PatchBrowser implements G2Window {
                 createContextMenu(treeView.getSelectionModel().getSelectedItem().getValue());
                 contextMenu.show(treeView,event.getScreenX(),event.getScreenY());
         });
-        treeView.setOnMousePressed(e -> contextMenu.hide());
+        treeView.setOnMousePressed(e -> {
+            contextMenu.hide();
+            if (e.getClickCount()==2) {
+                TreeNode n = treeView.getSelectionModel().getSelectedItem().getValue();
+                if (n.type == ItemType.Entry) {
+                    eventProperty.set(Entries.EntriesEvent.loadEntry(
+                            n.tab, n.parent, n.index,slots.getSelectedSlotPane().getSlot()));
+                }
+            }
+        });
+
 
         TreeItem<TreeNode> rootItem = new TreeItem<>(new TreeNode(type,null,"",-1,-1));
         treeView.setRoot(rootItem);
@@ -162,10 +181,13 @@ public class PatchBrowser implements G2Window {
 
     private void createEntryContextMenu(TreeNode node) {
         if (entries == null) { return; }
+        MenuItem load = new MenuItem("Load");
+        load.setOnAction(e -> eventProperty.set(Entries.EntriesEvent.loadEntry(
+                node.tab,node.parent, node.index,slots.getSelectedSlotPane().getSlot())));
         Map<Integer, Entries.Entry> es = entries.get(node.tab).get(node.index());
         MenuItem deleteMenuItem = new MenuItem("Delete");
         deleteMenuItem.setOnAction(e -> {
-            if (confirmDelete()) {
+            if (confirmDelete(node.name())) {
                 eventProperty.set(Entries.EntriesEvent.deleteEntry(node.tab,node.parent,node.index));
             }
         });
@@ -176,7 +198,7 @@ public class PatchBrowser implements G2Window {
                         " to " + node.name);
         saveSubMenu.setOnAction(e ->
             eventProperty.set(Entries.EntriesEvent.saveEntry(node.tab,node.index,node.parent)));
-        contextMenu.getItems().addAll(deleteMenuItem,saveSubMenu,makeSortByMenu());
+        contextMenu.getItems().addAll(load,deleteMenuItem,saveSubMenu,makeSortByMenu());
 
     }
 
@@ -189,6 +211,7 @@ public class PatchBrowser implements G2Window {
 
         if (entries != null && ! entries.isEmpty()) {
             Map<Integer, Entries.Entry> es = entries.get(node.tab).get(node.index());
+            if (es == null) { es = Map.of(); }
             for (int loc = 0; loc < 128; loc++) {
                 MenuItem locItem = new MenuItem();
                 Entries.Entry e1 = es.get(loc);
@@ -203,7 +226,7 @@ public class PatchBrowser implements G2Window {
 
         MenuItem deleteMenuItem = new MenuItem("Delete Bank " + (node.index + 1));
         deleteMenuItem.setOnAction(e -> {
-            if (confirmDelete()) {
+            if (confirmDelete("Bank " + (node.index+1))) {
                 eventProperty.set(Entries.EntriesEvent.deleteBank(node.tab,node.index));
             }
         });
@@ -214,11 +237,11 @@ public class PatchBrowser implements G2Window {
 
     }
 
-    public boolean confirmDelete() {
+    public boolean confirmDelete(String msg) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm delete");
         alert.setHeaderText(null);
-        alert.setContentText("Delete this item?");
+        alert.setContentText("Delete " + msg + "?");
 
         ButtonType deleteButton = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -246,37 +269,6 @@ public class PatchBrowser implements G2Window {
         return sortByMenu;
     }
 
-
-    /**
-     * Create folder icon graphic for a bank
-     */
-    private Label createFolderIcon(boolean isOpen, boolean isEmpty) {
-        String icon;
-        if (isEmpty) {
-            icon = "\u26AA"; // Grey circle for empty folder
-        } else if (isOpen) {
-            icon = "\uD83D\uDCC1"; // Open folder (U+1F4C1)
-        } else {
-            icon = "\uD83D\uDCC2"; // Closed folder (U+1F4C2)
-        }
-        
-        Label label = new Label(icon);
-        label.setStyle("-fx-font-size: 16px;");
-        if (isEmpty) {
-            label.setStyle(label.getStyle() + "-fx-text-fill: #888888;");
-        }
-        return label;
-    }
-
-
-    /**
-     * Create entry icon graphic
-     */
-    private Label createEntryIcon(String icon) {
-        Label label = new Label(icon);
-        label.setStyle("-fx-font-size: 16px;");
-        return label;
-    }
 
     @Override
     public Stage getStage() {

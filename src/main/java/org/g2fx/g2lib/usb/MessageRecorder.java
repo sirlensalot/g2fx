@@ -52,7 +52,7 @@ public class MessageRecorder {
     public static void dumpMsgYaml(UsbMessage msg, long time, PrintWriter pw) {
         pw.format("- time: %s\n", time);
         pw.format("  extended: %s\n", msg.extended());
-        pw.format("  crc: %04x\n", msg.crc());
+        pw.format("  crc: \"%04x\"\n", msg.crc());
         pw.print( "  data: >-");
         ByteBuffer buf = msg.buffer().rewind();
         int i = 0;

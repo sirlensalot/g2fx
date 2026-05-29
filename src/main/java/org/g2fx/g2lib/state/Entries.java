@@ -1,6 +1,7 @@
 package org.g2fx.g2lib.state;
 
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSender;
@@ -15,7 +16,7 @@ import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.state.Device.dispatchSuccess;
 
-public class Entries {
+public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesEvent> {
 
     private static final Logger log = Util.getLogger(Entries.class);
 
@@ -46,23 +47,29 @@ public class Entries {
         LoadEntry
     }
 
-    public record EntryMsg(EntryType type, int bank, int entry) {}
+    public record EntryMsg(EntryType type, int bank, int entry, Slot slot) {}
 
     public record EntriesEvent(
             EntriesEventType type,
             Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries,
-            EntryMsg msg) {
+            EntryMsg msg,
+            long time) {
+        public EntriesEvent(EntriesEventType type,
+                            Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries,
+                            EntryMsg msg) {
+            this(type,entries,msg,System.currentTimeMillis());
+        }
         public static EntriesEvent deleteBank(EntryType type, int bank) {
-            return new EntriesEvent(EntriesEventType.DeleteBank,null,new EntryMsg(type,bank,-1));
+            return new EntriesEvent(EntriesEventType.DeleteBank,null,new EntryMsg(type,bank,-1,null));
         }
         public static EntriesEvent deleteEntry(EntryType type, int bank, int entry) {
-            return new EntriesEvent(EntriesEventType.DeleteEntry,null,new EntryMsg(type,bank,entry));
+            return new EntriesEvent(EntriesEventType.DeleteEntry,null,new EntryMsg(type,bank,entry,null));
         }
         public static EntriesEvent saveEntry(EntryType type, int bank, int entry) {
-            return new EntriesEvent(EntriesEventType.SaveEntry,null,new EntryMsg(type,bank,entry));
+            return new EntriesEvent(EntriesEventType.SaveEntry,null,new EntryMsg(type,bank,entry,null));
         }
-        public static EntriesEvent loadEntry(EntryType type, int bank, int entry) {
-            return new EntriesEvent(EntriesEventType.LoadEntry,null,new EntryMsg(type,bank,entry));
+        public static EntriesEvent loadEntry(EntryType type, int bank, int entry, Slot slot) {
+            return new EntriesEvent(EntriesEventType.LoadEntry,null,new EntryMsg(type,bank,entry,slot));
         }
         public static EntriesEvent refreshAll(Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries) {
             return new EntriesEvent(EntriesEventType.RefreshAll,entries,null);
@@ -74,10 +81,13 @@ public class Entries {
     private final UsbSender usb;
 
     private Map<EntryType,Map<Integer, Map<Integer,Entry>>> entries;
+    //TODO undo should not be supported here ...
     private LibProperty<EntriesEvent> eventProp = new LibProperty<>(EntriesEvent.refreshAll(Map.of()));
 
     public Entries(UsbSender usb) {
         this.usb = usb;
+        resetEntries();
+        eventProp.addListener(this);
     }
 
     public EntriesMsg getEntriesMsg() {
@@ -85,11 +95,31 @@ public class Entries {
     }
 
     public void readEntries() throws Exception {
-        entries = Map.of(EntryType.Performance,new HashMap<>(),EntryType.Patch,new HashMap<>());
+        resetEntries();
         readEntries(EntryType.Performance);
         readEntries(EntryType.Patch);
-        eventProp.set(EntriesEvent.refreshAll(entries));
+        fireRefreshAll();
     }
+
+    private void resetEntries() {
+        entries = Map.of(EntryType.Performance,new HashMap<>(),EntryType.Patch,new HashMap<>());
+    }
+
+    public void fireRefreshAll() {
+        //deep hashmap copy
+        Map<EntryType,Map<Integer, Map<Integer,Entry>>> m = new HashMap<>();
+        for (Map.Entry<EntryType, Map<Integer, Map<Integer, Entry>>> em1 : entries.entrySet()) {
+            m.put(em1.getKey(), new TreeMap<>());
+            for (Map.Entry<Integer, Map<Integer, Entry>> em2 : em1.getValue().entrySet()) {
+                m.get(em1.getKey()).put(em2.getKey(),new TreeMap<>());
+                for (Map.Entry<Integer, Entry> em3 : em2.getValue().entrySet()) {
+                    m.get(em1.getKey()).get(em2.getKey()).put(em3.getKey(),em3.getValue());
+                }
+            }
+        }
+        eventProp.set(EntriesEvent.refreshAll(m));
+    }
+
     public void readEntries(EntryType type) throws Exception {
         entriesMsg = new EntriesMsg(type,List.of(new EntryBank(0,0,List.of())),false);
         entries.get(type).clear();
@@ -108,27 +138,37 @@ public class Entries {
                 throw new IllegalStateException("Did not receive entries message!");
             }
             log.info(() -> "received entry data: " + entriesMsg);
-            entriesMsg.banks().forEach(bank -> {
-                Map<Integer, Entry> bm = entries.get(type).computeIfAbsent(bank.bank(),b -> new TreeMap<>());
-                int i = bank.entry();
-                for (Entry e : bank.entries()) {
-                    bm.put(i++,e);
-                }
-            });
         }
         log.info(() -> "readEntries: received " + entries.get(type).size() + " banks");
 
     }
 
+    public void processEntriesMsg(boolean isStoreResponse) {
+        entriesMsg.banks().forEach(bank -> {
+            Map<Integer, Entry> bm = entries.get(entriesMsg.type).computeIfAbsent(bank.bank(), b -> new TreeMap<>());
+            int i = bank.entry();
+            for (Entry e : bank.entries()) {
+                bm.put(i++,e);
+            }
+        });
+        if (entriesMsg.done || isStoreResponse) { // <-- bbbutt what about huge banks ...
+            fireRefreshAll();
+        }
+    }
+
 
     public boolean dispatchEntryList(ByteBuffer buf) {
-        buf.position(4); //skip constant header fields
+        buf.position(3); //xx xx 16
+        boolean isStoreResponse = buf.get() == 0;
         BitBuffer bb = new BitBuffer(buf.slice());
         EntryType type = EntryType.LOOKUP.get(bb.get());
         List<EntryBank> banks = new ArrayList<>();
         EntryBank bank = null;
         while (true) {
             switch (bb.peek(8)) {
+                case 0x01:
+                    bb.get();
+                    banks.add(bank = new EntryBank(bank.bank,bb.get(),new ArrayList<>()));
                 case 0x03:
                     bb.get();
                     banks.add(bank = new EntryBank(bb.get(),bb.get(),new ArrayList<>()));
@@ -136,6 +176,7 @@ public class Entries {
                 case 0x04:
                 case 0x05:
                     entriesMsg = new EntriesMsg(type,banks,bb.get() == 0x04);
+                    processEntriesMsg(isStoreResponse);
                     return dispatchSuccess(() -> "dispatchEntryList: terminate: " + entriesMsg.done());
                 default:
                     if (bank == null) { throw new IllegalStateException("invalid message, no current bank"); }
@@ -159,5 +200,23 @@ public class Entries {
 
     public LibProperty<EntriesEvent> getEventProp() {
         return eventProp;
+    }
+
+    @Override
+    public void propertyChanged(EntriesEvent o, EntriesEvent e) throws Exception {
+        switch (e.type) {
+            case LoadEntry -> loadEntry(e);
+            case SaveEntry -> saveEntry(e);
+        }
+    }
+
+    private void saveEntry(EntriesEvent e) {
+    }
+
+    private void loadEntry(EntriesEvent e) throws Exception {
+        if (e.msg.type==EntryType.Performance) {
+            usb.sendSystemRequest("Load Perf " + e.msg,
+                    Codes.O_LOAD_ENTRY, Codes.S_PERF_04, e.msg.bank, e.msg.entry);
+        }
     }
 }

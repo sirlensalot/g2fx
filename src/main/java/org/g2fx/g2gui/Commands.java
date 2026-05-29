@@ -39,6 +39,8 @@ public class Commands {
     private ParameterOverview parameterOverview;
     private PatchSettingsWindow patchSettings;
     private PerformanceSettingsWindow perfSettings;
+    private PatchBrowser patchBrowser;
+
 
     private final List<Menus> allMenus = new ArrayList<>();
 
@@ -215,6 +217,8 @@ public class Commands {
         menu.getItems().addAll(
                 mkMenuItem("Parameter Overview", shortcutKey(KeyCode.L),
                         e -> parameterOverview.show()),
+                mkMenuItem("Patch Browser", shortcutKey(KeyCode.B),
+                        e -> patchBrowser.show()),
                 dumpYaml,
                 mkMenuItem("Scripts", e -> scriptWindow.show()));
         return menu;
@@ -337,5 +341,10 @@ public class Commands {
 
     public void setPerfSettings(PerformanceSettingsWindow perfSettings) {
         this.perfSettings = setupWindowMenu(perfSettings);
+    }
+
+
+    public void setPatchBrowser(PatchBrowser patchBrowser) {
+        this.patchBrowser = setupWindowMenu(patchBrowser);
     }
 }
