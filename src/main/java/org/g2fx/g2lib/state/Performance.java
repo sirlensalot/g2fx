@@ -138,7 +138,14 @@ public class Performance {
     }
 
     public void sendPerf() throws Exception {
+        log.info("sendPerf");
         usb.sendBulk("sendPerf",true,writeMessage()); //I_VERSION in response
+        for (Patch s : slots.values()) {
+            s.sendResourcesRequest();
+            s.sendUnk6Request();
+            s.sendSelectedParamRequest();
+        }
+        sendMasterClockRequest();
     }
 
     private ByteBuffer writeMessage() throws Exception {
@@ -318,7 +325,6 @@ public class Performance {
 
         sendVersionRequest();
 
-
         usb.sendSystemRequest("Synth settings",
                 O_SYNTH_SETTINGS);
 
@@ -331,20 +337,24 @@ public class Performance {
         usb.sendPerfRequest(getVersion(),"unknown 2",
                 O_UNKNOWN2);
 
-        //  TODO master clock can be O_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
-        usb.sendSystemRequest("master clock",
-                O_MASTER_CLOCK);
+        sendMasterClockRequest();
 
         usb.sendPerfRequest(getVersion(),"global knobs",
                 O_GLOBAL_KNOBS);
 
-        for (Slot slot : Slot.values()) {
-            readSlot(slot);
+        for (Patch p : slots.values()) {
+            p.initialize();
         }
 
         usb.sendSystemRequest("assigned voices",
                 O_ASSIGNED_VOICES);
 
+    }
+
+    private void sendMasterClockRequest() throws Exception {
+        //  TODO master clock can be O_EXT_MASTER_CLOCK = 0x5d or S_SET_MASTER_CLOCK = 0x3f
+        usb.sendSystemRequest("master clock",
+                O_MASTER_CLOCK);
     }
 
     private void sendVersionRequest() throws Exception {
@@ -353,43 +363,6 @@ public class Performance {
                 S_PERF_04);
     }
 
-    private void readSlot(final Slot slot) throws Exception {
-
-        usb.sendSystemRequest("slot version " + slot,
-                O_VERSION,
-                slot.ordinal());
-
-        // version will be set from response to O_VERSION
-        Patch patch = getSlot(slot);
-        int pv = patch.getVersion();
-
-        usb.sendSlotRequest(slot,pv,"slot patch" + slot,
-                O_PATCH);
-
-        usb.sendSlotRequest(slot,pv,"slot name" + slot,
-                O_PATCH_NAME);
-
-        usb.sendSlotRequest(slot,pv,"slot note" + slot,
-                O_CURRENT_NOTE);
-
-        usb.sendSlotRequest(slot,pv,"slot text " + slot,
-                O_PATCH_TEXT);
-
-        usb.sendSlotRequest(slot,pv,"patch load VA",
-                O_RESOURCES_USED,
-                AreaId.Voice.ordinal());
-
-        usb.sendSlotRequest(slot,pv,"patch load FX",
-                O_RESOURCES_USED,
-                AreaId.Fx.ordinal());
-
-        usb.sendSlotRequest(slot,pv,"unknown 6",
-                O_UNKNOWN6);
-
-        usb.sendSlotRequest(slot,pv,"selected param",
-                O_SELECTED_PARAM);
-
-    }
 
     public Iterable<Patch> slots() {
         return slots.values();

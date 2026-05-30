@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.state.Device.dispatchSuccess;
 
 public class Patch {
@@ -501,4 +502,51 @@ public class Patch {
     public FieldValues getCurrentNote() {
         return currentNote;
     }
+
+    public void initialize() throws Exception {
+
+        slotSender.getSender().sendSystemRequest("slot version " + slot,
+                O_VERSION,
+                slot.ordinal());
+
+        slotSender.sendSlotRequest("slot patch" + slot,
+                O_PATCH);
+
+        slotSender.sendSlotRequest("slot name" + slot,
+                O_PATCH_NAME);
+
+        slotSender.sendSlotRequest("slot note" + slot,
+                O_CURRENT_NOTE);
+
+        slotSender.sendSlotRequest("slot text " + slot,
+                O_PATCH_TEXT);
+
+        sendResourcesRequest();
+
+        sendUnk6Request();
+
+        sendSelectedParamRequest();
+
+    }
+
+    public void sendSelectedParamRequest() throws Exception {
+        slotSender.sendSlotRequest("selected param",
+                O_SELECTED_PARAM);
+    }
+
+    public void sendUnk6Request() throws Exception {
+        slotSender.sendSlotRequest("unknown 6",
+                O_UNKNOWN6);
+    }
+
+    public void sendResourcesRequest() throws Exception {
+        slotSender.sendSlotRequest("patch load VA",
+                O_RESOURCES_USED,
+                AreaId.Voice.ordinal());
+
+        slotSender.sendSlotRequest("patch load FX",
+                O_RESOURCES_USED,
+                AreaId.Fx.ordinal());
+    }
+
 }

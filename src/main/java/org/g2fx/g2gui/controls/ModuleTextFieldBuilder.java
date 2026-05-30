@@ -85,7 +85,7 @@ public class ModuleTextFieldBuilder {
             case TF_REVERB_TIME: return formatReverbTime(c,l);
         }
 
-        System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
+        //System.out.format("%s, pi: %s, pb: %s\n",ip,pi,pb);
         return paramListener.empty(c,"mkTextField");
 
     }

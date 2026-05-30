@@ -143,6 +143,7 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
     }
 
     public void processEntriesMsg(boolean isStoreResponse) {
+        log.info("processEntriesMsg: " + entriesMsg);
         entriesMsg.banks().forEach(bank -> {
             Map<Integer, Entry> bm = entries.get(entriesMsg.type).computeIfAbsent(bank.bank(), b -> new TreeMap<>());
             int i = bank.entry();
@@ -162,6 +163,7 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
         BitBuffer bb = new BitBuffer(buf.slice());
         EntryType type = EntryType.LOOKUP.get(bb.get());
         List<EntryBank> banks = new ArrayList<>();
+        log.info(() -> "dispatchEntryList: " + type + ": " + Util.dumpBufferString(buf));
         EntryBank bank = null;
         while (true) {
             switch (bb.peek(8)) {
@@ -171,6 +173,7 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
                 case 0x03:
                     bb.get();
                     banks.add(bank = new EntryBank(bb.get(),bb.get(),new ArrayList<>()));
+                    log.info("dispatchEntryList: " + bank);
                     break;
                 case 0x04:
                 case 0x05:

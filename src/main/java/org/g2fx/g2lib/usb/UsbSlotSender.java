@@ -51,4 +51,7 @@ public class UsbSlotSender {
                 Util.getBytes(buf.rewind()));
     }
 
+    public UsbSender getSender() {
+        return sender;
+    }
 }

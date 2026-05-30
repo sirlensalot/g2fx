@@ -171,7 +171,7 @@ public class ParameterOverview implements G2Window {
             }
             ud = sm;
             moduleName = sm.name();
-            System.out.println(n);
+            //System.out.println(n);
         } else {
             Slot slot = n.loc().slot();
             ModulePane mp = slots.getSlot(slot).getAreaPane(n.loc().area()).getModule(n.loc().module());
