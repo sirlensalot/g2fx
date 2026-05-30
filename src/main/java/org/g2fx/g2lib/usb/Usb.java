@@ -47,20 +47,11 @@ public class Usb implements UsbSender {
      * @return length if send success or 0 on error.
      */
     @Override
-    public synchronized int sendBulk(String msg, boolean dispatch, byte[] data) throws Exception {
+    public synchronized int sendBulk(String msg, boolean dispatch, ByteBuffer data) throws Exception {
 
         Future<UsbMessage> dispatchFuture = dispatch ? expect("dispatch future", m -> true) : null;
 
-        int size = data.length + 4;
-        ByteBuffer buffer = BufferUtils.allocateByteBuffer(size);
-        buffer.put((byte) (size / 256));
-        buffer.put((byte) (size % 256));
-        buffer.put(data);
-        int crc = CRC16.crc16(data, 0, data.length);
-        //dumpBytes(data);
-        log.info(String.format("send crc: %x %x %x", crc, crc / 256, crc % 256));
-        buffer.put((byte) (crc / 256));
-        buffer.put((byte) (crc % 256));
+        ByteBuffer buffer = prepareSendBuffer(data);
         log.info(String.format("--------------- Send Bulk: %s ----------------", msg) + Util.dumpBufferString(buffer));
         IntBuffer transferred = BufferUtils.allocateIntBuffer();
         int r = LibUsb.bulkTransfer(device.handle(), EP_OUT_BULK, buffer, transferred, 10000);
@@ -80,6 +71,20 @@ public class Usb implements UsbSender {
         }
 
         return transferred.get();
+    }
+
+    public static ByteBuffer prepareSendBuffer(ByteBuffer data) {
+        int size = data.limit() + 4;
+        ByteBuffer buffer = BufferUtils.allocateByteBuffer(size);
+        buffer.put((byte) (size / 256));
+        buffer.put((byte) (size % 256));
+        buffer.put(data.rewind());
+        int crc = CRC16.crc16(data);
+        //dumpBytes(data);
+        log.info(String.format("send crc: %x %x %x", crc, crc / 256, crc % 256));
+        buffer.put((byte) (crc / 256));
+        buffer.put((byte) (crc % 256));
+        return buffer;
     }
 
     @SuppressWarnings("unused")

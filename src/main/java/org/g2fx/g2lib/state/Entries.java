@@ -98,7 +98,6 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
         resetEntries();
         readEntries(EntryType.Performance);
         readEntries(EntryType.Patch);
-        fireRefreshAll();
     }
 
     private void resetEntries() {
@@ -151,7 +150,7 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
                 bm.put(i++,e);
             }
         });
-        if (entriesMsg.done || isStoreResponse) { // <-- bbbutt what about huge banks ...
+        if (entriesMsg.done || isStoreResponse) { // <-- what about large banks, multiple post-store messages?
             fireRefreshAll();
         }
     }

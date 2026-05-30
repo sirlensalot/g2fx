@@ -60,40 +60,6 @@ public class CRC16 {
             0x5C64, 0x4C45, 0x3CA2, 0x2C83, 0x1CE0, 0x0CC1, 0xEF1F, 0xFF3E, 0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9, 0x9FF8,
             0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0 };
 
-    /**
-     * Utility constructor.
-     */
-    private CRC16() {
-
-    }
-
-    /**
-     * Create a CRC16 checksum from the bytes.
-     *
-     * @param bytes input bytes
-     * @return CRC16 as integer value
-     */
-    public static int crc16(byte[] bytes) {
-        return crc16(bytes, 0, bytes.length);
-    }
-
-    /**
-     * Create a CRC16 checksum from the bytes.
-     *
-     * @param bytes input bytes
-     * @return CRC16 as integer value
-     */
-    public static int crc16(byte[] bytes, int off, int len) {
-
-        int crc = 0x0000;
-        int end = off + len;
-
-        for (int i = off; i < end; i++) {
-            crc = doCrc(bytes[i], crc);
-        }
-
-        return crc & 0xFFFF;
-    }
 
     public static int crc16(ByteBuffer bytes, int off, int len) {
 
@@ -107,22 +73,8 @@ public class CRC16 {
         return crc & 0xFFFF;
     }
 
-    /**
-     * Create a CRC16 checksum from the bytes.
-     *
-     * @param bytes input bytes
-     * @return CRC16 as integer value
-     * @since 4.4
-     */
     public static int crc16(ByteBuffer bytes) {
-
-        int crc = 0x0000;
-
-        while (bytes.hasRemaining()) {
-            crc = doCrc(bytes.get(), crc);
-        }
-
-        return crc & 0xFFFF;
+        return crc16(bytes,0,bytes.limit());
     }
 
     private static int doCrc(byte b, int crc) {

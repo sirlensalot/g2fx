@@ -54,10 +54,6 @@ public class Performance {
         }
     }
 
-    public Performance() {
-        this(new UsbSender.OfflineSender());
-    }
-
     public int getVersion() {
         return version;
     }
@@ -141,9 +137,11 @@ public class Performance {
         return buf;
     }
 
-    // test
+    public void sendPerf() throws Exception {
+        usb.sendBulk("sendPerf",true,writeMessage()); //I_VERSION in response
+    }
 
-    public ByteBuffer writeMessage() throws Exception {
+    private ByteBuffer writeMessage() throws Exception {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         buf.put(Util.asBytes(
                 M_CMD,
@@ -396,4 +394,5 @@ public class Performance {
     public Iterable<Patch> slots() {
         return slots.values();
     }
+
 }

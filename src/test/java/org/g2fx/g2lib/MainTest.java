@@ -3,11 +3,13 @@ package org.g2fx.g2lib;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.Coords;
 import org.g2fx.g2lib.usb.MessageRecorder;
+import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Stream;
@@ -20,19 +22,28 @@ class MainTest {
     void crcClavia() throws  Exception {
 
 
-        assertEquals(0x9188, CRC16.crc16(new byte[]{(byte) 0x80}, 0, 1));
+        assertEquals(0x9188, CRC16.crc16(ByteBuffer.wrap(new byte[]{(byte) 0x80})));
         byte[] msg = Util.asBytes(
                 0x80, 0x0a, 0x03, 0x00, 0x00, 0x1a, 0x00, 0x8c, 0x00, 0x12, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x61,
                 0x72, 0x47, 0x32, 0x00, 0x30, 0x03, 0x4c, 0x52, 0x00, 0x00, 0x01, 0x96, 0x28, 0x61, 0x00, 0x05,
                 0x01, 0x0a, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         );
-        assertEquals(0x3e24, CRC16.crc16(msg, 0, msg.length));
+        assertEquals(0x3e24, CRC16.crc16(ByteBuffer.wrap(msg)));
 
         assertEquals(0xb017, CRC16.crc16(Util.readTextColsByteBuffer(
                 "01 28 01 21 00 0f 00 00 00 00 00 00 00 00 " +
                         "c2 58 4f c0 00 00 00"
-        ).rewind()));
+        )));
+    }
+
+    @Test
+    void testUsbSend() throws Exception {
+        ByteBuffer bi = PerformanceTest.get001PerfLoadMsg().buffer();
+        ByteBuffer slice = bi.position(2).slice();
+        PerformanceTest.dropCrcTrailer(slice);
+        ByteBuffer ba = Usb.prepareSendBuffer(slice);
+        assertEquals(Util.dumpBufferString(bi),Util.dumpBufferString(ba));
     }
 
     @Test

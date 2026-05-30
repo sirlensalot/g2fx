@@ -7,13 +7,14 @@ import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.MessageRecorder;
+import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
-import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -33,7 +34,7 @@ class DeviceTest {
 
     @Test
     public void dispatchEntryList() throws Exception {
-        Entries d = new Entries(new UsbSender.OfflineSender());
+        Entries d = new Entries(new OfflineSender());
         ByteBuffer buf = Util.readFile("data/msg/msg_PatchListMessage00_19f4.msg");
         d.dispatchEntryList(buf.position(4).slice());
         Entries.EntriesMsg m = d.getEntriesMsg();
@@ -64,9 +65,21 @@ class DeviceTest {
     public void testEntriesDispatch() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms =
                 captureCmd(List.of(Codes.I_VERSION1, Codes.I_ENTRY_LIST), CAP_OO4_POWERON);
-        Device d = dispatchMsgs(ms);
-        //TODO actually verify something
-        //System.out.println(d.getEntries().getEventProp().get());
+        Device d = new Device();
+        List<Entries.EntriesEvent> evs = new ArrayList<>();
+        d.getEntries().getEventProp().addListener((o,n) -> evs.add(n));
+        dispatchMsgs(ms,d);
+        assertEquals(3,evs.size());
+        //patches done
+        assertEquals(6,evs.get(0).entries().get(Entries.EntryType.Patch).size());
+        assertEquals(0,evs.get(0).entries().get(Entries.EntryType.Performance).size());
+        //perfs done
+        assertEquals(6,evs.get(1).entries().get(Entries.EntryType.Patch).size());
+        assertEquals(5,evs.get(1).entries().get(Entries.EntryType.Performance).size());
+        //perf store
+        assertEquals(6,evs.get(2).entries().get(Entries.EntryType.Patch).size());
+        assertEquals(6,evs.get(2).entries().get(Entries.EntryType.Performance).size());
+
 //        MessageRecorder mr = new MessageRecorder("entries2",new File("data/record"));
 //        for (MessageRecorder.RecordedUsbMessage m : ms) {
 //            mr.record(m.msg());
@@ -218,13 +231,17 @@ class DeviceTest {
 
     private static Device dispatchMsgs(List<MessageRecorder.RecordedUsbMessage> ms) {
         Device d = new Device();
+        dispatchMsgs(ms, d);
+        return d;
+    }
+
+    private static void dispatchMsgs(List<MessageRecorder.RecordedUsbMessage> ms, Device d) {
         int i = 0;
         for (MessageRecorder.RecordedUsbMessage m : ms) {
             assertTrue(d.dispatch(m.msg()), "dispatch message " + i + ": " +
                 Util.dumpBufferString(m.msg().buffer()));
             i++;
         }
-        return d;
     }
 
     @Test

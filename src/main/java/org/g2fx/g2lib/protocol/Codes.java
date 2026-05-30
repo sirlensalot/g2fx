@@ -42,6 +42,7 @@ public class Codes {
     public static final int S_PERF_0C = 0x0c; // for slots 08-0b
     public static final int S_PERF_REQ = 0x2c; // for slots 28-2b
     public static final int S_SLOT_REQ = 0x28; // base for slot selector
+    public static final int S_SLOT_CMD = 0x38; // base for no-response slot selector
 
     // Message types
     public static final int M_INIT = 0x80;

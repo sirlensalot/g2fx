@@ -7,6 +7,7 @@ import org.g2fx.g2lib.protocol.*;
 import org.g2fx.g2lib.state.PatchLoadData;
 import org.g2fx.g2lib.state.PerformanceSettings;
 import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
@@ -28,7 +29,7 @@ class ProtocolTest {
     public static final String PATCHMSG_1 = "data/msg/msg_Slot1Patch_ed77.msg";
     public static final String CURRENT_NOTE_MSG = "data/msg/msg_Slot1Note_cc8f.msg";
     public static final String TEXTPAD_MSG = "data/msg/msg_Slot1TextPad_5f41.msg";
-    private final UsbSender sender = new UsbSender.OfflineSender();
+    private final UsbSender sender = new OfflineSender();
 
     @BeforeAll
     public static void beforeAll() {

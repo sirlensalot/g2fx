@@ -5,7 +5,8 @@ import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.MessageRecorder;
-import org.g2fx.g2lib.usb.UsbSender;
+import org.g2fx.g2lib.usb.OfflineSender;
+import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.g2fx.g2lib.DeviceTest.parseCapture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,9 +35,10 @@ public class PerformanceTest {
 
     @Test
     void regressNewPerf() throws Exception {
-        Performance p = new Performance();
+        AtomicReference<ByteBuffer> pbuf = new AtomicReference<>();
+        Performance p = new Performance(new OfflineSender((d,b)->pbuf.set(b)));
         p.initNew();
-        ByteBuffer pb = p.writeMessage();
+        p.sendPerf();
 
         List<MessageRecorder.RecordedUsbMessage> ms =
                     parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.OUTBOUND);
@@ -50,7 +53,7 @@ public class PerformanceTest {
             0x591,0x00,
             0x81e,0x40);
 
-        assertEquals(Util.dumpBufferString(b),Util.dumpBufferString(pb));
+        assertEquals(Util.dumpBufferString(b),Util.dumpBufferString(pbuf.get()));
 
     }
 
@@ -58,7 +61,7 @@ public class PerformanceTest {
     @Test
     void roundtripPerformanceFile() throws Exception {
         String filePath = "data/perf/perf-20240802.prf2";
-        Performance perf = Performance.readFromFile(filePath,new UsbSender.OfflineSender());
+        Performance perf = Performance.readFromFile(filePath,new OfflineSender());
         ByteBuffer fbuf = Util.readFile(filePath).rewind();
 
         // B description has different Unk2 (3 bits)
@@ -77,17 +80,13 @@ public class PerformanceTest {
     @Test
     void regress001_LoadPerfSend() throws Exception {
 
-        List<MessageRecorder.RecordedUsbMessage> ms =
-                parseCapture("data/capture/capture-001-load-g2fx-perf1.pcapng", (i) -> true);
-
-        ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
+        UsbMessage msg = get001PerfLoadMsg();
+        ByteBuffer m = msg.buffer().position(2).slice();
         dropCrcTrailer(m);
-//        readInboundPerf(m.buffer());
-//        if (true) return;
 
-        Performance perf = Performance.readFromFile(PERF_001,new UsbSender.OfflineSender());
-
-        ByteBuffer bulkMsg = perf.writeMessage();
+        AtomicReference<ByteBuffer> pbuf = new AtomicReference<>();
+        Performance perf = Performance.readFromFile(PERF_001,new OfflineSender((d,b) -> pbuf.set(b)));
+        perf.sendPerf();
 
         // overwrite ModuleNames reserved values
         overwriteBytes(m,
@@ -95,8 +94,15 @@ public class PerformanceTest {
                 0x6a2,0,
                 0xa32,0);
 
-        assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
+        assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(pbuf.get()));
 
+    }
+
+    public static UsbMessage get001PerfLoadMsg() throws Exception {
+        List<MessageRecorder.RecordedUsbMessage> ms =
+                parseCapture("data/capture/capture-001-load-g2fx-perf1.pcapng", (i) -> true);
+        UsbMessage msg = ms.get(2).msg();
+        return msg;
     }
 
     public static void overwriteBytes(ByteBuffer buf, int... addrValPairs) {
@@ -107,7 +113,7 @@ public class PerformanceTest {
 
     @Test
     void regress001_RoundtripFile() throws Exception {
-        Performance perf = Performance.readFromFile(PERF_001,new UsbSender.OfflineSender());
+        Performance perf = Performance.readFromFile(PERF_001,new OfflineSender());
         ByteBuffer wbuf = perf.writeFile();
         ByteBuffer buf = Util.readFile(PERF_001);
         //sigh ... here, empty ModuleParams have variation count :(
@@ -132,9 +138,9 @@ public class PerformanceTest {
         ByteBuffer m = ms.get(2).msg().buffer().position(2).slice();
         dropCrcTrailer(m);
 
-        Performance perf = Performance.readFromFile(PERF_002,new UsbSender.OfflineSender());
-
-        ByteBuffer bulkMsg = perf.writeMessage();
+        AtomicReference<ByteBuffer> pbuf = new AtomicReference<>();
+        Performance perf = Performance.readFromFile(PERF_002,new OfflineSender((d,b)->pbuf.set(b)));
+        perf.sendPerf();
 
         /*
         image breadcrumb:
@@ -156,14 +162,14 @@ public class PerformanceTest {
                 //       2--
                 0x1105,0b01011111
         );
-        assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(bulkMsg));
+        assertEquals(Util.dumpBufferString(m),Util.dumpBufferString(pbuf.get()));
 
     }
 
 
     @Test
     void regress002_RoundtripFile() throws Exception {
-        Performance perf = Performance.readFromFile(PERF_002,new UsbSender.OfflineSender());
+        Performance perf = Performance.readFromFile(PERF_002,new OfflineSender());
         ByteBuffer wbuf = perf.writeFile();
         ByteBuffer buf = Util.readFile(PERF_002);
         //module names reserved values
@@ -188,7 +194,7 @@ public class PerformanceTest {
      */
     public static void readOutboundPerf(ByteBuffer buf) {
         //System.out.println(Util.dumpBufferString(buf));
-        Performance p = new Performance();
+        Performance p = new Performance(new OfflineSender());
         ByteBuffer b = buf.position(0x18);
         p.readPerformanceNameAndSettings(b);
         p.slots().forEach(s -> {

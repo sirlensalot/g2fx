@@ -3,6 +3,7 @@ package org.g2fx.g2lib.state;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
 import org.g2fx.g2lib.usb.Dispatcher;
+import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
@@ -32,7 +33,7 @@ public class Device implements Dispatcher {
     protected SynthSettings synthSettings = new SynthSettings();
 
     public Device() {
-        this(new UsbSender.OfflineSender());
+        this(new OfflineSender());
     }
 
     public Device(UsbSender usb) {
@@ -49,7 +50,7 @@ public class Device implements Dispatcher {
     public void loadPerfFile(String filePath) throws Exception {
         perf = Performance.readFromFile(filePath, usb);
         if (online()) {
-            sendPerf();
+            perf.sendPerf();
         }
     }
 
@@ -61,10 +62,6 @@ public class Device implements Dispatcher {
         return usb.online();
     }
 
-
-    private void sendPerf() {
-        //TODO
-    }
 
 
     public void initialize() throws Exception {
