@@ -85,6 +85,19 @@ public class Util {
         return output.toString();
     }
 
+    public static ByteBuffer readBufferDump(String v) {
+        String[] lines = v.split("\\n");
+        ByteBuffer buf = ByteBuffer.allocateDirect(v.length()); //oversize
+        int sz = 0;
+        for (String line : lines) {
+            String[] ws = line.substring(6,0x36).split("\\s+");
+            sz += ws.length;
+            Arrays.stream(ws).forEach(s -> buf.put((byte) parseByte(s)));
+        }
+        buf.limit(sz);
+        return buf;
+    }
+
 
     public static int b2i(byte b) {
         return b & 0xff;

@@ -170,10 +170,17 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
                 case 0x01:
                     bb.get();
                     banks.add(bank = new EntryBank(bank.bank,bb.get(),new ArrayList<>()));
+                    log.info("dispatchEntryList: index jump: " + bank);
+                    break;
+                case 0x02:
+                    bb.get();
+                    banks.add(bank = new EntryBank(bank.bank,bank.entry+bank.entries.size()+1,new ArrayList<>()));
+                    log.info("dispatchEntryList: empty entry: " + bank);
+                    break;
                 case 0x03:
                     bb.get();
                     banks.add(bank = new EntryBank(bb.get(),bb.get(),new ArrayList<>()));
-                    log.info("dispatchEntryList: " + bank);
+                    log.info("dispatchEntryList: new bank: " + bank);
                     break;
                 case 0x04:
                 case 0x05:

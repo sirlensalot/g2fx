@@ -1,6 +1,7 @@
 package org.g2fx.g2lib;
 
 import org.g2fx.g2lib.model.NamedParam;
+import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
@@ -36,7 +37,7 @@ public class PerformanceTest {
     @Test
     void regressNewPerf() throws Exception {
         AtomicReference<ByteBuffer> pbuf = new AtomicReference<>();
-        Performance p = new Performance(new OfflineSender((d,b)->pbuf.set(b)));
+        Performance p = new Performance(getPerfCreateListener(pbuf));
         p.initNew();
         p.sendPerf();
 
@@ -55,6 +56,12 @@ public class PerformanceTest {
 
         assertEquals(Util.dumpBufferString(b),Util.dumpBufferString(pbuf.get()));
 
+    }
+
+    private static OfflineSender getPerfCreateListener(AtomicReference<ByteBuffer> pbuf) {
+        return new OfflineSender((d, b) -> {
+            if (b.get(3) == Codes.O_CREATE) pbuf.set(b);
+        });
     }
 
 
@@ -85,7 +92,7 @@ public class PerformanceTest {
         dropCrcTrailer(m);
 
         AtomicReference<ByteBuffer> pbuf = new AtomicReference<>();
-        Performance perf = Performance.readFromFile(PERF_001,new OfflineSender((d,b) -> pbuf.set(b)));
+        Performance perf = Performance.readFromFile(PERF_001,getPerfCreateListener(pbuf));
         perf.sendPerf();
 
         // overwrite ModuleNames reserved values
@@ -139,7 +146,7 @@ public class PerformanceTest {
         dropCrcTrailer(m);
 
         AtomicReference<ByteBuffer> pbuf = new AtomicReference<>();
-        Performance perf = Performance.readFromFile(PERF_002,new OfflineSender((d,b)->pbuf.set(b)));
+        Performance perf = Performance.readFromFile(PERF_002,getPerfCreateListener(pbuf));
         perf.sendPerf();
 
         /*
