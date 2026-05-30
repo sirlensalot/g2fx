@@ -128,7 +128,7 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
             log.info(() -> "sending entries request: " + type + ":" + lastBank.bank() + "," + lastEntry);
             entriesMsg = null;
             usb.sendSystemRequest("entries request"
-                    , 0x14 // Q_LIST_NAMES
+                    , Codes.O_LIST_NAMES // Q_LIST_NAMES
                     , type.ordinal()
                     , lastBank.bank()
                     , lastEntry

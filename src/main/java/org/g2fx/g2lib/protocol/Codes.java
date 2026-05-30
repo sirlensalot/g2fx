@@ -51,9 +51,11 @@ public class Codes {
     // Outbound command codes (endpoint 03)
     public static final int O_SYNTH_SETTINGS = 0x02;
     public static final int O_ASSIGNED_VOICES = 0x04;
+    public static final int O_SELECT_SLOT = 0x09;
     public static final int O_LOAD_ENTRY = 0x0a;
     public static final int O_STORE_ENTRY = 0x0b;
     public static final int O_PERF_SETTINGS = 0x10;
+    public static final int O_LIST_NAMES = 0x14;
     public static final int O_PATCH_NAME = 0x28;
     public static final int O_SELECTED_PARAM = 0x2e;
     public static final int O_VERSION = 0x35;
@@ -70,7 +72,6 @@ public class Codes {
     public static final int O_RESOURCES_USED = 0x71;
     public static final int O_START_STOP_COM = 0x7d;
     public static final int O_UNKNOWN1 = 0x81;
-
 
 
 }

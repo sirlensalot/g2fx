@@ -31,12 +31,15 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($6 == "42") { v = "V_NEW" }
 
         c = $7;
-        
+        cn = $7
+
         if ($7 == "02") { c = "O_SYNTH_SETTINGS" }
         if ($7 == "04") { c = "O_ASSIGNED_VOICES" }
+        if ($7 == "09") { c = "O_SELECT_SLOT" }
         if ($7 == "0a") { c = "O_LOAD_ENTRY" }
         if ($7 == "0b") { c = "O_STORE_ENTRY" }
         if ($7 == "10") { c = "O_PERF_SETTINGS" }
+        if ($7 == "14") { c = "O_LIST_NAMES" }
         if ($7 == "28") { c = "O_PATCH_NAME" }
         if ($7 == "2e") { c = "O_SELECTED_PARAM" }
         if ($7 == "35") { c = "O_VERSION" }
@@ -53,9 +56,15 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "71") { c = "O_RESOURCES_USED" }
         if ($7 == "7d") { c = "O_START_STOP_COM" }
         if ($7 == "81") { c = "O_UNKNOWN1" }
-        
 
-        printf("%03d:OUT[3] %s %s %s[%s]  %s\n",i,s,v,c,$7,ptime);
+        if ($4 == "80") {
+            c = "O_INIT"
+            cn = "80"
+            s = "SYS"
+            v = "SYS"
+        }
+
+        printf("%03d:OUT[3] %s %s %s[%s]  %s\n",i,s,v,c,cn,ptime);
     }
     if (ty=="81") {
         ep="INI[81]"
@@ -70,6 +79,11 @@ ty != "03" && ty != "81" && ty != "82" { next }
         pos=$3;
         ver=$4;
         cmd=$5;
+        if (req=="80") {
+            cmd="I_INIT"
+            ver="SYS"
+            pos="SYS"
+        }
     }
     if (pos == "00" || pos == "08") { pos = "SlotA" }
     if (pos == "01" || pos == "09") { pos = "SlotB" }
@@ -103,7 +117,8 @@ ty != "03" && ty != "81" && ty != "82" { next }
     if (cmd == "6f") { cmd = "I_TEXT_PAD" }
     if (cmd == "72") { cmd = "I_PATCH_LOAD_DATA" }
     if (cmd == "7f") { cmd = "I_OK" }
-    
+    if (cmd == "80") { cmd = "I_MIDI_CC?" }
+
     if (ty=="81" || ty=="82") {
         printf("%03d:%s %s %s %s[%s]  %s\n",i,ep,pos,ver,cmd,cc,ptime);
     }
