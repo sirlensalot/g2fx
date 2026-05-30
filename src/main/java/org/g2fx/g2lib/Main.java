@@ -1,8 +1,9 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.device.DeviceListener;
+import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.repl.Repl;
-import org.g2fx.g2lib.state.Device;
-import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class Main {
         Repl repl = new Repl(devices,replEnabled,scriptFile);
 
         devices.addListener(
-                new Devices.DeviceListener() {
+                new DeviceListener() {
                     @Override
                     public void onDeviceInitialized(Device d) throws Exception {
                         deviceInitialized.countDown();

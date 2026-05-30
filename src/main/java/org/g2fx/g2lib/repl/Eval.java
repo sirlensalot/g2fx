@@ -1,7 +1,7 @@
 package org.g2fx.g2lib.repl;
 
 import org.g2fx.g2gui.Commands;
-import org.g2fx.g2lib.state.Devices;
+import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.g2fx.g2lib.util.Util;

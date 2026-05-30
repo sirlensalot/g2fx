@@ -20,6 +20,7 @@ import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;

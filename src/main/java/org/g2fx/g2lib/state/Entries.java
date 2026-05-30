@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static org.g2fx.g2lib.state.Device.dispatchSuccess;
+import static org.g2fx.g2lib.device.Device.dispatchSuccess;
 
 public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesEvent> {
 

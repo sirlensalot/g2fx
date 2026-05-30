@@ -1,7 +1,7 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.protocol.Codes;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Entries;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.OfflineSender;

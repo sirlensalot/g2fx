@@ -20,10 +20,10 @@ import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.KnobAssignment;
 import org.g2fx.g2lib.state.Slot;
 

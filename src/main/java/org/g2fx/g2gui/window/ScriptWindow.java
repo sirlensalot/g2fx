@@ -14,9 +14,9 @@ import javafx.stage.Stage;
 import org.fxmisc.richtext.CodeArea;
 import org.g2fx.g2gui.Commands;
 import org.g2fx.g2gui.FXUtil;
+import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.repl.Eval;
 import org.g2fx.g2lib.repl.EvalResult;
-import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.BufferedReader;

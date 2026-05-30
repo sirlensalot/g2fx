@@ -19,9 +19,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.device.Device.dispatchFailure;
+import static org.g2fx.g2lib.device.Device.dispatchSuccess;
 import static org.g2fx.g2lib.protocol.Codes.*;
-import static org.g2fx.g2lib.state.Device.dispatchFailure;
-import static org.g2fx.g2lib.state.Device.dispatchSuccess;
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
 import static org.g2fx.g2lib.util.Util.withYamlMap;

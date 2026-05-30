@@ -1,6 +1,6 @@
 package org.g2fx.g2lib.repl;
 
-import org.g2fx.g2lib.state.Devices;
+import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.util.Util;
 import org.jline.console.CmdDesc;
 import org.jline.reader.EndOfFileException;

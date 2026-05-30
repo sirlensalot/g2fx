@@ -28,13 +28,14 @@ import org.g2fx.g2gui.controls.MultiStateToggle;
 import org.g2fx.g2gui.controls.TextOrImage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.*;
+import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.device.DeviceListener;
+import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Device;
-import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
@@ -52,7 +53,7 @@ import java.util.stream.Stream;
 import static org.g2fx.g2gui.FXUtil.*;
 
 
-public class G2GuiApplication extends Application implements Devices.DeviceListener {
+public class G2GuiApplication extends Application implements DeviceListener {
 
     public static final String G2_TOOLBAR_DRAG = "G2_TOOLBAR_DRAG";
     private final Logger log;
@@ -95,19 +96,16 @@ public class G2GuiApplication extends Application implements Devices.DeviceListe
     @Override
     public void onDeviceInitialized(Device d) throws Exception {
 
-
         //on lib thread: finalize bridges to get fx init updates
         List<Runnable> fxUpdates = new ArrayList<>();
         fxUpdates.add(slots.clearModules());
         fxUpdates.addAll(slots.initModules(d)); //modules first so var controls will update
         fxUpdates.addAll(bridges.initialize(d));
 
-
         //run all updates on fx thread
         fxQueue.execute(() -> {
             fxUpdates.forEach(Runnable::run);
         });
-        d.sendStartStopComm(true);
 
         fxQueue.execute(()->scriptWindow.updatePath());
     }

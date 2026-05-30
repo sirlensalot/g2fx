@@ -1,7 +1,8 @@
-package org.g2fx.g2lib.state;
+package org.g2fx.g2lib.device;
 
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
+import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
@@ -18,8 +19,7 @@ import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.util.BitBuffer.sliceAheadLength;
 
 /**
- * Implements an offline device. Subclass ` has all transmission functionality,
- * but dispatching here which is offline-compatible is nice for simulation/scripting.
+ * Model a G2 USB device, or an "offline" pseudo-device when no G2 is available.
  */
 public class Device implements Dispatcher {
 

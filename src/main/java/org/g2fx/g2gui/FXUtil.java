@@ -17,8 +17,8 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.state.Device;
 
 import java.net.URL;
 import java.util.Collection;

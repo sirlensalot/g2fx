@@ -1,9 +1,9 @@
 package org.g2fx.g2lib.repl;
 
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.state.Slot;
 

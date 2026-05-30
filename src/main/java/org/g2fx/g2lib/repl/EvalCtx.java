@@ -2,7 +2,12 @@ package org.g2fx.g2lib.repl;
 
 import com.google.common.collect.Streams;
 import org.g2fx.g2gui.Commands;
-import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.device.Devices;
+import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Patch;
+import org.g2fx.g2lib.state.PatchArea;
+import org.g2fx.g2lib.state.PatchModule;
 import org.jline.console.ArgDesc;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;

@@ -14,8 +14,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.*;
+import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Devices;
 import org.g2fx.g2lib.state.Slot;
 
 import java.io.File;

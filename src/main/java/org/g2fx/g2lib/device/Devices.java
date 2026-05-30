@@ -1,4 +1,4 @@
-package org.g2fx.g2lib.state;
+package org.g2fx.g2lib.device;
 
 import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.usb.UsbService;
@@ -11,14 +11,12 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Singleton service representing G2 devices and USB service.
+ */
 public class Devices implements UsbService.UsbConnectionListener, DeviceExecutor {
 
     private static final Logger log = Util.getLogger(Devices.class);
-
-    public interface DeviceListener {
-        void onDeviceInitialized(Device d) throws Exception;
-        void onDeviceDisposal(Device d) throws Exception;
-    }
 
     public List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -73,6 +71,12 @@ public class Devices implements UsbService.UsbConnectionListener, DeviceExecutor
         log.fine("Setting current device to " + ud.address());
         current = d;
         notifyDeviceInit(d);
+        try {
+            d.sendStartStopComm(true);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Device start comm failed", e);
+        }
+
     }
 
     private void disconnected(UsbService.UsbDevice ud) {

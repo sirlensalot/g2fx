@@ -18,9 +18,9 @@ import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.ui.UIModule;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 

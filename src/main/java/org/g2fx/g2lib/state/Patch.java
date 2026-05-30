@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.device.Device.dispatchSuccess;
 import static org.g2fx.g2lib.protocol.Codes.*;
-import static org.g2fx.g2lib.state.Device.dispatchSuccess;
 
 public class Patch {
 

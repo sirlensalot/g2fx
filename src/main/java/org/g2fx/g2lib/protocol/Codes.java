@@ -12,6 +12,7 @@ public class Codes {
     public static final int I_PATCH_DESCRIPTION = 0x21;
     public static final int I_PATCH_NAME = 0x27;
     public static final int I_PERFORMANCE_NAME = 0x29;
+    public static final int I_SEL_PARAM_PAGE = 0x2d;
     public static final int I_SELECTED_PARAM = 0x2f;
     public static final int I_VERSION1 = 0x36;
     public static final int I_LED_DATA = 0x39;

@@ -1,4 +1,4 @@
-package org.g2fx.g2lib.state;
+package org.g2fx.g2lib.device;
 
 import java.util.concurrent.Callable;
 

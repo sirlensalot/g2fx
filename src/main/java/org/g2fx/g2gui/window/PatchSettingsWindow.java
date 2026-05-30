@@ -19,10 +19,10 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.state.Device;
 
 import java.util.HashMap;
 import java.util.List;

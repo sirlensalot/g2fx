@@ -18,9 +18,9 @@ import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2gui.ui.UIParamControl;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.state.Coords;
-import org.g2fx.g2lib.state.Device;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.util.Util;
 

@@ -2,9 +2,9 @@ package org.g2fx.g2gui.bridge;
 
 import javafx.beans.property.Property;
 import org.g2fx.g2gui.Undos;
+import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.device.DeviceExecutor;
 import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.state.Device;
-import org.g2fx.g2lib.state.DeviceExecutor;
 
 import java.util.ArrayList;
 import java.util.List;

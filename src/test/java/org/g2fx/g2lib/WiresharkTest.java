@@ -1,6 +1,6 @@
 package org.g2fx.g2lib;
 
-import org.g2fx.g2lib.state.Device;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;

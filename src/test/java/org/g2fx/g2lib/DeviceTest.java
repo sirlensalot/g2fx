@@ -1,5 +1,6 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.protocol.Codes;
