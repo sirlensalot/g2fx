@@ -19,7 +19,8 @@ import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.util.BitBuffer.sliceAheadLength;
 
 /**
- * Model a G2 USB device, or an "offline" pseudo-device when no G2 is available.
+ * Model a G2 USB device, dispatch inbound USB messages, act as facade
+ * for bridging to lib properties.
  */
 public class Device implements Dispatcher {
 

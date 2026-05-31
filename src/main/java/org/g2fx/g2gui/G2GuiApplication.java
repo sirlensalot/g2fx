@@ -64,7 +64,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
     private FXQueue fxQueue;
 
-    private Bridges bridges;
+    private Bridges<Device> bridges;
 
     private Commands commands;
 
@@ -86,7 +86,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public void init() throws Exception {
         fxQueue = new FXQueue();
         devices = new Devices();
-        bridges = new Bridges(devices,fxQueue,undos);
+        bridges = new Bridges<>(devices,fxQueue,undos);
         slots = new Slots(undos,bridges);
         commands = new Commands(devices, slots, undos);
         devices.addListener(this);
@@ -419,7 +419,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
         ToggleButton runClockButton = mkClockRunButton(bridges);
 
-        SegmentedButton slotBar = slots.mkSlotBar(bridges);
+        SegmentedButton slotBar = slots.mkSlotBar();
 
         TextField synthName = new TextField("synth name");
         bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener, 16),
@@ -441,13 +441,13 @@ public class G2GuiApplication extends Application implements DeviceListener {
         return globalBar;
     }
 
-    public static ToggleButton mkClockRunButton(Bridges bridges) {
+    public static ToggleButton mkClockRunButton(Bridges<Device> bridges) {
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), FXUtil.G2_TOGGLE);
         bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
         return runClockButton;
     }
 
-    public static Spinner<Integer> mkClockSpinner(Bridges bridges) {
+    public static Spinner<Integer> mkClockSpinner(Bridges<Device> bridges) {
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
                 d -> d.getPerf().getPerfSettings().masterClock());

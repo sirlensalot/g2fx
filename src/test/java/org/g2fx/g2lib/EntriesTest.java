@@ -92,14 +92,14 @@ public class EntriesTest {
         dispatchMsgs(ms,d);
         assertEquals(3,evs.size());
         //patches done
-        assertEquals(6,evs.get(0).entries().get(Entries.EntryType.Patch).size());
-        assertEquals(0,evs.get(0).entries().get(Entries.EntryType.Performance).size());
+        assertEquals(new TreeSet<>(Set.of(0,1,2,10,11)),evs.get(0).entries().get(Entries.EntryType.Patch).keySet());
+        assertEquals(new TreeSet<>(Set.of()),evs.get(0).entries().get(Entries.EntryType.Performance).keySet());
         //perfs done
-        assertEquals(6,evs.get(1).entries().get(Entries.EntryType.Patch).size());
-        assertEquals(5,evs.get(1).entries().get(Entries.EntryType.Performance).size());
+        assertEquals(new TreeSet<>(Set.of(0,1,2,10,11)),evs.get(1).entries().get(Entries.EntryType.Patch).keySet());
+        assertEquals(new TreeSet<>(Set.of(0,1,2,3,5)),evs.get(1).entries().get(Entries.EntryType.Performance).keySet());
         //perf store
-        assertEquals(6,evs.get(2).entries().get(Entries.EntryType.Patch).size());
-        assertEquals(6,evs.get(2).entries().get(Entries.EntryType.Performance).size());
+        assertEquals(new TreeSet<>(Set.of(0,1,2,10,11)),evs.get(2).entries().get(Entries.EntryType.Patch).keySet());
+        assertEquals(new TreeSet<>(Set.of(0,1,2,3,4,5)),evs.get(2).entries().get(Entries.EntryType.Performance).keySet());
 
 //        MessageRecorder mr = new MessageRecorder("entries2",new File("data/record"));
 //        for (MessageRecorder.RecordedUsbMessage m : ms) {

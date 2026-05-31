@@ -9,6 +9,7 @@ import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2gui.ui.UIElements;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.state.PatchModule;
@@ -21,14 +22,14 @@ import static org.g2fx.g2gui.panel.ModulePane.layout;
 
 public class Visuals {
 
-    private final Bridger bridges;
+    private final Bridger<Device> bridges;
     private final ParamListener paramListener;
     private final PatchModule patchModule;
     private final SlotPane slotPane;
 
     public record LedControl(Node control,Property<Boolean> lit) {}
 
-    public Visuals(Bridger bridges, ParamListener paramListener, PatchModule patchModule, SlotPane slotPane) {
+    public Visuals(Bridger<Device> bridges, ParamListener paramListener, PatchModule patchModule, SlotPane slotPane) {
         this.bridges = bridges;
         this.paramListener = paramListener;
         this.patchModule = patchModule;

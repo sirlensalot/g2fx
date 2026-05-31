@@ -58,7 +58,7 @@ public class ModulePane implements MoveableModule {
      * in bridge constructors
      */
     private final PatchModule patchModule;
-    private final LocalBridger bridges;
+    private final LocalBridger<Device> bridges;
     private final UIModule<UIElement> ui;
     private final SlotPane slotPane;
     private final ModuleSelector moduleSelector;
@@ -98,7 +98,7 @@ public class ModulePane implements MoveableModule {
 
     public ModulePane(UIModule<UIElement> ui, int index, ModuleType type,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges globalBridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
+                      Bridges<Device> globalBridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
         height = ui.Height();
         this.type = type;
         this.index = index;
@@ -108,7 +108,7 @@ public class ModulePane implements MoveableModule {
         paramListener = new ParamListener(type,ctx);
         log = Util.getLogger(getClass(),ctx);
         graphs = new Graphs(paramListener,type);
-        this.bridges = new LocalBridger(globalBridges);
+        this.bridges = new LocalBridger<>(globalBridges);
         this.patchModule = pm;
         this.ui = ui;
         this.textFocusListener = textFocusListener;
@@ -583,7 +583,7 @@ public class ModulePane implements MoveableModule {
         return pane;
     }
 
-    public List<PropertyBridge<?, ?>> getModuleBridges() {
+    public List<PropertyBridge<Device, ?, ?>> getModuleBridges() {
         return bridges.getLocalBridges();
     }
 
@@ -615,7 +615,7 @@ public class ModulePane implements MoveableModule {
         return patchModule;
     }
 
-    public Bridger getBridges() {
+    public Bridger<Device> getBridges() {
         return bridges;
     }
 

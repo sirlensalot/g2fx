@@ -161,7 +161,7 @@ public class FXUtil {
         stage.heightProperty().addListener(l);
     }
 
-    public static void bridgeSegmentedButton(Bridges bridges, SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
+    public static void bridgeSegmentedButton(Bridges<Device> bridges, SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
         bridges.bridge(libPropBuilder,
                 FxProperty.adaptReadOnly(button.getToggleGroup().selectedToggleProperty(),
                         value -> value.setSelected(true)),

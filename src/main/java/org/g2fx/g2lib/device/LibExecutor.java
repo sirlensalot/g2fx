@@ -2,7 +2,10 @@ package org.g2fx.g2lib.device;
 
 import java.util.concurrent.Callable;
 
-public interface DeviceExecutor {
+/**
+ * Executor API for running tasks on backend/"lib".
+ */
+public interface LibExecutor {
 
     @FunctionalInterface
     interface ThrowingRunnable {

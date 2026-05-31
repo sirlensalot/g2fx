@@ -2,8 +2,7 @@ package org.g2fx.g2gui.bridge;
 
 import javafx.beans.property.Property;
 import org.g2fx.g2gui.Undos;
-import org.g2fx.g2lib.device.Device;
-import org.g2fx.g2lib.device.DeviceExecutor;
+import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.LibProperty;
 
 import java.util.ArrayList;
@@ -11,39 +10,39 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
-public class Bridges implements Bridger {
+public class Bridges<D> implements Bridger<D> {
     
-    private final List<PropertyBridge<?,?>> bridges = new ArrayList<>();
-    private final DeviceExecutor deviceExecutor;
+    private final List<PropertyBridge<D,?,?>> bridges = new ArrayList<>();
+    private final LibExecutor libExecutor;
     private final Executor fxQueue;
     private final Undos undos;
 
-    public Bridges(DeviceExecutor deviceExecutor, Executor fxQueue, Undos undos) {
-        this.deviceExecutor = deviceExecutor;
+    public Bridges(LibExecutor libExecutor, Executor fxQueue, Undos undos) {
+        this.libExecutor = libExecutor;
         this.fxQueue = fxQueue;
         this.undos = undos;
     }
 
     @Override
-    public <T> PropertyBridge<T, T> bridge(Property<T> fxProperty,
-                                           Function<Device, LibProperty<T>> libProperty) {
+    public <T> PropertyBridge<D, T, T> bridge(Property<T> fxProperty,
+                                           Function<D, LibProperty<T>> libProperty) {
         // fx thread
         return bridge(libProperty,
                 new FxProperty.SimpleFxProperty<>(fxProperty), Iso.id());
     }
 
     @Override
-    public <T,F> PropertyBridge<T, F> bridge(Function<Device, LibProperty<T>> libProperty,
+    public <T,F> PropertyBridge<D, T, F> bridge(Function<D, LibProperty<T>> libProperty,
                                              FxProperty<F> fxProperty,
                                              Iso<T, F> iso) {
         // fx thread
-        PropertyBridge<T, F> bridge =
-                new PropertyBridge<>(libProperty, deviceExecutor, fxProperty, fxQueue, iso, undos);
+        PropertyBridge<D, T, F> bridge =
+                new PropertyBridge<>(libProperty, libExecutor, fxProperty, fxQueue, iso, undos);
         bridges.add(bridge);
         return bridge;
     }
 
-    public List<Runnable> initialize(Device d) {
+    public List<Runnable> initialize(D d) {
         // on lib thread
         return bridges.stream().map(b -> b.finalizeInit(d)).toList();
     }
@@ -53,12 +52,12 @@ public class Bridges implements Bridger {
         return bridges.stream().map(PropertyBridge::dispose).toList();
     }
 
-    public void remove(List<PropertyBridge<?,?>> bridges) {
+    public void remove(List<PropertyBridge<D,?,?>> bridges) {
         //must be on fx thread, and does NOT dispose b/c all resources are GC'd (test?)
         this.bridges.removeAll(bridges);
     }
 
-    public DeviceExecutor getDeviceExecutor() {
-        return deviceExecutor;
+    public LibExecutor getDeviceExecutor() {
+        return libExecutor;
     }
 }

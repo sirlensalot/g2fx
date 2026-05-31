@@ -15,6 +15,7 @@ import org.g2fx.g2gui.G2GuiApplication;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.state.Slot;
@@ -31,9 +32,9 @@ public class PerformanceSettingsWindow implements G2Window {
     };
     private final Stage stage;
     private final Pane root;
-    private final Bridges bridges;
+    private final Bridges<Device> bridges;
 
-    public PerformanceSettingsWindow(Bridges bridges) {
+    public PerformanceSettingsWindow(Bridges<Device> bridges) {
 
         this.bridges = bridges;
         GridPane grid = new GridPane(8, 4);

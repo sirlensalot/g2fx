@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 /**
  * Singleton service representing G2 devices and USB service.
  */
-public class Devices implements UsbService.UsbConnectionListener, DeviceExecutor {
+public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     private static final Logger log = Util.getLogger(Devices.class);
 
@@ -68,7 +68,7 @@ public class Devices implements UsbService.UsbConnectionListener, DeviceExecutor
             return;
         }
         devices.put(ud.address(), d);
-        log.fine("Setting current device to " + ud.address());
+        log.info("Setting current device to " + ud.address());
         current = d;
         notifyDeviceInit(d);
         try {

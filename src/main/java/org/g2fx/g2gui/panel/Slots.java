@@ -53,10 +53,10 @@ public class Slots {
 
     private final RebindableControls<SlotAndVar> slotVarControls = new RebindableControls<>();
 
-    private final Bridges bridges;
+    private final Bridges<Device> bridges;
 
 
-    public Slots(Undos undos, Bridges bridges) throws Exception {
+    public Slots(Undos undos, Bridges<Device> bridges) throws Exception {
         this.undos = undos;
         uiModules = UIModule.readModuleUIs();
         this.bridges = bridges;
@@ -106,7 +106,7 @@ public class Slots {
     }
 
 
-    public SegmentedButton mkSlotBar(Bridges bridges) {
+    public SegmentedButton mkSlotBar() {
 
         ObservableList<ToggleButton> sbs = FXCollections.observableArrayList(Arrays.stream(Slot.values()).map(s -> {
             ToggleButton b = FXUtil.radioToToggle(withClass(new RadioButton(s.name()), "slot-button", "slot-none", "slot-disabled"));

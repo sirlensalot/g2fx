@@ -10,6 +10,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.panel.Slots;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.state.Entries;
 
 import java.util.*;
@@ -50,7 +51,7 @@ public class PatchBrowser implements G2Window {
 
     private ContextMenu contextMenu;
 
-    public PatchBrowser(Slots slots, Bridges bridges) {
+    public PatchBrowser(Slots slots, Bridges<Device> bridges) {
         this.slots = slots;
 
         primaryStage = new Stage();

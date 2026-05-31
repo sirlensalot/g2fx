@@ -2,8 +2,7 @@ package org.g2fx.g2gui.bridge;
 
 import javafx.beans.value.ChangeListener;
 import org.g2fx.g2gui.Undos;
-import org.g2fx.g2lib.device.Device;
-import org.g2fx.g2lib.device.DeviceExecutor;
+import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.LibProperty.LibPropertyListener;
 
@@ -12,18 +11,39 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
- * Implements bi-directional listeners for a LibProperty and a javaFX Property,
- * where property change events are propagated to the opposite property on
- * the appropriate thread, with locks to prevent reentrancy.
+ * Ephemeral, bi-directional listener/publisher "bridging" a backend LibProperty
+ * that is updated on a backend executor thread, to a front-end javaFX Property
+ * that is updated on the FX thread.
+ * <p>
+ * LIFECYCLE: Bridge lifecycle matches lib property lifecycle, corresponding to
+ * Device, Perf/Patch, and Module/Cable lifecycles. Most FX properties are long-lived,
+ * except module/cable props.
+ * <p>
+ * Bridges are created when the backend target comes into scope (device init, perf/patch load, module/cable add/remove),
+ * and disposed when that backend target leaves scope. Constructor is called on FX thread, registers FX listener,
+ * and makes a "finalizer" task to register the lib listener on the lib thread.
+ * Disposal is called on lib thread, deregistering the lib listener, and returning a runnable for deregistering
+ * the FX listener on the FX thread.
+ * <p>
+ * Reentrancy is guarded by thread-local booleans, so that setting a property does not cause the listener
+ * to re-propagate the update. A volatile active flag ensures updates are not
+ * dispatched before initialization or after disposal.
+ *
  */
-public class PropertyBridge<T,F> {
+public class PropertyBridge<D,T,F> {
 
 
     private static final Logger log =
             Logger.getLogger(PropertyBridge.class.getName());
 
+    /**
+     * Pure iso used by both threads.
+     */
     private final Iso<T, F> iso;
 
+    /**
+     * Not final b/c constructor is called on FX thread.
+     */
     private LibProperty<T> libProperty;
     private final LibPropertyListener<T> libListener;
     /**
@@ -38,15 +58,26 @@ public class PropertyBridge<T,F> {
      */
     private boolean updatingFx = false;
 
-    private final Function<Device,Runnable> initFinalizer;
+    private final Function<D,Runnable> initFinalizer;
 
     /**
-     * active flag read on both threads. also guards libProperty being not null.
+     * active flag read on both threads; inactive before
+     * init finalization, and after disposal.
      */
     private volatile boolean active = false;
 
-    public PropertyBridge(Function<Device,LibProperty<T>> libPropertyBuilder,
-                          DeviceExecutor libExecutor,
+    /**
+     * FX THREAD ONLY, construct bridge and register FX listeners; set
+     * finalizer to register lib listener and set active.
+     * @param libPropertyBuilder called in init finalizer to build/locate lib property endpoint
+     * @param libExecutor lib-side executor
+     * @param fxProperty FX property endpoint
+     * @param fxExecutor FX thread executor
+     * @param iso Pure functions to convert values from one side to other. MUST BE PURE since shared on both threads.
+     * @param undos undos collected in FX listener.
+     */
+    public PropertyBridge(Function<D,LibProperty<T>> libPropertyBuilder,
+                          LibExecutor libExecutor,
                           FxProperty<F> fxProperty,
                           Executor fxExecutor,
                           Iso<T,F> iso,
@@ -64,8 +95,9 @@ public class PropertyBridge<T,F> {
         fxListener = (obs, oldVal, newVal) -> {
             // on fx thread, so lock read is safe
             if (!active || updatingFx) return;
-            //getting here means "real" UI update, not from backend
-            //changing here is ONLY to affect undos, all updates are sent to backend
+            // getting here means "real" UI update, not from backend
+            // only test for change is here ONLY for undos!
+            // all updates are sent to backend (for e.g. knob twiddling)
             if (newVal != null && !newVal.equals(oldVal) && !fxProperty.isChanging()) {
                 undos.push(fxProperty,oldVal,newVal);
             }
@@ -92,17 +124,27 @@ public class PropertyBridge<T,F> {
 
     }
 
-    public Runnable finalizeInit(Device d) {
+    /**
+     * LIB THREAD ONLY - registers lib listener and activates bridge,
+     * returning task to perform initial publish of lib value to FX side.
+     * @param d for lib property builder/locator.
+     * @return task to publish initial lib value.
+     */
+    public Runnable finalizeInit(D d) {
         // lib thread
         return initFinalizer.apply(d);
     }
 
+    /**
+     * FX update runnable factory, used both in dispatch and in init finalization
+     * for initial update.
+     */
     private Runnable mkFxUpdate(T newVal) {
         return () -> {
             // on fx thread: lock fx update
             updatingFx = true;
             try {
-                setFxValue(iso.to(newVal));
+                fxProperty.setValue(iso.to(newVal));
             } finally {
                 // unlock fx update
                 updatingFx = false;
@@ -110,11 +152,11 @@ public class PropertyBridge<T,F> {
         };
     }
 
-    protected void setFxValue(F fv) {
-        fxProperty.setValue(fv);
-    }
 
-
+    /**
+     * LIB THREAD ONLY - unregister lib listener and deactivate.
+     * @return Runnable to unregister FX property listener on fx thread.
+     */
     public Runnable dispose() {
 
         if (!active) return () -> {};

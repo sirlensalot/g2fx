@@ -66,12 +66,12 @@ public class ParameterOverview implements G2Window {
     private final ToggleButton globalPages;
     private final List<List<PageControl>> controls = new ArrayList<>();
     private final Slots slots;
-    private final Bridger bridges;
+    private final Bridger<Device> bridges;
     private final Map<Integer, ObservableValue<String>> morphNames;
     private final Stage stage;
     private final VBox root;
 
-    public ParameterOverview(Slots slots, Bridger bridges, Map<Integer, ObservableValue<String>> morphNames) {
+    public ParameterOverview(Slots slots, Bridger<Device> bridges, Map<Integer, ObservableValue<String>> morphNames) {
         this.slots = slots;
         this.bridges = bridges;
         this.morphNames = morphNames;

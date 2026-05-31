@@ -46,7 +46,7 @@ public class AreaPane {
 
     private final Logger log;
     private final AreaId areaId;
-    private final Bridges bridges;
+    private final Bridges<Device> bridges;
     private final Undos undos;
     private final UIModule.UIModules uiModules;
     private final FXUtil.TextFieldFocusListener textFocusListener;
@@ -64,14 +64,14 @@ public class AreaPane {
     private final List<Rectangle> dragGhosts = new ArrayList<>();
     private Point2D dragOrigin;
 
-    private List<Cables.Cable> cables = new ArrayList<>();
+    private final List<Cables.Cable> cables = new ArrayList<>();
     private final Connectors conns = new Connectors(this);
 
     private ModuleType toolbarDragModuleType = null;
     private Rectangle toolbarDragRect = null;
 
     public record ModuleAdd(ModuleType type, int index, String name, int color, Coords coords) {}
-    private Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
+    private final Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
     private int moduleColor = 0;
 
     public AreaId getAreaId() {
@@ -97,7 +97,7 @@ public class AreaPane {
     private boolean resizing = false;
 
 
-    public AreaPane(AreaId areaId, Bridges bridges, SlotPane slotPane,
+    public AreaPane(AreaId areaId, Bridges<Device> bridges, SlotPane slotPane,
                     FXUtil.TextFieldFocusListener textFocusListener, Undos undos,
                     UIModule.UIModules uiModules) {
         this.areaId = areaId;

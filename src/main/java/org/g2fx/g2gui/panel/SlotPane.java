@@ -48,7 +48,7 @@ import static org.g2fx.g2gui.controls.CableColor.*;
 public class SlotPane {
 
     private final Logger log;
-    private final Bridges bridges;
+    private final Bridges<Device> bridges;
     private final Slot slot;
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final RebindableControls<Slots.SlotAndVar> morphControls;
@@ -63,11 +63,11 @@ public class SlotPane {
     private final Map<AreaId,AreaPane> areaPanes = new HashMap<>();
 
     private SegmentedButton varSelector;
-    private Map<CableColor,CheckBox> cableCheckboxes = new TreeMap<>();
+    private final Map<CableColor,CheckBox> cableCheckboxes = new TreeMap<>();
     private ToggleButton hideCables;
 
 
-    public SlotPane(Bridges bridges, TextFieldFocusListener textFocusListener,
+    public SlotPane(Bridges<Device> bridges, TextFieldFocusListener textFocusListener,
                     Slot slot, RebindableControls<Slots.SlotAndVar> morphControls,
                     Undos undos, UIModule.UIModules uiModules) {
         this.bridges = bridges;

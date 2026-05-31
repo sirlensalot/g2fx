@@ -38,11 +38,11 @@ public class PatchSettingsWindow implements G2Window {
 
     private final Stage stage;
     private final Slots slots;
-    private final Bridges bridges;
+    private final Bridges<Device> bridges;
     private final HBox root;
     private final Map<ModParam, ChangeListener<Integer>> fieldListeners = new HashMap<>();
 
-    public PatchSettingsWindow(Slots slots, Bridges bridges) {
+    public PatchSettingsWindow(Slots slots, Bridges<Device> bridges) {
         this.slots = slots;
         this.bridges = bridges;
 
