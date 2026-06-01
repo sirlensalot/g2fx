@@ -3,7 +3,6 @@ package org.g2fx.g2lib.state;
 import com.google.common.collect.Streams;
 import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.protocol.FieldValues;
@@ -63,16 +62,7 @@ public class PatchArea {
 
     public void addVisuals(Visual.VisualType type, List<PatchVisual> visuals) {
         for (PatchModule mod : modules.values()) {
-            ModuleType mt = mod.getUserModuleData().getType();
-            List<Visual> vs;
-            if (type != null) {
-                vs = mt.getVisuals().get(type);
-            } else {
-                vs = new ArrayList<>();
-                vs.addAll(mt.getVisuals().get(Visual.VisualType.Meter));
-                vs.addAll(mt.getVisuals().get(Visual.VisualType.LedGroup));
-            }
-            visuals.addAll(vs.stream().map(v -> new PatchVisual(id,mod,v)).toList());
+            visuals.addAll(type == Visual.VisualType.Led ? mod.getLeds() : mod.getMetersAndGroups());
         }
     }
 

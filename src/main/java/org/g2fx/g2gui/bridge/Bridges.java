@@ -22,12 +22,28 @@ public class Bridges<D> implements Bridger<D> {
     private final Undos undos;
 
     /**
-     * On FX thread.
+     * On FX thread, top-level ctor.
      */
     public Bridges(LibExecutor libExecutor, Executor fxQueue, Undos undos) {
         this.libExecutor = libExecutor;
         this.fxQueue = fxQueue;
         this.undos = undos;
+    }
+
+    /**
+     * Lower level ctor, copy services from higher-level bridger.
+     */
+    public Bridges(Bridges<?> parent) {
+        this.libExecutor = parent.libExecutor;
+        this.fxQueue = parent.fxQueue;
+        this.undos = parent.undos;
+    }
+
+    /**
+     * Spawn a differently-parameterized bridges instance.
+     */
+    public <T> Bridges<T> spawn() {
+        return new Bridges<>(this);
     }
 
     @Override
@@ -57,11 +73,6 @@ public class Bridges<D> implements Bridger<D> {
     public List<Runnable> dispose() {
         // on lib thread
         return bridges.stream().map(PropertyBridge::dispose).toList();
-    }
-
-    public void remove(List<PropertyBridge<D,?,?>> bridges) {
-        //must be on fx thread, and does NOT dispose b/c all resources are GC'd (test?)
-        this.bridges.removeAll(bridges);
     }
 
     public LibExecutor getDeviceExecutor() {

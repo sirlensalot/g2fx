@@ -12,14 +12,16 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import org.g2fx.g2gui.FXUtil;
-import org.g2fx.g2gui.bridge.*;
+import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2gui.ui.UIParamControl;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.*;
+import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Coords;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.util.Util;
@@ -53,19 +55,13 @@ public class ModulePane implements MoveableModule {
             "LS-5-BipInv.png").map(s -> FXUtil.getImageResource(img(s))).toList();
 
 
-    /**
-     * Lib-side module, ONLY ACCESS ON LIB THREAD or
-     * in bridge constructors
-     */
-    private final PatchModule patchModule;
-    private final LocalBridger<Device> bridges;
+    private final Bridges<PatchModule> bridges;
     private final UIModule<UIElement> ui;
     private final SlotPane slotPane;
     private final ModuleSelector moduleSelector;
     private final int height;
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final int index;
-    private final AreaPane areaPane;
     private boolean selected;
 
     private final ModuleTextFieldBuilder textFieldBuilder;
@@ -95,27 +91,32 @@ public class ModulePane implements MoveableModule {
     private Graphs graphs;
     private final String ctx;
     private final Map<Integer, ObservableValue<String>> paramNames = new TreeMap<>();
+    private final Connectors connectors;
 
-    public ModulePane(UIModule<UIElement> ui, int index, ModuleType type,
+    public ModulePane(UIModule<UIElement> ui,
+                      int index,
+                      ModuleType type,
                       FXUtil.TextFieldFocusListener textFocusListener,
-                      Bridges<Device> globalBridges, PatchModule pm, SlotPane slotPane, AreaPane areaPane) {
+                      SlotPane slotPane,
+                      Connectors conns,
+                      AreaId areaId,
+                      Bridges<PatchModule> moduleBridges) {
         height = ui.Height();
         this.type = type;
         this.index = index;
-        this.areaPane = areaPane;
+        this.connectors = conns;
         this.slotPane = slotPane;
-        ctx = String.format("%s:%s:%s:%s", slotPane.getSlot(), areaPane.getAreaId(),type.shortName,index);
+        ctx = String.format("%s:%s:%s:%s", slotPane.getSlot(), areaId,type.shortName,index);
         paramListener = new ParamListener(type,ctx);
         log = Util.getLogger(getClass(),ctx);
         graphs = new Graphs(paramListener,type);
-        this.bridges = new LocalBridger<>(globalBridges);
-        this.patchModule = pm;
+        this.bridges = moduleBridges;
         this.ui = ui;
         this.textFocusListener = textFocusListener;
         moduleSelector = new ModuleSelector(index, "", type, textFocusListener);
         textFieldBuilder = new ModuleTextFieldBuilder(paramListener);
 
-        visuals = new Visuals(bridges,paramListener,patchModule,slotPane);
+        visuals = new Visuals(bridges);
         List<Node> children = new ArrayList<>(List.of(moduleSelector.getPane()));
         children.addAll(renderControls());
 
@@ -126,20 +127,20 @@ public class ModulePane implements MoveableModule {
         pane.setMaxWidth(GRID_X);
 
 
-        bridges.bridge(moduleSelector.name(), dd -> patchModule.name());
+        bridges.bridge(moduleSelector.name(), PatchModule::name);
         moduleSelector.name().addListener((c,o,n)-> log.info(() -> "name: " + n));
 
-        bridges.bridge(color, d -> patchModule.getUserModuleData().color());
+        bridges.bridge(color, d -> d.getUserModuleData().color());
 
-        bridges.bridge(uprate, d -> patchModule.getUserModuleData().uprate());
+        bridges.bridge(uprate, d -> d.getUserModuleData().uprate());
         uprate.addListener((c,o,n) -> log.info(() -> "uprate: " + n));
 
-        bridges.bridge(leds, d -> patchModule.getUserModuleData().leds());
+        bridges.bridge(leds, d -> d.getUserModuleData().leds());
         leds.addListener((c,o,n) -> log.info(() -> "leds: " + n));
 
         color.addListener((c,o,n) -> pane.setBackground(FXUtil.rgbFill(ParamConstants.MODULE_COLORS[n])));
 
-        bridges.bridge(d -> patchModule.getUserModuleData().coords(),
+        bridges.bridge(d -> d.getUserModuleData().coords(),
                 new FxProperty.SimpleFxProperty<>(coords), Iso.id());
 
         coords.addListener((c,o,n) -> {
@@ -210,7 +211,7 @@ public class ModulePane implements MoveableModule {
 
     private Node addConn(Connectors.Conn conn) {
         conns.get(conn.portType()).add(conn);
-        areaPane.getConns().addConn(conn);
+        connectors.addConn(conn);
         return conn.control();
     }
 
@@ -240,7 +241,7 @@ public class ModulePane implements MoveableModule {
             //TODO this is probably going away as it is too wide, adapt ModeSelector to handle text
             ComboBox<String> combo = withClass(
                     new ComboBox<>(FXCollections.observableArrayList(mip.param().param().enums)),"module-mode-combo");
-            bridges.bridge(d -> patchModule.getUserModuleData().mode(mip.index()),
+            bridges.bridge(d -> d.getUserModuleData().mode(mip.index()),
                     FxProperty.adaptReadOnly(combo.getSelectionModel().selectedIndexProperty(), n ->
                             combo.getSelectionModel().select(n.intValue())), Iso.INTEGER_NUMBER_ISO);
 
@@ -256,7 +257,7 @@ public class ModulePane implements MoveableModule {
             return combo;
         } else {
             ModeSelector ms = new ModeSelector(mip, c, this);
-            bridges.bridge(ms.selectedProperty(), d -> patchModule.getUserModuleData().mode(mip.index()));
+            bridges.bridge(ms.selectedProperty(), d -> d.getUserModuleData().mode(mip.index()));
 
             paramListener.addModeProp(mip,ms.selectedProperty());
             return ms.getPane();
@@ -414,8 +415,8 @@ public class ModulePane implements MoveableModule {
         return paramListener.empty(c, "Knob-SeqSlider");
     }
 
-    private Function<Device, LibProperty<Integer>> mkParamIntProp(IndexParam ip, int v) {
-        return d -> patchModule.getParamValueProperty(v, ip.index());
+    private Function<PatchModule, LibProperty<Integer>> mkParamIntProp(IndexParam ip, int v) {
+        return d -> d.getParamValueProperty(v, ip.index());
     }
 
     private void bindIntParam(IndexParam ip, Node ctl, Property<Integer> property, BooleanProperty changing) {
@@ -505,7 +506,7 @@ public class ModulePane implements MoveableModule {
 
         paramNames.put(ip.index(),button.textProperty());
 
-        bridges.bridge(d -> patchModule.getModuleLabels(ip.index()).getFirst(),
+        bridges.bridge(d -> d.getModuleLabels(ip.index()).getFirst(),
                 FxProperty.adaptReadOnly(button.textProperty(), button::setText),
                 Iso.id()
         );
@@ -583,9 +584,6 @@ public class ModulePane implements MoveableModule {
         return pane;
     }
 
-    public List<PropertyBridge<Device, ?, ?>> getModuleBridges() {
-        return bridges.getLocalBridges();
-    }
 
     public Property<Integer> color() { return color; }
 
@@ -611,11 +609,7 @@ public class ModulePane implements MoveableModule {
         return index;
     }
 
-    public PatchModule getPatchModule() {
-        return patchModule;
-    }
-
-    public Bridger<Device> getBridges() {
+    public Bridges<PatchModule> getBridges() {
         return bridges;
     }
 

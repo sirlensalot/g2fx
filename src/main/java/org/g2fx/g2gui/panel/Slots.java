@@ -80,8 +80,10 @@ public class Slots {
         return () -> slotPanes.forEach(SlotPane::clearModules);
     }
 
-    public Runnable disposeModuleBridges() {
-        return () -> slotPanes.forEach(SlotPane::disposeModuleBridges);
+    public List<Runnable> disposeModuleBridges() {
+        List<Runnable> fxDisposals = new ArrayList<>();
+        slotPanes.forEach(s -> s.disposeModuleBridges(fxDisposals));
+        return fxDisposals;
     }
 
 

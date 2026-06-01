@@ -7,9 +7,7 @@ import javafx.scene.shape.Rectangle;
 import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
-import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2gui.ui.UIElements;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.Visual;
 import org.g2fx.g2lib.state.PatchModule;
@@ -22,18 +20,12 @@ import static org.g2fx.g2gui.panel.ModulePane.layout;
 
 public class Visuals {
 
-    private final Bridger<Device> bridges;
-    private final ParamListener paramListener;
-    private final PatchModule patchModule;
-    private final SlotPane slotPane;
+    private final Bridger<PatchModule> bridges;
 
     public record LedControl(Node control,Property<Boolean> lit) {}
 
-    public Visuals(Bridger<Device> bridges, ParamListener paramListener, PatchModule patchModule, SlotPane slotPane) {
+    public Visuals(Bridger<PatchModule> bridges) {
         this.bridges = bridges;
-        this.paramListener = paramListener;
-        this.patchModule = patchModule;
-        this.slotPane = slotPane;
     }
 
     public Node mkLed(UIElements.Led c) {
@@ -62,7 +54,7 @@ public class Visuals {
 
     private void bridgeGroupLed(UIElements.Led c, LedControl ctl) {
         bridges.bridge(d -> {
-                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getVisuals().getMetersAndGroups();
+                    List<PatchVisual> leds = d.getMetersAndGroups();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.LedGroup);
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
@@ -81,7 +73,7 @@ public class Visuals {
 
     private LibProperty<Integer> findVisual(int groupId, List<PatchVisual> leds, Visual.VisualType type) {
         for (PatchVisual led : leds) {
-            if (led.getModule() == patchModule && led.getVisual().index() == groupId) {
+            if (led.getVisual().index() == groupId) {
                 //System.out.println("Led: " + led + ", " + this);
                 if (led.getVisual().type() != type) {
                     throw new IllegalArgumentException("findVisual: matching visual of wrong type " + type + ": " + led);
@@ -95,7 +87,7 @@ public class Visuals {
     private Node mkSingleLed(UIElements.Led c) {
         LedControl ctl = mkGreenLed(c);
         bridges.bridge(d -> {
-                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getVisuals().getLeds();
+                    List<PatchVisual> leds = d.getLeds();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.Led);
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
@@ -122,7 +114,7 @@ public class Visuals {
     public Node mkMeter(UIElements.MiniVU c) {
         VuMeter v = new VuMeter(c);
         bridges.bridge(v.level(),d -> {
-                    List<PatchVisual> leds = d.getPerf().getSlot(slotPane.getSlot()).getVisuals().getMetersAndGroups();
+                    List<PatchVisual> leds = d.getMetersAndGroups();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.Meter);
                 });
         return v.getControl();

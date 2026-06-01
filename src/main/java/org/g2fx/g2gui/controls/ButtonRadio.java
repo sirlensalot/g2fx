@@ -104,8 +104,7 @@ public class ButtonRadio {
                 tb.setLayoutY(y);
                 editor.setLayoutY(y);
                 box.getChildren().addAll(tb,editor);
-                parent.getBridges().bridge(d ->
-                                parent.getPatchModule().getModuleLabels(ip.index()).get(ix),
+                parent.getBridges().bridge(d ->d.getModuleLabels(ip.index()).get(ix),
                         FxProperty.adaptReadOnly(tb.textProperty(), tb::setText),
                         Iso.id()
                 );

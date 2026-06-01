@@ -118,7 +118,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners, get fx disposals
         List<Runnable> fxDisposals = new ArrayList<>(bridges.dispose());
-        fxDisposals.add(slots.disposeModuleBridges());
+        fxDisposals.addAll(slots.disposeModuleBridges());
         CountDownLatch latch = new CountDownLatch(1);
         fxDisposals.add(latch::countDown);
         //run all disposals on fx thread

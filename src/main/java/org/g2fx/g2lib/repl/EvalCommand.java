@@ -23,7 +23,6 @@ import java.util.function.Function;
 
 import static org.g2fx.g2lib.repl.EvalResult.evalContinue;
 import static org.g2fx.g2lib.util.Util.forEachIndexed;
-import static org.g2fx.g2lib.util.Util.notNull;
 
 public enum EvalCommand {
     ui(cmd("Toggle UI mode (slot selection affects UI, etc)")
@@ -129,16 +128,12 @@ public enum EvalCommand {
 
             c.writer.println("LEDs:");
             Patch patch = c.getCurrentSlot(d);
-            forEachIndexed(patch.getVisuals().getLeds(), (pv,ix) -> {
-                if (notNull(pv).getModule() == m) {
+            forEachIndexed(m.getLeds(), (pv,ix) -> {
                     c.writer.format("  %s: %s\n", ix, pv);
-                }
             });
             c.writer.println("Meters/Groups:");
-            forEachIndexed(patch.getVisuals().getMetersAndGroups(), (pv,ix) -> {
-                if (notNull(pv).getModule() == m) {
+            forEachIndexed(m.getMetersAndGroups(), (pv,ix) -> {
                     c.writer.format("  %s: %s\n", ix, pv);
-                }
             });
         });
 
@@ -216,8 +211,8 @@ public enum EvalCommand {
                 String name = c.nextArg();
                 c.devices.runWithCurrent(d -> {
                     PatchModule pm = c.getCurrentModule(d);
-                    c.getCurrentSlot(d).getVisuals().getLeds().forEach(v -> {
-                        if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
+                    pm.getLeds().forEach(v -> {
+                        if (v.getVisual().names().getFirst().equals(name)) {
                             int nv = v.value().get() == 0 ? 1 : 0;
                             v.value().set(nv);
                         }
@@ -231,8 +226,8 @@ public enum EvalCommand {
                 int val = c.nextInt();
                 c.devices.runWithCurrent(d -> {
                     PatchModule pm = c.getCurrentModule(d);
-                    c.getCurrentSlot(d).getVisuals().getMetersAndGroups().forEach(v -> {
-                        if (v.getModule() == pm && v.getVisual().names().getFirst().equals(name)) {
+                    pm.getMetersAndGroups().forEach(v -> {
+                        if (v.getVisual().names().getFirst().equals(name)) {
                             v.value().set(val);
                         }
                     });

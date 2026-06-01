@@ -1,9 +1,6 @@
 package org.g2fx.g2lib.state;
 
-import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.model.ModParam;
-import org.g2fx.g2lib.model.NamedParam;
-import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.usb.UsbSlotSender;
@@ -34,6 +31,8 @@ public class PatchModule {
     private final int index;
     private FieldValues morphLabelFvs;
     private List<LibProperty<String>> morphLabels;
+    private final List<PatchVisual> leds;
+    private final List<PatchVisual> metersAndGroups;
 
     /**
      * User module constructor
@@ -46,6 +45,8 @@ public class PatchModule {
         this.settingsModuleType = null;
         this.params = new ArrayList<>(userModuleData.getType().getParams());
         log = Util.getLogger(getClass(),userModuleData.getType(),index);
+        leds = initVisuals(Visual.VisualType.Led);
+        metersAndGroups = initVisuals(null);
     }
 
 
@@ -60,6 +61,7 @@ public class PatchModule {
         this.userModuleData = null;
         this.params = settingsModule.mkParams();
         log = Util.getLogger(getClass(), settingsModuleType,index);
+        leds = metersAndGroups = new ArrayList<>();
     }
 
     public void setParamValues(List<FieldValues> varParams) {
@@ -203,5 +205,26 @@ public class PatchModule {
                 Protocol.ModuleLabel.ModLabelLen.value(userLabels.size() * 3 + labelCount.get() * 7),
                 Protocol.ModuleLabel.Labels.value(modLabels)
         );
+    }
+
+    private List<PatchVisual> initVisuals(Visual.VisualType type) {
+        ModuleType mt = userModuleData.getType();
+        List<Visual> vs;
+        if (type != null) {
+            vs = mt.getVisuals().get(type);
+        } else {
+            vs = new ArrayList<>();
+            vs.addAll(mt.getVisuals().get(Visual.VisualType.Meter));
+            vs.addAll(mt.getVisuals().get(Visual.VisualType.LedGroup));
+        }
+        return vs.stream().map(v -> new PatchVisual(area, userModuleData.getType() + ":" + userModuleData.getIndex(), v)).toList();
+    }
+
+    public List<PatchVisual> getLeds() {
+        return leds;
+    }
+
+    public List<PatchVisual> getMetersAndGroups() {
+        return metersAndGroups;
     }
 }

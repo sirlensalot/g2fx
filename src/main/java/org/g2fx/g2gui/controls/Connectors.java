@@ -23,8 +23,11 @@ import static org.g2fx.g2gui.panel.ModulePane.layout;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
+/**
+ * Houses code for drawing Conn connectors, and is AreaPane delegate for
+ * handling cable-dragging.
+ */
 public class Connectors {
-
 
     public static double RADIUS = 5.5;
     public static double HOLE_RADIUS = RADIUS * .5;
@@ -115,6 +118,10 @@ public class Connectors {
             areaPane.getAreaPane().getChildren().removeAll(cr.getCable(),cr.getShadow());
         }
         cr = null;
+    }
+
+    public void clear() {
+        conns.clear();
     }
 
 }

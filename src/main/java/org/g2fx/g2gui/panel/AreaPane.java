@@ -332,13 +332,14 @@ public class AreaPane {
 
     private void renderModule(int index, ModuleType type, PatchModule pm, UIModule<UIElement> ui) {
         // on fx thread
-        ModulePane modulePane = new ModulePane(ui,index,type, textFocusListener, bridges, pm, slotPane, this);
+        ModulePane modulePane = new ModulePane(ui,index,type,
+                textFocusListener, slotPane,
+                this.getConns(), this.getAreaId(), bridges.spawn());
         modulePanes.put(index,modulePane);
         areaPane.getChildren().add(modulePane.getPane());
         setupModuleMouseHandling(modulePane);
-        bridges.getDeviceExecutor().invokeWithCurrent(dd ->
-            modulePane.getModuleBridges().stream().map(b -> b.finalizeInit(dd)).toList()
-        ).forEach(Runnable::run);
+        bridges.getDeviceExecutor().invoke(() -> modulePane.getBridges().initialize(pm))
+                .forEach(Runnable::run);
         modulePane.coords().addListener((c,o,l) -> updateCables(modulePane));
     }
 
@@ -434,11 +435,12 @@ public class AreaPane {
         }
         modulePanes.clear();
         cables.clear();
+        conns.clear();
     }
 
-    public void disposeModuleBridges() {
+    public void disposeModuleBridges(List<Runnable> fxDisposals) {
         for (ModulePane m : modulePanes.values()) {
-            bridges.remove(m.getModuleBridges());
+            fxDisposals.addAll(m.getBridges().dispose());
         }
     }
 
