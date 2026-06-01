@@ -11,12 +11,18 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 public class Bridges<D> implements Bridger<D> {
-    
+
+    /**
+     * TODO change to {@link java.util.concurrent.CopyOnWriteArrayList}
+     */
     private final List<PropertyBridge<D,?,?>> bridges = new ArrayList<>();
     private final LibExecutor libExecutor;
     private final Executor fxQueue;
     private final Undos undos;
 
+    /**
+     * On FX thread.
+     */
     public Bridges(LibExecutor libExecutor, Executor fxQueue, Undos undos) {
         this.libExecutor = libExecutor;
         this.fxQueue = fxQueue;
