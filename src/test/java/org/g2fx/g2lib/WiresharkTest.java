@@ -60,6 +60,9 @@ public class WiresharkTest {
 
             count++;
         }
+
+        if (true) return; // remove to print report
+
         System.out.println(count);
         System.out.println(endpointTypes);
         for (String i : vals.keySet()) {

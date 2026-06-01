@@ -5,17 +5,18 @@ import org.g2fx.g2gui.Undos;
 import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.LibProperty;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 public class Bridges<D> implements Bridger<D> {
 
     /**
-     * TODO change to {@link java.util.concurrent.CopyOnWriteArrayList}
+     * Accessed by both threads. Light benchmarking showed no difference vs ArrayList
+     * for PERF_002 which is decently large.
      */
-    private final List<PropertyBridge<D,?,?>> bridges = new ArrayList<>();
+    private final List<PropertyBridge<D,?,?>> bridges = new CopyOnWriteArrayList<>();
     private final LibExecutor libExecutor;
     private final Executor fxQueue;
     private final Undos undos;

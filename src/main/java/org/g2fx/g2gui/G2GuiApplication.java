@@ -93,6 +93,10 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
     }
 
+    public Devices getDevices() {
+        return devices;
+    }
+
     @Override
     public void onDeviceInitialized(Device d) throws Exception {
 
