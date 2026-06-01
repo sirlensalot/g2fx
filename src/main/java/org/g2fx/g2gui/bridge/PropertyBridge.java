@@ -11,23 +11,33 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
- * Ephemeral, bi-directional listener/publisher "bridging" a backend LibProperty
+ * Bi-directional listener/publisher "bridging" a backend LibProperty
  * that is updated on a backend executor thread, to a front-end javaFX Property
  * that is updated on the FX thread.
  * <p>
- * LIFECYCLE: Bridge lifecycle matches lib property lifecycle, corresponding to
- * Device, Perf/Patch, and Module/Cable lifecycles. Most FX properties are long-lived,
- * except module/cable props.
+ * Bridges are created along with an FX property and a supplier of a backend lib property.
+ * In general the lifecycle matches the associated FX property.
  * <p>
- * Bridges are created when the backend target comes into scope (device init, perf/patch load, module/cable add/remove),
- * and disposed when that backend target leaves scope. Constructor is called on FX thread, registers FX listener,
+ * LIFECYCLE:
+ * <p>
+ * Constructor is called on FX thread, registers FX listener,
  * and makes a "finalizer" task to register the lib listener on the lib thread.
- * Disposal is called on lib thread, deregistering the lib listener, and returning a runnable for deregistering
- * the FX listener on the FX thread.
+ * <p>
+ * Initialization (or "Activation"), on the lib thread, uses the supplier to create the property and register the lib
+ * listener. It also returns a Runnable FX task to supply an initial update to the FX property. The active flag is
+ * set to true.
+ * <p>
+ * Disposal (or "Deactivation"), on the lib thread, unregisters the listener, so that the backend
+ * property can go out of scope, and sets active flag to false.
+ * <p>
+ * Since many bridges are long-lived (the life of the UI), Activation/Deactivation must be supported, that is,
+ * the lib property activation must be repeatable with fresh backend sources, so a patch can be changed, etc.
+ * Properly managed, the bridge should be fully GC-able after disposal, alongside the associated FX resource.
  * <p>
  * Reentrancy is guarded by thread-local booleans, so that setting a property does not cause the listener
  * to re-propagate the update. A volatile active flag ensures updates are not
  * dispatched before initialization or after disposal.
+ * <p>
  *
  */
 public class PropertyBridge<D,T,F> {
@@ -42,7 +52,7 @@ public class PropertyBridge<D,T,F> {
     private final Iso<T, F> iso;
 
     /**
-     * Not final b/c constructor is called on FX thread.
+     * Not final: lib properties are created as part of activation.
      */
     private LibProperty<T> libProperty;
     private final LibPropertyListener<T> libListener;
@@ -157,9 +167,9 @@ public class PropertyBridge<D,T,F> {
      * LIB THREAD ONLY - unregister lib listener and deactivate.
      * @return Runnable to unregister FX property listener on fx thread.
      */
-    public Runnable dispose() {
+    public void dispose() {
 
-        if (!active) return () -> {};
+        if (!active) return;
         active = false;
 
         try {
@@ -168,14 +178,13 @@ public class PropertyBridge<D,T,F> {
             log.warning("Failed to remove backend listener: " + e.getMessage());
         }
 
-        return () -> {
-            try {
-                //TODO this should be on fx thread
-                fxProperty.removeListener(fxListener);
-            } catch (Exception e) {
-                log.warning("Failed to remove FX listener: " + e.getMessage());
-            }
-        };
+//        return () -> {
+//            try {
+//                fxProperty.removeListener(fxListener);
+//            } catch (Exception e) {
+//                log.warning("Failed to remove FX listener: " + e.getMessage());
+//            }
+//        };
 
     }
 

@@ -36,7 +36,8 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.state.Patch;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
 
@@ -45,8 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -66,7 +65,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
     private FXQueue fxQueue;
 
-    private Bridges<Device> bridges;
+    private Bridges<Device> deviceBridges;
+    private Bridges<Performance> perfBridges;
 
     private Commands commands;
 
@@ -94,8 +94,9 @@ public class G2GuiApplication extends Application implements DeviceListener {
         fxQueue = new FXQueue();
         usbService = new UsbService();
         devices = new Devices(usbService);
-        bridges = new Bridges<>(devices,fxQueue,undos);
-        slots = new Slots(undos,bridges);
+        deviceBridges = new Bridges<>(devices,fxQueue,undos);
+        perfBridges = deviceBridges.spawn();
+        slots = new Slots(undos, perfBridges);
         commands = new Commands(devices, slots, undos);
         devices.addListener(this);
 
@@ -112,7 +113,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
         List<Runnable> fxUpdates = new ArrayList<>();
         fxUpdates.add(slots.clearModules());
         fxUpdates.addAll(slots.initModules(d)); //modules first so var controls will update
-        fxUpdates.addAll(bridges.initialize(d));
+        fxUpdates.addAll(deviceBridges.initialize(d));
+        fxUpdates.addAll(perfBridges.initialize(d.getPerf()));
         fxUpdates.addAll(slots.initBridges(d));
 
         //run all updates on fx thread
@@ -125,17 +127,11 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
     @Override
     public void onDeviceDisposal(Device d) throws Exception {
-        //on lib thread: dispose lib listeners, get fx disposals
-        List<Runnable> fxDisposals = new ArrayList<>(bridges.dispose());
-        fxDisposals.addAll(slots.disposeBridges());
-        fxDisposals.addAll(slots.disposeModuleBridges());
-        CountDownLatch latch = new CountDownLatch(1);
-        fxDisposals.add(latch::countDown);
-        //run all disposals on fx thread
-        fxQueue.execute(() -> fxDisposals.forEach(Runnable::run));
-        if (!latch.await(1, TimeUnit.SECONDS)) {
-            log.severe("onDeviceDisposal: timeout waiting for UI thread disposals");
-        }
+        //on lib thread: dispose lib listeners
+        deviceBridges.dispose();
+        perfBridges.dispose();
+        slots.disposeBridges();
+        slots.disposeModuleBridges();
     }
 
 
@@ -150,10 +146,10 @@ public class G2GuiApplication extends Application implements DeviceListener {
         Scene scene = mkScene(stage);
 
         scriptWindow = new ScriptWindow(devices,commands);
-        ParameterOverview parameterOverview = new ParameterOverview(slots,bridges,morphNames);
-        PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,bridges);
-        PerformanceSettingsWindow perfSettings = new PerformanceSettingsWindow(bridges);
-        PatchBrowser patchBrowser = new PatchBrowser(slots,bridges);
+        ParameterOverview parameterOverview = new ParameterOverview(slots,perfBridges,morphNames);
+        PatchSettingsWindow patchSettings = new PatchSettingsWindow(slots,perfBridges);
+        PerformanceSettingsWindow perfSettings = new PerformanceSettingsWindow(perfBridges);
+        PatchBrowser patchBrowser = new PatchBrowser(slots, deviceBridges);
 
 
         commands.setScriptWindow(scriptWindow);
@@ -236,7 +232,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
             morphNames.put(i,tf.textProperty());
             slots.bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener, 16), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
-                bridges.bridge(gn, d -> d.getPerf().getSlot(s).getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
+                s.getBridges().bridge(gn, d -> d.getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
             });
 
@@ -244,7 +240,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
             Knob dial = withClass(new Knob("Morph" + i, 1.0), "morph-knob");
             slots.bindSlotVarControl(dial.getValueProperty(), sv -> {
                 SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(dial,"morphDial:"+sv,0);
-                bridges.bridge(d -> d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
+                perfBridges.bridge(d -> d.getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                                 .getParamValueProperty(sv.var(),ii),
                         new FxProperty.SimpleFxProperty<>(p,dial.valueChangingProperty()),
                         Iso.id());
@@ -271,7 +267,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
         MultiStateToggle mst = new MultiStateToggle(TextOrImage.mkTexts(statuses), 1, "morph-mode-toggle");
         slots.bindSlotVarControl(mst.state(), sv -> {
             Property<Integer> p = new SimpleObjectProperty<>(mst.getToggle(),"morphMode:"+sv,1);
-            bridges.bridge(p,d->d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
+            perfBridges.bridge(p, d->d.getSlot(sv.slot()).getSettingsArea().getSettingsModule(SettingsModules.Morphs)
                     .getParamValueProperty(sv.var(),index+ 8));
             return p;
         });
@@ -282,11 +278,10 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
 
 
-    private void bindLoadMeter(LoadMeter m, Function<Slot, Function<Device, LibProperty<Double>>> slotPropBuilder) {
+    private void bindLoadMeter(LoadMeter m, Function<Patch, LibProperty<Double>> slotPropBuilder) {
         slots.bindSlotControl(m.getValueProperty(), s -> {
             Property<Double> p = new SimpleObjectProperty<>((double) 0);
-            Function<Device, LibProperty<Double>> b = slotPropBuilder.apply(s);
-            bridges.bridge(p, b);
+            s.getBridges().bridge(p, slotPropBuilder);
             return p;
         });
     }
@@ -295,20 +290,20 @@ public class G2GuiApplication extends Application implements DeviceListener {
     private VBox mkLoadMeterBox() {
         LoadMeter voiceCycles = FXUtil.withClass(
                 new LoadMeter("voice-cycles"),"load-meter-voice-cycles");
-        bindLoadMeter(voiceCycles, s -> d ->
-                d.getPerf().getSlot(s).getArea(AreaId.Voice).getPatchLoadData().cycles());
+        bindLoadMeter(voiceCycles, d ->
+                d.getArea(AreaId.Voice).getPatchLoadData().cycles());
         LoadMeter voiceMem = FXUtil.withClass(
                 new LoadMeter("voice-mem"),"load-meter-voice-mem");
-        bindLoadMeter(voiceMem, s -> d ->
-                d.getPerf().getSlot(s).getArea(AreaId.Voice).getPatchLoadData().mem());
+        bindLoadMeter(voiceMem, d ->
+                d.getArea(AreaId.Voice).getPatchLoadData().mem());
         LoadMeter fxCycles = FXUtil.withClass(
                 new LoadMeter("fx-cycles"),"load-meter-fx-cycles");
-        bindLoadMeter(fxCycles, s -> d ->
-                d.getPerf().getSlot(s).getArea(AreaId.Fx).getPatchLoadData().cycles());
+        bindLoadMeter(fxCycles, d ->
+                d.getArea(AreaId.Fx).getPatchLoadData().cycles());
         LoadMeter fxMem = FXUtil.withClass(
                 new LoadMeter("fx-mem"),"load-meter-fx-mem");
-        bindLoadMeter(fxMem, s -> d ->
-                d.getPerf().getSlot(s).getArea(AreaId.Fx).getPatchLoadData().mem());
+        bindLoadMeter(fxMem, d ->
+                d.getArea(AreaId.Fx).getPatchLoadData().mem());
 
         VBox loadMeterBox = withClass(new VBox(
                withClass(new HBox(
@@ -426,21 +421,20 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
     private HBox mkGlobalBar() {
         TextField perfName = new TextField("perf name");
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener, 16),
-                d -> d.getPerf().perfName());
+        perfBridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName,textFocusListener, 16), Performance::perfName);
 
-        Spinner<Integer> clockSpinner = mkClockSpinner(bridges);
+        Spinner<Integer> clockSpinner = mkClockSpinner(perfBridges);
 
-        ToggleButton runClockButton = mkClockRunButton(bridges);
+        ToggleButton runClockButton = mkClockRunButton(perfBridges);
 
         SegmentedButton slotBar = slots.mkSlotBar();
 
         TextField synthName = new TextField("synth name");
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener, 16),
+        deviceBridges.bridge(FXUtil.mkTextFieldCommitProperty(synthName,textFocusListener, 16),
                 d -> d.getSynthSettings().deviceName());
 
         ToggleButton perfModeButton = withClass(new ToggleButton("Perf"), FXUtil.G2_TOGGLE);
-        bridges.bridge(perfModeButton.selectedProperty(),d -> d.getSynthSettings().perfMode());
+        deviceBridges.bridge(perfModeButton.selectedProperty(), d -> d.getSynthSettings().perfMode());
 
         HBox globalBar = withClass(new HBox(
                 FXUtil.label("Perf\nName"),
@@ -455,16 +449,16 @@ public class G2GuiApplication extends Application implements DeviceListener {
         return globalBar;
     }
 
-    public static ToggleButton mkClockRunButton(Bridges<Device> bridges) {
+    public static ToggleButton mkClockRunButton(Bridges<Performance> bridges) {
         ToggleButton runClockButton = withClass(new ToggleButton("Run"), FXUtil.G2_TOGGLE);
-        bridges.bridge(runClockButton.selectedProperty(),d->d.getPerf().getPerfSettings().masterClockRun());
+        bridges.bridge(runClockButton.selectedProperty(),d->d.getPerfSettings().masterClockRun());
         return runClockButton;
     }
 
-    public static Spinner<Integer> mkClockSpinner(Bridges<Device> bridges) {
+    public static Spinner<Integer> mkClockSpinner(Bridges<Performance> bridges) {
         Spinner<Integer> clockSpinner = new Spinner<>(30,240,120);
         bridges.bridge(clockSpinner.getValueFactory().valueProperty(),
-                d -> d.getPerf().getPerfSettings().masterClock());
+                d -> d.getPerfSettings().masterClock());
         return clockSpinner;
     }
 

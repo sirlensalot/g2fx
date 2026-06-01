@@ -19,10 +19,10 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Knob;
 import org.g2fx.g2gui.panel.Slots;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.state.Performance;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,11 +38,11 @@ public class PatchSettingsWindow implements G2Window {
 
     private final Stage stage;
     private final Slots slots;
-    private final Bridges<Device> bridges;
+    private final Bridges<Performance> bridges;
     private final HBox root;
     private final Map<ModParam, ChangeListener<Integer>> fieldListeners = new HashMap<>();
 
-    public PatchSettingsWindow(Slots slots, Bridges<Device> bridges) {
+    public PatchSettingsWindow(Slots slots, Bridges<Performance> bridges) {
         this.slots = slots;
         this.bridges = bridges;
 
@@ -132,8 +132,8 @@ public class PatchSettingsWindow implements G2Window {
     }
 
     private static LibProperty<Integer> getSettingsValueProperty(
-            SettingsModules module, ModParam param, Slots.SlotAndVar sv, Device d) {
-        return d.getPerf().getSlot(sv.slot()).getSettingsArea().getSettingsModule(module)
+            SettingsModules module, ModParam param, Slots.SlotAndVar sv, Performance d) {
+        return d.getSlot(sv.slot()).getSettingsArea().getSettingsModule(module)
                 .getSettingsValueProperty(param, sv.var());
     }
 

@@ -94,8 +94,8 @@ public class SlotPane {
         areaPanes.values().forEach(AreaPane::clearModules);
     }
 
-    public void disposeModuleBridges(List<Runnable> fxDisposals) {
-        areaPanes.values().forEach(a -> a.disposeModuleBridges(fxDisposals));
+    public void disposeModuleBridges() {
+        areaPanes.values().forEach(AreaPane::disposeModuleBridges);
     }
 
 

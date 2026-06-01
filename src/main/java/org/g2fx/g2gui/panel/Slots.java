@@ -21,6 +21,7 @@ import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
@@ -53,10 +54,10 @@ public class Slots {
 
     private final RebindableControls<SlotAndVar> slotVarControls = new RebindableControls<>();
 
-    private final Bridges<Device> bridges;
+    private final Bridges<Performance> bridges;
 
 
-    public Slots(Undos undos, Bridges<Device> bridges) throws Exception {
+    public Slots(Undos undos, Bridges<Performance> bridges) throws Exception {
         this.undos = undos;
         uiModules = UIModule.readModuleUIs();
         this.bridges = bridges;
@@ -80,10 +81,8 @@ public class Slots {
         return () -> slotPanes.forEach(SlotPane::clearModules);
     }
 
-    public List<Runnable> disposeModuleBridges() {
-        List<Runnable> fxDisposals = new ArrayList<>();
-        slotPanes.forEach(s -> s.disposeModuleBridges(fxDisposals));
-        return fxDisposals;
+    public void disposeModuleBridges() {
+        slotPanes.forEach(SlotPane::disposeModuleBridges);
     }
 
 
@@ -115,7 +114,7 @@ public class Slots {
             b.setFocusTraversable(false);
             b.setUserData(s.ordinal());
             BooleanProperty keyboard = new SimpleBooleanProperty(false);
-            bridges.bridge(keyboard,d -> d.getPerf().getPerfSettings().getSlotSettings(s).keyboard());
+            bridges.bridge(keyboard,d -> d.getPerfSettings().getSlotSettings(s).keyboard());
             keyboard.addListener((v,o,n) -> {
                 if (n) {
                     b.getStyleClass().remove("slot-none");
@@ -126,7 +125,7 @@ public class Slots {
                 }
             });
             BooleanProperty enabled = new SimpleBooleanProperty(false);
-            bridges.bridge(enabled,d -> d.getPerf().getPerfSettings().getSlotSettings(s).enabled());
+            bridges.bridge(enabled,d -> d.getPerfSettings().getSlotSettings(s).enabled());
             enabled.addListener((v,o,n) -> {
                 if (n) {
                     b.getStyleClass().remove("slot-disabled");
@@ -143,7 +142,7 @@ public class Slots {
 
 
         slotBar = withClass(new SegmentedButton(sbs), "slot-bar");
-        bridgeSegmentedButton(bridges, slotBar, d -> d.getPerf().getPerfSettings().selectedSlot());
+        bridgeSegmentedButton(bridges, slotBar, d -> d.getPerfSettings().selectedSlot());
 
         slotBar.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
                 slotChanged(o == null ? null : (Integer) o.getUserData(),
@@ -185,8 +184,8 @@ public class Slots {
         slotBar.getToggleGroup().getToggles().get(slot).setSelected(true);
     }
 
-    public <T> void bindSlotControl(Property<T> control, Function<Slot,Property<T>> slotPropBuilder) {
-        List<Property<T>> l = Arrays.stream(Slot.values()).map(slotPropBuilder).toList();
+    public <T> void bindSlotControl(Property<T> control, Function<SlotPane,Property<T>> slotPropBuilder) {
+        List<Property<T>> l = slotPanes.stream().map(slotPropBuilder).toList();
         slotControls.add(new RebindableControl<>(control, l::get));
     }
 
@@ -206,9 +205,7 @@ public class Slots {
         return l;
     }
 
-    public List<Runnable> disposeBridges() {
-        List<Runnable> l = new ArrayList<>();
-        slotPanes.forEach(s -> l.addAll(s.getBridges().dispose()));
-        return l;
+    public void disposeBridges() {
+        slotPanes.forEach(s -> s.getBridges().dispose());
     }
 }

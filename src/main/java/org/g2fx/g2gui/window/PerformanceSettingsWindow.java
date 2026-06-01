@@ -15,9 +15,9 @@ import org.g2fx.g2gui.G2GuiApplication;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ParamConstants;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.state.SlotSettings;
 
@@ -32,9 +32,9 @@ public class PerformanceSettingsWindow implements G2Window {
     };
     private final Stage stage;
     private final Pane root;
-    private final Bridges<Device> bridges;
+    private final Bridges<Performance> bridges;
 
-    public PerformanceSettingsWindow(Bridges<Device> bridges) {
+    public PerformanceSettingsWindow(Bridges<Performance> bridges) {
 
         this.bridges = bridges;
         GridPane grid = new GridPane(8, 4);
@@ -104,7 +104,7 @@ public class PerformanceSettingsWindow implements G2Window {
 
     private Node bridgeRangeField(TextField textField, Slot slot, Function<SlotSettings, LibProperty<Integer>> f) {
         SimpleStringProperty property = mkTextFieldCommitProperty(textField, NULL_FOCUS_LISTENER, 3);
-        bridges.bridge(d -> f.apply(d.getPerf().getPerfSettings().getSlotSettings(slot)),
+        bridges.bridge(d -> f.apply(d.getPerfSettings().getSlotSettings(slot)),
                 new FxProperty.SimpleFxProperty<>(property),
                 new Iso<>() {
                     @Override
@@ -132,20 +132,20 @@ public class PerformanceSettingsWindow implements G2Window {
 
     private Node bridgeSlotBox(CheckBox checkbox, Slot slot, Function<SlotSettings, LibProperty<Boolean>> f) {
         bridges.bridge(checkbox.selectedProperty(),d ->
-                f.apply(d.getPerf().getPerfSettings().getSlotSettings(slot)));
+                f.apply(d.getPerfSettings().getSlotSettings(slot)));
         return checkbox;
     }
 
     private Node keybRange(CheckBox checkbox) {
         bridges.bridge(checkbox.selectedProperty(),d ->
-                d.getPerf().getPerfSettings().keyboardRangeEnabled());
+                d.getPerfSettings().keyboardRangeEnabled());
         return checkbox;
     }
 
     private TextField perfNameField() {
         TextField perfName = withClass(new TextField(),"perfs-name-field","gfont");
         bridges.bridge(FXUtil.mkTextFieldCommitProperty(perfName, NULL_FOCUS_LISTENER, 16),
-                d -> d.getPerf().perfName());
+                d -> d.perfName());
         return perfName;
     }
 

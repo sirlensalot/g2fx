@@ -433,10 +433,8 @@ public class AreaPane {
         conns.clear();
     }
 
-    public void disposeModuleBridges(List<Runnable> fxDisposals) {
-        for (ModulePane m : modulePanes.values()) {
-            fxDisposals.addAll(m.getBridges().dispose());
-        }
+    public void disposeModuleBridges() {
+        modulePanes.values().forEach(m -> m.getBridges().dispose());
     }
 
 

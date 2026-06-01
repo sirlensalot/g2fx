@@ -20,11 +20,11 @@ import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.Slots;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.KnobAssignment;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 
 import java.util.ArrayList;
@@ -66,12 +66,12 @@ public class ParameterOverview implements G2Window {
     private final ToggleButton globalPages;
     private final List<List<PageControl>> controls = new ArrayList<>();
     private final Slots slots;
-    private final Bridger<Device> bridges;
+    private final Bridger<Performance> bridges;
     private final Map<Integer, ObservableValue<String>> morphNames;
     private final Stage stage;
     private final VBox root;
 
-    public ParameterOverview(Slots slots, Bridger<Device> bridges, Map<Integer, ObservableValue<String>> morphNames) {
+    public ParameterOverview(Slots slots, Bridger<Performance> bridges, Map<Integer, ObservableValue<String>> morphNames) {
         this.slots = slots;
         this.bridges = bridges;
         this.morphNames = morphNames;
@@ -145,9 +145,9 @@ public class ParameterOverview implements G2Window {
             Property<KnobAssignment> prop = new SimpleObjectProperty<>(KnobAssignment.unassigned());
             boolean isGlobal = i == 4;
             int ii = i;
-            Function<Device, LibProperty<KnobAssignment>> f = isGlobal ?
-                    d -> d.getPerf().getGlobalKnobAssignments().assignments().get(idx) :
-                    d -> d.getPerf().getSlot(Slot.fromIndex(ii)).getKnobAssignments().assignments().get(idx);
+            Function<Performance, LibProperty<KnobAssignment>> f = isGlobal ?
+                    d -> d.getGlobalKnobAssignments().assignments().get(idx) :
+                    d -> d.getSlot(Slot.fromIndex(ii)).getKnobAssignments().assignments().get(idx);
             bridges.bridge(prop,f);
             props.add(prop);
         }

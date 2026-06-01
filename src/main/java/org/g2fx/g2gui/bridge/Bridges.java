@@ -70,9 +70,9 @@ public class Bridges<D> implements Bridger<D> {
         return bridges.stream().map(b -> b.finalizeInit(d)).toList();
     }
 
-    public List<Runnable> dispose() {
+    public void dispose() {
         // on lib thread
-        return bridges.stream().map(PropertyBridge::dispose).toList();
+        bridges.forEach(PropertyBridge::dispose);
     }
 
     public LibExecutor getDeviceExecutor() {
