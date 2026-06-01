@@ -4,6 +4,7 @@ import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.device.DeviceListener;
 import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.repl.Repl;
+import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
@@ -35,7 +36,8 @@ public class Main {
         Util.configureLogging();  // WARNING is quiet, INFO is pretty loud
         log = Util.getLogger(Main.class);
 
-        Devices devices = new Devices();
+        UsbService usbService = new UsbService();
+        Devices devices = new Devices(usbService);
 
         final CountDownLatch deviceInitialized = new CountDownLatch(1);
 
@@ -54,7 +56,7 @@ public class Main {
                     }
                 });
 
-        devices.start();
+        usbService.start();
 
         log.info(() -> "Awaiting initialization ...");
         boolean initSuccess = deviceInitialized.await(2000,TimeUnit.MILLISECONDS);
@@ -65,6 +67,7 @@ public class Main {
         repl.stop();
 
         devices.shutdown();
+        usbService.shutdown();
 
         log.info("Exit");
     }

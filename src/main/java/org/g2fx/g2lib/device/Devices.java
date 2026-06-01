@@ -27,16 +27,12 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     private final UsbService usbService;
 
 
-    public Devices() {
+    public Devices(UsbService usbService) {
         this.executorService = Executors.newSingleThreadExecutor();
-        usbService = new UsbService();
-        usbService.addListener(this);
+        this.usbService = usbService;
+        this.usbService.addListener(this);
     }
 
-    public void start() {
-        usbService.startListener();
-        usbService.start();
-    }
 
     public void addListener(DeviceListener listener) {
         listeners.add(listener);
@@ -141,10 +137,6 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         f.get();
 
         executorService.shutdown();
-
-        usbService.stop();
-        usbService.stopListener();
-        usbService.shutdown();
 
 
     }

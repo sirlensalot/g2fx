@@ -37,6 +37,7 @@ import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
@@ -59,6 +60,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
     private final Logger log;
 
     public static final String TITLE = "g2fx nord modular g2 editor";
+    private final boolean usbEnabled;
 
     private Devices devices;
 
@@ -75,9 +77,14 @@ public class G2GuiApplication extends Application implements DeviceListener {
     private Slots slots;
     private ScriptWindow scriptWindow;
     private final Map<Integer, ObservableValue<String>> morphNames = new TreeMap<>();
+    private UsbService usbService;
 
     public G2GuiApplication() {
+        this(true);
+    }
+    public G2GuiApplication(boolean usbEnabled) {
         super();
+        this.usbEnabled = usbEnabled;
         Util.configureLogging();
         log = Logger.getLogger(getClass().getName());
     }
@@ -85,7 +92,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
     @Override
     public void init() throws Exception {
         fxQueue = new FXQueue();
-        devices = new Devices();
+        usbService = new UsbService();
+        devices = new Devices(usbService);
         bridges = new Bridges<>(devices,fxQueue,undos);
         slots = new Slots(undos,bridges);
         commands = new Commands(devices, slots, undos);
@@ -105,6 +113,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
         fxUpdates.add(slots.clearModules());
         fxUpdates.addAll(slots.initModules(d)); //modules first so var controls will update
         fxUpdates.addAll(bridges.initialize(d));
+        fxUpdates.addAll(slots.initBridges(d));
 
         //run all updates on fx thread
         fxQueue.execute(() -> {
@@ -118,6 +127,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners, get fx disposals
         List<Runnable> fxDisposals = new ArrayList<>(bridges.dispose());
+        fxDisposals.addAll(slots.disposeBridges());
         fxDisposals.addAll(slots.disposeModuleBridges());
         CountDownLatch latch = new CountDownLatch(1);
         fxDisposals.add(latch::countDown);
@@ -158,7 +168,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
         stage.show();
 
         fxQueue.startPolling();
-        devices.start();
+        if (usbEnabled) usbService.start();
 
         textFocusListener.focusChange(false);
 
@@ -463,6 +473,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public void stop() throws Exception {
         fxQueue.shutdown();
         devices.shutdown();
+        if (usbEnabled) usbService.shutdown();
     }
 
     public static void main(String[] args) {

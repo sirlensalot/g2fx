@@ -31,17 +31,17 @@ public class FxTest {
                 latch.countDown();
             }
         });
-        if (!latch.await(30, TimeUnit.SECONDS)) {
+        if (!latch.await(5, TimeUnit.SECONDS)) {
             throw new RuntimeException("FX task timed out");
         }
     }
 
     @Test
     void testG2GuiApplicationInitAndStart() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
+
         AtomicReference<G2GuiApplication> appref = new AtomicReference<>();
         onFxThread(() -> {
-            G2GuiApplication app = new G2GuiApplication();
+            G2GuiApplication app = new G2GuiApplication(false); // no usb
             try {
                 app.init();
                 Stage stage = new Stage();
@@ -49,24 +49,14 @@ public class FxTest {
             } catch (Exception e) {
                 fail("failure",e);
             }
-
             appref.set(app);
-
-            Platform.runLater(latch::countDown);
         });
-
-        latch.await(5,TimeUnit.SECONDS);
-
-        CountDownLatch l2 = new CountDownLatch(1);
-
         onFxThread(() -> {
             long t = System.nanoTime();
             appref.get().getDevices().loadFile(PerformanceTest.PERF_002);
             long elapsed = System.nanoTime() - t;
             System.out.printf("Time: %dms\n",TimeUnit.MILLISECONDS.convert(elapsed,TimeUnit.NANOSECONDS));
-            l2.countDown();
         });
 
-        l2.await(5,TimeUnit.SECONDS);
     }
 }

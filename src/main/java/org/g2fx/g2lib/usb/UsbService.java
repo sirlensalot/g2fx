@@ -67,7 +67,12 @@ public class UsbService implements Runnable, HotplugCallback {
         retcode(LibUsb.init(context),"Unable to initialize libusb");
     }
 
-    public void start() { thread.start(); }
+    public void start() {
+        startListener();
+        startThread();
+    }
+
+    public void startThread() { thread.start(); }
 
     public void stop() throws Exception {
         running = false;
@@ -102,7 +107,7 @@ public class UsbService implements Runnable, HotplugCallback {
         LibUsb.hotplugDeregisterCallback(context, this.callbackHandle);
     }
 
-    public void shutdown() {
+    public void shutdownUsb() {
         LibUsb.exit(context);
     }
 
@@ -210,4 +215,9 @@ public class UsbService implements Runnable, HotplugCallback {
         }
     }
 
+    public void shutdown() throws Exception {
+        stop();
+        stopListener();
+        shutdownUsb();
+    }
 }

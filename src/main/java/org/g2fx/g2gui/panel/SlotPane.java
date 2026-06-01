@@ -28,6 +28,7 @@ import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
@@ -48,7 +49,7 @@ import static org.g2fx.g2gui.controls.CableColor.*;
 public class SlotPane {
 
     private final Logger log;
-    private final Bridges<Device> bridges;
+    private final Bridges<Patch> bridges;
     private final Slot slot;
     private final FXUtil.TextFieldFocusListener textFocusListener;
     private final RebindableControls<Slots.SlotAndVar> morphControls;
@@ -67,7 +68,7 @@ public class SlotPane {
     private ToggleButton hideCables;
 
 
-    public SlotPane(Bridges<Device> bridges, TextFieldFocusListener textFocusListener,
+    public SlotPane(Bridges<Patch> bridges, TextFieldFocusListener textFocusListener,
                     Slot slot, RebindableControls<Slots.SlotAndVar> morphControls,
                     Undos undos, UIModule.UIModules uiModules) {
         this.bridges = bridges;
@@ -81,7 +82,8 @@ public class SlotPane {
 
     public void initModules(Device d, List<Runnable> l) {
         // on device thread
-        areaPanes.values().forEach(a -> a.initModules(d,l));
+        Patch p = d.getPerf().getSlot(slot);
+        areaPanes.values().forEach(a -> a.initModules(p,l));
         // add var rebind, as it will get skipped if the var selector doesn't change.
         l.add(() -> updateVarBinds(getCurrentVar()));
     }
@@ -110,9 +112,9 @@ public class SlotPane {
 
         HBox patchBar = mkPatchBar();
 
-        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener, undos, uiModules);
+        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges.spawn(), this, textFocusListener, undos, uiModules);
         areaPanes.put(AreaId.Voice,voicePane);
-        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos, uiModules);
+        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges.spawn(), this, textFocusListener, undos, uiModules);
         areaPanes.put(AreaId.Fx,fxPane);
 
         voicePane.addSelectionListener(fxPane::clearModuleSelection);
@@ -163,7 +165,7 @@ public class SlotPane {
         });
 
 
-        bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().height(),
+        bridges.bridge(d -> d.getPatchSettings().height(),
                 new FxProperty<>(mouseOnlyDividerProperty,valueChanging) {
                     @Override
                     public void setValue(Double value) {
@@ -191,8 +193,7 @@ public class SlotPane {
     private HBox mkPatchBar() {
 
         TextField patchName = new TextField("slot" + slot);
-        bridges.bridge(FXUtil.mkTextFieldCommitProperty(patchName,textFocusListener, 16),
-                d -> d.getPerf().getPerfSettings().getSlotSettings(slot).patchName());
+        bridges.bridge(FXUtil.mkTextFieldCommitProperty(patchName,textFocusListener, 16), Patch::name);
 
         ComboBox<String> patchCategory = new ComboBox<>(FXCollections.observableArrayList(
                 "No Cat",
@@ -212,7 +213,7 @@ public class SlotPane {
                 "User1",
                 "User2"
         ));
-        bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().category(),
+        bridges.bridge(d -> d.getPatchSettings().category(),
                 FxProperty.adaptReadOnly(patchCategory.getSelectionModel().selectedIndexProperty(),
                         value -> patchCategory.getSelectionModel().select(value.intValue())),
                 Iso.INTEGER_NUMBER_ISO);
@@ -244,7 +245,7 @@ public class SlotPane {
         Knob patchVolume = withClass(new Knob("patch-volume", 1.0),"patch-volume");
         bindVarControl(patchVolume.getValueProperty(), v -> {
             SimpleObjectProperty<Integer> p = new SimpleObjectProperty<>(patchVolume,"patchVolume:"+ slot +":"+v,0);
-            bridges.bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
+            bridges.bridge(d -> d.getSettingsArea().getSettingsModule(SettingsModules.Gain)
                             .getSettingsValueProperty(ModParam.GainVolume,v),
                     new FxProperty.SimpleFxProperty<>(p,patchVolume.valueChangingProperty()),
                     Iso.id());
@@ -253,7 +254,7 @@ public class SlotPane {
 
         bindVarControl(patchEnable.selectedProperty(), v -> {
             SimpleBooleanProperty p = new SimpleBooleanProperty(patchEnable,"patchEnable:"+ slot +":"+v,false);
-            bridges.bridge(d -> d.getPerf().getSlot(slot).getSettingsArea().getSettingsModule(SettingsModules.Gain)
+            bridges.bridge(d -> d.getSettingsArea().getSettingsModule(SettingsModules.Gain)
                             .getSettingsValueProperty(ModParam.GainActiveMuted,v),
                     new FxProperty.SimpleFxProperty<>(p),
                     Iso.BOOL_PARAM_ISO);
@@ -282,7 +283,7 @@ public class SlotPane {
     private Spinner<VoiceMode> mkVoicesSpinner() {
 
         SimpleObjectProperty<Integer> assignedVoices = new SimpleObjectProperty<>(0);
-        bridges.bridge(assignedVoices,d->d.getPerf().getSlot(slot).assignedVoices());
+        bridges.bridge(assignedVoices,d->d.assignedVoices());
 
         ObservableList<VoiceMode> items = FXCollections.observableArrayList(VoiceMode.ALL);
         Spinner<VoiceMode> spinner = withClass(new Spinner<>(),"voice-spinner");
@@ -298,7 +299,7 @@ public class SlotPane {
             @Override public VoiceMode fromString(String s) { return null; }
         });
 
-        bridges.bridge(d -> d.getPerf().getSlot(slot).getPatchSettings().voiceMode(),
+        bridges.bridge(d -> d.getPatchSettings().voiceMode(),
                 FxProperty.adaptReadOnly(spinner.valueProperty(),
                     value -> spinner.getValueFactory().setValue(value)),
                 Iso.id());
@@ -327,7 +328,7 @@ public class SlotPane {
             FXUtil.radioToToggle(b);
         }
         varSelector = new SegmentedButton(varButtons);
-        bridgeSegmentedButton(bridges, varSelector, d -> d.getPerf().getSlot(slot).getPatchSettings().variation());
+        bridgeSegmentedButton(bridges, varSelector, d -> d.getPatchSettings().variation());
 
         varSelector.getToggleGroup().selectedToggleProperty().addListener((v, o, n) ->
                 varChanged((Integer) n.getUserData()));
@@ -369,7 +370,7 @@ public class SlotPane {
         cb.setFocusTraversable(false);
         bindVarControl(cb.selectedProperty(),v -> {
             BooleanProperty p = new SimpleBooleanProperty(cb,color + " cable",true);
-            bridges.bridge(p,d->libProp.apply(d.getPerf().getSlot(slot).getPatchSettings()));
+            bridges.bridge(p,d->libProp.apply(d.getPatchSettings()));
             return p;
         });
         cableCheckboxes.put(color,cb);
@@ -422,5 +423,9 @@ public class SlotPane {
             return;
         }
         getAreaPane(AreaId.Voice).addNewModule(mt);
+    }
+
+    public Bridges<Patch> getBridges() {
+        return bridges;
     }
 }

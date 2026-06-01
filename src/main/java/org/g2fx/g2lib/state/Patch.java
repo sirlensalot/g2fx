@@ -46,7 +46,7 @@ public class Patch {
     });
 
     public final LinkedHashMap<Sections, Sections.Section> sections = new LinkedHashMap<>();
-    private LibProperty<String> name;
+    private final LibProperty<String> name = new LibProperty<>("No name");
     private final Slot slot;
     private int version;
 
@@ -397,7 +397,7 @@ public class Patch {
             case SKnobAssignments_62 -> this.knobAssignments = new KnobAssignments(fvs,slot);
             case SControlAssignments_60 -> this.controls = new ControlAssignments(fvs);
             case SMorphParameters_65 -> this.morphParams = new MorphParameters(fvs);
-            case SPatchName_27 -> this.name = LibProperty.stringFieldProperty(fvs, Protocol.EntryName.Name);
+            case SPatchName_27 -> this.name.set(Protocol.EntryName.Name.stringValue(fvs));
         }
     }
 

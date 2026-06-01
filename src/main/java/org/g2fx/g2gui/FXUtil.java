@@ -17,7 +17,6 @@ import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 
 import java.net.URL;
@@ -161,7 +160,7 @@ public class FXUtil {
         stage.heightProperty().addListener(l);
     }
 
-    public static void bridgeSegmentedButton(Bridges<Device> bridges, SegmentedButton button, Function<Device, LibProperty<Integer>> libPropBuilder) {
+    public static <D> void bridgeSegmentedButton(Bridges<D> bridges, SegmentedButton button, Function<D, LibProperty<Integer>> libPropBuilder) {
         bridges.bridge(libPropBuilder,
                 FxProperty.adaptReadOnly(button.getToggleGroup().selectedToggleProperty(),
                         value -> value.setSelected(true)),

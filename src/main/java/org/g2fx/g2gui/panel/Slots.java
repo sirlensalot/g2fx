@@ -90,7 +90,7 @@ public class Slots {
     public TabPane mkSlotTabs(FXUtil.TextFieldFocusListener textFocusListener) {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
-            SlotPane slotPane = new SlotPane(bridges,textFocusListener,slot, slotVarControls,undos,uiModules);
+            SlotPane slotPane = new SlotPane(bridges.spawn(),textFocusListener,slot, slotVarControls,undos,uiModules);
             slotPanes.add(slotPane);
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());
@@ -198,5 +198,17 @@ public class Slots {
         SlotPane sp = getSelectedSlotPane();
         sp.getAreaPane(AreaId.Voice).startToolbarDrag(mt);
         sp.getAreaPane(AreaId.Fx).startToolbarDrag(mt);
+    }
+
+    public List<Runnable> initBridges(Device d) {
+        List<Runnable> l = new ArrayList<>();
+        slotPanes.forEach(s -> l.addAll(s.getBridges().initialize(d.getPerf().getSlot(s.getSlot()))));
+        return l;
+    }
+
+    public List<Runnable> disposeBridges() {
+        List<Runnable> l = new ArrayList<>();
+        slotPanes.forEach(s -> l.addAll(s.getBridges().dispose()));
+        return l;
     }
 }

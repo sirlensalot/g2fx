@@ -20,7 +20,6 @@ import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;
@@ -46,7 +45,7 @@ public class AreaPane {
 
     private final Logger log;
     private final AreaId areaId;
-    private final Bridges<Device> bridges;
+    private final Bridges<Patch> bridges;
     private final Undos undos;
     private final UIModule.UIModules uiModules;
     private final FXUtil.TextFieldFocusListener textFocusListener;
@@ -97,7 +96,7 @@ public class AreaPane {
     private boolean resizing = false;
 
 
-    public AreaPane(AreaId areaId, Bridges<Device> bridges, SlotPane slotPane,
+    public AreaPane(AreaId areaId, Bridges<Patch> bridges, SlotPane slotPane,
                     FXUtil.TextFieldFocusListener textFocusListener, Undos undos,
                     UIModule.UIModules uiModules) {
         this.areaId = areaId;
@@ -121,7 +120,7 @@ public class AreaPane {
             undoAddModule(Sets.difference(o,n));
             doAddModule(Sets.difference(n,o));
         });
-        bridges.bridge(moduleAdds,d -> getPatchArea(d).getDummyModuleAddProp());
+        bridges.bridge(moduleAdds,d -> d.getArea(this.areaId).getDummyModuleAddProp());
         areaPane.getChildren().add(selectedRect);
         scrollPane.boundsInLocalProperty().addListener((c,o,n) -> resizeAreaPane());
         areaPane.getChildren().addListener((ListChangeListener<? super Node>) c -> resizeAreaPane());
@@ -142,10 +141,6 @@ public class AreaPane {
         } finally {
             resizing = false;
         }
-    }
-
-    private PatchArea getPatchArea(Device d) {
-        return d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId);
     }
 
     private void setupSelectionDragging() {
@@ -270,9 +265,9 @@ public class AreaPane {
     }
 
 
-    public void initModules(Device d, List<Runnable> l) {
+    public void initModules(Patch d, List<Runnable> l) {
         // on device thread
-        PatchArea area = getPatchArea(d);
+        PatchArea area = d.getArea(areaId);
         for (PatchModule m : area.getModules()) {
             UserModuleData md = m.getUserModuleData();
             l.add(() -> renderModule(md.getIndex(), md.getType(), m, uiModules.get(md.getType())));
@@ -532,7 +527,7 @@ public class AreaPane {
         adds.forEach(ma -> {
             log.info(() -> "doAddModule: " + ma);
             PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrent(d -> {
-                PatchModule m = getPatchArea(d).createModule(ma);
+                PatchModule m = d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId).createModule(ma);
                 d.getPerf().getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
                 return m;
             });
