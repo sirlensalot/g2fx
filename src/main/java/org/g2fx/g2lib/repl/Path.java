@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.repl;
 
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.AreaId;
@@ -35,6 +36,19 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
                 null
         );
     }
+
+    public static Path mkPath(Device device, Performance perf) {
+        Patch patch = perf != null ? perf.getSelectedPatch() : null;
+        return new Path(
+                device == null || !device.online() ? null : device.getSynthSettings().deviceName().get(),
+                perf == null ? null : perf.perfName().get(),
+                patch == null ? null : new SlotPatch(patch.getSlot(),patch.name().get()),
+                patch == null ? null : patch.getPatchSettings().variation().get(),
+                patch == null ? null : patch.getPatchSettings().height().get() == 0 ? AreaId.Fx : AreaId.Voice,
+                null,
+                null
+        );
+    }
     public Path setModule(NamedIndex<ModuleType> m) { return new Path(device,perf,slot,variation,area,m,null);}
     public Path setParam(NamedIndex<NamedParam> m) { return new Path(device,perf,slot,variation,area,module,m);}
     public Path setVar(int v) { return new Path(device,perf,slot,v,area,module,param);}
@@ -42,12 +56,13 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
 
     @Override
     public String toString() {
-        return device == null ? "[no device]" : perf == null ? "[no perf]" : String.format(
-            "%s/%s%s",device,perf,slot == null ? "" : String.format(
-                    "/%s%s",slot,area == null ? "" : String.format(
-                            "/%s%s",area, variation == null ? "" : String.format(
-                            "/v%s%s",variation+1,module == null ? "" : String.format(
-                                    "/%s%s",module,param == null ? "" : param.toString())))));
+        return String.format("%s%s%s%s%s%s",
+                device == null ? "[offline]" : device,
+                perf==null ? "/[no perf]" : "/" + perf,
+                slot == null ? "" : "/" + slot + (variation == null ? "" : "/v" + variation),
+                area == null ? "" : "/" + area.shortName(),
+                module == null ? "" : "/" + module,
+                param == null ? "" : ": " + param);
 
     }
 }

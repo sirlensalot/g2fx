@@ -22,7 +22,9 @@ public class WiresharkTest {
     void playStartup() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms = DeviceTest.parseCapture("data/capture/poweron2.pcapng",
                 MessageRecorder.INBOUND);
-        Device d = new Device();
+        Device d = DeviceTest.initDevice();
+        DeviceTest.initPerf(d);
+
         for (MessageRecorder.RecordedUsbMessage m : ms) {
             assertTrue(d.dispatch(m.msg()));
         }

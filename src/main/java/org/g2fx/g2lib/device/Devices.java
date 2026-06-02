@@ -1,8 +1,10 @@
 package org.g2fx.g2lib.device;
 
+import org.g2fx.g2lib.repl.Path;
 import org.g2fx.g2lib.state.LifecycleListener;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.DynamicUsbSender;
+import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.Usb;
 import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
@@ -25,25 +27,28 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     public List<LifecycleListener<Performance>> perfListeners = new CopyOnWriteArrayList<>();
 
     private final ExecutorService executorService;
+
     /**
      * Multi-device support is not really a thing yet ...
      */
     private final Map<Integer, Device> devices = new HashMap<>();
+
+    private Device offlineDevice = new Device(new OfflineSender());
     /**
      * "Current" indicates a connected, online device. DeviceListener
      * only services this instance for now.
      */
-    private Device currentDevice;
+    private Device currentDevice = offlineDevice;
 
-    private final DynamicUsbSender sender;
+    private final DynamicUsbSender perfSender;
 
     private Performance currentPerf;
 
     public Devices(UsbService usbService) {
         this.executorService = Executors.newSingleThreadExecutor();
         usbService.addListener(this);
-        sender = new DynamicUsbSender();
-        addListener(sender);
+        perfSender = new DynamicUsbSender();
+        addListener(perfSender);
     }
 
 
@@ -57,11 +62,26 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     private void connected(UsbService.UsbDevice ud) {
 
-        if (currentDevice != null) { return; }
+        if (devices.get(ud.address()) != null) {
+            log.severe("connected: already have device at address! " + ud.address());
+            return;
+        }
 
         Usb usb = new Usb(ud);
-        final Device d = new Device(usb);
+        Device d = new Device(usb);
+        devices.put(ud.address(), d);
+
+        if (currentDevice != null && currentDevice != offlineDevice) {
+            log.info("connected: current device already connected, ignoring: " + ud.address());
+        }
+
+        if (currentDevice == offlineDevice) {
+            notifyDeviceDispose(offlineDevice);
+        }
+
         currentDevice = d;
+        log.info("Setting current device to address: " + ud.address());
+
         usb.setThreadsafeDispatcher(msg -> {
             executorService.execute(() -> {
                 try {
@@ -73,31 +93,29 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
             return true;
         });
         usb.start();
-        if (currentPerf != null) {
+
+        if (currentPerf != null) { //TODO this is not consistent with legacy app which will send current perf
             disposePerf();
         }
-        currentPerf = new Performance(sender);
+        currentPerf = new Performance(perfSender);
         d.setPerf(currentPerf);
+
         try {
             d.initialize();
         } catch (Exception e) {
             log.log(Level.SEVERE, "Device init failed!", e);
             return;
         }
-        devices.put(ud.address(), d);
 
-        if (currentDevice != null) {
-            log.info("Setting current device to " + ud.address());
-            currentDevice = d;
-            //only notify for current
-            notifyDeviceInit(d);
-            try {
-                currentPerf.initialize();
-            } catch (Exception e) {
-                log.log(Level.SEVERE,"Error in initializing performance",e);
-            }
-            initPerf();
+        notifyDeviceInit(d);
+
+        try {
+            currentPerf.initialize();
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"Error in initializing performance",e);
         }
+
+        notifyPerfInit();
 
         try {
             d.sendStartStopComm(true);
@@ -107,7 +125,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     }
 
-    private void initPerf() {
+    private void notifyPerfInit() {
         for (LifecycleListener<Performance> l : perfListeners) {
             try {
                 l.onLifecycleInit(currentPerf);
@@ -119,8 +137,26 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     private void disconnected(UsbService.UsbDevice ud) {
         Device d = devices.remove(ud.address());
+        if (d == null) {
+            log.severe("disconnected: received unknown address! " + ud.address());
+        }
+        if (d != currentDevice) {
+            log.info("disconnected non-current device, ignoring: " + ud.address());
+            return;
+        }
+
+        currentDevice = offlineDevice;
+
         notifyDeviceDispose(d);
+
         d.shutdown(false);
+
+    }
+
+    public void initOfflineDevice() {
+        if (currentDevice == offlineDevice) {
+            notifyDeviceInit(offlineDevice);
+        }
     }
 
     private void notifyDeviceInit(Device d) {
@@ -134,12 +170,6 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     }
 
     private void notifyDeviceDispose(Device d) {
-
-        //only act on current
-        if (d != currentDevice || d == null) { return; }
-
-//        disposePerf(); TODO might need this
-
         listeners.forEach(l -> {
             try {
                 l.onDeviceDisposal(d);
@@ -147,9 +177,6 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
                 log.log(Level.SEVERE,"Error in device disposal listener",e);
             }
         });
-
-        currentDevice = null;
-
     }
 
     public Device getCurrent() {
@@ -189,9 +216,9 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
             if (path.endsWith("prf2")) {
                 disposePerf();
-                currentPerf = Performance.readFromFile(path,sender);
+                currentPerf = Performance.readFromFile(path, perfSender);
                 if (currentDevice != null) { currentDevice.setPerf(currentPerf); }
-                initPerf();
+                notifyPerfInit();
 
                 currentPerf.sendPerf();
 
@@ -216,6 +243,10 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         }
 
         currentPerf = null;
+    }
+
+    public Path getPath() {
+        return Path.mkPath(currentDevice,currentPerf);
     }
 
     public <T>T withCurrent(ThrowingFunction<Device,T> f) throws Exception {

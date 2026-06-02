@@ -69,6 +69,7 @@ public class Performance {
             Patch patch = new Patch(s, sender);
             patch.setVersion(0); //TODO source?
             patch.readFileSections(fileBuffer);
+            patch.name().set(perf.getPerfSettings().getSlotSettings(s).patchName().get());
             perf.slots.put(s,patch);
         }
         perf.readGlobalKnobAssignmentsType(fileBuffer);

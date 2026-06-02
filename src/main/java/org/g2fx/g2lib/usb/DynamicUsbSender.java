@@ -38,12 +38,15 @@ public class DynamicUsbSender implements UsbSender, DeviceListener {
     }
 
     @Override
-    public void shutdown() {
-        //no-op, device should handle ... device may become online-only
-    }
+    public void shutdown() {}
 
     @Override
     public void setDispatcher(Dispatcher dispatcher) {
-        //no-op again, should only be for device/dispatcher
+        //not a dispatcher, so noop (online devices are created with online-only senders)
+    }
+
+    @Override
+    public boolean online() {
+        return sender.online();
     }
 }

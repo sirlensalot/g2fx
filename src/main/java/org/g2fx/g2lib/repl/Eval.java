@@ -2,7 +2,6 @@ package org.g2fx.g2lib.repl;
 
 import org.g2fx.g2gui.Commands;
 import org.g2fx.g2lib.device.Devices;
-import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.util.SafeLookup;
 import org.g2fx.g2lib.util.Util;
 import org.jline.console.CmdDesc;
@@ -144,6 +143,7 @@ public class Eval {
                     new CommandRegistry.CommandSession(reader.getTerminal()),
                     cmd,
                     ws.toArray());
+            writer.flush();
             if (result instanceof EvalResult er) {
                 if (er.isQuit()) {
                     getWriter().println("Exiting");
@@ -180,14 +180,7 @@ public class Eval {
     }
 
     public Path updatePath() {
-        if (devices.getCurrent() == null) { return null; }
-        if (path == null || path.device() == null || path.perf() == null) {
-            path = devices.invokeWithCurrentPerf(cur -> {
-                Patch patch = cur.getSelectedPatch();
-                return Path.pathForPatch(cur, patch);
-            });
-        }
-        return path;
+        return path = devices.invoke(devices::getPath);
     }
 
     @Override

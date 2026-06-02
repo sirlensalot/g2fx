@@ -2,6 +2,7 @@ package org.g2fx.g2lib.repl;
 
 import org.g2fx.g2gui.controls.IndexParam;
 import org.g2fx.g2lib.model.ModParam;
+import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.MessageRecorder;
@@ -15,6 +16,8 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.utils.AttributedString;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +109,8 @@ public enum EvalCommand {
         c.writer.println();
     })),
 
-    path(cmd("echo path").run(c -> c.writer.println(c.path == null ? "None" : c.path))),
+    path(cmd("echo path").run(c -> c.writer.println(
+            "Path: " + (c.path == null ? "None" : c.path)))),
 
     list(cmd("context-sensitive list").run(c -> {
         if (c.path == null) { c.writer.println("No path"); return; }
@@ -118,24 +122,26 @@ public enum EvalCommand {
                                     m.getUserModuleData().getType().shortName)).toList())));
             return;
         }
-        c.devices.runWithCurrentPerf(d -> {
+        String o = c.devices.invokeWithCurrentPerf(d -> {
+            StringWriter sw = new StringWriter();
+            PrintWriter writer = new PrintWriter(sw);
+            writer.println(c.path.slot() + "/v" + c.path.variation() + "/" +
+                    c.path.area().shortName() + "/" + c.path.module() + ":");
             PatchModule m = c.getCurrentModule(d);
 
-            c.writer.println("Params:");
+            writer.println("  Params:");
             List<Integer> vvs = m.getVarValues(c.path.variation());
             forEachIndexed(vvs,(v,i) ->
-                    c.writer.format("  %s:%s\n", m.getUserModuleData().getType().getParams().get(i).name(), v));
-
-            c.writer.println("LEDs:");
-            Patch patch = c.getCurrentSlot(d);
-            forEachIndexed(m.getLeds(), (pv,ix) -> {
-                    c.writer.format("  %s: %s\n", ix, pv);
-            });
-            c.writer.println("Meters/Groups:");
-            forEachIndexed(m.getMetersAndGroups(), (pv,ix) -> {
-                    c.writer.format("  %s: %s\n", ix, pv);
-            });
+                    writer.format("    %s: %s\n", m.getUserModuleData().getType().getParams().get(i).name(), v));
+            writer.println("  LEDs:");
+            forEachIndexed(m.getLeds(), (pv,ix) ->
+                    writer.format("    %s: %s\n", ix, pv));
+            writer.println("  Meters/Groups:");
+            forEachIndexed(m.getMetersAndGroups(), (pv,ix) ->
+                    writer.format("    %s: %s\n", ix, pv));
+            return sw.toString();
         });
+        c.writer.println(o);
 
     })),
     var(cmd("switch variation",argDesc("idx","variation index")).run(c -> {
@@ -161,7 +167,13 @@ public enum EvalCommand {
                     if (m == null) {
                         m = c.getCurrentArea(d).getModule(c.parseInt(a));
                     }
-                    return c.path.setModule(new Path.NamedIndex<>(m.getIndex(), m.name().get(), m.getUserModuleData().getType()));
+                    if (m == null) {
+                        throw c.bad("Module not found");
+                    }
+
+                    Path.NamedIndex<ModuleType> ni = new Path.NamedIndex<>(m.getIndex(), m.name().get(), m.getUserModuleData().getType());
+                    c.writer.println("Current module: " + ni);
+                    return c.path.setModule(ni);
                 });
                 c.eval.setPath(p);
                 if (c.uiMode) { c.ui.selectModule(p.slot().slot(), p.area(), p.module().index()); }
@@ -281,6 +293,7 @@ public enum EvalCommand {
                     });
                 }).start();
             })),
+    offline(cmd("Initialize offline device").run(c -> c.devices.execute(c.devices::initOfflineDevice))),
     comm(cmd("Start/stop device communication stream",
             argDesc("startStop","start or stop"))
             .run(c -> {

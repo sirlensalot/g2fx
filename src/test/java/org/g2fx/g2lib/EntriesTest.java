@@ -86,7 +86,8 @@ public class EntriesTest {
     public void testEntriesDispatch() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms =
                 captureCmd(List.of(Codes.I_VERSION1, Codes.I_ENTRY_LIST), DeviceTest.CAP_OO4_POWERON);
-        Device d = new Device();
+        Device d = DeviceTest.initDevice();
+        DeviceTest.initPerf(d);
         List<Entries.EntriesEvent> evs = new ArrayList<>();
         d.getEntries().getEventProp().addListener((o,n) -> evs.add(n));
         dispatchMsgs(ms,d);

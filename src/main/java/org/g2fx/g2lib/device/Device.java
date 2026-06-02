@@ -4,7 +4,6 @@ import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.Dispatcher;
-import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.BitBuffer;
@@ -33,11 +32,6 @@ public class Device implements Dispatcher {
     protected Performance perf;
     protected SynthSettings synthSettings = new SynthSettings();
 
-    public Device() {
-        this(new OfflineSender());
-        perf = new Performance(usb);
-    }
-
     public Device(UsbSender usb) {
         this.usb = usb;
         usb.setDispatcher(this);
@@ -49,9 +43,6 @@ public class Device implements Dispatcher {
         return this;
     }
 
-    public Performance getPerf() {
-        return perf;
-    }
 
     public UsbSender getUsb() {
         return usb;

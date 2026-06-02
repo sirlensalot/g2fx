@@ -8,7 +8,9 @@ import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.MessageRecorder;
+import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
+import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,10 +46,11 @@ class DeviceTest {
                 6e 61 6d 65 00 01 00 00 00 00 00 7f 05 00 00 ff
                 63                                            \s""";
         ByteBuffer buf = Util.readTextColsByteBuffer(data);
-        Device d = new Device();
-        d.getPerf().setVersion(7);
+        Device d = initDevice();
+        Performance perf = initPerf(d);
+        perf.setVersion(7);
         assertTrue(d.dispatch(new UsbMessage(buf.limit(),true,0xff63,buf)));
-        assertEquals("perf-20240802-sc",d.getPerf().perfName().get());
+        assertEquals("perf-20240802-sc",perf.perfName().get());
         //WARNING: dispatchCmd: unrecognized perf or sys version: 7 <- gotta figure this out.
     }
 
@@ -57,10 +60,11 @@ class DeviceTest {
                 01 01 01 21 00 0f 00 ec 00 00 01 00 00 21 81 76
                 3f c0 10 00 00 13 a9                          \s""";
         ByteBuffer buf = Util.readTextColsByteBuffer(data);
-        Device d = new Device();
-        d.getPerf().setVersion(7);
+        Device d = initDevice();
+        Performance perf = initPerf(d);
+        perf.setVersion(7);
         assertTrue(d.dispatch(new UsbMessage(buf.limit(),true,0x13a9,buf)));
-        PatchSettings ps = d.getPerf().getSlot(Slot.B).getPatchSettings();
+        PatchSettings ps = perf.getSlot(Slot.B).getPatchSettings();
         //just testing for nonzero values
         assertEquals(6,ps.voices().get());
     }
@@ -82,8 +86,9 @@ class DeviceTest {
     void regressNewPerf() throws Exception {
 
         //dispatch inbound messages
-        Device d = dispatchMsgs(parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND));
-        Performance p = d.getPerf();
+        Device d = initDevice();
+        Performance p = initPerf(d);
+        dispatchMsgs(parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND),d);
 
         //regress resulting values
         //versions
@@ -172,11 +177,6 @@ class DeviceTest {
 
     }
 
-    public static Device dispatchMsgs(List<MessageRecorder.RecordedUsbMessage> ms) {
-        Device d = new Device();
-        dispatchMsgs(ms, d);
-        return d;
-    }
 
     public static void dispatchMsgs(List<MessageRecorder.RecordedUsbMessage> ms, Device d) {
         int i = 0;
@@ -190,10 +190,9 @@ class DeviceTest {
     @Test
     void regress003_Inbound() throws Exception {
 
-        Device d = dispatchMsgs(
-                parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND));
-
-        Performance p = d.getPerf();
+        Device d = initDevice();
+        Performance p = initPerf(d);
+        dispatchMsgs(parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND),d);
         // match file version and current notes
         p.setVersion(1);
         for (Patch s : p.slots()) {
@@ -221,15 +220,24 @@ class DeviceTest {
 
     }
 
+    public static Device initDevice() {
+        UsbSender sender = new OfflineSender();
+        Device d = new Device(sender);
+        return d;
+    }
+
     @Test
     void testVersionDispatch() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms = captureCmd(
                 List.of(Codes.I_VERSION1, Codes.I_VERSION2),
                 CAP_OO4_POWERON);
-        Device d = new Device();
+
+        Device d = initDevice();
+        Performance perf = initPerf(d);
+
         //init device to version 10; device inits to 0 at power on, but hard to diff below.
-        d.getPerf().setVersion(10);
-        d.getPerf().slots().forEach(s -> s.setVersion(10));
+        perf.setVersion(10);
+        perf.slots().forEach(s -> s.setVersion(10));
         int i = 0;
         for (MessageRecorder.RecordedUsbMessage m : ms) {
             d.dispatch(m.msg());
@@ -255,14 +263,20 @@ class DeviceTest {
                         case 8 -> List.of(1, 2, 2, 2, 2);
                         default -> fail("Only expecting 8 version msgs");
                     },
-                List.of(d.getPerf().getVersion(),
-                        d.getPerf().getSlot(Slot.A).getVersion(),
-                        d.getPerf().getSlot(Slot.B).getVersion(),
-                        d.getPerf().getSlot(Slot.C).getVersion(),
-                        d.getPerf().getSlot(Slot.D).getVersion()),
+                List.of(perf.getVersion(),
+                        perf.getSlot(Slot.A).getVersion(),
+                        perf.getSlot(Slot.B).getVersion(),
+                        perf.getSlot(Slot.C).getVersion(),
+                        perf.getSlot(Slot.D).getVersion()),
                     "msg " + i + ": " + Util.dumpBufferString(m.msg().buffer()));
 
         }
+    }
+
+    public static Performance initPerf(Device d) {
+        Performance perf = new Performance(d.getUsb());
+        d.setPerf(perf);
+        return perf;
     }
 
 
