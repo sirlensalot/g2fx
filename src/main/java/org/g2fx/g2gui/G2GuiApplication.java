@@ -36,6 +36,7 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.LifecycleListener;
 import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.UsbService;
@@ -99,7 +100,17 @@ public class G2GuiApplication extends Application implements DeviceListener {
         slots = new Slots(undos, perfBridges);
         commands = new Commands(devices, slots, undos);
         devices.addListener(this);
+        devices.addPerfListener(new LifecycleListener<>() {
+            @Override
+            public void onLifecycleInit(Performance perf) throws Exception {
+                onPerfInit(perf);
+            }
 
+            @Override
+            public void onLifecycleDispose(Performance perf) throws Exception {
+                onPerfDispose(perf);
+            }
+        });
     }
 
     public Devices getDevices() {
@@ -110,12 +121,23 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public void onDeviceInitialized(Device d) throws Exception {
 
         //on lib thread: finalize bridges to get fx init updates
+        List<Runnable> fxUpdates = new ArrayList<>(deviceBridges.initialize(d));
+
+        //run all updates on fx thread
+        fxQueue.execute(() -> {
+            fxUpdates.forEach(Runnable::run);
+        });
+
+        //fxQueue.execute(()->scriptWindow.updatePath());
+    }
+
+
+    private void onPerfInit(Performance perf) {
         List<Runnable> fxUpdates = new ArrayList<>();
         fxUpdates.add(slots.clearModules());
-        fxUpdates.addAll(slots.initModules(d)); //modules first so var controls will update
-        fxUpdates.addAll(deviceBridges.initialize(d));
-        fxUpdates.addAll(perfBridges.initialize(d.getPerf()));
-        fxUpdates.addAll(slots.initBridges(d));
+        fxUpdates.addAll(slots.initModules(perf)); //modules first so var controls will update
+        fxUpdates.addAll(slots.initBridges(perf));
+        fxUpdates.addAll(perfBridges.initialize(perf));
 
         //run all updates on fx thread
         fxQueue.execute(() -> {
@@ -123,15 +145,22 @@ public class G2GuiApplication extends Application implements DeviceListener {
         });
 
         fxQueue.execute(()->scriptWindow.updatePath());
+
     }
+
+    private void onPerfDispose(Performance perf) {
+        //on lib thread: dispose lib listeners
+        perfBridges.dispose();
+        slots.disposeBridges();
+        slots.disposeModuleBridges();
+        fxQueue.execute(() -> slots.clearModules());
+    }
+
 
     @Override
     public void onDeviceDisposal(Device d) throws Exception {
         //on lib thread: dispose lib listeners
         deviceBridges.dispose();
-        perfBridges.dispose();
-        slots.disposeBridges();
-        slots.disposeModuleBridges();
     }
 
 

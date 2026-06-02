@@ -524,9 +524,9 @@ public class AreaPane {
     private void doAddModule(Sets.SetView<ModuleAdd> adds) {
         adds.forEach(ma -> {
             log.info(() -> "doAddModule: " + ma);
-            PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrent(d -> {
-                PatchModule m = d.getPerf().getSlot(slotPane.getSlot()).getArea(areaId).createModule(ma);
-                d.getPerf().getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
+            PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrentPerf(d -> {
+                PatchModule m = d.getSlot(slotPane.getSlot()).getArea(areaId).createModule(ma);
+                d.getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
                 return m;
             });
             renderModule(ma.index(),ma.type(),pm,uiModules.get(ma.type()));

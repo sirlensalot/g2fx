@@ -1,5 +1,7 @@
 package org.g2fx.g2lib.device;
 
+import org.g2fx.g2lib.state.Performance;
+
 import java.util.concurrent.Callable;
 
 /**
@@ -22,9 +24,15 @@ public interface LibExecutor {
         R invoke(A a) throws Exception;
     }
 
+    <T>T withCurrentPerf(ThrowingFunction<Performance, T> f) throws Exception;
+
     <V> V invoke(Callable<V> c);
 
     <V> V invokeWithCurrent(Devices.ThrowingFunction<Device, V> f);
+
+    <V> V invokeWithCurrentPerf(ThrowingFunction<Performance, V> f);
+
+    void runWithCurrentPerf(ThrowingConsumer<Performance> f);
 
     void runWithCurrent(Devices.ThrowingConsumer<Device> f);
 

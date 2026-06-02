@@ -22,15 +22,11 @@ import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.ui.UIModule;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Patch;
-import org.g2fx.g2lib.state.PatchSettings;
-import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.HashMap;
@@ -80,9 +76,9 @@ public class SlotPane {
         this.uiModules = uiModules;
     }
 
-    public void initModules(Device d, List<Runnable> l) {
+    public void initModules(Performance d, List<Runnable> l) {
         // on device thread
-        Patch p = d.getPerf().getSlot(slot);
+        Patch p = d.getSlot(slot);
         areaPanes.values().forEach(a -> a.initModules(p,l));
         // add var rebind, as it will get skipped if the var selector doesn't change.
         l.add(() -> updateVarBinds(getCurrentVar()));

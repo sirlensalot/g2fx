@@ -52,7 +52,7 @@ public enum EvalCommand {
                 }
                 c.eval.setPath(c.devices.invoke(() -> {
                     c.devices.loadFile(filePath);
-                    return c.devices.withCurrent(d -> Path.pathForPatch(d,d.getPerf().getSelectedPatch()));
+                    return c.devices.withCurrentPerf(d -> Path.pathForPatch(d,d.getSelectedPatch()));
                 }));
             })),
 
@@ -74,7 +74,7 @@ public enum EvalCommand {
             .run(c -> {
                 Slot s = Slot.fromAlpha(c.nextArg());
                 if (c.path == null || c.path.perf() == null ) { throw c.bad("No current performance"); }
-                Path p = c.devices.invokeWithCurrent(d -> Path.pathForPatch(d, d.getPerf().getSlot(s)));
+                Path p = c.devices.invokeWithCurrentPerf(d -> Path.pathForPatch(d, d.getSlot(s)));
                 c.eval.setPath(p);
                 if (c.uiMode) {
                     c.ui.setSlot(p.slot().slot());
@@ -112,13 +112,13 @@ public enum EvalCommand {
         if (c.path == null) { c.writer.println("No path"); return; }
         if (c.path.area() == null) { c.writer.println("No area"); return; }
         if (c.path.module() == null) {
-            c.writer.println((String)c.devices.invokeWithCurrent(d ->
+            c.writer.println((String)c.devices.invokeWithCurrentPerf(d ->
                     String.join("\n", c.getCurrentArea(d).getModules().stream().map(m ->
                             String.format("%s:%s (%s)", m.getIndex(), m.name().get(),
                                     m.getUserModuleData().getType().shortName)).toList())));
             return;
         }
-        c.devices.runWithCurrent(d -> {
+        c.devices.runWithCurrentPerf(d -> {
             PatchModule m = c.getCurrentModule(d);
 
             c.writer.println("Params:");
@@ -151,7 +151,7 @@ public enum EvalCommand {
             .run(c -> {
                 if (c.path == null || c.path.area() == null) { throw c.bad("Path null/no area"); }
                 EvalCtx.ArgAndDesc a = c.popArg();
-                Path p = c.devices.invokeWithCurrent(d -> {
+                Path p = c.devices.invokeWithCurrentPerf(d -> {
                     PatchModule m = null;
                     for (PatchModule pm : c.getCurrentArea(d).getModules()) {
                         if (a.arg().equals(pm.name().get())) {
@@ -188,7 +188,7 @@ public enum EvalCommand {
             throw c.bad("Invalid param value %s, should be [%s,%s)",val,mp.min,mp.max);
         }
         final var npp = np;
-        c.devices.runWithCurrent(d -> c.getCurrentModule(d)
+        c.devices.runWithCurrentPerf(d -> c.getCurrentModule(d)
                 .getParamValueProperty(c.path.variation(),npp.index()).set(val));
 
     })),
@@ -199,7 +199,7 @@ public enum EvalCommand {
         var area = "va".equals(c.nextArg()) ? AreaId.Voice : AreaId.Fx;
         var isMem = "mem".equals(c.nextArg());
         double val = c.nextInt();
-        c.devices.runWithCurrent(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a -> {
+        c.devices.runWithCurrentPerf(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a -> {
             PatchLoadData data = c.getCurrentSlot(d).getArea(area).getPatchLoadData();
             if (isMem) data.mem().set(val); else data.cycles().set(val);
         }));
@@ -209,7 +209,7 @@ public enum EvalCommand {
             argDesc("name","led name"))
             .run(c -> {
                 String name = c.nextArg();
-                c.devices.runWithCurrent(d -> {
+                c.devices.runWithCurrentPerf(d -> {
                     PatchModule pm = c.getCurrentModule(d);
                     pm.getLeds().forEach(v -> {
                         if (v.getVisual().names().getFirst().equals(name)) {
@@ -224,7 +224,7 @@ public enum EvalCommand {
             .run(c -> {
                 String name = c.nextArg();
                 int val = c.nextInt();
-                c.devices.runWithCurrent(d -> {
+                c.devices.runWithCurrentPerf(d -> {
                     PatchModule pm = c.getCurrentModule(d);
                     pm.getMetersAndGroups().forEach(v -> {
                         if (v.getVisual().names().getFirst().equals(name)) {

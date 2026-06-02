@@ -1,10 +1,10 @@
 package org.g2fx.g2lib.repl;
 
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Patch;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 
 public record Path(String device, String perf, SlotPatch slot, Integer variation,
@@ -24,11 +24,11 @@ public record Path(String device, String perf, SlotPatch slot, Integer variation
         }
     }
 
-    static Path pathForPatch(Device cur, Patch patch) {
+    static Path pathForPatch(Performance perf, Patch patch) {
         return new Path(
-                cur.online() ? cur.getSynthSettings().deviceName().get() : "offline",
-                cur.getPerf().perfName().get(),
-                new SlotPatch(patch.getSlot(),cur.getPerf().getPerfSettings().getSlotSettings(patch.getSlot()).patchName().get()),
+                "[Device]",//cur.online() ? cur.getSynthSettings().deviceName().get() : "offline",
+                perf.perfName().get(),
+                new SlotPatch(patch.getSlot(),perf.getPerfSettings().getSlotSettings(patch.getSlot()).patchName().get()),
                 patch.getPatchSettings().variation().get(),
                 patch.getPatchSettings().height().get() == 0 ? AreaId.Fx : AreaId.Voice,
                 null,

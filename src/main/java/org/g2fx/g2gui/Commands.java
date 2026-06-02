@@ -16,6 +16,7 @@ import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.*;
 import org.g2fx.g2lib.device.Devices;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 
 import java.io.File;
@@ -28,7 +29,6 @@ public class Commands {
 
     public static final String PREF_RECENT_FILES = "recentFiles";
     public static final int MAX_RECENT_FILES = 15;
-
 
     private final Devices devices;
 
@@ -135,14 +135,14 @@ public class Commands {
     private void savePerf(Stage stage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Performance File");
-        String name = devices.invokeWithCurrent(d -> d.getPerf().perfName().get());
+        String name = devices.invokeWithCurrentPerf(d -> d.perfName().get());
         fileChooser.setInitialFileName(name+".prf2");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
         );
         File f = fileChooser.showSaveDialog(stage);
         if (f == null) { return; }
-        devices.runWithCurrent(d -> d.getPerf().writeToFile(f));
+        devices.runWithCurrentPerf(d -> d.writeToFile(f));
     }
 
     private Menu populatePerfMenu() {
@@ -201,7 +201,7 @@ public class Commands {
         Menu menu = new Menu("Tools");
         MenuItem dumpYaml = new MenuItem("Dump Yaml");
         dumpYaml.setOnAction(e -> {
-            String pname = devices.invokeWithCurrent(d -> d.getPerf().getName());
+            String pname = devices.invokeWithCurrentPerf(Performance::getName);
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Dump Yaml File");
             fileChooser.getExtensionFilters().addAll(
@@ -209,8 +209,8 @@ public class Commands {
             fileChooser.setInitialFileName(pname + ".yaml");
             File file = fileChooser.showSaveDialog(stage);
             if (file != null) {
-                devices.runWithCurrent(d ->
-                        d.getPerf().dumpYaml(file.getAbsolutePath()));
+                devices.runWithCurrentPerf(d ->
+                        d.dumpYaml(file.getAbsolutePath()));
             }});
 
 

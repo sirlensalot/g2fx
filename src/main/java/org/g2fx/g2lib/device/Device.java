@@ -35,24 +35,22 @@ public class Device implements Dispatcher {
 
     public Device() {
         this(new OfflineSender());
+        perf = new Performance(usb);
     }
 
     public Device(UsbSender usb) {
         this.usb = usb;
-        perf = new Performance(usb);
         usb.setDispatcher(this);
         entries = new Entries(usb);
     }
 
-    public Performance getPerf() {
-        return perf;
+    public Device setPerf(Performance perf) {
+        this.perf = perf;
+        return this;
     }
 
-    public void loadPerfFile(String filePath) throws Exception {
-        perf = Performance.readFromFile(filePath, usb);
-        if (online()) {
-            perf.sendPerf();
-        }
+    public Performance getPerf() {
+        return perf;
     }
 
     public UsbSender getUsb() {
@@ -70,11 +68,6 @@ public class Device implements Dispatcher {
         usb.sendBulk("Init", true, Util.asBytes(M_INIT));
 
         sendStartStopComm(false); // this goes out first in poweron2
-
-        perf = new Performance(usb);
-
-        perf.initialize();
-
 
         entries.readEntries();
 

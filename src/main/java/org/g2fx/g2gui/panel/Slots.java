@@ -18,7 +18,6 @@ import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.ui.UIModule;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
@@ -69,7 +68,7 @@ public class Slots {
     }
 
 
-    public List<Runnable> initModules(Device d) {
+    public List<Runnable> initModules(Performance d) {
         List<Runnable> fxUpdates = new ArrayList<>();
         slotPanes.forEach(s -> s.initModules(d,fxUpdates));
         return fxUpdates;
@@ -199,9 +198,9 @@ public class Slots {
         sp.getAreaPane(AreaId.Fx).startToolbarDrag(mt);
     }
 
-    public List<Runnable> initBridges(Device d) {
+    public List<Runnable> initBridges(Performance d) {
         List<Runnable> l = new ArrayList<>();
-        slotPanes.forEach(s -> l.addAll(s.getBridges().initialize(d.getPerf().getSlot(s.getSlot()))));
+        slotPanes.forEach(s -> l.addAll(s.getBridges().initialize(d.getSlot(s.getSlot()))));
         return l;
     }
 

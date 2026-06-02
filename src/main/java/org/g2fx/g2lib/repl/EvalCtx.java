@@ -2,12 +2,8 @@ package org.g2fx.g2lib.repl;
 
 import com.google.common.collect.Streams;
 import org.g2fx.g2gui.Commands;
-import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.device.Devices;
-import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Patch;
-import org.g2fx.g2lib.state.PatchArea;
-import org.g2fx.g2lib.state.PatchModule;
+import org.g2fx.g2lib.state.*;
 import org.jline.console.ArgDesc;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;
@@ -96,15 +92,15 @@ public class EvalCtx {
         if (uiMode) ui.setArea(areaId);
     }
 
-    public PatchModule getCurrentModule(Device d) {
+    public PatchModule getCurrentModule(Performance d) {
         return getCurrentArea(d).getModule(path.module().index());
     }
-    public PatchArea getCurrentArea(Device d) {
+    public PatchArea getCurrentArea(Performance d) {
         return getCurrentSlot(d)
                 .getArea(path.area());
     }
-    public Patch getCurrentSlot(Device d) {
-        return d.getPerf().getSlot(path.slot().slot());
+    public Patch getCurrentSlot(Performance d) {
+        return d.getSlot(path.slot().slot());
     }
 
 
