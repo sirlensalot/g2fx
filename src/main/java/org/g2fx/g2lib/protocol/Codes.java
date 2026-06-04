@@ -8,13 +8,13 @@ public class Codes {
     public static final int I_CHANGE_SLOT = 0x09;
     public static final int I_ENTRY_LIST = 0x13;
     public static final int I_RESERVED_1E = 0x1e;
-    public static final int I_VERSION2 = 0x1f;
+    public static final int I_VERSION_LOAD = 0x1f;
     public static final int I_PATCH_DESCRIPTION = 0x21;
     public static final int I_PATCH_NAME = 0x27;
     public static final int I_PERFORMANCE_NAME = 0x29;
     public static final int I_SEL_PARAM_PAGE = 0x2d;
     public static final int I_SELECTED_PARAM = 0x2f;
-    public static final int I_VERSION1 = 0x36;
+    public static final int I_VERSION_UPDATE = 0x36;
     public static final int I_LED_DATA = 0x39;
     public static final int I_VOLUME_DATA = 0x3a;
     public static final int I_SET_MASTER_CLOCK = 0x3f;

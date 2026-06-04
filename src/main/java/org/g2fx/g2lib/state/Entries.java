@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.device.Device.dispatchSuccess;
+import static org.g2fx.g2lib.protocol.Codes.O_LOAD_ENTRY;
 
 public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesEvent> {
 
@@ -223,9 +224,19 @@ public class Entries implements LibProperty.LibPropertyListener<Entries.EntriesE
     }
 
     private void loadEntry(EntriesEvent e) throws Exception {
-        if (e.msg.type==EntryType.Performance) {
-            usb.sendSystemRequest("Load Perf " + e.msg,
-                    Codes.O_LOAD_ENTRY, Codes.S_PERF_04, e.msg.bank, e.msg.entry);
-        }
+        loadEntry(e.msg.type==EntryType.Performance ? Codes.S_PERF_04 : e.msg.slot.ordinal(),
+            e.msg.bank,e.msg.entry);
+    }
+
+
+    public void loadEntry(int slotCode, int bank, int entry) throws Exception {
+        log.info(String.format("loadEntry: slot=%s, bank=%s, entry=%s",slotCode,bank,entry));
+        usb.sendSystemRequest("loadEntry",
+                O_LOAD_ENTRY,
+                slotCode,
+                bank,
+                entry
+        );
+
     }
 }

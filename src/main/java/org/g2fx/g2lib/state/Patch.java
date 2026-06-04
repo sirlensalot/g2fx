@@ -503,31 +503,60 @@ public class Patch {
         return currentNote;
     }
 
+
+    public void loadFromDevice() throws Exception {
+        sendSlotPatchRequest();
+        sendSlotNameRequest();
+        sendSlotCurrentNoteRequest();
+        sendSlotTextRequest();
+        sendSlotResourcesRequests();
+        sendUnk6Request();
+        sendSelectedParamRequest();
+    }
+
     public void initialize() throws Exception {
 
         slotSender.getSender().sendSystemRequest("slot version " + slot,
                 O_VERSION,
                 slot.ordinal());
 
-        slotSender.sendSlotRequest("slot patch" + slot,
-                O_PATCH);
+        sendSlotPatchRequest();
 
-        slotSender.sendSlotRequest("slot name" + slot,
-                O_PATCH_NAME);
+        sendSlotNameRequest();
 
-        slotSender.sendSlotRequest("slot note" + slot,
-                O_CURRENT_NOTE);
+        sendSlotCurrentNoteRequest();
 
-        slotSender.sendSlotRequest("slot text " + slot,
-                O_PATCH_TEXT);
+        sendSlotTextRequest();
 
-        sendResourcesRequest();
+        sendSlotResourcesRequests();
 
         sendUnk6Request();
 
         sendSelectedParamRequest();
 
     }
+
+    private void sendSlotTextRequest() throws Exception {
+        slotSender.sendSlotRequest("slot text " + slot,
+                O_PATCH_TEXT);
+    }
+
+    private void sendSlotCurrentNoteRequest() throws Exception {
+        slotSender.sendSlotRequest("slot note" + slot,
+                O_CURRENT_NOTE);
+    }
+
+    private void sendSlotNameRequest() throws Exception {
+        slotSender.sendSlotRequest("slot name" + slot,
+                O_PATCH_NAME);
+    }
+
+    private void sendSlotPatchRequest() throws Exception {
+        slotSender.sendSlotRequest("slot patch" + slot,
+                O_PATCH);
+    }
+
+
 
     public void sendSelectedParamRequest() throws Exception {
         slotSender.sendSlotRequest("selected param",
@@ -539,7 +568,7 @@ public class Patch {
                 O_UNKNOWN6);
     }
 
-    public void sendResourcesRequest() throws Exception {
+    public void sendSlotResourcesRequests() throws Exception {
         slotSender.sendSlotRequest("patch load VA",
                 O_RESOURCES_USED,
                 AreaId.Voice.ordinal());

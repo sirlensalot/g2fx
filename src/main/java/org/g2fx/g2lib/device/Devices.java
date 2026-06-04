@@ -44,6 +44,18 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     private Performance currentPerf;
 
+    private LifecycleListener<Performance> perfListener = new LifecycleListener<>() {
+        @Override
+        public void onLifecycleInit(Performance performance) throws Exception {
+            notifyPerfInit();
+        }
+
+        @Override
+        public void onLifecycleDispose(Performance performance) throws Exception {
+            notifyPerfDispose();
+        }
+    };
+
     public Devices(UsbService usbService) {
         this.executorService = Executors.newSingleThreadExecutor();
         usbService.addListener(this);
@@ -97,7 +109,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         if (currentPerf != null) { //TODO this is not consistent with legacy app which will send current perf
             disposePerf();
         }
-        currentPerf = new Performance(perfSender);
+        setCurrentPerf(new Performance(perfSender));
         d.setPerf(currentPerf);
 
         try {
@@ -179,8 +191,12 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         });
     }
 
-    public Device getCurrent() {
-        return currentDevice;
+    /**
+     * Exposed for testing
+     */
+    public void setCurrentPerf(Performance currentPerf) {
+        this.currentPerf = currentPerf;
+        currentPerf.setPerfListener(perfListener);
     }
 
     @Override
@@ -234,6 +250,14 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     private void disposePerf() {
         if (currentPerf == null) return;
 
+        currentPerf.setPerfListener(null);
+
+        notifyPerfDispose();
+
+        currentPerf = null;
+    }
+
+    private void notifyPerfDispose() {
         for (LifecycleListener<Performance> l : perfListeners) {
             try {
                 l.onLifecycleDispose(currentPerf);
@@ -241,8 +265,6 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
                 log.log(Level.SEVERE,"Error in perf listener",e);
             }
         }
-
-        currentPerf = null;
     }
 
     public Path getPath() {

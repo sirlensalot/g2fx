@@ -78,4 +78,8 @@ public class Bridges<D> implements Bridger<D> {
     public LibExecutor getDeviceExecutor() {
         return libExecutor;
     }
+
+    public int activeCount() {
+        return bridges.stream().reduce(0,(s,b) -> s + (b.isActive() ? 1 : 0),Integer::sum);
+    }
 }

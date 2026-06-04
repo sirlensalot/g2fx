@@ -84,16 +84,6 @@ public class Device implements Dispatcher {
         usb.shutdown();
     }
 
-    public void loadEntry(int slotCode, int bank, int entry) throws Exception {
-        log.info(String.format("loadEntry: slot=%s, bank=%s, entry=%s",slotCode,bank,entry));
-        usb.sendSystemRequest("loadEntry",
-                O_LOAD_ENTRY, //S_RETREIVE
-                slotCode,
-                bank,
-                entry
-        );
-        //TODO initialize() if perf, readSlot() if slot
-    }
 
 
 
@@ -127,34 +117,16 @@ public class Device implements Dispatcher {
      */
     private boolean dispatchCmd(ByteBuffer buf) {
         int h = Util.b2i(buf.get());
-        if (h == 0x0c) { // version msg in response from editor init (load?)
-            int v = Util.b2i(buf.get());
-            if (v == V_VERSION) { // version
-                return dispatchVersion(buf);
-            } else if (v == perf.getVersion()) { // is this ever != 0?
-                return dispatchPerfCmd(buf);
-            } else {
-                return dispatchFailure("dispatchCmd: unrecognized perf or sys version: " + v);
-            }
+        if (h == S_PERF_0C) {
+            return dispatchPerfCmd(buf);
         } else if (h >= S_SLOT_08 && h < S_PERF_0C) {
             return dispatchSlotCmd(Slot.fromIndex(h - 8),buf);
+        } else if (h == S_PERF_04) {
+            return dispatchPerfCmd(buf);
         } else if (h >= S_SLOT_00 && h < S_PERF_04) {
             return dispatchSlotCmd(Slot.fromIndex(h), buf);
-        } else if (h == S_PERF_04) {
-            int pv = Util.b2i(buf.get());
-            if (pv == V_VERSION) { // version msg in response to load from keyboard, indicates a reset, plus looks like comms stop?
-                return dispatchVersion(buf);
-            } else if (pv == perf.getVersion()) {
-                return dispatchPerfCmd(buf);
-            } else {
-                log.warning("Received different perf version, updating: " + pv);
-                perf.setVersion(pv);
-                return dispatchPerfCmd(buf);
-            }
         } else {
             return dispatchFailure("dispatchCmd: unrecognized header: %02x",h);
-            //2025-02-18 08:58:24.670 INFO g2lib.usb.Usb: --------------- Read Interrupt embedded, crc: 4246 4246
-            //a2 01 04 00 05 01 06 01 01 42 46 00 00 00 00 00   . . . . . . . . . B F . . . . .
         }
     }
 
@@ -162,6 +134,13 @@ public class Device implements Dispatcher {
      * Handle 01 0c [perfVersion (00)] ...
      */
     private boolean dispatchPerfCmd(ByteBuffer buf) {
+        int v = Util.b2i(buf.get());
+        if (v == V_VERSION) {
+            return dispatchVersion(buf);
+        }
+        if (v != perf.getVersion()) {
+            return dispatchFailure("dispatchCmd: unrecognized perf or sys version: " + v);
+        }
         int t = Util.b2i(buf.get());
         return switch (t) {
             case I_OK -> dispatchSuccess(() -> "OK");
@@ -211,27 +190,13 @@ public class Device implements Dispatcher {
     }
 
 
-        /*
-        3a: O_VOLUME_DATA (slot cmd)
-01 00 00 3a 00 00 00 00 00 00 00 00 00 00 00 07   . . . : . . . . . . . . . . . .
-00 00 00 00 00 00 00 00 00 00 30 00 00 00 00 00   . . . . . . . . . . 0 . . . . .
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   . . . . . . . . . . . . . . . .
-00 00 00 00 00 6d 3d                              . . . . . m =
-
-  O_LED_DATA              = $39; (slot)
-01 00 00 39 00 00 00 00 00 15 00 00 00 00 00 b6   . . . 9 . . . . . . . . . . . .
-54                                                T
-         */
-
     /**
-     * Handle 01 0c 40 ...
+     * Handle 40 ...
      */
     private boolean dispatchVersion(ByteBuffer buf) {
-        return switch (Util.b2i(buf.get(buf.position()))) {
-            case I_VERSION1 -> {
-                buf.get();
+        int t = Util.b2i(buf.get());
+        return switch (t) {
+            case I_VERSION_UPDATE -> {
                 do {
                     byte s = buf.get();
                     byte v = buf.get();
@@ -240,22 +205,24 @@ public class Device implements Dispatcher {
                     } else {
                         perf.getSlot(Slot.fromIndex(s)).setVersion(v);
                     }
-                } while (Util.b2i(buf.get()) == I_VERSION1);
+                } while (Util.b2i(buf.get()) == I_VERSION_UPDATE);
                 yield true;
             }
-            case I_VERSION2 -> {
-                buf.get();
+            case I_VERSION_LOAD -> {
                 perf.setVersion(buf.get());
                 while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
                     perf.getSlot(Slot.fromIndex(buf.get())).setVersion(Util.b2i(buf.get()));
                 }
-                //01 0c 40 1f 00 36 00 01 36 01 01 36 02 01 36 03   . . @ . . 6 . . 6 . . 6 . . 6 .
-                //01 0d 01 00 00 00 00 ea cf                        . . . . . . . . .
+                try {
+                    perf.loadFromDevice();
+                } catch (Exception e) {
+                    log.log(Level.SEVERE,"Failure loading from device",e);
+                    yield dispatchFailure("Load from device failed");
+                }
                 yield true;
             }
-            default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + buf.get(buf.position()));
+            default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + t);
         };
-
     }
 
 

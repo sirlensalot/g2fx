@@ -192,4 +192,8 @@ public class PropertyBridge<D,T,F> {
     public String toString() {
         return "PropertyBridge: " + fxProperty.getObservable().toString();
     }
+
+    public boolean isActive() {
+        return active;
+    }
 }

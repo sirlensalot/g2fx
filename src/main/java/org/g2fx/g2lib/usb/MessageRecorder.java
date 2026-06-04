@@ -79,7 +79,11 @@ public class MessageRecorder {
             @JsonDeserialize(using = BytesDesz.class)
             ByteBuffer data) {}
 
-    public record RecordedUsbMessage (long time,UsbMessage msg) {
+    public record RecordedUsbMessage (long time,UsbMessage msg, boolean inbound) {
+
+        public RecordedUsbMessage(long time,UsbMessage msg) {
+            this(time,msg,true);
+        }
         @Override
         public String toString() {
             StringWriter sw = new StringWriter();
@@ -121,16 +125,16 @@ public class MessageRecorder {
                 case Usb.EP_IN_INTERRUPT:
                     UsbMessage m = Usb.parseInterrupt(bb);
                     if (!m.extended()) {
-                        l.add(new RecordedUsbMessage(t,m));
+                        l.add(new RecordedUsbMessage(t,m,true));
                     }
                     break;
                 case Usb.EP_IN_BULK:
                     UsbMessage mb = Usb.parseBulk(len,bb);
-                    l.add(new RecordedUsbMessage(t,mb));
+                    l.add(new RecordedUsbMessage(t,mb,true));
                     break;
                 case Usb.EP_OUT_BULK: //TODO this won't work for playback, need to factor a "full decode" or filter
                     UsbMessage mo = Usb.parseBulk(len,bb);
-                    l.add(new RecordedUsbMessage(t,mo));
+                    l.add(new RecordedUsbMessage(t,mo,false));
                     break;
             }
         }

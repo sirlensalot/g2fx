@@ -23,7 +23,7 @@ import static org.g2fx.g2lib.PerformanceTest.dropCrcTrailer;
 import static org.g2fx.g2lib.PerformanceTest.overwriteBytes;
 import static org.junit.jupiter.api.Assertions.*;
 
-class DeviceTest {
+public class DeviceTest {
 
     public static final String CAP_OO4_POWERON = "data/capture/capture-004-poweron-init-save.pcapng";
 
@@ -229,7 +229,7 @@ class DeviceTest {
     @Test
     void testVersionDispatch() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms = captureCmd(
-                List.of(Codes.I_VERSION1, Codes.I_VERSION2),
+                List.of(Codes.I_VERSION_UPDATE, Codes.I_VERSION_LOAD),
                 CAP_OO4_POWERON);
 
         Device d = initDevice();

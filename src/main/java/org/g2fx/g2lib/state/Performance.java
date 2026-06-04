@@ -47,6 +47,8 @@ public class Performance {
 
     private final UsbSender usb;
 
+    private LifecycleListener<Performance> perfListener;
+
     public Performance(UsbSender usb) {
         this.usb = usb;
         for (Slot s : Slot.values()) {
@@ -56,6 +58,10 @@ public class Performance {
 
     public int getVersion() {
         return version;
+    }
+
+    public void setPerfListener(LifecycleListener<Performance> perfListener) {
+        this.perfListener = perfListener;
     }
 
     public static Performance readFromFile(String filePath,UsbSender sender) throws Exception {
@@ -142,7 +148,7 @@ public class Performance {
         log.info("sendPerf");
         usb.sendBulk("sendPerf",true,writeMessage()); //I_VERSION in response
         for (Patch s : slots.values()) {
-            s.sendResourcesRequest();
+            s.sendSlotResourcesRequests();
             s.sendUnk6Request();
             s.sendSelectedParamRequest();
         }
@@ -326,30 +332,73 @@ public class Performance {
 
         sendVersionRequest();
 
-        usb.sendSystemRequest("Synth settings",
+        usb.sendSystemRequest("Synth settings", // technically "device scope" but comes back w/ perf version
                 O_SYNTH_SETTINGS);
 
-        usb.sendSystemRequest("unknown 1",
+        usb.sendSystemRequest("unknown 1", // technically "device scope" but comes back w/ perf version
                 O_UNKNOWN1);
 
-        usb.sendPerfRequest(getVersion(),"perf settings",
-                O_PERF_SETTINGS);
+        sendPerfSettingsRequest();
 
-        usb.sendPerfRequest(getVersion(),"unknown 2",
-                O_UNKNOWN2);
+        sendPerfUnk2Request();
 
         sendMasterClockRequest();
 
-        usb.sendPerfRequest(getVersion(),"global knobs",
-                O_GLOBAL_KNOBS);
+        sendGlobalKnobsRequest();
 
         for (Patch p : slots.values()) {
             p.initialize();
         }
 
+        sendAssignedVoicesRequest();
+
+    }
+
+
+    public void loadFromDevice() throws Exception {
+
+        if (perfListener != null) {
+            perfListener.onLifecycleDispose(this);
+        }
+
+        sendVersionRequest();
+
+        sendPerfSettingsRequest();
+
+        sendPerfUnk2Request();
+
+        for (Patch p : slots.values()) {
+            p.loadFromDevice();
+        }
+
+        sendGlobalKnobsRequest();
+
+        if (perfListener != null) {
+            perfListener.onLifecycleInit(this);
+        }
+
+
+    }
+
+
+    private void sendAssignedVoicesRequest() throws Exception {
         usb.sendSystemRequest("assigned voices",
                 O_ASSIGNED_VOICES);
+    }
 
+    private void sendGlobalKnobsRequest() throws Exception {
+        usb.sendPerfRequest(getVersion(),"global knobs",
+                O_GLOBAL_KNOBS);
+    }
+
+    private void sendPerfUnk2Request() throws Exception {
+        usb.sendPerfRequest(getVersion(),"unknown 2",
+                O_UNKNOWN2);
+    }
+
+    private void sendPerfSettingsRequest() throws Exception {
+        usb.sendPerfRequest(getVersion(),"perf settings",
+                O_PERF_SETTINGS);
     }
 
     private void sendMasterClockRequest() throws Exception {

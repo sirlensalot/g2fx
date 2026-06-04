@@ -113,8 +113,18 @@ public class G2GuiApplication extends Application implements DeviceListener {
         });
     }
 
+    /**
+     * Exposed for testing.
+     */
     public Devices getDevices() {
         return devices;
+    }
+
+    /**
+     * Exposed for testing.
+     */
+    public Bridges<Performance> getPerfBridges() {
+        return perfBridges;
     }
 
     @Override

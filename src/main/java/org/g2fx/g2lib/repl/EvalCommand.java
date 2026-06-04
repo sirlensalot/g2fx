@@ -86,8 +86,8 @@ public enum EvalCommand {
 
     load(cmd("Load entry into device",
             argDesc("typeOrSlot","'perf' or slot (A,B,C,D)"),
-            argDesc("bank","bank number"),
-            argDesc("entry","bank entry number"))
+            argDesc("bank","bank number (1-indexed)"),
+            argDesc("entry","bank entry number (1-indexed)"))
             .run(c -> {
                 String typeOrSlot = c.nextArg();
                 int slotCode;
@@ -98,7 +98,7 @@ public enum EvalCommand {
                 }
                 int bank = c.nextInt() - 1;
                 int entry = c.nextInt() - 1;
-                c.devices.runWithCurrent(d -> d.loadEntry(slotCode, bank, entry));
+                c.devices.runWithCurrent(d -> d.getEntries().loadEntry(slotCode, bank, entry));
             })),
 
     echo(cmd("echo args").run(c -> {
