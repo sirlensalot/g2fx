@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -87,6 +88,20 @@ public class FxTest {
         }
     }
 
+    private static <T> T callFxThread(Callable<T> c) throws Exception {
+        AtomicReference<T> ref = new AtomicReference<>();
+        AtomicReference<Exception> ex = new AtomicReference<>();
+        onFxThread(() -> {
+            try {
+                ref.set(c.call());
+            } catch (Exception e) {
+                ex.set(e);
+            }
+        });
+        if (ex.get() != null) { fail(ex.get()); }
+        return ref.get();
+    }
+
     @Test
     void testG2GuiApplicationInitAndStart() throws Exception {
 
@@ -95,14 +110,13 @@ public class FxTest {
             long t = System.nanoTime();
             app.getDevices().loadFile(PerformanceTest.PERF_002);
             long elapsed = System.nanoTime() - t;
-            System.out.printf("Time: %dms\n",TimeUnit.MILLISECONDS.convert(elapsed,TimeUnit.NANOSECONDS));
+            System.out.printf("Load Perf Time: %dms\n",TimeUnit.MILLISECONDS.convert(elapsed,TimeUnit.NANOSECONDS));
         });
 
     }
 
-    private static G2GuiApplication startApp() throws InterruptedException {
-        AtomicReference<G2GuiApplication> appref = new AtomicReference<>();
-        onFxThread(() -> {
+    private static G2GuiApplication startApp() throws Exception {
+        return callFxThread(() -> {
             G2GuiApplication app = new G2GuiApplication(false); // no usb
             try {
                 app.init();
@@ -111,10 +125,8 @@ public class FxTest {
             } catch (Exception e) {
                 fail("failure",e);
             }
-            appref.set(app);
+            return app;
         });
-        G2GuiApplication app = appref.get();
-        return app;
     }
 
     /**
@@ -127,17 +139,19 @@ public class FxTest {
         G2GuiApplication app = startApp();
 
         //check bridges not initialized
-        assertEquals(0,app.getPerfBridges().activeCount());
+        assertEquals(0,callFxThread(() -> app.getPerfBridges().activeCount()));
         Performance p = new Performance(sender);
         app.getDevices().setCurrentPerf(p);
         Device d = new Device(sender);
         d.setPerf(p);
         sender.dispatchInbounds();
 
+
+
         assertEquals("minimal02lfo",p.perfName().get());
 
         //test bridges initialized
-        assertEquals(1564,app.getPerfBridges().activeCount());
+        assertEquals(1564,callFxThread(() -> app.getPerfBridges().activeCount()));
 
     }
 
