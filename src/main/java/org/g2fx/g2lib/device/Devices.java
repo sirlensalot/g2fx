@@ -130,7 +130,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         notifyPerfInit();
 
         try {
-            d.sendStartStopComm(true);
+            usb.sendStartStopComm(true);
         } catch (Exception e) {
             log.log(Level.SEVERE, "Device start comm failed", e);
         }

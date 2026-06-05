@@ -377,6 +377,8 @@ public class Performance {
             perfListener.onLifecycleInit(this);
         }
 
+        usb.sendStartStopComm(true);
+
 
     }
 

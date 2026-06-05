@@ -58,25 +58,18 @@ public class Device implements Dispatcher {
 
         usb.sendBulk("Init", true, Util.asBytes(M_INIT));
 
-        sendStartStopComm(false); // this goes out first in poweron2
+        // this goes out first in poweron2
+        usb.sendStartStopComm(false);
 
         entries.readEntries();
 
     }
 
 
-    public void sendStartStopComm(boolean start) throws Exception {
-        usb.sendSystemRequest(start ? "Start comm" : "Stop comm"
-                , O_START_STOP_COM
-                , start ? 0 : 1
-        );
-    }
-
-
     public void shutdown(boolean sendStopComms) {
         if (sendStopComms) {
             try {
-                sendStartStopComm(false);
+                usb.sendStartStopComm(false);
             } catch (Exception e) {
                 log.log(Level.SEVERE, "could not send stop message", e);
             }

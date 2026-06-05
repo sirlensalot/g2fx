@@ -298,7 +298,7 @@ public enum EvalCommand {
             argDesc("startStop","start or stop"))
             .run(c -> {
                 Eval.Comm comm = Eval.Comm.LOOKUP.get(c.nextArg().toLowerCase());
-                c.devices.runWithCurrent(d -> d.sendStartStopComm(comm == Eval.Comm.Start));
+                c.devices.runWithCurrent(d -> d.getUsb().sendStartStopComm(comm == Eval.Comm.Start));
             }));
 
     public static final SafeLookup<String,EvalCommand> BY_NAME =

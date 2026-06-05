@@ -39,6 +39,13 @@ public interface UsbSender {
         ),Util.asBytes(cdata)));
     }
 
+    default int sendStartStopComm(boolean start) throws Exception {
+        return sendSystemRequest(start ? "Start comm" : "Stop comm"
+                , O_START_STOP_COM
+                , start ? 0 : 1
+        );
+    }
+
     void shutdown();
 
     void setDispatcher(Dispatcher dispatcher);

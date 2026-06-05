@@ -39,7 +39,7 @@ public class FxTest {
             this.script = script;
         }
         public CaptureSender(String f) throws Exception {
-            this(parseCapture(f, m -> true));
+            this(parseCapture(f, _ -> true));
         }
 
         @Override
