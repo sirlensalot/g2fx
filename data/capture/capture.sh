@@ -2,7 +2,7 @@
 
 fn="capture_`date +%s`"
 
-ssh musiker tcpdump -i XHC20 -w $fn.pcap
+ssh -t musiker tcpdump -i XHC20 -U -w $fn.pcap
 
 scp musiker:$fn.pcap .
 
