@@ -354,12 +354,9 @@ public class Performance {
 
     }
 
-
     public void loadFromDevice() throws Exception {
 
-        if (perfListener != null) {
-            perfListener.onLifecycleDispose(this);
-        }
+        notifyDisposePerf();
 
         sendVersionRequest();
 
@@ -380,6 +377,12 @@ public class Performance {
         usb.sendStartStopComm(true);
 
 
+    }
+
+    public void notifyDisposePerf() throws Exception {
+        if (perfListener != null) {
+            perfListener.onLifecycleDispose(this);
+        }
     }
 
 

@@ -2,6 +2,7 @@ package org.g2fx.g2lib.device;
 
 import org.g2fx.g2lib.repl.Path;
 import org.g2fx.g2lib.state.LifecycleListener;
+import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.DynamicUsbSender;
 import org.g2fx.g2lib.usb.OfflineSender;
@@ -25,6 +26,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     public List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
     public List<LifecycleListener<Performance>> perfListeners = new CopyOnWriteArrayList<>();
+    public List<LifecycleListener<Patch>> patchListeners = new CopyOnWriteArrayList<>();
 
     private final ExecutorService executorService;
 
@@ -44,7 +46,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     private Performance currentPerf;
 
-    private LifecycleListener<Performance> perfListener = new LifecycleListener<>() {
+    private final LifecycleListener<Performance> perfListener = new LifecycleListener<>() {
         @Override
         public void onLifecycleInit(Performance performance) throws Exception {
             notifyPerfInit();
@@ -55,6 +57,19 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
             notifyPerfDispose();
         }
     };
+
+    private final LifecycleListener<Patch> patchListener = new LifecycleListener<>() {
+        @Override
+        public void onLifecycleInit(Patch patch) throws Exception {
+            LifecycleListener.notifyLifecycleInit(patchListeners,patch);
+        }
+
+        @Override
+        public void onLifecycleDispose(Patch patch) throws Exception {
+            LifecycleListener.notifyLifecycleDispose(patchListener,patch);
+        }
+    };
+
 
     public Devices(UsbService usbService) {
         this.executorService = Executors.newSingleThreadExecutor();
@@ -137,15 +152,6 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     }
 
-    private void notifyPerfInit() {
-        for (LifecycleListener<Performance> l : perfListeners) {
-            try {
-                l.onLifecycleInit(currentPerf);
-            } catch (Exception e) {
-                log.log(Level.SEVERE,"Error in perf listener",e);
-            }
-        }
-    }
 
     private void disconnected(UsbService.UsbDevice ud) {
         Device d = devices.remove(ud.address());
@@ -257,15 +263,16 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         currentPerf = null;
     }
 
-    private void notifyPerfDispose() {
-        for (LifecycleListener<Performance> l : perfListeners) {
-            try {
-                l.onLifecycleDispose(currentPerf);
-            } catch (Exception e) {
-                log.log(Level.SEVERE,"Error in perf listener",e);
-            }
-        }
+
+    private void notifyPerfInit() {
+        LifecycleListener.notifyLifecycleInit(perfListeners, currentPerf);
     }
+
+    private void notifyPerfDispose() {
+        LifecycleListener.notifyLifecycleDispose(perfListeners,currentPerf);
+    }
+
+
 
     public Path getPath() {
         return Path.mkPath(currentDevice,currentPerf);
@@ -352,5 +359,9 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
                 log.log(Level.SEVERE,"execute: unexpected error",e);
             }
         });
+    }
+
+    public void addPatchListener(LifecycleListener<Patch> lifecycleListener) {
+        patchListeners.add(lifecycleListener);
     }
 }

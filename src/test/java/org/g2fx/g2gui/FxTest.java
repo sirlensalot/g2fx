@@ -6,6 +6,7 @@ import javafx.stage.Stage;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.state.Performance;
+import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.Usb;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -139,7 +141,11 @@ public class FxTest {
         G2GuiApplication app = startApp();
 
         //check bridges not initialized
-        assertEquals(0,callFxThread(() -> app.getPerfBridges().activeCount()));
+        Callable<Integer> computeBridgesCount = () ->
+                app.getPerfBridges().activeCount() +
+                        Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
+                                app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
+        assertEquals(0,callFxThread(computeBridgesCount));
         Performance p = new Performance(sender);
         app.getDevices().setCurrentPerf(p);
         Device d = new Device(sender);
@@ -151,7 +157,11 @@ public class FxTest {
         assertEquals("minimal02lfo",p.perfName().get());
 
         //test bridges initialized
-        assertEquals(1564,callFxThread(() -> app.getPerfBridges().activeCount()));
+        assertEquals(1924,callFxThread(computeBridgesCount));
+
+        p.notifyDisposePerf();
+
+        assertEquals(0,callFxThread(computeBridgesCount));
 
     }
 

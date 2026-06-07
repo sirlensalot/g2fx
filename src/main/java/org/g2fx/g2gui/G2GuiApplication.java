@@ -127,6 +127,13 @@ public class G2GuiApplication extends Application implements DeviceListener {
         return perfBridges;
     }
 
+    /**
+     * for testing
+     */
+    public Slots getSlots() {
+        return slots;
+    }
+
     @Override
     public void onDeviceInitialized(Device d) throws Exception {
 
