@@ -20,6 +20,7 @@ import org.g2fx.g2gui.controls.RebindableControls;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
@@ -70,7 +71,7 @@ public class Slots {
 
     public List<Runnable> initModules(Performance d) {
         List<Runnable> fxUpdates = new ArrayList<>();
-        slotPanes.forEach(s -> s.initModules(d,fxUpdates));
+        slotPanes.forEach(s -> s.initModules(fxUpdates, d.getSlot(s.getSlot())));
         return fxUpdates;
     }
 
@@ -206,5 +207,20 @@ public class Slots {
 
     public void disposeBridges() {
         slotPanes.forEach(s -> s.getBridges().dispose());
+    }
+
+    public Runnable onPatchInit(Patch patch) {
+        SlotPane slot = slotPanes.get(patch.getSlot().ordinal());
+        List<Runnable> fxUpdates = new ArrayList<>();
+        fxUpdates.add(slot::clearModules);
+        slot.initModules(fxUpdates,patch);
+        fxUpdates.addAll(slot.getBridges().initialize(patch));
+        return () -> fxUpdates.forEach(Runnable::run);
+    }
+
+    public void onPatchDispose(Patch patch) {
+        SlotPane slot = slotPanes.get(patch.getSlot().ordinal());
+        slot.getBridges().dispose();
+        slot.disposeModuleBridges();
     }
 }

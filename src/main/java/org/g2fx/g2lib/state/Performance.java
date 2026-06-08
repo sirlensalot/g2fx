@@ -403,4 +403,13 @@ public class Performance {
         return slots.values();
     }
 
+    public void loadPatchFromDevice(Slot slot, int version) throws Exception {
+        Patch patch = new Patch(slot, usb);
+        slots.put(slot, patch);
+        patch.setVersion(version);
+        patch.sendSlotVersionRequest();
+        patch.loadFromDevice();
+        sendGlobalKnobsRequest();
+        usb.sendStartStopComm(true);
+    }
 }

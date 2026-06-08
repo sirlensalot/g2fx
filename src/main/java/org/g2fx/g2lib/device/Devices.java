@@ -56,7 +56,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
 
 
-    private final LifecycleListener<Performance> perfLoadListener = new LifecycleListener<Performance>() {
+    private final LifecycleListener<Performance> perfLoadListener = new LifecycleListener<>() {
         @Override
         public void onLifecycleInit(Performance performance) throws Exception {
             currentPerf = performance;
@@ -69,7 +69,19 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         }
     };
 
-    private final Device offlineDevice = new Device(currentSender, perfLoadListener);
+    private final LifecycleListener<Patch> patchLoadListener = new LifecycleListener<>() {
+        @Override
+        public void onLifecycleInit(Patch patch) throws Exception {
+            LifecycleListener.notifyLifecycleInit(patchListeners,patch);
+        }
+
+        @Override
+        public void onLifecycleDispose(Patch patch) throws Exception {
+            LifecycleListener.notifyLifecycleDispose(patchListeners,patch);
+        }
+    };
+
+    private final Device offlineDevice = new Device(currentSender, perfLoadListener, LifecycleListener.noopListener());
 
     private Device currentDevice = offlineDevice;
 
@@ -95,7 +107,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         }
 
         Usb usb = new Usb(ud);
-        Device d = new Device(delegatingSender, perfLoadListener);
+        Device d = new Device(delegatingSender, perfLoadListener, patchLoadListener);
         devices.put(ud.address(), d);
 
         if (currentDevice.online()) {
@@ -357,6 +369,13 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
      */
     public LifecycleListener<Performance> getPerfLoadListener() {
         return perfLoadListener;
+    }
+
+    /**
+     * exposed for testing
+     */
+    public LifecycleListener<Patch> getPatchLoadListener() {
+        return patchLoadListener;
     }
 
     /**

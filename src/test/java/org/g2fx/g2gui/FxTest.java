@@ -5,6 +5,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.stage.Stage;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.MessageRecorder;
@@ -135,7 +136,7 @@ public class FxTest {
      * and perf lifecycle exercise.
      */
     @Test
-    void testLoadMem005() throws Exception {
+    void testLoadMemPerf005() throws Exception {
         CaptureSender sender = new CaptureSender("data/capture/capture-005-loadmem-from-synth.pcapng");
         G2GuiApplication app = startApp();
 
@@ -145,7 +146,7 @@ public class FxTest {
                         Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
                                 app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
         assertEquals(0,callFxThread(computeBridgesCount));
-        Device d = new Device(sender, app.getDevices().getPerfLoadListener());
+        Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
         sender.dispatchInbounds();
         assertEquals("minimal02lfo",app.getDevices().getCurrentPerf().perfName().get());
 
@@ -153,6 +154,34 @@ public class FxTest {
         assertEquals(1924,callFxThread(computeBridgesCount));
 
         app.getDevices().getPerfLoadListener().onLifecycleDispose(app.getDevices().getCurrentPerf());
+
+        assertEquals(0,callFxThread(computeBridgesCount));
+
+    }
+
+    @Test
+    void testLoadMemPatch007() throws Exception {
+        CaptureSender sender = new CaptureSender("data/capture/capture-007-loadmem-patch-g2fx-uprate-4mod.pcapng");
+        G2GuiApplication app = startApp();
+
+        //check bridges not initialized
+        Callable<Integer> computeBridgesCount = () ->
+                app.getPerfBridges().activeCount() +
+                        Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
+                                app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
+        //assertEquals(0,callFxThread(computeBridgesCount));
+        Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
+        Performance perf = new Performance(sender);
+        perf.setVersion(1);
+        d.setPerf(perf);
+        d.getEntries().loadEntry(0, 7, 0);
+        sender.dispatchInbounds();
+        assertEquals("g2fx-uprate-4mod",perf.getSlot(Slot.A).name().get());
+
+        //test bridges initialized
+        assertEquals(90,callFxThread(computeBridgesCount));
+
+        app.getDevices().getPatchLoadListener().onLifecycleDispose(perf.getSlot(Slot.A));
 
         assertEquals(0,callFxThread(computeBridgesCount));
 

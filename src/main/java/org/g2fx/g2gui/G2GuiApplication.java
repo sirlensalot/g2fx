@@ -111,6 +111,18 @@ public class G2GuiApplication extends Application implements DeviceListener {
                 onPerfDispose(perf);
             }
         });
+        devices.addPatchListener(new LifecycleListener<Patch>() {
+            @Override
+            public void onLifecycleInit(Patch patch) throws Exception {
+                //TODO requires re-init of perf bridges for global knobs!!
+                fxQueue.execute(slots.onPatchInit(patch));
+            }
+
+            @Override
+            public void onLifecycleDispose(Patch patch) throws Exception {
+                slots.onPatchDispose(patch);
+            }
+        });
     }
 
     /**
@@ -170,7 +182,6 @@ public class G2GuiApplication extends Application implements DeviceListener {
         perfBridges.dispose();
         slots.disposeBridges();
         slots.disposeModuleBridges();
-        fxQueue.execute(() -> slots.clearModules());
     }
 
 

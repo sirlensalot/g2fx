@@ -516,9 +516,7 @@ public class Patch {
 
     public void initialize() throws Exception {
 
-        slotSender.getSender().sendSystemRequest("slot version " + slot,
-                O_VERSION,
-                slot.ordinal());
+        sendSlotVersionRequest();
 
         sendSlotPatchRequest();
 
@@ -535,6 +533,13 @@ public class Patch {
         sendSelectedParamRequest();
 
     }
+
+    public void sendSlotVersionRequest() throws Exception {
+        slotSender.getSender().sendSystemRequest("slot version " + slot,
+                O_VERSION,
+                slot.ordinal());
+    }
+
 
     private void sendSlotTextRequest() throws Exception {
         slotSender.sendSlotRequest("slot text " + slot,

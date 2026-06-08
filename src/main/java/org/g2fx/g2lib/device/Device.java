@@ -26,6 +26,7 @@ public class Device implements Dispatcher {
     private static final Logger log = Util.getLogger(Device.class);
     private final UsbSender usb;
     private final LifecycleListener<Performance> perfLoadListener;
+    private final LifecycleListener<Patch> patchLoadListener;
 
     private final Entries entries;
 
@@ -33,9 +34,12 @@ public class Device implements Dispatcher {
     protected Performance perf;
     protected SynthSettings synthSettings = new SynthSettings();
 
-    public Device(UsbSender usb, LifecycleListener<Performance> perfLoadListener) {
+    public Device(UsbSender usb,
+                  LifecycleListener<Performance> perfLoadListener,
+                  LifecycleListener<Patch> patchLoadListener) {
         this.usb = usb;
         this.perfLoadListener = perfLoadListener;
+        this.patchLoadListener = patchLoadListener;
         usb.setDispatcher(this);
         entries = new Entries(usb);
     }
@@ -204,14 +208,29 @@ public class Device implements Dispatcher {
                 yield true;
             }
             case I_VERSION_LOAD_PERF -> dispatchLoadPerf(buf);
+            case I_VERSION_LOAD_PATCH -> dispatchLoadPatch(buf);
             default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + t);
         };
     }
 
-    private boolean dispatchLoadPerf(ByteBuffer buf) {
-        if (perf != null) {
-            LifecycleListener.notifyLifecycleDispose(perfLoadListener,perf);
+    private boolean dispatchLoadPatch(ByteBuffer buf) {
+        //load from usb is always post-init so perf not null
+        Slot slot = Slot.fromIndex(buf.get());
+        LifecycleListener.notifyLifecycleDispose(patchLoadListener,perf.getSlot(slot));
+        int version = buf.get();
+        try {
+            perf.loadPatchFromDevice(slot,version);
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"Failure loading patch from device",e);
+            return dispatchFailure("Load patch from device failed");
         }
+        LifecycleListener.notifyLifecycleInit(patchLoadListener,perf.getSlot(slot));
+        return true;
+    }
+
+    private boolean dispatchLoadPerf(ByteBuffer buf) {
+        //load from usb is always post-init so perf not null
+        LifecycleListener.notifyLifecycleDispose(perfLoadListener,perf);
         perf = new Performance(usb);
         perf.setVersion(buf.get());
         while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
