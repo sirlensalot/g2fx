@@ -4,76 +4,67 @@ import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 public class GlobalKnobAssignments {
-    private final FieldValues fvs;
-    private final List<FieldValues> gkfvs;
-    private final List<LibProperty<KnobAssignment>> assignments = new ArrayList<>();
+    private final List<LibProperty<KnobAssignment>> assignments =
+            IntStream.range(0,0x78).mapToObj(_ -> new LibProperty<>(KnobAssignment.unassigned())).toList();
 
     // file-perf
     public GlobalKnobAssignments(FieldValues fvs) {
-        this.fvs = fvs;
-        this.gkfvs =
-                Protocol.GlobalKnobAssignments.Knobs.subfieldsValue(fvs);
-        for (FieldValues ka : gkfvs) {
-            KnobAssignment k;
-            if (Protocol.GlobalKnobAssignment.Assigned.intValue(ka) == 1) {
-                FieldValues kp = Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka).getFirst();
-                k = new KnobAssignment(new KnobAssignment.Location(
-                        Slot.fromIndex(Protocol.GlobalKnobParams.Slot.intValue(kp)),
-                        AreaId.LOOKUP.get(Protocol.GlobalKnobParams.Location.intValue(kp)),
-                        Protocol.GlobalKnobParams.Index.intValue(kp),
-                        Protocol.GlobalKnobParams.Param.intValue(kp)),
-                        Protocol.GlobalKnobParams.IsLed.booleanIntValue(kp));
-            } else {
-                k = KnobAssignment.unassigned();
-            }
-            assignments.add(new LibProperty<>(k));
+        update(fvs);
+    }
+
+    public GlobalKnobAssignments() {}
+
+    private static KnobAssignment readKnobAssignment(FieldValues ka) {
+        FieldValues kp = Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka).getFirst();
+        return new KnobAssignment(new KnobAssignment.Location(
+                Slot.fromIndex(Protocol.GlobalKnobParams.Slot.intValue(kp)),
+                AreaId.LOOKUP.get(Protocol.GlobalKnobParams.Location.intValue(kp)),
+                Protocol.GlobalKnobParams.Index.intValue(kp),
+                Protocol.GlobalKnobParams.Param.intValue(kp)),
+                Protocol.GlobalKnobParams.IsLed.booleanIntValue(kp));
+    }
+
+    public static FieldValues writeKnobAssignment(KnobAssignment k) {
+        if (k.assigned()) {
+            return Protocol.GlobalKnobAssignment.FIELDS.values(
+                    Protocol.GlobalKnobAssignment.Assigned.value(1),
+                    Protocol.GlobalKnobAssignment.Params.value(List.of(
+                            Protocol.GlobalKnobParams.FIELDS.values(
+                                    Protocol.GlobalKnobParams.Location.value(k.loc().area().ordinal()),
+                                    Protocol.GlobalKnobParams.Index.value(k.loc().module()),
+                                    Protocol.GlobalKnobParams.IsLed.value(k.led()),
+                                    Protocol.GlobalKnobParams.Param.value(k.loc().param()),
+                                    Protocol.GlobalKnobParams.Slot.value(k.loc().slot().ordinal())
+                            )
+                    )));
+        } else {
+            return Protocol.GlobalKnobAssignment.FIELDS.values(
+                    Protocol.GlobalKnobAssignment.Assigned.value(0),
+                    Protocol.GlobalKnobAssignment.Params.value(List.of()));
         }
     }
 
-    public GlobalKnobAssignments() {
-        this(Protocol.GlobalKnobAssignments.FIELDS.values(
-                Protocol.GlobalKnobAssignments.KnobCount.value(0x78),
-                Protocol.GlobalKnobAssignments.Knobs.value(
-                        IntStream.range(0,0x78).mapToObj(i ->
-                                Protocol.GlobalKnobAssignment.FIELDS.values(
-                                        Protocol.GlobalKnobAssignment.Assigned.value(0),
-                                        Protocol.GlobalKnobAssignment.Params.value(List.of())
-                                )).toList())));
+
+    public void update(FieldValues fvs) {
+        int i = 0;
+        for (FieldValues ka : Protocol.GlobalKnobAssignments.Knobs.subfieldsValue(fvs)) {
+            assignments.get(i++).set(Protocol.GlobalKnobAssignment.Assigned.intValue(ka) == 1 ?
+                    readKnobAssignment(ka) : KnobAssignment.unassigned());
+        }
     }
 
     public List<LibProperty<KnobAssignment>> assignments() {
         return assignments;
     }
 
-    public Boolean getKnobAssignment(Slot slot, AreaId area, int module, int param) {
-        for (FieldValues ka : gkfvs) {
-            if (Protocol.GlobalKnobAssignment.Assigned.intValue(ka) == 1) {
-                List<FieldValues> kps = Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka);
-                for (FieldValues kp : kps) {
-                    if (area.ordinal() == Protocol.GlobalKnobParams.Location.intValue(kp) &&
-                            slot.ordinal() == Protocol.GlobalKnobParams.Slot.intValue(kp) &&
-                    module == Protocol.GlobalKnobParams.Index.intValue(kp) &&
-                    param == Protocol.GlobalKnobParams.Param.intValue(kp)) {
-                        return Protocol.GlobalKnobParams.IsLed.booleanIntValue(kp);
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public List<FieldValues> getActiveAssignments() {
-        return gkfvs.stream().filter(fv ->
-                Protocol.GlobalKnobAssignment.Assigned.intValue(fv) == 1)
-                .map(ka -> Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka).getFirst()).toList();
-    }
-
     public FieldValues getFieldValues() {
-        return fvs;
+        return Protocol.GlobalKnobAssignments.FIELDS.values(
+                Protocol.GlobalKnobAssignments.KnobCount.value(0x78),
+                Protocol.GlobalKnobAssignments.Knobs.value(assignments.stream().map(k -> writeKnobAssignment(k.get())).toList())
+        );
     }
 }

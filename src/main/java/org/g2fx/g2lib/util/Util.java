@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -268,6 +269,10 @@ public class Util {
 
     public static <T,R> List<R> mapWithIndex(Collection<T> coll, BiFunction<T,Integer,R> f) {
         return Streams.mapWithIndex(coll.stream(),(v,ix) -> f.apply(v,(int) ix)).toList();
+    }
+
+    public static <T> int count(Collection<T> items, Function<T,Integer> f) {
+        return items.stream().reduce(0,(s,i) -> s + f.apply(i),Integer::sum);
     }
 
     public static ByteBuffer readTextColsByteBuffer(String v) {

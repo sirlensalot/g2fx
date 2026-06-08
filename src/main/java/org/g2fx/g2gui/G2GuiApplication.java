@@ -114,7 +114,6 @@ public class G2GuiApplication extends Application implements DeviceListener {
         devices.addPatchListener(new LifecycleListener<Patch>() {
             @Override
             public void onLifecycleInit(Patch patch) throws Exception {
-                //TODO requires re-init of perf bridges for global knobs!!
                 fxQueue.execute(slots.onPatchInit(patch));
             }
 

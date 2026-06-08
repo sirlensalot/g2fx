@@ -42,7 +42,7 @@ public class Performance {
     private final LibProperty<String> perfName = new LibProperty<>("Empty perf");
 
     private PerformanceSettings perfSettings;
-    private GlobalKnobAssignments globalKnobAssignments;
+    private final GlobalKnobAssignments globalKnobAssignments = new GlobalKnobAssignments();
     private final Map<Slot,Patch> slots = new TreeMap<>();
 
     private final UsbSender usb;
@@ -103,7 +103,7 @@ public class Performance {
 
     private boolean readGlobalKnobAssignments(BitBuffer bb) {
         FieldValues fvs = Sections.SGlobalKnobAssignments_5f.fields.read(bb);
-        globalKnobAssignments = new GlobalKnobAssignments(fvs);
+        globalKnobAssignments.update(fvs);
         return true;
     }
 
@@ -114,7 +114,6 @@ public class Performance {
         for (Patch patch : slots.values()) {
             patch.initNew();
         }
-        globalKnobAssignments = new GlobalKnobAssignments();
     }
 
     public void writeToFile(File file) throws Exception {

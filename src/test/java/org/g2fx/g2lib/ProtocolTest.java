@@ -4,6 +4,8 @@ import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.protocol.*;
+import org.g2fx.g2lib.state.GlobalKnobAssignments;
+import org.g2fx.g2lib.state.KnobAssignment;
 import org.g2fx.g2lib.state.PatchLoadData;
 import org.g2fx.g2lib.state.PerformanceSettings;
 import org.g2fx.g2lib.state.*;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.g2fx.g2lib.protocol.Protocol.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -810,8 +813,21 @@ class ProtocolTest {
     void readGlobalKnobsMsg() throws Exception {
         ByteBuffer buf = Util.readFile("data/msg/msg_GlobalKnobs_850a.msg");
         Performance perf = new Performance(sender);
+        AtomicInteger updates = new AtomicInteger(0);
+        perf.getGlobalKnobAssignments().assignments().forEach(a -> a.addListener((_,_) -> updates.incrementAndGet()));
         perf.readGlobalKnobAssignmentsType(buf.position(3));
-        assertEquals(0,perf.getGlobalKnobAssignments().getActiveAssignments().size());
+        assertEquals(0,updates.get());
+        assertEquals(0,Util.count(perf.getGlobalKnobAssignments().assignments(),p -> p.get().assigned() ? 1 : 0));
+
+        //test update
+        FieldValues fvs = perf.getGlobalKnobAssignments().getFieldValues();
+        List<FieldValues> kas = new ArrayList<>(Protocol.GlobalKnobAssignments.Knobs.subfieldsValue(fvs));
+        kas.set(0,
+                GlobalKnobAssignments.writeKnobAssignment(
+                        new KnobAssignment(new KnobAssignment.Location(Slot.A,AreaId.Fx,1,2),true)));
+        fvs.update(Protocol.GlobalKnobAssignments.Knobs.value(kas));
+        perf.getGlobalKnobAssignments().update(fvs);
+        assertEquals(1,updates.get());
     }
 
     private static void testPerformanceSettings(PerformanceSettings ps) {
