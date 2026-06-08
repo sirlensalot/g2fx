@@ -30,6 +30,10 @@ public class Fields {
         return sb.toString();
     }
 
+    public String getName() {
+        return name;
+    }
+
     public FieldValues read(BitBuffer bb) {
         SzContext c = new SzContext();
         FieldValues fvs = read(bb, c);

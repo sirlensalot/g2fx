@@ -31,8 +31,8 @@ public class Device implements Dispatcher {
     private final Entries entries;
 
 
-    protected Performance perf;
-    protected SynthSettings synthSettings = new SynthSettings();
+    private Performance perf;
+    private final SynthSettings synthSettings = new SynthSettings();
 
     public Device(UsbSender usb,
                   LifecycleListener<Performance> perfLoadListener,
@@ -250,7 +250,7 @@ public class Device implements Dispatcher {
     // usb
     private boolean setSynthSettings(ByteBuffer buf) {
         BitBuffer bb = new BitBuffer(buf);
-        synthSettings = new SynthSettings(Protocol.SynthSettings.FIELDS.read(bb));
+        synthSettings.update(Protocol.SynthSettings.FIELDS.read(bb));
         return dispatchSuccess(() -> "setSynthSettings");
     }
 

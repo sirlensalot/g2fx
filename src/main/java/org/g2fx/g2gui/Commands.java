@@ -54,15 +54,15 @@ public class Commands {
 
             menuBar.setUseSystemMenuBar(true);
 
-            Menu editMenu = populateEditMenu();
-
             Menu fileMenu = populateFileMenu(stage);
+
+            Menu editMenu = populateEditMenu();
 
             Menu patchMenu = populatePatchMenu();
 
-            Menu toolsMenu = populateToolsMenu(stage);
-
             Menu perfMenu = populatePerfMenu();
+
+            Menu toolsMenu = populateToolsMenu(stage);
 
             menuBar.getMenus().addAll(fileMenu,editMenu,patchMenu,perfMenu,toolsMenu);
 
@@ -76,7 +76,7 @@ public class Commands {
 
             MenuItem openItem = new MenuItem("Open...");
             openItem.setAccelerator(shortcutKey(KeyCode.O));
-            openItem.setOnAction(event -> {
+            openItem.setOnAction(_ -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Open File");
                 fileChooser.getExtensionFilters().add(
@@ -86,7 +86,11 @@ public class Commands {
                 if (f != null) { loadFile(f); }
             });
 
+            MenuItem newPerf = new MenuItem("New Performance");
+            newPerf.setOnAction(_ -> devices.execute(devices::newPerformance));
+
             fileMenu.getItems().addAll(
+                    newPerf,
                     openItem,
                     mkMenuItem("Save",shortcutKey(KeyCode.S),e -> savePerf(stage)),
                     recentFilesMenu);

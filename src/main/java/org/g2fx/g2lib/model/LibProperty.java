@@ -26,9 +26,15 @@ public class LibProperty<T> {
     private final Logger log = Logger.getLogger(getClass().getName());
     private final LibPropertyGetterSetter<T> getterSetter;
     private final CopyOnWriteArraySet<LibPropertyListener<T>> listeners = new CopyOnWriteArraySet<>();
+    private final String name;
 
     public LibProperty(LibPropertyGetterSetter<T> getterSetter) {
+        this(null,getterSetter);
+    }
+
+    public LibProperty(String name, LibPropertyGetterSetter<T> getterSetter) {
         this.getterSetter = getterSetter;
+        this.name = name;
     }
 
     public LibProperty(T initialValue) {
@@ -45,6 +51,12 @@ public class LibProperty<T> {
             }
         };
         getterSetter.set(initialValue);
+        name = null;
+    }
+
+    @Override
+    public String toString() {
+        return "LibProperty: " + (name == null ? "" : (name + ":")) + "=" + this.get();
     }
 
     public T get() {
@@ -82,7 +94,7 @@ public class LibProperty<T> {
     }
 
     public static LibProperty<Integer> intFieldProperty(FieldValues fvs, FieldEnum f) {
-        return new LibProperty<>(new LibProperty.LibPropertyGetterSetter<>() {
+        return new LibProperty<>(f.toString(),new LibProperty.LibPropertyGetterSetter<>() {
             @Override
             public Integer get() {
                 return f.intValue(fvs);
@@ -96,7 +108,7 @@ public class LibProperty<T> {
     }
 
     public static LibProperty<String> stringFieldProperty(FieldValues fvs, FieldEnum f) {
-        return new LibProperty<>(new LibPropertyGetterSetter<>() {
+        return new LibProperty<>(f.toString(),new LibPropertyGetterSetter<>() {
             @Override
             public String get() {
                 return f.stringValue(fvs);
@@ -110,7 +122,7 @@ public class LibProperty<T> {
     }
 
     public static LibProperty<Boolean> booleanFieldProperty(FieldValues fvs, FieldEnum f) {
-        return new LibProperty<>(new LibPropertyGetterSetter<>() {
+        return new LibProperty<>(f.toString(),new LibPropertyGetterSetter<>() {
             @Override
             public Boolean get() {
                 return f.booleanIntValue(fvs);
@@ -153,7 +165,7 @@ public class LibProperty<T> {
             return intFieldProperty(f, true);
         }
         public LibProperty<Integer> intFieldProperty(FieldEnum f, boolean register) {
-            LibProperty<Integer> prop = new LibProperty<>(new LibPropertyGetterSetter<>() {
+            LibProperty<Integer> prop = new LibProperty<>(f.toString(),new LibPropertyGetterSetter<>() {
                 @Override
                 public Integer get() {
                     return f.intValue(fvs);
@@ -171,7 +183,7 @@ public class LibProperty<T> {
             return stringFieldProperty(f,true);
         }
         public LibProperty<String> stringFieldProperty(FieldEnum f,boolean register) {
-            LibProperty<String> prop = new LibProperty<>(new LibPropertyGetterSetter<>() {
+            LibProperty<String> prop = new LibProperty<>(f.toString(),new LibPropertyGetterSetter<>() {
                 @Override
                 public String get() {
                     return f.stringValue(fvs);
@@ -189,7 +201,7 @@ public class LibProperty<T> {
         }
 
         public LibProperty<Boolean> booleanFieldProperty(FieldEnum f, boolean register) {
-            LibProperty<Boolean> prop = new LibProperty<>(new LibPropertyGetterSetter<>() {
+            LibProperty<Boolean> prop = new LibProperty<>(f.toString(),new LibPropertyGetterSetter<>() {
                 @Override
                 public Boolean get() {
                     return f.booleanIntValue(fvs);

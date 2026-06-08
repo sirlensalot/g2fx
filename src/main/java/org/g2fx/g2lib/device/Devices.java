@@ -45,12 +45,12 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
         @Override
         public void shutdown() {
-            throw new UnsupportedOperationException("shutdown not supported");
+            currentSender.shutdown();
         }
 
         @Override
         public void setDispatcher(Dispatcher dispatcher) {
-            throw new UnsupportedOperationException("setDispatcher not supported");
+            currentSender.setDispatcher(dispatcher);
         }
     };
 
@@ -107,15 +107,18 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         }
 
         Usb usb = new Usb(ud);
+        // ugly workaround for multi-device non-support
+        UsbSender tmpSender = currentSender;
+        currentSender = usb;
         Device d = new Device(delegatingSender, perfLoadListener, patchLoadListener);
         devices.put(ud.address(), d);
 
         if (currentDevice.online()) {
             log.warning("connected: current device already connected, ignoring: " + ud.address());
+            currentSender = tmpSender;
             return;
         }
 
-        currentSender = usb;
         notifyDeviceDispose(offlineDevice);
         currentDevice = d;
         log.info("Setting current device to address: " + ud.address());
@@ -261,6 +264,20 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
             }
         } catch (Exception e) {
             log.log(Level.SEVERE,"File load failed",e);
+        }
+    }
+
+
+    public void newPerformance() {
+        disposePerf();
+        currentPerf = new Performance(delegatingSender);
+        currentDevice.setPerf(currentPerf);
+        try {
+            currentPerf.initNew();
+            notifyPerfInit();
+            currentPerf.sendPerf();
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"newPerformance: failure",e);
         }
     }
 

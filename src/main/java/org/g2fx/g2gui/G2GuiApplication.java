@@ -35,6 +35,7 @@ import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.ParamConstants;
 import org.g2fx.g2lib.model.SettingsModules;
+import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.LifecycleListener;
 import org.g2fx.g2lib.state.Patch;
@@ -88,6 +89,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
         this.usbEnabled = usbEnabled;
         Util.configureLogging();
         log = Logger.getLogger(getClass().getName());
+        log.fine(Protocol.ModuleParams.ParamSet.toString());//avoid init race
     }
 
     @Override

@@ -127,9 +127,13 @@ public class PropertyBridge<D,T,F> {
 
         initFinalizer = d -> {
             libProperty = libPropertyBuilder.apply(d);
+            log.info(() -> "initFinalizer: " + libProperty);
             active = true;
             libProperty.addListener(libListener);
-            return mkFxUpdate(libProperty.get());
+            return () -> {
+                mkFxUpdate(libProperty.get()).run();
+                log.info(() -> "initFinalizer FX: " + fxProperty.getName());
+            };
         };
 
     }
