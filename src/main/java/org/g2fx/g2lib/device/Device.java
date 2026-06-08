@@ -25,6 +25,7 @@ public class Device implements Dispatcher {
 
     private static final Logger log = Util.getLogger(Device.class);
     private final UsbSender usb;
+    private final LifecycleListener<Performance> perfLoadListener;
 
     private final Entries entries;
 
@@ -32,8 +33,9 @@ public class Device implements Dispatcher {
     protected Performance perf;
     protected SynthSettings synthSettings = new SynthSettings();
 
-    public Device(UsbSender usb) {
+    public Device(UsbSender usb, LifecycleListener<Performance> perfLoadListener) {
         this.usb = usb;
+        this.perfLoadListener = perfLoadListener;
         usb.setDispatcher(this);
         entries = new Entries(usb);
     }
@@ -201,25 +203,29 @@ public class Device implements Dispatcher {
                 } while (Util.b2i(buf.get()) == I_VERSION_UPDATE);
                 yield true;
             }
-            case I_VERSION_LOAD -> {
-                perf.setVersion(buf.get());
-                while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
-                    perf.getSlot(Slot.fromIndex(buf.get())).setVersion(Util.b2i(buf.get()));
-                }
-                try {
-                    perf.loadFromDevice();
-                } catch (Exception e) {
-                    log.log(Level.SEVERE,"Failure loading from device",e);
-                    yield dispatchFailure("Load from device failed");
-                }
-                yield true;
-            }
+            case I_VERSION_LOAD_PERF -> dispatchLoadPerf(buf);
             default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + t);
         };
     }
 
-
-
+    private boolean dispatchLoadPerf(ByteBuffer buf) {
+        if (perf != null) {
+            LifecycleListener.notifyLifecycleDispose(perfLoadListener,perf);
+        }
+        perf = new Performance(usb);
+        perf.setVersion(buf.get());
+        while ((buf.position() < buf.limit() - 2) && Util.b2i(buf.get()) == 0x36) {
+            perf.getSlot(Slot.fromIndex(buf.get())).setVersion(Util.b2i(buf.get()));
+        }
+        try {
+            perf.loadFromDevice();
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"Failure loading from device",e);
+            return dispatchFailure("Load from device failed");
+        }
+        LifecycleListener.notifyLifecycleInit(perfLoadListener,perf);
+        return true;
+    }
 
 
     // usb

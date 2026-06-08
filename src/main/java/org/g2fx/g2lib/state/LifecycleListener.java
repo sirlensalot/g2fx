@@ -40,4 +40,10 @@ public interface LifecycleListener<D> {
             log.log(Level.SEVERE,"Error in lifecycle dispose listener",e);
         }
     }
+
+    static <T> LifecycleListener<T> noopListener() {
+        return new LifecycleListener<T>() {
+            @Override public void onLifecycleInit(T t) throws Exception {}
+            @Override public void onLifecycleDispose(T t) throws Exception {}};
+    }
 }

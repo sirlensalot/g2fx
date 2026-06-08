@@ -47,8 +47,6 @@ public class Performance {
 
     private final UsbSender usb;
 
-    private LifecycleListener<Performance> perfListener;
-
     public Performance(UsbSender usb) {
         this.usb = usb;
         for (Slot s : Slot.values()) {
@@ -58,10 +56,6 @@ public class Performance {
 
     public int getVersion() {
         return version;
-    }
-
-    public void setPerfListener(LifecycleListener<Performance> perfListener) {
-        this.perfListener = perfListener;
     }
 
     public static Performance readFromFile(String filePath,UsbSender sender) throws Exception {
@@ -356,8 +350,6 @@ public class Performance {
 
     public void loadFromDevice() throws Exception {
 
-        notifyDisposePerf();
-
         sendVersionRequest();
 
         sendPerfSettingsRequest();
@@ -370,21 +362,9 @@ public class Performance {
 
         sendGlobalKnobsRequest();
 
-        if (perfListener != null) {
-            perfListener.onLifecycleInit(this);
-        }
-
         usb.sendStartStopComm(true);
 
-
     }
-
-    public void notifyDisposePerf() throws Exception {
-        if (perfListener != null) {
-            perfListener.onLifecycleDispose(this);
-        }
-    }
-
 
     private void sendAssignedVoicesRequest() throws Exception {
         usb.sendSystemRequest("assigned voices",

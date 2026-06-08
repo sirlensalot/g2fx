@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 import static org.g2fx.g2lib.PerformanceTest.dropCrcTrailer;
@@ -190,10 +191,21 @@ public class DeviceTest {
     @Test
     void regress003_Inbound() throws Exception {
 
-        Device d = initDevice();
-        Performance p = initPerf(d);
+        AtomicReference<Performance> pref = new AtomicReference<>();
+        Device d = new Device(new OfflineSender(), new LifecycleListener<Performance>() {
+            @Override
+            public void onLifecycleInit(Performance performance) throws Exception {
+                pref.set(performance);
+            }
+
+            @Override
+            public void onLifecycleDispose(Performance performance) throws Exception {
+
+            }
+        });
         dispatchMsgs(parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND),d);
         // match file version and current notes
+        Performance p = pref.get();
         p.setVersion(1);
         for (Patch s : p.slots()) {
             s.getCurrentNote().update(Protocol.CurrentNote.NoteCount.value(0));
@@ -222,18 +234,26 @@ public class DeviceTest {
 
     public static Device initDevice() {
         UsbSender sender = new OfflineSender();
-        Device d = new Device(sender);
+        Device d = new Device(sender, LifecycleListener.noopListener());
         return d;
     }
 
     @Test
     void testVersionDispatch() throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms = captureCmd(
-                List.of(Codes.I_VERSION_UPDATE, Codes.I_VERSION_LOAD),
+                List.of(Codes.I_VERSION_UPDATE, Codes.I_VERSION_LOAD_PERF),
                 CAP_OO4_POWERON);
 
-        Device d = initDevice();
+        UsbSender sender = new OfflineSender();
+        AtomicReference<Performance> perfRef = new AtomicReference<>();
+        Device d = new Device(sender, new LifecycleListener<>() {
+            @Override public void onLifecycleInit(Performance performance) throws Exception {
+                perfRef.set(performance);
+            }
+            @Override public void onLifecycleDispose(Performance performance) throws Exception {}
+        });
         Performance perf = initPerf(d);
+        perfRef.set(perf);
 
         //init device to version 10; device inits to 0 at power on, but hard to diff below.
         perf.setVersion(10);
@@ -241,8 +261,12 @@ public class DeviceTest {
         int i = 0;
         for (MessageRecorder.RecordedUsbMessage m : ms) {
             d.dispatch(m.msg());
+            if (i == 7) {
+                assertNotEquals(perf,perfRef.get());//1f creates new perf
+            }
+            perf = perfRef.get();
             assertEquals(
-                    switch (i++) {
+                    switch (i) {
                         // 40 36 04 00 (perf -> 0)
                         case 0 -> List.of(0,10,10,10,10);
                         // 40 36 00 00 (A -> 0)
@@ -257,7 +281,7 @@ public class DeviceTest {
                         case 5 -> List.of(0, 0, 0, 0, 0);
                         // 40 36 00 01 36 01 01 36 02 01 36 03 01 36 04 01 (all -> 1)
                         case 6 -> List.of(1, 1, 1, 1, 1);
-                        // 40 1f 01 36 00 02 36 01 02 36 02 02 36 03 02 (slots -> 2)
+                        // 40 1f 01 36 00 02 36 01 02 36 02 02 36 03 02 (slots -> 2, new perf)
                         case 7 -> List.of(1, 2, 2, 2, 2);
                         // 40 36 04 01 (perf -> 1)
                         case 8 -> List.of(1, 2, 2, 2, 2);
@@ -268,7 +292,8 @@ public class DeviceTest {
                         perf.getSlot(Slot.B).getVersion(),
                         perf.getSlot(Slot.C).getVersion(),
                         perf.getSlot(Slot.D).getVersion()),
-                    "msg " + i + ": " + Util.dumpBufferString(m.msg().buffer()));
+                    "msg " + i++ + ": " + Util.dumpBufferString(m.msg().buffer()));
+
 
         }
     }

@@ -98,12 +98,13 @@ ty != "03" && ty != "81" && ty != "82" { next }
     if (cmd == "09") { cmd = "I_CHANGE_SLOT" }
     if (cmd == "13") { cmd = "I_ENTRY_LIST" }
     if (cmd == "1e") { cmd = "I_RESERVED_1E" }
-    if (cmd == "1f") { cmd = "I_VERSION_LOAD" }
+    if (cmd == "1f") { cmd = "I_VERSION_LOAD_PERF" }
     if (cmd == "21") { cmd = "I_PATCH_DESCRIPTION" }
     if (cmd == "27") { cmd = "I_PATCH_NAME" }
     if (cmd == "29") { cmd = "I_PERFORMANCE_NAME" }
     if (cmd == "2f") { cmd = "I_SELECTED_PARAM" }
     if (cmd == "36") { cmd = "I_VERSION_UPDATE" }
+    if (cmd == "38") { cmd = "I_VERSION_LOAD_PATCH" }
     if (cmd == "39") { cmd = "I_LED_DATA" }
     if (cmd == "3a") { cmd = "I_VOLUME_DATA" }
     if (cmd == "3f") { cmd = "I_SET_MASTER_CLOCK" }

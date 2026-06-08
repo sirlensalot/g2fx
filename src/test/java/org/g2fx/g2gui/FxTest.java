@@ -5,7 +5,6 @@ import javafx.embed.swing.JFXPanel;
 import javafx.stage.Stage;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
-import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.usb.Dispatcher;
 import org.g2fx.g2lib.usb.MessageRecorder;
@@ -146,20 +145,14 @@ public class FxTest {
                         Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
                                 app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
         assertEquals(0,callFxThread(computeBridgesCount));
-        Performance p = new Performance(sender);
-        app.getDevices().setCurrentPerf(p);
-        Device d = new Device(sender);
-        d.setPerf(p);
+        Device d = new Device(sender, app.getDevices().getPerfLoadListener());
         sender.dispatchInbounds();
-
-
-
-        assertEquals("minimal02lfo",p.perfName().get());
+        assertEquals("minimal02lfo",app.getDevices().getCurrentPerf().perfName().get());
 
         //test bridges initialized
         assertEquals(1924,callFxThread(computeBridgesCount));
 
-        p.notifyDisposePerf();
+        app.getDevices().getPerfLoadListener().onLifecycleDispose(app.getDevices().getCurrentPerf());
 
         assertEquals(0,callFxThread(computeBridgesCount));
 
