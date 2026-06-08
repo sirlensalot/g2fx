@@ -8,15 +8,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class GlobalKnobAssignments {
+
     private final List<LibProperty<KnobAssignment>> assignments =
             IntStream.range(0,0x78).mapToObj(_ -> new LibProperty<>(KnobAssignment.unassigned())).toList();
-
-    // file-perf
-    public GlobalKnobAssignments(FieldValues fvs) {
-        update(fvs);
-    }
-
-    public GlobalKnobAssignments() {}
 
     private static KnobAssignment readKnobAssignment(FieldValues ka) {
         FieldValues kp = Protocol.GlobalKnobAssignment.Params.subfieldsValue(ka).getFirst();
