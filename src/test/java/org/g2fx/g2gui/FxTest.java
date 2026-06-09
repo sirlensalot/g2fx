@@ -126,6 +126,7 @@ public class FxTest {
         Performance perf = new Performance(sender);
         perf.setVersion(1);
         d.setPerf(perf);
+        perf.slots().forEach(p -> p.setVersion(2));
         d.getEntries().loadEntry(0, 7, 0);
         sender.dispatchInbounds();
         assertEquals("g2fx-uprate-4mod",perf.getSlot(Slot.A).name().get());

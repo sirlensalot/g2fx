@@ -27,8 +27,9 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($5 == "2c") { s = "Perf" }
 
         v = "v=" $6;
-        if ($6 == "41") { v = "V_SYSTEM" }
-        if ($6 == "42") { v = "V_NEW" }
+        if ($6 == "41") { v = "V_SYSTEM[41]" }
+        if ($6 == "42") { v = "V_NEW_PERF[42]" }
+        if ($6 == "53") { v = "V_NEW_PATCH[53]" }
 
         c = $7;
         cn = $7

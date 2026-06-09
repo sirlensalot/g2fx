@@ -87,12 +87,7 @@ public class Performance {
         patch.name().set(name.substring(0,name.length()-".pch2".length()));
         slots.put(slot, patch);
         patch.sendPatch();
-        for (Patch p : slots.values()) {
-            p.sendUnk6Request();
-            if (p == patch) {
-                p.sendSelectedParamRequest();
-            }
-        }
+        for (Patch p : slots.values()) { if (p!=patch) p.sendUnk6Request(); }
         return patch;
     }
 

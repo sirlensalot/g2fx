@@ -63,7 +63,7 @@ public class DeviceTest {
         ByteBuffer buf = Util.readTextColsByteBuffer(data);
         Device d = initDevice();
         Performance perf = initPerf(d);
-        perf.setVersion(7);
+        perf.getSlot(Slot.B).setVersion(1);
         assertTrue(d.dispatch(new UsbMessage(buf.limit(),true,0x13a9,buf)));
         PatchSettings ps = perf.getSlot(Slot.B).getPatchSettings();
         //just testing for nonzero values

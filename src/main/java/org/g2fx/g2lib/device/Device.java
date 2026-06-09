@@ -135,10 +135,11 @@ public class Device implements Dispatcher {
     private boolean dispatchPerfCmd(ByteBuffer buf) {
         int v = Util.b2i(buf.get());
         if (v == V_VERSION) {
-            return dispatchVersion(buf);
+            return dispatchPerfVersion(buf);
         }
         if (v != perf.getVersion()) {
-            return dispatchFailure("dispatchCmd: unrecognized perf or sys version: " + v);
+            return dispatchFailure("dispatchPerfCmd: received perf version " + v +
+                    " but currently " + perf.getVersion());
         }
         int t = Util.b2i(buf.get());
         return switch (t) {
@@ -163,7 +164,19 @@ public class Device implements Dispatcher {
      */
     private boolean dispatchSlotCmd(Slot slot, ByteBuffer buf) {
         Patch patch = perf.getSlot(slot);
-        patch.setVersion(Util.b2i(buf.get()));
+        int v = Util.b2i(buf.get());
+        if (v == V_VERSION) {
+            int t = Util.b2i(buf.get());
+            if (t == I_VERSION_UPDATE) {
+                return readVersionUpdate(buf);
+            }
+            return dispatchFailure("dispatchSlotCmd: slot " + slot +
+                    ", unrecognized version subcommand: " + t);
+        }
+        if (v != patch.getVersion()) {
+            return dispatchFailure("dispatchSlotCmd: slot " + slot +
+                    ", received slot version " + v + " but currently " + perf.getVersion());
+        }
         int t = Util.b2i(buf.get());
         return switch (t) {
             case I_PATCH_DESCRIPTION -> {
@@ -192,25 +205,27 @@ public class Device implements Dispatcher {
     /**
      * Handle 40 ...
      */
-    private boolean dispatchVersion(ByteBuffer buf) {
+    private boolean dispatchPerfVersion(ByteBuffer buf) {
         int t = Util.b2i(buf.get());
         return switch (t) {
-            case I_VERSION_UPDATE -> {
-                do {
-                    byte s = buf.get();
-                    byte v = buf.get();
-                    if (s == S_PERF_04) {
-                        perf.setVersion(v);
-                    } else {
-                        perf.getSlot(Slot.fromIndex(s)).setVersion(v);
-                    }
-                } while (Util.b2i(buf.get()) == I_VERSION_UPDATE);
-                yield true;
-            }
+            case I_VERSION_UPDATE -> readVersionUpdate(buf);
             case I_VERSION_LOAD_PERF -> dispatchLoadPerf(buf);
             case I_VERSION_LOAD_PATCH -> dispatchLoadPatch(buf);
-            default -> dispatchFailure("dispatchVersion: unrecognized subcommand: " + t);
+            default -> dispatchFailure("dispatchPerfVersion: unrecognized subcommand: " + t);
         };
+    }
+
+    private boolean readVersionUpdate(ByteBuffer buf) {
+        do {
+            byte s = buf.get();
+            byte v = buf.get();
+            if (s == S_PERF_04) {
+                perf.setVersion(v);
+            } else {
+                perf.getSlot(Slot.fromIndex(s)).setVersion(v);
+            }
+        } while (Util.b2i(buf.get()) == I_VERSION_UPDATE);
+        return true;
     }
 
     private boolean dispatchLoadPatch(ByteBuffer buf) {
