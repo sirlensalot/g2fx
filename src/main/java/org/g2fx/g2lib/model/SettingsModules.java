@@ -4,10 +4,8 @@ import org.g2fx.g2gui.controls.IndexParam;
 import org.g2fx.g2lib.util.SafeLookup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 public enum SettingsModules {
     Morphs { // 1
@@ -18,11 +16,6 @@ public enum SettingsModules {
             return ps;
         }
 
-        public List<NamedParam> mkParams() {
-            List<NamedParam> ps = new ArrayList<>(mkMorphParams(ModParam.MorphDial, m -> List.of()));
-            ps.addAll(mkMorphParams(ModParam.MorphMode, m -> List.of("Knob", m)));
-            return ps;
-        }
     },
     Gain { // 2
         public List<ModParam> getModParams() {
@@ -63,14 +56,6 @@ public enum SettingsModules {
             SafeLookup.makeLookup(values(), SettingsModules::getModIndex);
 
     public abstract List<ModParam> getModParams();
-
-    public List<NamedParam> mkParams() {
-        return getModParams().stream().map(NamedParam::new).toList();
-    }
-
-    protected List<NamedParam> mkMorphParams(ModParam modParam, Function<String,List<String>> labelF) {
-        return Arrays.stream(MORPH_LABELS).map(m -> new NamedParam(modParam, m, labelF.apply(m))).toList();
-    }
 
     public int getModIndex() { return ordinal() + 1; }
 

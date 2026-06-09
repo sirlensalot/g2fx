@@ -1,7 +1,7 @@
 package org.g2fx.g2lib.state;
 
 import com.google.common.collect.Streams;
-import org.g2fx.g2gui.panel.AreaPane;
+import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.model.Visual;
@@ -29,7 +29,7 @@ public class PatchArea {
     private final List<PatchCable> cables = new ArrayList<>();
     private PatchLoadData patchLoadData = new PatchLoadData();
 
-    private final LibProperty<Set<AreaPane.ModuleAdd>> dummyModuleAddProp = new LibProperty<>(Set.of());
+    private final LibProperty<ModuleDelta> dummyModuleAddProp = new LibProperty<>(new ModuleDelta());
 
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
@@ -56,7 +56,7 @@ public class PatchArea {
         });
     }
 
-    public LibProperty<Set<AreaPane.ModuleAdd>> getDummyModuleAddProp() {
+    public LibProperty<ModuleDelta> getDummyModuleAddProp() {
         return dummyModuleAddProp;
     }
 
@@ -175,81 +175,72 @@ public class PatchArea {
         getModule(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
     }
 
-    public PatchModule createModule(AreaPane.ModuleAdd ma) throws Exception {
-        //initialize PatchModule
-        PatchModule pm = addModule(Protocol.UserModule.FIELDS.init().addAll(
-                Protocol.UserModule.Id.value(ma.type().ix),
-                Protocol.UserModule.Index.value(ma.index()),
-                Protocol.UserModule.Column.value(ma.coords().column()),
-                Protocol.UserModule.Row.value(ma.coords().row()),
-                Protocol.UserModule.Color.value(ma.color()),
-                Protocol.UserModule.Uprate.value(0),
-                Protocol.UserModule.Leds.value(ma.type().isLed),
-                Protocol.UserModule.Reserved.value(0), // TODO implement defaults
-                Protocol.UserModule.ModeCount.value(ma.type().modes.size()),
-                Protocol.UserModule.Modes.value(ma.type().modes.stream().map(np ->
-                        Protocol.ModuleModes.FIELDS.init().add(Protocol.ModuleModes.Data.value(np.param().def)
-                        )).toList())
-        ));
-        //initialize params
-        pm.setDefaultParamValues();
-        //initialize module name
-        FieldValues moduleNameFvs = Protocol.ModuleName.FIELDS.init().addAll(
-                Protocol.ModuleName.ModuleIndex.value(ma.index()),
-                Protocol.ModuleName.Name.value(ma.name()));
-        pm.setModuleName(moduleNameFvs);
+    public List<PatchModule> createModules(ModuleDelta md) throws Exception {
+        List<PatchModule> pms = new ArrayList<>();
+        for (ModuleDelta.UserModuleRecord mr : md.records()) {
+            PatchModule pm = addModule(mr.moduleData());
+            pm.setParamValues(mr.paramValues());
+            pm.setModuleName(Protocol.ModuleName.FIELDS.init().addAll(
+                    Protocol.ModuleName.ModuleIndex.value(-1), // unused
+                    Protocol.ModuleName.Name.value(mr.name())));
+            if (mr.moduleLabels() != null) {
+                pm.setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValue(mr.moduleLabels()));
+            }
+            pms.add(pm);
+        }
 
         //assemble message
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
-        BitBuffer bb = new BitBuffer(0xffff);
-        Protocol.ModuleAdd.FIELDS.init().addAll(
-                Protocol.ModuleAdd.ModuleAdd_30.value(0x30), //S_MODULE_ADD
-                Protocol.ModuleAdd.ModuleTypeIx.value(ma.type().ix),
-                Protocol.ModuleAdd.Location.value(id.ordinal()),
-                Protocol.ModuleAdd.Index.value(ma.index()),
-                Protocol.ModuleAdd.Column.value(ma.coords().column()),
-                Protocol.ModuleAdd.Row.value(ma.coords().row()),
-                Protocol.ModuleAdd.Reserved_0.value(0),
-                Protocol.ModuleAdd.Uprate.value(0),
-                Protocol.ModuleAdd.Leds.value(ma.type().isLed),
-                Protocol.ModuleAdd.Modes.value(List.of()),
-                Protocol.ModuleAdd.Name.value(ma.name())
-        ).write(bb);
-        ByteBuffer bbuf = bb.toBuffer().rewind();
-        while(bbuf.hasRemaining()) {
-            buf.put(bbuf.get());
+        BitBuffer bb = BitBuffer.fromSlice(buf);
+        for (PatchModule pm : pms) {
+            UserModuleData umd = pm.getUserModuleData();
+            Protocol.ModuleAdd.FIELDS.init().addAll(
+                    Protocol.ModuleAdd.ModuleAdd_30.value(0x30), //S_MODULE_ADD
+                    Protocol.ModuleAdd.ModuleTypeIx.value(umd.getType().ix),
+                    Protocol.ModuleAdd.Location.value(id.ordinal()),
+                    Protocol.ModuleAdd.Index.value(umd.getIndex()),
+                    Protocol.ModuleAdd.Column.value(umd.column().get()),
+                    Protocol.ModuleAdd.Row.value(umd.row().get()),
+                    Protocol.ModuleAdd.Reserved_0.value(0),
+                    Protocol.ModuleAdd.Uprate.value(umd.uprate().get()),
+                    Protocol.ModuleAdd.Leds.value(umd.getType().isLed),
+                    Protocol.ModuleAdd.Modes.value(pm.getUserModuleData().getModes().stream().map(v ->
+                            Protocol.Data8.FIELDS.values(Protocol.Data8.Datum.value(v.get()))).toList()),
+                    Protocol.ModuleAdd.Name.value(pm.name().get())
+            ).write(bb);
         }
+        buf.position(bb.limit());
         writeSection(buf,id == AreaId.Fx ? Sections.SCableList0_52 : Sections.SCableList1_52,
                 Protocol.CableList.FIELDS.init().addAll(
                         Protocol.CableList.Reserved.value(0),
-                        Protocol.CableList.CableCount.value(0),
-                        Protocol.CableList.Cables.value(List.of())
+                        Protocol.CableList.CableCount.value(md.cables().size()),
+                        Protocol.CableList.Cables.value(md.cables())
                 ));
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleParams0_4d : Sections.SModuleParams1_4d,
                 Protocol.ModuleParams.FIELDS.init().addAll(
-                        Protocol.ModuleParams.SetCount.value(1),
+                        Protocol.ModuleParams.SetCount.value(pms.size()),
                         Protocol.ModuleParams.VariationCount.value(MAX_VARIATIONS),
-                        Protocol.ModuleParams.ParamSet.value(List.of(Protocol.ModuleParamSet.FIELDS.init().addAll(
-                                Protocol.ModuleParamSet.ModIndex.value(ma.index()),
-                                Protocol.ModuleParamSet.ParamCount.value(ma.type().getParams().size()),
-                                Protocol.ModuleParamSet.ModParams.value(pm.getValues().getValues())
-                        )))
-                ));
+                        Protocol.ModuleParams.ParamSet.value(
+                                pms.stream().map(pm -> Protocol.ModuleParamSet.FIELDS.init().addAll(
+                                    Protocol.ModuleParamSet.ModIndex.value(pm.getIndex()),
+                                    Protocol.ModuleParamSet.ParamCount.value(pm.getUserModuleData().getType().getParams().size()),
+                                    Protocol.ModuleParamSet.ModParams.value(pm.getValues().getValues()))).toList())));
+
+        List<FieldValues> modLabels = pms.stream().map(PatchModule::getModuleLabelsValues).filter(Objects::nonNull).toList();
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleLabels0_5b : Sections.SModuleLabels1_5b,
                 Protocol.ModuleLabels.FIELDS.init().addAll(
-                        Protocol.ModuleLabels.ModuleCount.value(0),
-                        Protocol.ModuleLabels.ModLabels.value(List.of())
-                ));
+                        Protocol.ModuleLabels.ModuleCount.value(modLabels.size()),
+                        Protocol.ModuleLabels.ModLabels.value(modLabels)));
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleNames0_5a : Sections.SModuleNames1_5a,
                 Protocol.ModuleNames.FIELDS.init().addAll(
                         Protocol.ModuleNames.Reserved.value(0),
-                        Protocol.ModuleNames.NameCount.value(1),
-                        Protocol.ModuleNames.Names.value(List.of(moduleNameFvs))
-                ));
+                        Protocol.ModuleNames.NameCount.value(pms.size()),
+                        Protocol.ModuleNames.Names.value(pms.stream().map(m -> Protocol.ModuleName.FIELDS.values(
+                                Protocol.ModuleName.ModuleIndex.value(m.getIndex()),
+                                Protocol.ModuleName.Name.value(m.name().get()))).toList())));
         buf.limit(buf.position());
         sender.sendSlotRequest("add-module",Util.getBytes(buf.rewind()));
-
-        return pm;
+        return pms;
     }
 
     public FieldValues getModuleListValues() {

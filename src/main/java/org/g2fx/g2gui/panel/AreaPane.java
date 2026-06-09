@@ -1,6 +1,5 @@
 package org.g2fx.g2gui.panel;
 
-import com.google.common.collect.Sets;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
@@ -16,8 +15,11 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.G2GuiApplication;
 import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
+import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
@@ -33,9 +35,9 @@ import java.util.regex.Pattern;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.FXUtil.withClass1;
+import static org.g2fx.g2gui.module.MoveableModule.resolveCollisions;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_X;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_Y;
-import static org.g2fx.g2gui.panel.MoveableModule.resolveCollisions;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
@@ -69,8 +71,8 @@ public class AreaPane {
     private ModuleType toolbarDragModuleType = null;
     private Rectangle toolbarDragRect = null;
 
-    public record ModuleAdd(ModuleType type, int index, String name, int color, Coords coords) {}
-    private final Property<Set<ModuleAdd>> moduleAdds = new SimpleObjectProperty<>(Set.of());
+    private final Property<ModuleDelta> moduleDelta = new SimpleObjectProperty<>(null,"moduleDelta");
+
     private int moduleColor = 0;
 
     public AreaId getAreaId() {
@@ -116,15 +118,17 @@ public class AreaPane {
         selectedRect.setVisible(false);
         setupSelectionDragging();
         setupModuleDrag();
-        moduleAdds.addListener((c,o,n) -> {
-            undoAddModule(Sets.difference(o,n));
-            doAddModule(Sets.difference(n,o));
-        });
-        bridges.bridge(moduleAdds,d -> d.getArea(this.areaId).getDummyModuleAddProp());
+        moduleDelta.addListener((_,_,n) -> handleModuleDelta(n));
+        // fx thread
+        bridges.bridge(d -> d.getArea(this.areaId).getDummyModuleAddProp(),
+                new FxProperty.SimpleFxProperty<>(moduleDelta, u ->
+                        new Undos.Undo<>(u.property(),u.newValue().invert(),u.newValue())),
+                Iso.id());
         areaPane.getChildren().add(selectedRect);
         scrollPane.boundsInLocalProperty().addListener((c,o,n) -> resizeAreaPane());
         areaPane.getChildren().addListener((ListChangeListener<? super Node>) c -> resizeAreaPane());
     }
+
 
     private void resizeAreaPane() {
         if (resizing) return;
@@ -228,12 +232,12 @@ public class AreaPane {
             int row = (int) Math.round(e.getY() / GRID_Y);
             int index = getNewModuleIndex();
             undos.withMulti(() -> {
-                ModuleAdd ma = new ModuleAdd(toolbarDragModuleType, index,
+                ModuleDelta ma = ModuleDelta.addNewModule(areaId,toolbarDragModuleType, index,
                         getNewModuleName(toolbarDragModuleType), moduleColor,
                         new Coords(col, row));
                 addNewModule(ma);
                 clearModuleSelection();
-                selectModule(ma.index);
+                selectModule(index);
                 resolveCollisions(modulePanes.values());
             });
             clearToolbarDrag();
@@ -501,42 +505,48 @@ public class AreaPane {
         clearModuleSelection();
         int ix = getNewModuleIndex();
         undos.withMulti(() -> {
-            addNewModule(new ModuleAdd(mt, ix,getNewModuleName(mt),moduleColor,coords));
+            addNewModule(ModuleDelta.addNewModule(areaId,mt, ix,getNewModuleName(mt),moduleColor,coords));
             selectModule(ix);
             resolveCollisions(modulePanes.values());
         });
     }
 
 
+    private void handleModuleDelta(ModuleDelta md) {
+        if (md.isEmpty()) { return; }
+        if (md.add()) {
+            doAddModule(md);
+        } else {
+            doDeleteModule(md);
+        }
+    }
+
     /**
      * Internal, fire add-module property event.
      */
-    private void addNewModule(ModuleAdd ma) {
-        HashSet<ModuleAdd> as = new HashSet<>(moduleAdds.getValue());
-        as.add(ma);
-        moduleAdds.setValue(as);
+    private void addNewModule(ModuleDelta ma) {
+        moduleDelta.setValue(ma);
     }
 
 
     /**
      * Module-add property event handler.
      */
-    private void doAddModule(Sets.SetView<ModuleAdd> adds) {
-        adds.forEach(ma -> {
-            log.info(() -> "doAddModule: " + ma);
-            PatchModule pm = bridges.getDeviceExecutor().invokeWithCurrentPerf(d -> {
-                PatchModule m = d.getSlot(slotPane.getSlot()).getArea(areaId).createModule(ma);
-                d.getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
-                return m;
-            });
-            renderModule(ma.index(),ma.type(),pm,uiModules.get(ma.type()));
+    private void doAddModule(ModuleDelta ma) {
+        log.info(() -> "doAddModule: " + ma);
+        List<PatchModule> pms = bridges.getDeviceExecutor().invokeWithCurrentPerf(d -> {
+            List<PatchModule> ms = d.getSlot(slotPane.getSlot()).getArea(areaId).createModules(ma);
+            d.getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
+            return ms;
         });
+        for (PatchModule pm : pms) {
+            ModuleType type = pm.getUserModuleData().getType();
+            renderModule(pm.getIndex(), type,pm,uiModules.get(type));
+        }
     }
 
-    private void undoAddModule(Sets.SetView<ModuleAdd> adds) {
-        adds.forEach(ma -> {
-            log.info(() -> "undoAddModule: " + ma);
-        });
+    private void doDeleteModule(ModuleDelta md) {
+        log.info(() -> "doDeleteModule: " + md);
 
     }
 

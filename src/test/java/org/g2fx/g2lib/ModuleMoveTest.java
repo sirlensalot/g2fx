@@ -2,7 +2,7 @@ package org.g2fx.g2lib;
 
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import org.g2fx.g2gui.panel.MoveableModule;
+import org.g2fx.g2gui.module.MoveableModule;
 import org.g2fx.g2lib.state.Coords;
 import org.junit.jupiter.api.Test;
 

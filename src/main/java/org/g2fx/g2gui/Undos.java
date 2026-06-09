@@ -60,7 +60,7 @@ public class Undos {
         inUndoRedo = true;
         List<Undo<?>> action = undoStack.pop();
         try {
-            action.forEach(Undo::undo);
+            action.forEach(u -> u.mutate().undo());
         } finally { inUndoRedo = false; }
         redoStack.push(action);
     }
@@ -90,11 +90,10 @@ public class Undos {
     }
 
     public record Undo<T>(FxProperty<T> property, T oldValue, T newValue) {
-        public void undo() {
-            property.setValue(oldValue);
-        }
+        public void undo() { property.setValue(oldValue); }
         public void redo() {
             property.setValue(newValue);
         }
+        public Undo<T> mutate() { return property.getUndoMutator().apply(this); }
     }
 }

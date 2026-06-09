@@ -16,6 +16,7 @@ import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.*;
+import org.g2fx.g2gui.module.MoveableModule;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2gui.ui.UIModule;

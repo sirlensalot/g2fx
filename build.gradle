@@ -71,3 +71,14 @@ tasks.register('runApp', JavaExec) {
         '--enable-native-access=javafx.graphics,ALL-UNNAMED'
     ]
 }
+
+
+
+
+configurations.matching { it.name.contains('downloadSources') }.configureEach {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, OperatingSystemFamily.MACOS))
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, 'aarch64'))
+    }
+}

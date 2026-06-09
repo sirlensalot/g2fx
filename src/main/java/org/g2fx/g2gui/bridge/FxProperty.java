@@ -4,24 +4,31 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import org.g2fx.g2gui.Undos;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public abstract class FxProperty<T> {
 
     public static class SimpleFxProperty<T> extends FxProperty<T> {
 
-        private Property<T> p;
+        private final Property<T> p;
         public SimpleFxProperty(Property<T> p) {
-            this(p,null);
+            this(p,null,t->t);
         }
-
+        public SimpleFxProperty(Property<T> p, Function<Undos.Undo<T>, Undos.Undo<T>> undoMutator) {
+            this(p,null,undoMutator);
+        }
         /**
          * @param p target property
          * @param changing boolean prop for commit undos, can be null.
          */
         public SimpleFxProperty(Property<T> p, ObservableValue<Boolean> changing) {
-            super(p,changing);
+            this(p,changing,t -> t);
+        }
+        public SimpleFxProperty(Property<T> p, ObservableValue<Boolean> changing, Function<Undos.Undo<T>, Undos.Undo<T>> undoMutator) {
+            super(p,changing,undoMutator);
             this.p = p;
         }
         @Override public void setValue(T value) { p.setValue(value); }
@@ -38,6 +45,7 @@ public abstract class FxProperty<T> {
     private ChangeListener<T> valueListener;
     private final ObservableValue<Boolean> changing;
     protected final ObservableValue<T> observable;
+    private final Function<Undos.Undo<T>, Undos.Undo<T>> undoMutator;
     private String name;
 
     public FxProperty(ObservableValue<T> observable) {
@@ -45,7 +53,12 @@ public abstract class FxProperty<T> {
     }
 
     public FxProperty(ObservableValue<T> observable, ObservableValue<Boolean> changingArg) {
+        this(observable,changingArg,t -> t);
+    }
+
+    public FxProperty(ObservableValue<T> observable, ObservableValue<Boolean> changingArg, Function<Undos.Undo<T>, Undos.Undo<T>> undoMutator) {
         this.observable = observable;
+        this.undoMutator = undoMutator;
         if (observable instanceof Property<T> po) {
             name = po.getName();
         } else {
@@ -65,6 +78,10 @@ public abstract class FxProperty<T> {
                 }
             }
         });
+    }
+
+    public Function<Undos.Undo<T>, Undos.Undo<T>> getUndoMutator() {
+        return undoMutator;
     }
 
     public void addListener(ChangeListener<T> listener) {

@@ -1,4 +1,4 @@
-package org.g2fx.g2gui.panel;
+package org.g2fx.g2gui.module;
 
 import javafx.beans.property.Property;
 import org.g2fx.g2lib.state.Coords;

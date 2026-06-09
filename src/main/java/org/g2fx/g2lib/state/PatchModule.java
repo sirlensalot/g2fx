@@ -19,20 +19,19 @@ public class PatchModule {
     public static final int MAX_VARIATIONS = 10;
     public static final int FILE_VARIATIONS = 9;
 
-    private final UserModuleData userModuleData;
+    private final UserModuleData userModuleData; // user
     private final UsbSlotSender sender;
     private final AreaId area;
-    private final SettingsModules settingsModuleType;
-    private final List<NamedParam> params;
-    private ParamValues values;// = new ParamValues();
-    private final Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>();
+    private final SettingsModules settingsModuleType; // settings
+    private ParamValues values;
+    private final Map<Integer,List<LibProperty<String>>> userLabels = new TreeMap<>(); // user
     private LibProperty<String> name;
 
     private final int index;
-    private FieldValues morphLabelFvs;
-    private List<LibProperty<String>> morphLabels;
-    private final List<PatchVisual> leds;
-    private final List<PatchVisual> metersAndGroups;
+    private FieldValues morphLabelFvs; // settings
+    private List<LibProperty<String>> morphLabels; // settings
+    private final List<PatchVisual> leds; // user, derived
+    private final List<PatchVisual> metersAndGroups; // user, derivced
 
     /**
      * User module constructor
@@ -43,12 +42,10 @@ public class PatchModule {
         this.area = area;
         this.index = userModuleData.getIndex();
         this.settingsModuleType = null;
-        this.params = new ArrayList<>(userModuleData.getType().getParams());
         log = Util.getLogger(getClass(),userModuleData.getType(),index);
         leds = initVisuals(Visual.VisualType.Led);
         metersAndGroups = initVisuals(null);
     }
-
 
     /**
      * Settings module constructor.
@@ -59,10 +56,15 @@ public class PatchModule {
         this.sender = sender;
         this.area = area;
         this.userModuleData = null;
-        this.params = settingsModule.mkParams();
         log = Util.getLogger(getClass(), settingsModuleType,index);
         leds = metersAndGroups = new ArrayList<>();
     }
+
+    public AreaId getArea() {
+        return area;
+    }
+
+
 
     public void setParamValues(List<FieldValues> varParams) {
         // add extra variations with defaults

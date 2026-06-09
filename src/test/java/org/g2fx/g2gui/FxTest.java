@@ -103,7 +103,7 @@ public class FxTest {
         assertEquals("minimal02lfo",app.getDevices().getCurrentPerf().perfName().get());
 
         //test bridges initialized
-        assertEquals(1924,callFxThread(computeBridgesCount));
+        assertEquals(1932,callFxThread(computeBridgesCount));
 
         app.getDevices().getPerfLoadListener().onLifecycleDispose(app.getDevices().getCurrentPerf());
 
@@ -132,7 +132,7 @@ public class FxTest {
         assertEquals("g2fx-uprate-4mod",perf.getSlot(Slot.A).name().get());
 
         //test bridges initialized
-        assertEquals(90,callFxThread(computeBridgesCount));
+        assertEquals(92,callFxThread(computeBridgesCount));
 
         app.getDevices().getPatchLoadListener().onLifecycleDispose(perf.getSlot(Slot.A));
 

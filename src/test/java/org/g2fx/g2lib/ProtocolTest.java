@@ -1,5 +1,6 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.model.SettingsModules;
@@ -12,6 +13,7 @@ import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
 import org.g2fx.g2lib.usb.UsbSender;
+import org.g2fx.g2lib.usb.UsbSlotSender;
 import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
@@ -738,6 +740,17 @@ class ProtocolTest {
         ByteBuffer buf = p.writeFile();
         ByteBuffer filebuf = Util.readFile(PATCH_FILE);
         assertEquals(filebuf.rewind(),buf.rewind());
+
+        //roundtrip ModuleRecord
+        p.getArea(AreaId.Fx).getModules().forEach(pm -> {
+            ModuleDelta.UserModuleRecord r = new ModuleDelta.UserModuleRecord(pm);
+            PatchModule pm2 = r.mkPatchModule(new UsbSlotSender(sender, p));
+            assertEquals(pm.getUserModuleData().getValues(), pm2.getUserModuleData().getValues());
+            assertEquals(pm.getParamsValues(PatchModule.MAX_VARIATIONS), pm2.getParamsValues(PatchModule.MAX_VARIATIONS));
+            assertEquals(pm.getModuleLabelsValues(), pm2.getModuleLabelsValues());
+        });
+
+
     }
 
 
