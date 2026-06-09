@@ -248,7 +248,7 @@ public class Patch {
     /*
      * TODO this currently writes an inbound-style patch message, change to outbound
      */
-    public ByteBuffer writeMessage() throws Exception {
+    public ByteBuffer writeMessageOld() throws Exception {
 
         ByteBuffer buf = ByteBuffer.allocateDirect(2048);
 
@@ -269,6 +269,7 @@ public class Patch {
     }
 
 
+
     /**
      * write patch message to existing bitbuffer. TODO same as sending patch?
      */
@@ -286,6 +287,33 @@ public class Patch {
             log.info(() -> String.format("writeMessage: %s, length %x",s,len));
             bb.padToByte();
         }
+    }
+
+
+    public void sendPatch() throws Exception {
+        log.info("sendPerf");
+        slotSender.getSender().sendBulk("sendPatch",true, writeMessage());
+        sendUnk6Request();
+        sendSelectedParamRequest();
+    }
+
+    public ByteBuffer writeMessage() throws Exception {
+        ByteBuffer buf = ByteBuffer.allocate(0xffff);
+        buf.put(Util.asBytes(
+                M_CMD,
+                S_SLOT_REQ + slot.ordinal(),
+                V_NEW_PATCH,
+                O_CREATE,
+                0x00, // ??
+                0x00, // ??
+                0x00  // ??
+        ));
+        BitBuffer bb = BitBuffer.fromSlice(buf);
+        FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(name().get()));
+        name.write(bb);
+        writeMessage(bb,PatchModule.MAX_VARIATIONS);
+        buf.limit(bb.limit());
+        return buf;
     }
 
     private FieldValues getSectionValues(Sections s, int variationCount) {

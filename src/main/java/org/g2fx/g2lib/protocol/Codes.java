@@ -34,8 +34,10 @@ public class Codes {
     public static final int V_VERSION = 0x40;
     // "System version" in perf requests
     public static final int V_SYSTEM = 0x41;
-    // "New version" in perf (patch?) create
-    public static final int V_NEW = 0x42;
+    // "New version" in perf create
+    public static final int V_NEW_PERF = 0x42;
+    // "New version" in patch create
+    public static final int V_NEW_PATCH = 0x53;
 
     // Perf slot codes
     public static final int S_SLOT_00 = 0x00;

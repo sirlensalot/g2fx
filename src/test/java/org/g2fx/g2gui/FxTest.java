@@ -7,68 +7,20 @@ import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
-import org.g2fx.g2lib.usb.Dispatcher;
-import org.g2fx.g2lib.usb.MessageRecorder;
-import org.g2fx.g2lib.usb.Usb;
-import org.g2fx.g2lib.usb.UsbSender;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.g2fx.g2lib.DeviceTest.parseCapture;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class FxTest {
-
-    /**
-     * Sender + dispatcher driver using capture files. Expects outbounds to match exactly;
-     * dispatches all inbounds until next outbound.
-     */
-    public static class CaptureSender implements UsbSender {
-
-        private List<MessageRecorder.RecordedUsbMessage> script;
-        private Dispatcher dispatcher;
-
-        public CaptureSender(List<MessageRecorder.RecordedUsbMessage> script) {
-            this.script = script;
-        }
-        public CaptureSender(String f) throws Exception {
-            this(parseCapture(f, _ -> true));
-        }
-
-        @Override
-        public int sendBulk(String msg, boolean dispatch, ByteBuffer data) throws Exception {
-            MessageRecorder.RecordedUsbMessage m = script.removeFirst();
-            assertEquals(Util.dumpBufferString(m.msg().buffer()),Util.dumpBufferString(Usb.prepareSendBuffer(data)));
-            dispatchInbounds();
-            return 0;
-        }
-
-        public void dispatchInbounds() throws Exception {
-            while (!script.isEmpty() && script.getFirst().inbound()) {
-                assertTrue(dispatcher.dispatch(script.removeFirst().msg()));
-            }
-
-        }
-
-        @Override
-        public void shutdown() {
-
-        }
-
-        @Override
-        public void setDispatcher(Dispatcher dispatcher) {
-            this.dispatcher = dispatcher;
-        }
-    }
 
     @BeforeAll
     static void before() {
@@ -110,7 +62,7 @@ public class FxTest {
         G2GuiApplication app = startApp();
         onFxThread(() -> {
             long t = System.nanoTime();
-            app.getDevices().loadFile(PerformanceTest.PERF_002);
+            app.getDevices().loadFile(PerformanceTest.PERF_002, null);
             long elapsed = System.nanoTime() - t;
             System.out.printf("Load Perf Time: %dms\n",TimeUnit.MILLISECONDS.convert(elapsed,TimeUnit.NANOSECONDS));
         });

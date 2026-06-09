@@ -80,7 +80,7 @@ public class Commands {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Open File");
                 fileChooser.getExtensionFilters().add(
-                        new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
+                        new FileChooser.ExtensionFilter("G2 Perf/Patch Files (*.prf2, *.pch2)", "*.prf2", "*.pch2")
                 );
                 File f = fileChooser.showOpenDialog(stage);
                 if (f != null) { loadFile(f); }
@@ -127,7 +127,7 @@ public class Commands {
 
             Platform.runLater(Commands.this::updateRecentFiles);
 
-            devices.execute(() -> devices.loadFile(f.getAbsolutePath()));
+            devices.execute(() -> devices.loadFile(f.getAbsolutePath(), null));
         }
 
 

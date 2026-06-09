@@ -54,7 +54,7 @@ public enum EvalCommand {
                     throw c.bad("Not a G2 file");
                 }
                 c.eval.setPath(c.devices.invoke(() -> {
-                    c.devices.loadFile(filePath);
+                    c.devices.loadFile(filePath, null);
                     return c.devices.withCurrentPerf(d -> Path.pathForPatch(d,d.getSelectedPatch()));
                 }));
             })),

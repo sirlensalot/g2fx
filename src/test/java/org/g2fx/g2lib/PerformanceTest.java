@@ -1,10 +1,14 @@
 package org.g2fx.g2lib;
 
+import org.g2fx.g2gui.CaptureSender;
+import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.AreaId;
+import org.g2fx.g2lib.state.LifecycleListener;
 import org.g2fx.g2lib.state.Performance;
+import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.usb.OfflineSender;
 import org.g2fx.g2lib.usb.UsbMessage;
@@ -188,6 +192,20 @@ public class PerformanceTest {
         //have to skip CRC for overwrites
         assertEquals(Util.dumpBufferString(dropCrcTrailer(buf)),
                 Util.dumpBufferString(dropCrcTrailer(wbuf)));
+    }
+
+    @Test
+    void loadPatch008() throws Exception {
+        CaptureSender sender = new CaptureSender("data/capture/capture-008-loadfile-patch-g2fx-uprate-4mod.pcapng");
+        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener());
+        Performance p = new Performance(sender);
+        d.setPerf(p);
+        try {
+            p.readPatchFromFile(Slot.A,"data/patch/g2fx-uprate-4mod.pch2");
+        } catch (CaptureSender.CaptureException e) {
+            assertEquals(e.expected,e.actual);
+        }
+
     }
 
     public static ByteBuffer dropCrcTrailer(ByteBuffer buf) {

@@ -80,6 +80,22 @@ public class Performance {
         return perf;
     }
 
+
+    public Patch readPatchFromFile(Slot slot, String path) throws Exception {
+        Patch patch = Patch.readFromFile(slot,path,usb);
+        String name = new File(path).getName();
+        patch.name().set(name.substring(0,name.length()-".pch2".length()));
+        slots.put(slot, patch);
+        patch.sendPatch();
+        for (Patch p : slots.values()) {
+            p.sendUnk6Request();
+            if (p == patch) {
+                p.sendSelectedParamRequest();
+            }
+        }
+        return patch;
+    }
+
     /**
      * Read ahead perf settings.
      */
@@ -153,7 +169,7 @@ public class Performance {
         buf.put(Util.asBytes(
                 M_CMD,
                 S_PERF_REQ,
-                V_NEW,
+                V_NEW_PERF,
                 O_CREATE,
                 0x00, // ??
                 0x00, // ??

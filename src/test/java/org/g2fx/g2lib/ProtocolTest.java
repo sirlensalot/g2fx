@@ -721,7 +721,7 @@ class ProtocolTest {
         Patch p = Patch.readFromMessage(0, Slot.B,msgfile,sender);
         p.readSectionMessage(Util.readFile(CURRENT_NOTE_MSG), Sections.SCurrentNote_69);
         p.readSectionMessage(Util.readFile(TEXTPAD_MSG), Sections.STextPad_6f);
-        ByteBuffer msgbuf = p.writeMessage();
+        ByteBuffer msgbuf = p.writeMessageOld();
         assertEquals(Util.dumpBufferString(msgfile.rewind()),
                 Util.dumpBufferString(msgbuf.rewind()));
 

@@ -4,6 +4,7 @@ import org.g2fx.g2lib.repl.Path;
 import org.g2fx.g2lib.state.LifecycleListener;
 import org.g2fx.g2lib.state.Patch;
 import org.g2fx.g2lib.state.Performance;
+import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.usb.*;
 import org.g2fx.g2lib.util.Util;
 
@@ -16,7 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Singleton service/facade representing G2 devices and USB service and current Performance.
+ * Singleton facade/pub-sub representing G2 device(s) and current Performance.
  */
 public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
@@ -55,11 +56,13 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     };
 
 
-
+    /**
+     * Callback for Device/Dispatcher on inbound perf load events.
+     */
     private final LifecycleListener<Performance> perfLoadListener = new LifecycleListener<>() {
         @Override
         public void onLifecycleInit(Performance performance) throws Exception {
-            currentPerf = performance;
+            setCurrentPerf(performance); //redundant set on device but oh well
             notifyPerfInit();
         }
 
@@ -69,6 +72,9 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         }
     };
 
+    /**
+     * Callback for Device/Dispatcher on inbound patch load events.
+     */
     private final LifecycleListener<Patch> patchLoadListener = new LifecycleListener<>() {
         @Override
         public void onLifecycleInit(Patch patch) throws Exception {
@@ -81,7 +87,10 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         }
     };
 
-    private final Device offlineDevice = new Device(currentSender, perfLoadListener, LifecycleListener.noopListener());
+    /**
+     * Persistent "fake device" when G2 not connected.
+     */
+    private final Device offlineDevice = new Device(currentSender, perfLoadListener, patchLoadListener);
 
     private Device currentDevice = offlineDevice;
 
@@ -213,10 +222,11 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     }
 
     /**
-     * Exposed for testing
+     * Exposed for testing/used internally.
      */
     public void setCurrentPerf(Performance currentPerf) {
         this.currentPerf = currentPerf;
+        currentDevice.setPerf(currentPerf);
     }
 
     @Override
@@ -247,20 +257,28 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     }
 
 
-    public void loadFile(String path) {
+    /**
+     * @param path extension determines if perf or patch loaded
+     * @param slot optional slot, otherwise perf "current slot" used
+     */
+    public void loadFile(String path, Slot slot) {
         try {
 
             if (path.endsWith("prf2")) {
                 disposePerf();
-                currentPerf = Performance.readFromFile(path, delegatingSender);
-                currentDevice.setPerf(currentPerf);
+                setCurrentPerf(Performance.readFromFile(path, delegatingSender));
                 notifyPerfInit();
 
                 currentPerf.sendPerf();
 
-            }
-            if (path.endsWith("pch2")) {
-                throw new UnsupportedOperationException("Patch load TODO"); //TODO
+            } else if (path.endsWith("pch2")) {
+                if (currentPerf == null) {
+                    newPerformance();
+                }
+                if (slot == null) { slot = currentPerf.getSelectedSlot(); }
+                patchLoadListener.onLifecycleDispose(currentPerf.getSlot(slot));
+                Patch p = currentPerf.readPatchFromFile(slot,path);
+                patchLoadListener.onLifecycleInit(p);
             }
         } catch (Exception e) {
             log.log(Level.SEVERE,"File load failed",e);
@@ -270,8 +288,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
 
     public void newPerformance() {
         disposePerf();
-        currentPerf = new Performance(delegatingSender);
-        currentDevice.setPerf(currentPerf);
+        setCurrentPerf(new Performance(delegatingSender));
         try {
             currentPerf.initNew();
             notifyPerfInit();
