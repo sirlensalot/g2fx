@@ -30,7 +30,7 @@ public record ModuleDelta(List<UserModuleRecord> records, List<FieldValues> cabl
             this(pm.name().get(),
                     pm.getUserModuleData().getValues(),
                     pm.getArea(),
-                    pm.getValues().getValues(),
+                    pm.getValues() == null ? null : pm.getValues().getValues(),
                     pm.getModuleLabelsValues()
                     );
         }
@@ -42,6 +42,22 @@ public record ModuleDelta(List<UserModuleRecord> records, List<FieldValues> cabl
                 pm.setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValue(moduleLabels));
             }
             return pm;
+        }
+
+        public UserModuleRecord duplicate(int index, Coords coords) {
+            FieldValues md = moduleData.copy()
+                    .update(Protocol.UserModule.Index.value(index))
+                    .update(Protocol.UserModule.Column.value(coords.column()))
+                    .update(Protocol.UserModule.Row.value(coords.row()));
+            return new UserModuleRecord(name,md,area,paramValues,moduleLabels);
+        }
+
+        public Coords getCoords() {
+            return new Coords(Protocol.UserModule.Column.intValue(moduleData),
+                    Protocol.UserModule.Row.intValue(moduleData));
+        }
+        public int getIndex() {
+            return Protocol.UserModule.Index.intValue(moduleData);
         }
 
     }

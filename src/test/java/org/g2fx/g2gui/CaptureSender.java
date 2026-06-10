@@ -4,6 +4,7 @@ import org.g2fx.g2lib.usb.*;
 import org.g2fx.g2lib.util.Util;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.g2fx.g2lib.DeviceTest.parseCapture;
@@ -20,11 +21,16 @@ public class CaptureSender implements UsbSender {
     private Dispatcher dispatcher;
 
     public CaptureSender(List<MessageRecorder.RecordedUsbMessage> script) {
-        this.script = script;
+        this.script = new ArrayList<>(script);
     }
 
     public CaptureSender(String f) throws Exception {
         this(parseCapture(f, _ -> true));
+    }
+
+    public void setScript(String f) throws Exception {
+        script.clear();
+        script.addAll(parseCapture(f,_->true));
     }
 
     @Override
@@ -54,5 +60,9 @@ public class CaptureSender implements UsbSender {
     @Override
     public void setDispatcher(Dispatcher dispatcher) {
         this.dispatcher = dispatcher;
+    }
+
+    public List<MessageRecorder.RecordedUsbMessage> getScript() {
+        return script;
     }
 }

@@ -176,10 +176,13 @@ public class PatchArea {
     }
 
     public List<PatchModule> createModules(ModuleDelta md) throws Exception {
+        return createModules(md,0);
+    }
+    public List<PatchModule> createModules(ModuleDelta md,int reservedHack) throws Exception {
         List<PatchModule> pms = new ArrayList<>();
         for (ModuleDelta.UserModuleRecord mr : md.records()) {
             PatchModule pm = addModule(mr.moduleData());
-            pm.setParamValues(mr.paramValues());
+            if (mr.paramValues() != null) { pm.setParamValues(mr.paramValues()); }
             pm.setModuleName(Protocol.ModuleName.FIELDS.init().addAll(
                     Protocol.ModuleName.ModuleIndex.value(-1), // unused
                     Protocol.ModuleName.Name.value(mr.name())));
@@ -216,12 +219,13 @@ public class PatchArea {
                         Protocol.CableList.CableCount.value(md.cables().size()),
                         Protocol.CableList.Cables.value(md.cables())
                 ));
+        List<PatchModule> ppms = pms.stream().filter(pm -> pm.getValues() != null).toList();
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleParams0_4d : Sections.SModuleParams1_4d,
                 Protocol.ModuleParams.FIELDS.init().addAll(
-                        Protocol.ModuleParams.SetCount.value(pms.size()),
+                        Protocol.ModuleParams.SetCount.value(ppms.size()),
                         Protocol.ModuleParams.VariationCount.value(MAX_VARIATIONS),
                         Protocol.ModuleParams.ParamSet.value(
-                                pms.stream().map(pm -> Protocol.ModuleParamSet.FIELDS.init().addAll(
+                                ppms.stream().map(pm -> Protocol.ModuleParamSet.FIELDS.init().addAll(
                                     Protocol.ModuleParamSet.ModIndex.value(pm.getIndex()),
                                     Protocol.ModuleParamSet.ParamCount.value(pm.getUserModuleData().getType().getParams().size()),
                                     Protocol.ModuleParamSet.ModParams.value(pm.getValues().getValues()))).toList())));
@@ -233,13 +237,14 @@ public class PatchArea {
                         Protocol.ModuleLabels.ModLabels.value(modLabels)));
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleNames0_5a : Sections.SModuleNames1_5a,
                 Protocol.ModuleNames.FIELDS.init().addAll(
-                        Protocol.ModuleNames.Reserved.value(0),
+                        Protocol.ModuleNames.Reserved.value(reservedHack),
                         Protocol.ModuleNames.NameCount.value(pms.size()),
                         Protocol.ModuleNames.Names.value(pms.stream().map(m -> Protocol.ModuleName.FIELDS.values(
                                 Protocol.ModuleName.ModuleIndex.value(m.getIndex()),
                                 Protocol.ModuleName.Name.value(m.name().get()))).toList())));
         buf.limit(buf.position());
-        sender.sendSlotRequest("add-module",Util.getBytes(buf.rewind()));
+        sender.sendSlotRequest("add-modules",Util.getBytes(buf.rewind()));
+        Patch.sendUnk6Request(sender);
         return pms;
     }
 

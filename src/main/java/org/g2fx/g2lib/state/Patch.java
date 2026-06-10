@@ -597,8 +597,11 @@ public class Patch {
     }
 
     public void sendUnk6Request() throws Exception {
-        slotSender.sendSlotRequest("unknown 6",
-                O_UNKNOWN6);
+        sendUnk6Request(slotSender);
+    }
+
+    public static void sendUnk6Request(UsbSlotSender slotSender) throws Exception {
+        slotSender.sendSlotRequest("unknown 6", O_UNKNOWN6);
     }
 
     public void sendSlotResourcesRequests() throws Exception {
