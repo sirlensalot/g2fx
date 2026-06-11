@@ -51,6 +51,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "4f") { c = "O_PARAM_NAMES" }
         if ($7 == "59") { c = "O_UNKNOWN2" }
         if ($7 == "5e") { c = "O_GLOBAL_KNOBS" }
+        if ($7 == "6a") { c = "O_CHANGE_VARIATION" }
         if ($7 == "68") { c = "O_CURRENT_NOTE" }
         if ($7 == "6e") { c = "O_PATCH_TEXT" }
         if ($7 == "70") { c = "O_UNKNOWN6" }

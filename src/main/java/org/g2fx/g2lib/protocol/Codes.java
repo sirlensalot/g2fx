@@ -70,6 +70,7 @@ public class Codes {
     public static final int O_PARAM_NAMES = 0x4f;
     public static final int O_UNKNOWN2 = 0x59;
     public static final int O_GLOBAL_KNOBS = 0x5e;
+    public static final int O_CHANGE_VARIATION = I_CHANGE_VARIATION; // 0x6a
     public static final int O_CURRENT_NOTE = 0x68;
     public static final int O_PATCH_TEXT = 0x6e;
     public static final int O_UNKNOWN6 = 0x70;

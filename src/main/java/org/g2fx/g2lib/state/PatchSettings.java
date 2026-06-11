@@ -2,6 +2,7 @@ package org.g2fx.g2lib.state;
 
 import org.g2fx.g2gui.controls.VoiceMode;
 import org.g2fx.g2lib.model.LibProperty;
+import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -61,6 +62,9 @@ public class PatchSettings implements LibProperty.FieldValuesChangeListener {
                 voices.set(newValue.getVoices());
             }
         }));
+
+        variation.addListener((o,n) -> sender.sendSlotRequest("select-variation",
+                Codes.O_CHANGE_VARIATION, n));
 
     }
 
