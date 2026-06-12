@@ -6,24 +6,19 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.*;
 import org.g2fx.g2lib.device.Devices;
+import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static javafx.scene.input.KeyCombination.SHIFT_DOWN;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
@@ -32,6 +27,7 @@ public class Commands {
 
     public static final String PREF_RECENT_FILES = "recentFiles";
     public static final int MAX_RECENT_FILES = 15;
+    private static final DataFormat MODULE_PANES_FMT = new DataFormat("application/x-g2fx-module-panes");
 
     private final Devices devices;
 
@@ -87,7 +83,7 @@ public class Commands {
             });
 
             return mkMenu("File",
-                    mkMenuItem("New Performance", _ -> devices.execute(devices::newPerformance)),
+                    mkMenuItem("New Performance", execute(devices::newPerformance)),
                     openItem,
                     mkMenuItem("Save",shortcutKey(KeyCode.S), _ -> savePerf(stage)),
                     recentFilesMenu);
@@ -129,6 +125,10 @@ public class Commands {
         public MenuBar getMenuBar() {
             return menuBar;
         }
+    }
+
+    private EventHandler<ActionEvent> execute(LibExecutor.ThrowingRunnable r) {
+        return _ -> devices.execute(r);
     }
 
     public Commands(Devices devices, Slots slots, Undos undos) {
@@ -207,8 +207,30 @@ public class Commands {
     private Menu populateEditMenu() {
         return mkMenu("Edit",
                 mkMenuItem("Undo",shortcutKey(KeyCode.Z), _ -> undos.undo()),
-                mkMenuItem("Redo",shortcutKey(KeyCode.Z, SHIFT_DOWN), _ -> undos.redo()));
+                mkMenuItem("Redo",shortcutKey(KeyCode.Z, SHIFT_DOWN), _ -> undos.redo()),
+                mkMenuItem("Cut",shortcutKey(KeyCode.X),_ -> todo("cut")),
+                mkMenuItem("Copy",shortcutKey(KeyCode.C), _ -> doCopy()),
+                mkMenuItem("Paste",shortcutKey(KeyCode.V), _ -> doPaste())
+        );
     }
+
+    private void doCopy() {
+        Slots.ModuleIds mids = slots.getSelectedSlotPane().doCopy();
+        if (!mids.ixs().isEmpty()) {
+            Clipboard.getSystemClipboard().setContent(Map.of(MODULE_PANES_FMT, mids));
+        }
+        //could do hasString() test here when wanting to support text and mids is empty
+    }
+
+    private void doPaste() {
+        Clipboard c = Clipboard.getSystemClipboard();
+        if (c.hasContent(MODULE_PANES_FMT) && (c.getContent(MODULE_PANES_FMT) instanceof Slots.ModuleIds mids)) {
+            slots.doPaste(mids);
+        }
+    }
+
+
+    private void todo(String s) { System.out.println("menu item TODO: " + s);}
 
 
     private KeyCombination shortcutKey(KeyCode code, KeyCombination.Modifier... mods) {

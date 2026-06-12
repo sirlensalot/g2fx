@@ -25,9 +25,11 @@ import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -55,6 +57,8 @@ public class Slots {
     private final RebindableControls<SlotAndVar> slotVarControls = new RebindableControls<>();
 
     private final Bridges<Performance> bridges;
+
+    public record ModuleIds(Slot slot, AreaId area, Set<Integer> ixs) implements Serializable {}
 
 
     public Slots(Undos undos, Bridges<Performance> bridges) throws Exception {
@@ -222,5 +226,11 @@ public class Slots {
         SlotPane slot = slotPanes.get(patch.getSlot().ordinal());
         slot.getBridges().dispose();
         slot.disposeModuleBridges();
+    }
+
+    public void doPaste(ModuleIds mids) {
+        AreaPane srcArea = getSlot(mids.slot).getAreaPane(mids.area);
+        getSelectedSlotPane().getAreaWithSelection().doPaste(
+                mids.ixs.stream().map(srcArea::getModule).toList());
     }
 }

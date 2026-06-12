@@ -32,10 +32,7 @@ import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -416,14 +413,22 @@ public class SlotPane {
     }
 
     public void addNewModule(ModuleType mt) {
-        if (!getAreaPane(AreaId.Fx).getSelectedModules().isEmpty()) {
-            getAreaPane(AreaId.Fx).addNewModule(mt);
-            return;
-        }
-        getAreaPane(AreaId.Voice).addNewModule(mt);
+        getAreaWithSelection().addNewModule(mt);
+    }
+
+    public AreaPane getAreaWithSelection() {
+        return getAreaPane(getAreaPane(AreaId.Fx).hasModuleSelection() ? AreaId.Fx : AreaId.Voice);
     }
 
     public Bridges<Patch> getBridges() {
         return bridges;
     }
+
+    public Slots.ModuleIds doCopy() {
+        AreaPane area = getAreaWithSelection();
+        return new Slots.ModuleIds(slot, area.getAreaId(),
+                new TreeSet<>(area.getSelectedModules().stream().map(ModulePane::getIndex).toList()));
+    }
+
+
 }

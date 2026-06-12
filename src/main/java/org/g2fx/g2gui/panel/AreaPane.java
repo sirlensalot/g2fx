@@ -425,6 +425,10 @@ public class AreaPane {
         return selectedModules;
     }
 
+    public boolean hasModuleSelection() {
+        return !selectedModules.isEmpty();
+    }
+
     public void clearModules() {
         areaPane.getChildren().clear();
         areaPane.getChildren().add(areaLabel);
@@ -550,4 +554,7 @@ public class AreaPane {
 
     }
 
+    public void doPaste(List<ModulePane> modules) {
+        log.warning("doPaste: " + modules);
+    }
 }
