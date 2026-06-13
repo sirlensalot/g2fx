@@ -312,7 +312,8 @@ public class Commands {
                         e.consume();
                     }
                     return;
-
+                case KeyCode.ESCAPE:
+                    slots.clearPaste();
             }
         };
 

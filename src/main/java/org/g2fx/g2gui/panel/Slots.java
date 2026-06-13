@@ -233,4 +233,8 @@ public class Slots {
         List<ModulePane> mps = mids.ixs.stream().map(srcArea::getModule).toList();
         getSelectedSlotPane().doPaste(mps);
     }
+
+    public void clearPaste() {
+        slotPanes.forEach(SlotPane::clearPaste);
+    }
 }

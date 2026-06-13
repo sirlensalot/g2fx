@@ -349,6 +349,10 @@ public class AreaPane {
                 r.setY(o.getY()+ (e.getY() - pasteOrigin.getY()));
             }
         }
+
+        public void cancel() {
+            clearDragGhosts(pasteGhosts);
+        }
     }
     private ModulePaste modulePaste;
 
@@ -701,6 +705,9 @@ public class AreaPane {
     }
 
     public void cancelPaste() {
+        if (modulePaste != null) {
+            modulePaste.cancel();
+        }
         modulePaste = null;
     }
 

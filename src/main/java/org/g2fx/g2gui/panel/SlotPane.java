@@ -435,4 +435,8 @@ public class SlotPane {
         getAreaPane(AreaId.Fx).initPaste(mps,getAreaPane(AreaId.Voice));
         getAreaPane(AreaId.Voice).initPaste(mps,getAreaPane(AreaId.Fx));
     }
+
+    public void clearPaste() {
+        areaPanes.values().forEach(AreaPane::cancelPaste);
+    }
 }
