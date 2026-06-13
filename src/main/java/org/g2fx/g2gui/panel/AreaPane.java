@@ -66,22 +66,21 @@ public class AreaPane {
 
     private final Connectors conns = new Connectors(this);
 
-    private final Set<ModulePane> selectedModules = new HashSet<>();
-    private Runnable selectionListener;
-    private final List<Rectangle> dragGhosts = new ArrayList<>();
-    private Point2D dragOrigin;
-
     private final Property<ModuleDelta> moduleDelta = new SimpleObjectProperty<>(null,"moduleDelta");
 
     private int moduleColor = 0;
 
-
-    private class SelectionRect {
+    private class ModuleSelection {
 
         private final Rectangle selectedRect;
         enum SelectionStatus { IN_MODULE, IN_PANEL, DRAGGING }
 
-        public SelectionRect(Rectangle selectedRect) {
+        private final Set<ModulePane> selectedModules = new HashSet<>();
+        private Runnable selectionListener;
+        private final List<Rectangle> dragGhosts = new ArrayList<>();
+        private Point2D dragOrigin;
+
+        public ModuleSelection(Rectangle selectedRect) {
             this.selectedRect = selectedRect;
         }
 
@@ -133,8 +132,91 @@ public class AreaPane {
             selectedRect.setUserData(null);
             e.consume();
         }
+
+        private void setupModuleMouseHandling(ModulePane modulePane) {
+            Pane pane = modulePane.getPane();
+            pane.setOnMouseClicked(e -> {
+                if (e.isShortcutDown()) {
+                    if (selectedModules.contains(modulePane)) {
+                        selectedModules.remove(modulePane);
+                        modulePane.setSelected(false);
+                    } else {
+                        selectModule(modulePane);
+                    }
+                } else {
+                    clearModuleSelection();
+                    selectModule(modulePane);
+                }
+                clearToolbarDrag();
+                e.consume();
+            });
+            pane.setOnMousePressed(e -> {
+                if (modulePane.isSelected()) {
+                    dragGhosts.clear();
+                    dragOrigin = new Point2D(e.getSceneX(),e.getSceneY());
+                }
+                clearToolbarDrag();
+            });
+            pane.setOnMouseDragged(e -> {
+                if (dragOrigin != null) {
+                    if (dragGhosts.isEmpty()) {
+                        drawDragGhosts(selectedModules);
+                    }
+                    for (Rectangle r : dragGhosts) {
+                        Point2D o = (Point2D) r.getUserData();
+                        r.setLayoutX(o.getX() + (e.getSceneX() - dragOrigin.getX()));
+                        r.setLayoutY(o.getY() + (e.getSceneY() - dragOrigin.getY()));
+                    }
+                }
+            });
+            pane.setOnMouseReleased(e -> {
+                if (dragOrigin != null && !dragGhosts.isEmpty()) {
+                    undos.withMulti(() -> moveSelectedModules(new Coords(
+                            (int) Math.round((e.getSceneX() - dragOrigin.getX()) / GRID_X),
+                            (int) Math.round((e.getSceneY() - dragOrigin.getY()) / GRID_Y))));
+                }
+                clearDragGhosts(dragGhosts);
+                dragOrigin = null;
+            });
+        }
+
+        private void drawDragGhosts(Collection<ModulePane> ms) {
+            for (ModulePane m : ms) {
+                Pane p = m.getPane();
+                Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
+                r.setUserData(new Point2D(r.getLayoutX(),r.getLayoutY()));
+                areaPane.getChildren().add(r);
+                dragGhosts.add(r);
+            }
+        }
+
+        private void selectModule(ModulePane modulePane) {
+            selectedModules.add(modulePane);
+            modulePane.setSelected(true);
+            selectionListener.run();
+        }
+
+        private void clearModuleSelection() {
+            selectedModules.forEach(p -> p.setSelected(false));
+            selectedModules.clear();
+        }
+
+        private void moveSelectedModules(Coords delta) {
+            if (selectedModules.isEmpty()) { return; }
+            for (ModulePane pane : selectedModules) {
+                Coords oldCoords = pane.coords().getValue();
+                pane.coords().setValue(new Coords(
+                        oldCoords.column() + delta.column(),
+                        oldCoords.row() + delta.row()));
+            }
+            resolveCollisions(modulePanes.values());
+        }
+
+        public void setupSelectionListener(AreaPane otherPane) {
+            selectionListener = otherPane.moduleSelection::clearModuleSelection;
+        }
     }
-    private final SelectionRect selectionRect;
+    private final ModuleSelection moduleSelection;
 
 
     private class ToolbarDrag {
@@ -182,13 +264,12 @@ public class AreaPane {
                         getNewModuleName(toolbarDragModuleType), moduleColor,
                         new Coords(col, row));
                 addNewModule(ma);
-                clearModuleSelection();
+                moduleSelection.clearModuleSelection();
                 selectModule(index);
                 resolveCollisions(modulePanes.values());
             });
             clearToolbarDrag();
             e.consume();
-
 
         }
 
@@ -269,7 +350,6 @@ public class AreaPane {
             }
         }
     }
-
     private ModulePaste modulePaste;
 
     public AreaPane(AreaId areaId, Bridges<Patch> bridges, SlotPane slotPane,
@@ -290,7 +370,7 @@ public class AreaPane {
 
         Rectangle selectedRect = withClass(new Rectangle(),"selected-rect");
         selectedRect.setVisible(false);
-        selectionRect = new SelectionRect(selectedRect);
+        moduleSelection = new ModuleSelection(selectedRect);
         areaPane.getChildren().add(selectedRect);
 
         setupMouseHandling();
@@ -301,8 +381,8 @@ public class AreaPane {
                 new FxProperty.SimpleFxProperty<>(moduleDelta, u ->
                         new Undos.Undo<>(u.property(),u.newValue().invert(),u.newValue())),
                 Iso.id());
-        scrollPane.boundsInLocalProperty().addListener((c,o,n) -> resizeAreaPane());
-        areaPane.getChildren().addListener((ListChangeListener<? super Node>) c -> resizeAreaPane());
+        scrollPane.boundsInLocalProperty().addListener((_,_,_) -> resizeAreaPane());
+        areaPane.getChildren().addListener((ListChangeListener<? super Node>) _ -> resizeAreaPane());
     }
 
 
@@ -343,17 +423,17 @@ public class AreaPane {
         areaPane.setOnMouseEntered(e -> {
             if (modulePaste!=null) { modulePaste.mouseEntered(e); }
         });
-        areaPane.setOnMouseExited(e -> {
+        areaPane.setOnMouseExited(_ -> {
             if (modulePaste!=null) { modulePaste.mouseExited(); }
         });
-        areaPane.setOnMousePressed(selectionRect::onMousePressed);
-        areaPane.setOnMouseDragged(selectionRect::onMouseDragged);
+        areaPane.setOnMousePressed(moduleSelection::onMousePressed);
+        areaPane.setOnMouseDragged(moduleSelection::onMouseDragged);
         areaPane.setOnMouseReleased(e -> {
             if (modulePaste != null) {
                 modulePaste.onMouseReleased(e);
                 return;
             }
-            selectionRect.onMouseReleased(e);
+            moduleSelection.onMouseReleased(e);
         });
         areaPane.setOnMouseMoved(e -> {
             if (modulePaste != null) { modulePaste.onMouseMoved(e); }
@@ -466,116 +546,35 @@ public class AreaPane {
                 this.getConns(), this.getAreaId(), bridges.spawn());
         modulePanes.put(index,modulePane);
         areaPane.getChildren().add(modulePane.getPane());
-        setupModuleMouseHandling(modulePane);
+        moduleSelection.setupModuleMouseHandling(modulePane);
         bridges.getDeviceExecutor().invoke(() -> modulePane.getBridges().initialize(pm))
                 .forEach(Runnable::run);
-        modulePane.coords().addListener((c,o,l) -> updateCables(modulePane));
+        modulePane.coords().addListener((_,_,_) -> updateCables(modulePane));
     }
 
 
-    private void setupModuleMouseHandling(ModulePane modulePane) {
-        Pane pane = modulePane.getPane();
-        pane.setOnMouseClicked(e -> {
-            if (e.isShortcutDown()) {
-                if (selectedModules.contains(modulePane)) {
-                    selectedModules.remove(modulePane);
-                    modulePane.setSelected(false);
-                } else {
-                    selectModule(modulePane);
-                }
-            } else {
-                clearModuleSelection();
-                selectModule(modulePane);
-            }
-            clearToolbarDrag();
-            e.consume();
-        });
-        pane.setOnMousePressed(e -> {
-            if (modulePane.isSelected()) {
-                dragGhosts.clear();
-                dragOrigin = new Point2D(e.getSceneX(),e.getSceneY());
-            }
-            clearToolbarDrag();
-        });
-        pane.setOnMouseDragged(e -> {
-            if (dragOrigin != null) {
-                if (dragGhosts.isEmpty()) {
-                    drawDragGhosts(selectedModules, dragGhosts);
-                }
-                for (Rectangle r : dragGhosts) {
-                    Point2D o = (Point2D) r.getUserData();
-                    r.setLayoutX(o.getX() + (e.getSceneX() - dragOrigin.getX()));
-                    r.setLayoutY(o.getY() + (e.getSceneY() - dragOrigin.getY()));
-                }
-            }
-        });
-        pane.setOnMouseReleased(e -> {
-            if (dragOrigin != null && !dragGhosts.isEmpty()) {
-                undos.withMulti(() ->
-                        moveSelectedModules(getDragCoords(e, dragOrigin)));
-            }
-            clearDragGhosts(dragGhosts);
-            dragOrigin = null;
-        });
 
-
-    }
-
-    private static Coords getDragCoords(MouseEvent e, Point2D origin) {
-        return new Coords(
-                (int) Math.round((e.getSceneX() - origin.getX()) / GRID_X),
-                (int) Math.round((e.getSceneY() - origin.getY()) / GRID_Y));
-    }
 
     private void clearDragGhosts(List<Rectangle> ghosts) {
         areaPane.getChildren().removeAll(ghosts);
         ghosts.clear();
     }
 
-    private void drawDragGhosts(Collection<ModulePane> ms, List<Rectangle> ghosts) {
-        for (ModulePane m : ms) {
-            Pane p = m.getPane();
-            Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
-            r.setUserData(new Point2D(r.getLayoutX(),r.getLayoutY()));
-            areaPane.getChildren().add(r);
-            ghosts.add(r);
-        }
-    }
 
-    public void moveSelectedModules(Coords delta) {
-        if (selectedModules.isEmpty()) { return; }
-        for (ModulePane pane : selectedModules) {
-            Coords oldCoords = pane.coords().getValue();
-            pane.coords().setValue(new Coords(
-                    oldCoords.column() + delta.column(),
-                    oldCoords.row() + delta.row()));
-        }
-        resolveCollisions(modulePanes.values());
-    }
 
-    private void selectModule(ModulePane modulePane) {
-        selectedModules.add(modulePane);
-        modulePane.setSelected(true);
-        selectionListener.run();
-    }
-
-    public void clearModuleSelection() {
-        selectedModules.forEach(p -> p.setSelected(false));
-        selectedModules.clear();
-    }
 
     public Set<ModulePane> getSelectedModules() {
-        return selectedModules;
+        return moduleSelection.selectedModules;
     }
 
     public boolean hasModuleSelection() {
-        return !selectedModules.isEmpty();
+        return !moduleSelection.selectedModules.isEmpty();
     }
 
     public void clearModules() {
         areaPane.getChildren().clear();
         areaPane.getChildren().add(areaLabel);
-        areaPane.getChildren().add(selectionRect.selectedRect);
+        areaPane.getChildren().add(moduleSelection.selectedRect);
         for (ModulePane m : modulePanes.values()) {
             m.unbindVarControls();
         }
@@ -601,14 +600,14 @@ public class AreaPane {
     }
 
 
-    public void addSelectionListener(Runnable r) {
-        this.selectionListener = r;
+    public void setupSelectionListener(AreaPane otherPane) {
+        moduleSelection.setupSelectionListener(otherPane);
     }
 
     public void selectModule(int idx) {
         ModulePane mp = modulePanes.get(idx);
         if (mp == null) { throw new IllegalArgumentException("selectModule: invalid index: " + idx); }
-        selectModule(mp);
+        moduleSelection.selectModule(mp);
     }
 
     public ModulePane getModule(int module) {
@@ -641,14 +640,14 @@ public class AreaPane {
      */
     public void addNewModule(ModuleType mt) {
         Coords coords;
-        if (selectedModules.isEmpty()) {
+        if (moduleSelection.selectedModules.isEmpty()) {
             coords = new Coords(0,0);
         } else {
-            ModulePane m = selectedModules.stream().sorted(
+            ModulePane m = moduleSelection.selectedModules.stream().sorted(
                     Comparator.comparing(o -> o.coords().getValue())).toList().getLast();
             coords = new Coords(m.coords().getValue().column(),m.coords().getValue().row()+m.getHeight());
         }
-        clearModuleSelection();
+        moduleSelection.clearModuleSelection();
         int ix = getNewModuleIndex();
         undos.withMulti(() -> {
             addNewModule(ModuleDelta.addNewModule(areaId,mt, ix,getNewModuleName(mt),moduleColor,coords));

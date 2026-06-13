@@ -112,8 +112,8 @@ public class SlotPane {
         AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos, uiModules);
         areaPanes.put(AreaId.Fx,fxPane);
 
-        voicePane.addSelectionListener(fxPane::clearModuleSelection);
-        fxPane.addSelectionListener(voicePane::clearModuleSelection);
+        voicePane.setupSelectionListener(fxPane);
+        fxPane.setupSelectionListener(voicePane);
 
 
         patchSplit =
