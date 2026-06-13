@@ -96,6 +96,6 @@ public record ModuleDelta(List<UserModuleRecord> records, List<FieldValues> cabl
         return new ModuleDelta(records,cables,!add);
     }
 
-
+    public record ModuleCopyRequest(int index,Coords coords,int newIndex) {}
 
 }

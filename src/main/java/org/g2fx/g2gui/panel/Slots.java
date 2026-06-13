@@ -231,7 +231,7 @@ public class Slots {
     public void doPaste(ModuleIds mids) {
         AreaPane srcArea = getSlot(mids.slot).getAreaPane(mids.area);
         List<ModulePane> mps = mids.ixs.stream().map(srcArea::getModule).toList();
-        getSelectedSlotPane().doPaste(mps);
+        getSelectedSlotPane().doPaste(mids.slot,mids.area,mps);
     }
 
     public void clearPaste() {

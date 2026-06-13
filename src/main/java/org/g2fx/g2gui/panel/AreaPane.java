@@ -22,6 +22,7 @@ import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.module.ModuleDelta;
+import org.g2fx.g2gui.module.MoveableModule;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
@@ -37,7 +38,6 @@ import java.util.regex.Pattern;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.FXUtil.withClass1;
-import static org.g2fx.g2gui.module.MoveableModule.resolveCollisions;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_X;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_Y;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
@@ -209,7 +209,7 @@ public class AreaPane {
                         oldCoords.column() + delta.column(),
                         oldCoords.row() + delta.row()));
             }
-            resolveCollisions(modulePanes.values());
+            resolveModuleCollisions();
         }
 
         public void setupSelectionListener(AreaPane otherPane) {
@@ -263,10 +263,10 @@ public class AreaPane {
                 ModuleDelta ma = ModuleDelta.addNewModule(areaId,toolbarDragModuleType, index,
                         getNewModuleName(toolbarDragModuleType), moduleColor,
                         new Coords(col, row));
-                addNewModule(ma);
+                fireModuleDelta(ma);
                 moduleSelection.clearModuleSelection();
                 selectModule(index);
-                resolveCollisions(modulePanes.values());
+                resolveModuleCollisions();
             });
             clearToolbarDrag();
             e.consume();
@@ -283,13 +283,18 @@ public class AreaPane {
     private ToolbarDrag toolbarDrag;
 
     private class ModulePaste {
+        private final Slot slot;
+        private final AreaId area;
         private final List<ModulePane> pasteModules;
         private final AreaPane otherPane;
         private Point2D pasteOrigin;
-        private final List<Rectangle> pasteGhosts = new ArrayList<>();
+        private record PasteGhost(Rectangle rect, Point2D origin, Point2D local, ModulePane module) {}
+        private final List<PasteGhost> pasteGhosts = new ArrayList<>();
 
-        public ModulePaste(List<ModulePane> pasteModules, AreaPane otherPane) {
-            this.pasteModules = pasteModules;
+        public ModulePaste(Slot slot, AreaId area, List<ModulePane> mps, AreaPane otherPane) {
+            this.slot = slot;
+            this.area = area;
+            this.pasteModules = mps;
             this.otherPane = otherPane;
         }
 
@@ -299,18 +304,27 @@ public class AreaPane {
 
         public void mouseExited() {
             pasteOrigin = null;
-            clearDragGhosts(pasteGhosts);
+            clearDragGhosts();
         }
 
         public void onMouseReleased(MouseEvent e) {
-            if (pasteOrigin != null && pasteModules != null && !pasteGhosts.isEmpty()) {
-                Coords cs = new Coords(
-                        (int) Math.round(e.getX() / GRID_X),
-                        (int) Math.round(e.getY() / GRID_Y));
-                clearDragGhosts(pasteGhosts);
-                doPaste(cs);
-                otherPane.cancelPaste();
+            if (pasteOrigin == null) { return; }
+            List<ModuleDelta.ModuleCopyRequest> reqs = new ArrayList<>();
+            for (PasteGhost g : pasteGhosts) {
+                Coords cs = new Coords((int) Math.round(g.rect.getX() / GRID_X),
+                        (int) Math.round(g.rect.getY() / GRID_Y));
+                int idx = getNewModuleIndex();
+                reqs.add(new ModuleDelta.ModuleCopyRequest(g.module.getIndex(),cs,idx));
             }
+            ModuleDelta delta = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
+                    p.getSlot(slot).getArea(area).copyModules(reqs));
+            undos.withMulti(() -> {
+                fireModuleDelta(delta);
+                resolveModuleCollisions();
+            });
+            clearDragGhosts();
+            finishPaste();
+            otherPane.cancelPaste();
         }
 
         private void init(MouseEvent e) {
@@ -321,37 +335,47 @@ public class AreaPane {
             double y1 = Double.POSITIVE_INFINITY;
             double x2 = Double.NEGATIVE_INFINITY;
             double y2 = Double.NEGATIVE_INFINITY;
+            List<Rectangle> ghosts = new ArrayList<>();
             for (ModulePane m : pasteModules) {
                 Pane p = m.getPane();
                 Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
+                r.setUserData(m);
                 x1 = Math.min(r.getX(),x1);
                 y1 = Math.min(r.getY(),y1);
                 x2 = Math.max(r.getX()+r.getWidth(),x2);
                 y2 = Math.max(r.getY()+r.getHeight(),y2);
-                pasteGhosts.add(r);
+                ghosts.add(r);
             }
             //center on mouse position
             double orgX=pasteOrigin.getX()-((x2-x1)/2);
             double orgY=pasteOrigin.getY()-((y2-y1)/2);
-            for (Rectangle r : pasteGhosts) {
-                r.setX(r.getX()-x1+orgX);
-                r.setY(r.getY()-y1+orgY);
-                r.setUserData(new Point2D(r.getX(),r.getY()));
+            for (Rectangle r : ghosts) {
+                double localX = r.getX() - x1;
+                r.setX(localX+orgX);
+                double localY = r.getY() - y1;
+                r.setY(localY+orgY);
+                pasteGhosts.add(new PasteGhost(r,
+                        new Point2D(r.getX(), r.getY()), new Point2D(localX,localY),
+                        (ModulePane) r.getUserData()));
                 areaPane.getChildren().add(r);
             }
         }
 
         public void onMouseMoved(MouseEvent e) {
             init(e);
-            for (Rectangle r : pasteGhosts) {
-                Point2D o = (Point2D) r.getUserData();
-                r.setX(o.getX()+ (e.getX() - pasteOrigin.getX()));
-                r.setY(o.getY()+ (e.getY() - pasteOrigin.getY()));
+            for (PasteGhost g : pasteGhosts) {
+                g.rect.setX(g.origin.getX()+ (e.getX() - pasteOrigin.getX()));
+                g.rect.setY(g.origin.getY()+ (e.getY() - pasteOrigin.getY()));
             }
         }
 
         public void cancel() {
-            clearDragGhosts(pasteGhosts);
+            clearDragGhosts();
+        }
+
+        private void clearDragGhosts() {
+            pasteGhosts.forEach(pg -> areaPane.getChildren().remove(pg.rect));
+            pasteGhosts.clear();
         }
     }
     private ModulePaste modulePaste;
@@ -654,10 +678,14 @@ public class AreaPane {
         moduleSelection.clearModuleSelection();
         int ix = getNewModuleIndex();
         undos.withMulti(() -> {
-            addNewModule(ModuleDelta.addNewModule(areaId,mt, ix,getNewModuleName(mt),moduleColor,coords));
+            fireModuleDelta(ModuleDelta.addNewModule(areaId,mt, ix,getNewModuleName(mt),moduleColor,coords));
             selectModule(ix);
-            resolveCollisions(modulePanes.values());
+            resolveModuleCollisions();
         });
+    }
+
+    private void resolveModuleCollisions() {
+        MoveableModule.resolveCollisions(modulePanes.values());
     }
 
 
@@ -673,7 +701,7 @@ public class AreaPane {
     /**
      * Internal, fire add-module property event.
      */
-    private void addNewModule(ModuleDelta ma) {
+    private void fireModuleDelta(ModuleDelta ma) {
         moduleDelta.setValue(ma);
     }
 
@@ -700,8 +728,8 @@ public class AreaPane {
     }
 
 
-    public void initPaste(List<ModulePane> mps, AreaPane otherPane) {
-        modulePaste = new ModulePaste(mps,otherPane);
+    public void initPaste(Slot slot, AreaId area, List<ModulePane> mps, AreaPane otherPane) {
+        modulePaste = new ModulePaste(slot,area,mps,otherPane);
     }
 
     public void cancelPaste() {
@@ -712,8 +740,7 @@ public class AreaPane {
     }
 
 
-    private void doPaste(Coords cs) {
-        log.warning("doPaste: " + cs);
+    private void finishPaste() {
         modulePaste = null;
     }
 
