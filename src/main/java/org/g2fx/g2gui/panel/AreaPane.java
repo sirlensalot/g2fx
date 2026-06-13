@@ -215,6 +215,12 @@ public class AreaPane {
         public void setupSelectionListener(AreaPane otherPane) {
             selectionListener = otherPane.moduleSelection::clearModuleSelection;
         }
+
+        public void selectModules(List<ModuleDelta.ModuleCopyRequest> reqs) {
+            System.out.println(reqs);
+            clearModuleSelection();
+            reqs.forEach(r -> selectModule(modulePanes.get(r.newIndex())));
+        }
     }
     private final ModuleSelection moduleSelection;
 
@@ -310,16 +316,19 @@ public class AreaPane {
         public void onMouseReleased(MouseEvent e) {
             if (pasteOrigin == null) { return; }
             List<ModuleDelta.ModuleCopyRequest> reqs = new ArrayList<>();
+            TreeSet<Integer> ixs = new TreeSet<>(modulePanes.keySet());
             for (PasteGhost g : pasteGhosts) {
                 Coords cs = new Coords((int) Math.round(g.rect.getX() / GRID_X),
                         (int) Math.round(g.rect.getY() / GRID_Y));
-                int idx = getNewModuleIndex();
+                int idx = getNewModuleIndex(ixs);
+                ixs.add(idx);
                 reqs.add(new ModuleDelta.ModuleCopyRequest(g.module.getIndex(),cs,idx));
             }
             ModuleDelta delta = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
                     p.getSlot(slot).getArea(area).copyModules(reqs));
             undos.withMulti(() -> {
                 fireModuleDelta(delta);
+                moduleSelection.selectModules(reqs);
                 resolveModuleCollisions();
             });
             clearDragGhosts();
@@ -498,9 +507,15 @@ public class AreaPane {
     }
 
     private int getNewModuleIndex() {
+        return getNewModuleIndex(modulePanes.keySet());
+    }
+
+    private static int getNewModuleIndex(Collection<Integer> ixs) {
         int ix = 1;
-        for (Integer i : modulePanes.keySet()) {
-            if (ix < i) { return ix; }
+        for (Integer i : ixs) {
+            if (ix < i) {
+                return ix;
+            }
             ix = i+1;
         }
         return ix;
