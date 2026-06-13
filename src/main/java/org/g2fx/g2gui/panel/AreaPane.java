@@ -8,6 +8,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
@@ -74,6 +75,77 @@ public class AreaPane {
     private final Property<ModuleDelta> moduleDelta = new SimpleObjectProperty<>(null,"moduleDelta");
 
     private int moduleColor = 0;
+
+    public class ModulePaste {
+        private final List<ModulePane> pasteModules;
+        private final AreaPane otherPane;
+        private Point2D pasteOrigin;
+        private final List<Rectangle> pasteGhosts = new ArrayList<>();
+
+        public ModulePaste(List<ModulePane> pasteModules, AreaPane otherPane) {
+            this.pasteModules = pasteModules;
+            this.otherPane = otherPane;
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            init(e);
+        }
+
+        public void mouseExited(MouseEvent e) {
+            pasteOrigin = null;
+            clearDragGhosts(pasteGhosts);
+        }
+
+        public void onMouseReleased(MouseEvent e) {
+            if (pasteOrigin != null && pasteModules != null && !pasteGhosts.isEmpty()) {
+                Coords cs = new Coords(
+                        (int) Math.round(e.getX() / GRID_X),
+                        (int) Math.round(e.getY() / GRID_Y));
+                clearDragGhosts(pasteGhosts);
+                doPaste(cs);
+                otherPane.cancelPaste();
+            }
+        }
+
+        private void init(MouseEvent e) {
+            if (pasteOrigin != null) { return; }
+            pasteOrigin = new Point2D(e.getX(),e.getY());
+            //compute union rectangle
+            double x1 = Double.POSITIVE_INFINITY;
+            double y1 = Double.POSITIVE_INFINITY;
+            double x2 = Double.NEGATIVE_INFINITY;
+            double y2 = Double.NEGATIVE_INFINITY;
+            for (ModulePane m : pasteModules) {
+                Pane p = m.getPane();
+                Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
+                x1 = Math.min(r.getX(),x1);
+                y1 = Math.min(r.getY(),y1);
+                x2 = Math.max(r.getX()+r.getWidth(),x2);
+                y2 = Math.max(r.getY()+r.getHeight(),y2);
+                pasteGhosts.add(r);
+            }
+            //center on mouse position
+            double orgX=pasteOrigin.getX()-((x2-x1)/2);
+            double orgY=pasteOrigin.getY()-((y2-y1)/2);
+            for (Rectangle r : pasteGhosts) {
+                r.setX(r.getX()-x1+orgX);
+                r.setY(r.getY()-y1+orgY);
+                r.setUserData(new Point2D(r.getX(),r.getY()));
+                areaPane.getChildren().add(r);
+            }
+        }
+
+        public void onMouseMoved(MouseEvent e) {
+            init(e);
+            for (Rectangle r : pasteGhosts) {
+                Point2D o = (Point2D) r.getUserData();
+                r.setX(o.getX()+ (e.getX() - pasteOrigin.getX()));
+                r.setY(o.getY()+ (e.getY() - pasteOrigin.getY()));
+            }
+        }
+    }
+
+    private ModulePaste modulePaste;
 
     public AreaId getAreaId() {
         return areaId;
@@ -148,6 +220,13 @@ public class AreaPane {
     }
 
     private void setupSelectionDragging() {
+
+        areaPane.setOnMouseEntered(e -> {
+            if (modulePaste!=null) { modulePaste.mouseEntered(e); }
+        });
+        areaPane.setOnMouseExited(e -> {
+            if (modulePaste!=null) { modulePaste.mouseExited(e); }
+        });
         areaPane.setOnMousePressed(e -> {
             for (ModulePane mp : modulePanes.values()) {
                 if (mp.getPane().getBoundsInParent().contains(e.getX(), e.getY())) {
@@ -177,6 +256,10 @@ public class AreaPane {
             }
         });
         areaPane.setOnMouseReleased(e -> {
+            if (modulePaste != null) {
+                modulePaste.onMouseReleased(e);
+                return;
+            }
             if (selectedRect.isVisible()) { // e.g. DRAGGING
                 Bounds selBounds = selectedRect.getBoundsInParent();
                 if (!e.isShiftDown()) {
@@ -194,8 +277,11 @@ public class AreaPane {
             selectedRect.setUserData(null);
             e.consume();
         });
-
+        areaPane.setOnMouseMoved(e -> {
+            if (modulePaste != null) { modulePaste.onMouseMoved(e); }
+        });
     }
+
 
     private void setupModuleDrag() {
 
@@ -244,6 +330,7 @@ public class AreaPane {
             e.consume();
         });
     }
+
 
 
     private String getNewModuleName(ModuleType mt) {
@@ -370,13 +457,7 @@ public class AreaPane {
         pane.setOnMouseDragged(e -> {
             if (dragOrigin != null) {
                 if (dragGhosts.isEmpty()) {
-                    for (ModulePane m : selectedModules) {
-                        Pane p = m.getPane();
-                        Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
-                        r.setUserData(new Point2D(r.getLayoutX(),r.getLayoutY()));
-                        areaPane.getChildren().add(r);
-                        dragGhosts.add(r);
-                    }
+                    drawDragGhosts(selectedModules, dragGhosts);
                 }
                 for (Rectangle r : dragGhosts) {
                     Point2D o = (Point2D) r.getUserData();
@@ -388,15 +469,34 @@ public class AreaPane {
         pane.setOnMouseReleased(e -> {
             if (dragOrigin != null && !dragGhosts.isEmpty()) {
                 undos.withMulti(() ->
-                        moveSelectedModules(new Coords(
-                            (int) Math.round((e.getSceneX() - dragOrigin.getX()) / GRID_X),
-                            (int) Math.round((e.getSceneY() - dragOrigin.getY()) / GRID_Y))));
+                        moveSelectedModules(getDragCoords(e, dragOrigin)));
             }
-            areaPane.getChildren().removeAll(dragGhosts);
-            dragGhosts.clear();
+            clearDragGhosts(dragGhosts);
             dragOrigin = null;
         });
 
+
+    }
+
+    private static Coords getDragCoords(MouseEvent e, Point2D origin) {
+        return new Coords(
+                (int) Math.round((e.getSceneX() - origin.getX()) / GRID_X),
+                (int) Math.round((e.getSceneY() - origin.getY()) / GRID_Y));
+    }
+
+    private void clearDragGhosts(List<Rectangle> ghosts) {
+        areaPane.getChildren().removeAll(ghosts);
+        ghosts.clear();
+    }
+
+    private void drawDragGhosts(Collection<ModulePane> ms, List<Rectangle> ghosts) {
+        for (ModulePane m : ms) {
+            Pane p = m.getPane();
+            Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
+            r.setUserData(new Point2D(r.getLayoutX(),r.getLayoutY()));
+            areaPane.getChildren().add(r);
+            ghosts.add(r);
+        }
     }
 
     public void moveSelectedModules(Coords delta) {
@@ -554,7 +654,19 @@ public class AreaPane {
 
     }
 
-    public void doPaste(List<ModulePane> modules) {
-        log.warning("doPaste: " + modules);
+
+    public void initPaste(List<ModulePane> mps, AreaPane otherPane) {
+        modulePaste = new ModulePaste(mps,otherPane);
     }
+
+    public void cancelPaste() {
+        modulePaste = null;
+    }
+
+
+    private void doPaste(Coords cs) {
+        log.warning("doPaste: " + cs);
+        modulePaste = null;
+    }
+
 }

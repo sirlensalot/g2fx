@@ -431,4 +431,8 @@ public class SlotPane {
     }
 
 
+    public void doPaste(List<ModulePane> mps) {
+        getAreaPane(AreaId.Fx).initPaste(mps,getAreaPane(AreaId.Voice));
+        getAreaPane(AreaId.Voice).initPaste(mps,getAreaPane(AreaId.Fx));
+    }
 }
