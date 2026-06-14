@@ -725,16 +725,16 @@ public class AreaPane {
      * Module-add property event handler.
      */
     private void doAddModule(ModuleDelta ma) {
-        log.info(() -> "doAddModule: " + ma);
-        List<PatchModule> pms = bridges.getDeviceExecutor().invokeWithCurrentPerf(d -> {
-            List<PatchModule> ms = d.getSlot(slotPane.getSlot()).getArea(areaId).createModules(ma);
+        PatchArea.CreateResult cr = bridges.getDeviceExecutor().invokeWithCurrentPerf(d -> {
+            PatchArea.CreateResult ms = d.getSlot(slotPane.getSlot()).getArea(areaId).createModules(ma);
             d.getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
             return ms;
         });
-        for (PatchModule pm : pms) {
+        for (PatchModule pm : cr.modules()) {
             ModuleType type = pm.getUserModuleData().getType();
             renderModule(pm.getIndex(), type,pm,uiModules.get(type));
         }
+        renderCables(cr.cables());
     }
 
     private void doDeleteModule(ModuleDelta md) {

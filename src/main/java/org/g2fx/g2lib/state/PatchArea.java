@@ -175,10 +175,13 @@ public class PatchArea {
         getModule(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
     }
 
-    public List<PatchModule> createModules(ModuleDelta md) throws Exception {
+    public CreateResult createModules(ModuleDelta md) throws Exception {
         return createModules(md,0);
     }
-    public List<PatchModule> createModules(ModuleDelta md,int reservedHack) throws Exception {
+
+    public record CreateResult(List<PatchModule> modules, List<PatchCable> cables) {}
+
+    public CreateResult createModules(ModuleDelta md,int reservedHack) throws Exception {
         List<PatchModule> pms = new ArrayList<>();
         for (ModuleDelta.UserModuleRecord mr : md.records()) {
             PatchModule pm = addModule(mr.moduleData());
@@ -190,6 +193,12 @@ public class PatchArea {
                 pm.setUserLabels(Protocol.ModuleLabel.Labels.subfieldsValue(mr.moduleLabels()));
             }
             pms.add(pm);
+        }
+        List<PatchCable> newCables = new ArrayList<>();
+        for (FieldValues cfvs : md.cables()) {
+            PatchCable c = new PatchCable(cfvs);
+            cables.add(c);
+            newCables.add(c);
         }
 
         //assemble message
@@ -245,7 +254,7 @@ public class PatchArea {
         buf.limit(buf.position());
         sender.sendSlotRequest("add-modules",Util.getBytes(buf.rewind()));
         Patch.sendUnk6Request(sender);
-        return pms;
+        return new CreateResult(pms,newCables);
     }
 
     public FieldValues getModuleListValues() {
