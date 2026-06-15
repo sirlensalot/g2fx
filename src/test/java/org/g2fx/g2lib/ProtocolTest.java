@@ -1054,4 +1054,63 @@ class ProtocolTest {
         //System.out.println(fvs);
     }
 
+    @Test
+    void delModuleMessage() throws Exception {
+        ByteBuffer buf = Util.readBufferDump(
+                """
+                0000   00 25 01 28 04 51 01 08 00 05 40 51 01 07 00 06   .%.(.Q....@Q....
+                0010   40 51 01 08 01 07 40 32 01 08 32 01 07 32 01 06   @Q....@2..2..2..
+                0020   32 01 05 dd 3c                                    2...<
+                """
+        );
+        BitBuffer bb = new BitBuffer(buf.position(5).slice());
+
+        FieldValues fvs1 = DeleteCable.FIELDS.read(bb);
+        assertFieldEquals(fvs1,1,DeleteCable.Location);
+        assertFieldEquals(fvs1,8,DeleteCable.SrcModule);
+        assertFieldEquals(fvs1,0,DeleteCable.SrcConnType);
+        assertFieldEquals(fvs1,0,DeleteCable.SrcConn);
+        assertFieldEquals(fvs1,5,DeleteCable.DestModule);
+        assertFieldEquals(fvs1,1,DeleteCable.DestConnType);
+        assertFieldEquals(fvs1,0,DeleteCable.DestConn);
+
+        FieldValues fvs2 = DeleteCable.FIELDS.read(bb);
+        assertFieldEquals(fvs2,1,DeleteCable.Location);
+        assertFieldEquals(fvs2,7,DeleteCable.SrcModule);
+        assertFieldEquals(fvs2,0,DeleteCable.SrcConnType);
+        assertFieldEquals(fvs2,0,DeleteCable.SrcConn);
+        assertFieldEquals(fvs2,6,DeleteCable.DestModule);
+        assertFieldEquals(fvs2,1,DeleteCable.DestConnType);
+        assertFieldEquals(fvs2,0,DeleteCable.DestConn);
+
+        FieldValues fvs3 = DeleteCable.FIELDS.read(bb);
+        assertFieldEquals(fvs3,1,DeleteCable.Location);
+        assertFieldEquals(fvs3,8,DeleteCable.SrcModule);
+        assertFieldEquals(fvs3,0,DeleteCable.SrcConnType);
+        assertFieldEquals(fvs3,1,DeleteCable.SrcConn);
+        assertFieldEquals(fvs3,7,DeleteCable.DestModule);
+        assertFieldEquals(fvs3,1,DeleteCable.DestConnType);
+        assertFieldEquals(fvs3,0,DeleteCable.DestConn);
+
+        buf = bb.slice();
+        // just documenting message here:
+        assertEquals(0x32,buf.get(),"del module code");
+        assertEquals(1,buf.get(),"del loc");
+        assertEquals(8,buf.get(),"del module idx");
+
+        assertEquals(0x32,buf.get(),"del module code");
+        assertEquals(1,buf.get(),"del loc");
+        assertEquals(7,buf.get(),"del module idx");
+
+        assertEquals(0x32,buf.get(),"del module code");
+        assertEquals(1,buf.get(),"del loc");
+        assertEquals(6,buf.get(),"del module idx");
+
+        assertEquals(0x32,buf.get(),"del module code");
+        assertEquals(1,buf.get(),"del loc");
+        assertEquals(5,buf.get(),"del module idx");
+
+
+    }
+
 }

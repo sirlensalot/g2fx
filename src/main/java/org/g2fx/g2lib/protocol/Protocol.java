@@ -33,6 +33,23 @@ public class Protocol {
         public static final Fields FIELDS = new Fields(values());
     }
 
+
+    public enum DeleteCable implements FieldEnum {
+        S_DEL_CABLE(8),
+        Reserved(7), // Unknown
+        Location(1),
+        SrcModule(8),
+        SrcConnType(2),
+        SrcConn(6),
+        DestModule(8),
+        DestConnType(2),
+        DestConn(6);
+        private final Field f;
+        DeleteCable(int sz) { f = new SizedField(this,sz); }
+        public Field field() { return f; }
+        public static final Fields FIELDS = new Fields(values());
+    }
+
     public enum ModuleModes implements FieldEnum {
         Data;
         final private Field f = new SizedField(this,6);
