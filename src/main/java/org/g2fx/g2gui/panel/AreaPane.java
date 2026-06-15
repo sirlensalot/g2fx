@@ -318,6 +318,7 @@ public class AreaPane {
             TreeSet<Integer> ixs = new TreeSet<>(modulePanes.keySet());
             int minCol = Integer.MAX_VALUE;
             int minRow = Integer.MAX_VALUE;
+            pasteGhosts.sort(Comparator.comparing(g -> new Coords((int) g.origin.getX(), (int) g.origin.getY())));
             for (PasteGhost g : pasteGhosts) {
                 Coords cs = new Coords((int) Math.round(g.rect.getX() / GRID_X),
                         (int) Math.round(g.rect.getY() / GRID_Y));
@@ -331,7 +332,7 @@ public class AreaPane {
                 ModuleDelta.ModuleCopyRequest r = reqs.get(i);
                 reqs.set(i, new ModuleDelta.ModuleCopyRequest(r.index(), new Coords(
                         minCol < 0 ? (r.coords().column() - minCol) : r.coords().column(),
-                        minRow < 0 ? (r.coords().row() - minRow) : r.coords().column()),
+                        minRow < 0 ? (r.coords().row() - minRow) : r.coords().row()),
                         r.newIndex()));
             }
             ModuleDelta delta = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->

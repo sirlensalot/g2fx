@@ -9,6 +9,7 @@ import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.state.*;
+import org.g2fx.g2lib.usb.MessageRecorder;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -167,9 +168,16 @@ public class FxTest {
 
 
     @Test
-    void loadPatch008() throws Exception {
+    void testPasteMods009() throws Exception {
+        CaptureSender sender = new CaptureSender("data/capture/capture-009-pasteallmods-g2fx-uprate-4mod.pcapng");
+        MessageRecorder.RecordedUsbMessage m0 = sender.getScript().get(0);
+        //overwrite 5a reserved value,crc
+        m0.msg().buffer().put(0xd1, (byte)0x40);
+        m0.msg().buffer().putShort(0xf9, (short) 0xa275);
+        sender.setStrict(false);
 
         G2GuiApplication app = startApp();
+        app.getDevices().setCurrentSender(sender);
         app.getDevices().loadFile(PerformanceTest.PATCH_UPRATE_4MOD,Slot.A);
         //select all modules in A:VA
         PatchArea libSlotAVoice = app.getDevices().getCurrentPerf().getSlot(Slot.A).getArea(AreaId.Voice);
@@ -182,22 +190,32 @@ public class FxTest {
         assertEquals(new Slots.ModuleIds(Slot.A,AreaId.Voice, new TreeSet<>(List.of(1,2,3,4))),mids);
         //start paste
         onFxQueue(app,()->app.getSlots().doPaste(mids));
-        //simulate paste draw and mouse click
-        onFxQueue(app,()->uiSlotAVoice.getModulePaste().init(new Point2D(0,0))); //exercises negative placement!
+        //simulate mouse position
+        onFxQueue(app,()->uiSlotAVoice.getModulePaste().init(new Point2D(300,290)));
+
+        sender.setStrict(true);
+        app.getDevices().getCurrentPerf().getSlot(Slot.A).setVersion(4);
+        app.getDevices().getCurrentPerf().getSlot(Slot.B).setVersion(2);
+        app.getDevices().getCurrentPerf().getSlot(Slot.C).setVersion(2);
+        app.getDevices().getCurrentPerf().getSlot(Slot.D).setVersion(2);
+
+        //simulate mouse click
         onFxQueue(app,()->uiSlotAVoice.getModulePaste().onMouseReleased(null));
 
-        Coords c5 = new Coords(0, 5);
+        Coords c5 = new Coords(1, 15);
         assertEquals(c5,callFxQueue(app, () -> uiSlotAVoice.getModule(5).coords().getValue()));
         assertEquals(c5,libSlotAVoice.getModule(5).getUserModuleData().coords().get());
-        Coords c6 = new Coords(0, 7);
+        Coords c6 = new Coords(1, 18);
         assertEquals(c6,callFxQueue(app, () -> uiSlotAVoice.getModule(6).coords().getValue()));
         assertEquals(c6,libSlotAVoice.getModule(6).getUserModuleData().coords().get());
-        Coords c7 = new Coords(0, 3);
+        Coords c7 = new Coords(1, 20);
         assertEquals(c7,callFxQueue(app, () -> uiSlotAVoice.getModule(7).coords().getValue()));
         assertEquals(c7,libSlotAVoice.getModule(7).getUserModuleData().coords().get());
-        Coords c8 = new Coords(0, 0);
+        Coords c8 = new Coords(1, 22);
         assertEquals(c8,callFxQueue(app, () -> uiSlotAVoice.getModule(8).coords().getValue()));
         assertEquals(c8,libSlotAVoice.getModule(8).getUserModuleData().coords().get());
+        //TODO add other test for negative placements
+        //assertEquals(List.of(),sender.getScript()); TODO -- select param for module under mouse, send unk6s
     }
 
 }

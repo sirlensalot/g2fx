@@ -175,13 +175,9 @@ public class PatchArea {
         getModule(Protocol.ParamUpdate.Module.intValue(fvs)).updateParam(fvs);
     }
 
-    public CreateResult createModules(ModuleDelta md) throws Exception {
-        return createModules(md,0);
-    }
-
     public record CreateResult(List<PatchModule> modules, List<PatchCable> cables) {}
 
-    public CreateResult createModules(ModuleDelta md,int reservedHack) throws Exception {
+    public CreateResult createModules(ModuleDelta md) throws Exception {
         List<PatchModule> pms = new ArrayList<>();
         for (ModuleDelta.UserModuleRecord mr : md.records()) {
             PatchModule pm = addModule(mr.moduleData());
@@ -246,7 +242,7 @@ public class PatchArea {
                         Protocol.ModuleLabels.ModLabels.value(modLabels)));
         writeSection(buf,id == AreaId.Fx ? Sections.SModuleNames0_5a : Sections.SModuleNames1_5a,
                 Protocol.ModuleNames.FIELDS.init().addAll(
-                        Protocol.ModuleNames.Reserved.value(reservedHack),
+                        Protocol.ModuleNames.Reserved.value(0),
                         Protocol.ModuleNames.NameCount.value(pms.size()),
                         Protocol.ModuleNames.Names.value(pms.stream().map(m -> Protocol.ModuleName.FIELDS.values(
                                 Protocol.ModuleName.ModuleIndex.value(m.getIndex()),

@@ -19,6 +19,10 @@ public class CaptureSender implements UsbSender {
 
     private final List<MessageRecorder.RecordedUsbMessage> script;
     private Dispatcher dispatcher;
+    /**
+     * whether to match outbounds to script
+     */
+    private boolean strict = true;
 
     public CaptureSender(List<MessageRecorder.RecordedUsbMessage> script) {
         this.script = new ArrayList<>(script);
@@ -28,6 +32,10 @@ public class CaptureSender implements UsbSender {
         this(parseCapture(f, _ -> true));
     }
 
+    public void setStrict(boolean strict) {
+        this.strict = strict;
+    }
+
     public void setScript(String f) throws Exception {
         script.clear();
         script.addAll(parseCapture(f,_->true));
@@ -35,6 +43,7 @@ public class CaptureSender implements UsbSender {
 
     @Override
     public int sendBulk(String msg, boolean dispatch, ByteBuffer data) throws Exception {
+        if (!strict) { return 0; }
         MessageRecorder.RecordedUsbMessage m = script.removeFirst();
         String expected = Util.dumpBufferString(m.msg().buffer());
         String actual = Util.dumpBufferString(Usb.prepareSendBuffer(data));

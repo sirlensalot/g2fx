@@ -1,7 +1,6 @@
 package org.g2fx.g2lib;
 
 import org.g2fx.g2gui.CaptureSender;
-import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.Codes;
@@ -15,9 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -205,33 +202,6 @@ public class PerformanceTest {
             slot.setVersion(2);
         }
         p.readPatchFromFile(Slot.A, PATCH_UPRATE_4MOD);
-
-        // TODO migrate to regress in FxTest w/ copypaste logic
-        PatchArea area = p.getSlot(Slot.A).getArea(AreaId.Voice);
-        List<PatchModule> sortedPms = area.getModules().stream().sorted(
-                Comparator.comparing(m -> m.getUserModuleData().coords().get())).toList();
-        List<PatchCable> cs = area.getCables().stream().map(c -> new PatchCable(c.getFieldValues().copy())).toList();
-        int i = 5;
-        List<ModuleDelta.UserModuleRecord> mrs = new ArrayList<>();
-        for (PatchModule pm : sortedPms) {
-            int index = i++;
-            ModuleDelta.UserModuleRecord u = new ModuleDelta.UserModuleRecord(pm);
-            cs.forEach(c -> {
-                if (c.getSrcModule() == pm.getIndex()) c.setSrcModule(index);
-                if (c.getDestModule() == pm.getIndex()) c.setDestModule(index);
-            });
-            u = switch (index) {
-                case 5 -> u.duplicate(5,new Coords(1,0xf)); //4->5
-                case 6 -> u.duplicate(6,new Coords(1,0x12)); //3->6
-                case 7 -> u.duplicate(7,new Coords(1,0x14)); //1->7
-                default -> u.duplicate(8,new Coords(1,0x16)); //2->8
-            };
-            mrs.add(u);
-        }
-        ModuleDelta md = new ModuleDelta(mrs,cs.stream().map(PatchCable::getFieldValues).toList(),true);
-        sender.setScript("data/capture/capture-009-pasteallmods-g2fx-uprate-4mod.pcapng");
-        area.createModules(md,0x20);
-        //TODO need other 3 slot unk6
     }
 
     public static ByteBuffer dropCrcTrailer(ByteBuffer buf) {

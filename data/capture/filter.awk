@@ -24,6 +24,10 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($5 == "29") { s = "SlotB" }
         if ($5 == "2a") { s = "SlotC" }
         if ($5 == "2b") { s = "SlotD" }
+        if ($5 == "38") { s = "SlotACmd" }
+        if ($5 == "39") { s = "SlotBCmd" }
+        if ($5 == "3a") { s = "SlotCCmd" }
+        if ($5 == "3b") { s = "SlotDCmd" }
         if ($5 == "2c") { s = "Perf" }
 
         v = "v=" $6;
@@ -43,6 +47,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "14") { c = "O_LIST_NAMES" }
         if ($7 == "28") { c = "O_PATCH_NAME" }
         if ($7 == "2e") { c = "O_SELECTED_PARAM" }
+        if ($7 == "2f") { c = "O_SELECT_PARAM" }
         if ($7 == "35") { c = "O_VERSION" }
         if ($7 == "3b") { c = "O_MASTER_CLOCK" }
         if ($7 == "3c") { c = "O_PATCH" }

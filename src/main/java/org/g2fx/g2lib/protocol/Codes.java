@@ -62,6 +62,7 @@ public class Codes {
     public static final int O_LIST_NAMES = 0x14;
     public static final int O_PATCH_NAME = 0x28;
     public static final int O_SELECTED_PARAM = 0x2e;
+    public static final int O_SELECT_PARAM = 0x2f;
     public static final int O_VERSION = 0x35;
     public static final int O_MASTER_CLOCK = 0x3b;
     public static final int O_PATCH = 0x3c;

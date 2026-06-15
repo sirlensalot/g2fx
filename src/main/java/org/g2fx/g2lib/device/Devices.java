@@ -419,4 +419,12 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         return currentPerf;
     }
 
+    /**
+     * Exposed for testing
+     */
+    public void setCurrentSender(UsbSender sender) {
+        this.currentSender = sender;
+        sender.setDispatcher(currentDevice);
+    }
+
 }
