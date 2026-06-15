@@ -531,4 +531,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public static void main(String[] args) {
         Application.launch();
     }
+
+    public FXQueue getFxQueue() {
+        return fxQueue;
+    }
 }

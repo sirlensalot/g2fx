@@ -217,7 +217,6 @@ public class AreaPane {
         }
 
         public void selectModules(List<ModuleDelta.ModuleCopyRequest> reqs) {
-            System.out.println(reqs);
             clearModuleSelection();
             reqs.forEach(r -> selectModule(modulePanes.get(r.newIndex())));
         }
@@ -288,7 +287,7 @@ public class AreaPane {
     }
     private ToolbarDrag toolbarDrag;
 
-    private class ModulePaste {
+    public class ModulePaste {
         private final Slot slot;
         private final AreaId area;
         private final List<ModulePane> pasteModules;
@@ -317,12 +316,23 @@ public class AreaPane {
             if (pasteOrigin == null) { return; }
             List<ModuleDelta.ModuleCopyRequest> reqs = new ArrayList<>();
             TreeSet<Integer> ixs = new TreeSet<>(modulePanes.keySet());
+            int minCol = Integer.MAX_VALUE;
+            int minRow = Integer.MAX_VALUE;
             for (PasteGhost g : pasteGhosts) {
                 Coords cs = new Coords((int) Math.round(g.rect.getX() / GRID_X),
                         (int) Math.round(g.rect.getY() / GRID_Y));
+                minCol = Math.min(cs.column(),minCol);
+                minRow = Math.min(cs.row(),minRow);
                 int idx = getNewModuleIndex(ixs);
                 ixs.add(idx);
                 reqs.add(new ModuleDelta.ModuleCopyRequest(g.module.getIndex(),cs,idx));
+            }
+            for (int i = 0; i < reqs.size(); i++) {
+                ModuleDelta.ModuleCopyRequest r = reqs.get(i);
+                reqs.set(i, new ModuleDelta.ModuleCopyRequest(r.index(), new Coords(
+                        minCol < 0 ? (r.coords().column() - minCol) : r.coords().column(),
+                        minRow < 0 ? (r.coords().row() - minRow) : r.coords().column()),
+                        r.newIndex()));
             }
             ModuleDelta delta = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
                     p.getSlot(slot).getArea(area).copyModules(reqs));
@@ -337,8 +347,14 @@ public class AreaPane {
         }
 
         private void init(MouseEvent e) {
-            if (pasteOrigin != null) { return; }
-            pasteOrigin = new Point2D(e.getX(),e.getY());
+            init(new Point2D(e.getX(), e.getY()));
+        }
+
+        public void init(Point2D pt) {
+            if (pasteOrigin != null) {
+                return;
+            }
+            pasteOrigin = pt;
             //compute union rectangle
             double x1 = Double.POSITIVE_INFINITY;
             double y1 = Double.POSITIVE_INFINITY;
@@ -759,4 +775,10 @@ public class AreaPane {
         modulePaste = null;
     }
 
+    /**
+     * exposed for testing
+     */
+    public ModulePaste getModulePaste() {
+        return modulePaste;
+    }
 }

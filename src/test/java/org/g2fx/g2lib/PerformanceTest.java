@@ -29,6 +29,7 @@ public class PerformanceTest {
 
     public static final String PERF_001 = "data/perf/g2fx-perf-01.prf2";
     public static final String PERF_002 = "data/perf/g2fx-perf-002.prf2";
+    public static final String PATCH_UPRATE_4MOD = "data/patch/g2fx-uprate-4mod.pch2";
 
     @BeforeAll
     public static void beforeAll() {
@@ -203,7 +204,7 @@ public class PerformanceTest {
         for (Patch slot : p.slots()) {
             slot.setVersion(2);
         }
-        p.readPatchFromFile(Slot.A,"data/patch/g2fx-uprate-4mod.pch2");
+        p.readPatchFromFile(Slot.A, PATCH_UPRATE_4MOD);
 
         // TODO migrate to regress in FxTest w/ copypaste logic
         PatchArea area = p.getSlot(Slot.A).getArea(AreaId.Voice);

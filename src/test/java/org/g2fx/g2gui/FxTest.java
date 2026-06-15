@@ -2,23 +2,26 @@ package org.g2fx.g2gui;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javafx.geometry.Point2D;
 import javafx.stage.Stage;
+import org.g2fx.g2gui.panel.AreaPane;
+import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
-import org.g2fx.g2lib.state.Performance;
-import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FxTest {
 
@@ -28,39 +31,46 @@ public class FxTest {
         new JFXPanel();
     }
 
-    private static void onFxThread(Runnable action) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            try {
-                action.run();
-            } finally {
-                latch.countDown();
-            }
-        });
-        if (!latch.await(5, TimeUnit.SECONDS)) {
-            throw new RuntimeException("FX task timed out");
-        }
-    }
 
-    private static <T> T callFxThread(Callable<T> c) throws Exception {
+    private static <T> T callFxQueue(G2GuiApplication app, Callable<T> c) throws Exception {
         AtomicReference<T> ref = new AtomicReference<>();
         AtomicReference<Exception> ex = new AtomicReference<>();
-        onFxThread(() -> {
+        CountDownLatch latch = new CountDownLatch(1);
+        app.getFxQueue().execute(() -> {
             try {
                 ref.set(c.call());
+                latch.countDown();
             } catch (Exception e) {
                 ex.set(e);
             }
         });
+        assertTrue(latch.await(1,TimeUnit.SECONDS));
         if (ex.get() != null) { fail(ex.get()); }
         return ref.get();
     }
+
+    private static void onFxQueue(G2GuiApplication app, Runnable task) throws Exception {
+        AtomicReference<Exception> ex = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        app.getFxQueue().execute(() -> {
+            try {
+                task.run();
+            } catch (Exception e) {
+                ex.set(e);
+            } finally {
+                latch.countDown();
+            }
+        });
+        assertTrue(latch.await(1,TimeUnit.SECONDS));
+        if (ex.get() != null) { fail(ex.get()); }
+    }
+
 
     @Test
     void testG2GuiApplicationInitAndStart() throws Exception {
 
         G2GuiApplication app = startApp();
-        onFxThread(() -> {
+        onFxQueue(app,() -> {
             long t = System.nanoTime();
             app.getDevices().loadFile(PerformanceTest.PERF_002, null);
             long elapsed = System.nanoTime() - t;
@@ -70,17 +80,32 @@ public class FxTest {
     }
 
     private static G2GuiApplication startApp() throws Exception {
-        return callFxThread(() -> {
-            G2GuiApplication app = new G2GuiApplication(false); // no usb
+        // no usb
+        AtomicReference<G2GuiApplication> ref = new AtomicReference<>();
+        AtomicReference<Exception> ex = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
             try {
-                app.init();
-                Stage stage = new Stage();
-                app.start(stage);
-            } catch (Exception e) {
-                fail("failure",e);
+                G2GuiApplication app = new G2GuiApplication(false); // no usb
+                try {
+                    app.init();
+                    Stage stage = new Stage();
+                    app.start(stage);
+                } catch (Exception e) {
+                    fail("failure", e);
+                }
+                ref.set(app);
+            } catch (Exception e1) {
+                ex.set(e1);
+            } finally {
+                latch.countDown();
             }
-            return app;
         });
+        if (!latch.await(5, TimeUnit.SECONDS)) {
+            throw new RuntimeException("FX task timed out");
+        }
+        if (ex.get() != null) { fail(ex.get()); }
+        return ref.get();
     }
 
     /**
@@ -97,17 +122,17 @@ public class FxTest {
                 app.getPerfBridges().activeCount() +
                         Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
                                 app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
-        assertEquals(0,callFxThread(computeBridgesCount));
+        assertEquals(0,callFxQueue(app,computeBridgesCount));
         Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
         sender.dispatchInbounds();
         assertEquals("minimal02lfo",app.getDevices().getCurrentPerf().perfName().get());
 
         //test bridges initialized
-        assertEquals(1932,callFxThread(computeBridgesCount));
+        assertEquals(1932,callFxQueue(app,computeBridgesCount));
 
         app.getDevices().getPerfLoadListener().onLifecycleDispose(app.getDevices().getCurrentPerf());
 
-        assertEquals(0,callFxThread(computeBridgesCount));
+        assertEquals(0,callFxQueue(app,computeBridgesCount));
 
     }
 
@@ -132,12 +157,47 @@ public class FxTest {
         assertEquals("g2fx-uprate-4mod",perf.getSlot(Slot.A).name().get());
 
         //test bridges initialized
-        assertEquals(92,callFxThread(computeBridgesCount));
+        assertEquals(92,callFxQueue(app,computeBridgesCount));
 
         app.getDevices().getPatchLoadListener().onLifecycleDispose(perf.getSlot(Slot.A));
 
-        assertEquals(0,callFxThread(computeBridgesCount));
+        assertEquals(0,callFxQueue(app,computeBridgesCount));
 
+    }
+
+
+    @Test
+    void loadPatch008() throws Exception {
+
+        G2GuiApplication app = startApp();
+        app.getDevices().loadFile(PerformanceTest.PATCH_UPRATE_4MOD,Slot.A);
+        //select all modules in A:VA
+        PatchArea libSlotAVoice = app.getDevices().getCurrentPerf().getSlot(Slot.A).getArea(AreaId.Voice);
+        AreaPane uiSlotAVoice = callFxQueue(app,() -> app.getSlots().getSlot(Slot.A).getAreaPane(AreaId.Voice));
+        for (PatchModule pm : libSlotAVoice.getModules()) {
+            onFxQueue(app,() -> uiSlotAVoice.selectModule(pm.getIndex()));
+        }
+        //copy
+        Slots.ModuleIds mids = callFxQueue(app,() -> app.getSlots().getSlot(Slot.A).doCopy());
+        assertEquals(new Slots.ModuleIds(Slot.A,AreaId.Voice, new TreeSet<>(List.of(1,2,3,4))),mids);
+        //start paste
+        onFxQueue(app,()->app.getSlots().doPaste(mids));
+        //simulate paste draw and mouse click
+        onFxQueue(app,()->uiSlotAVoice.getModulePaste().init(new Point2D(0,0))); //exercises negative placement!
+        onFxQueue(app,()->uiSlotAVoice.getModulePaste().onMouseReleased(null));
+
+        Coords c5 = new Coords(0, 5);
+        assertEquals(c5,callFxQueue(app, () -> uiSlotAVoice.getModule(5).coords().getValue()));
+        assertEquals(c5,libSlotAVoice.getModule(5).getUserModuleData().coords().get());
+        Coords c6 = new Coords(0, 7);
+        assertEquals(c6,callFxQueue(app, () -> uiSlotAVoice.getModule(6).coords().getValue()));
+        assertEquals(c6,libSlotAVoice.getModule(6).getUserModuleData().coords().get());
+        Coords c7 = new Coords(0, 3);
+        assertEquals(c7,callFxQueue(app, () -> uiSlotAVoice.getModule(7).coords().getValue()));
+        assertEquals(c7,libSlotAVoice.getModule(7).getUserModuleData().coords().get());
+        Coords c8 = new Coords(0, 0);
+        assertEquals(c8,callFxQueue(app, () -> uiSlotAVoice.getModule(8).coords().getValue()));
+        assertEquals(c8,libSlotAVoice.getModule(8).getUserModuleData().coords().get());
     }
 
 }
