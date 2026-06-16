@@ -54,6 +54,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "37") { c = "O_CREATE" }
         if ($7 == "4c") { c = "O_PARAMS" }
         if ($7 == "4f") { c = "O_PARAM_NAMES" }
+        if ($7 == "51") { c = "O_DELETE_CABLE" }
         if ($7 == "59") { c = "O_UNKNOWN2" }
         if ($7 == "5e") { c = "O_GLOBAL_KNOBS" }
         if ($7 == "6a") { c = "O_CHANGE_VARIATION" }

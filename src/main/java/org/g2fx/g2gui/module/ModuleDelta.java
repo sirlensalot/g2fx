@@ -14,10 +14,10 @@ import java.util.List;
 
 /**
  * Capture a UI module add/paste or delete/cut.
- * @param records added or deleted module records
+ * @param modules added or deleted module records
  * @param add true for add, false for delete.
  */
-public record ModuleDelta(List<UserModuleRecord> records, List<FieldValues> cables, boolean add) {
+public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cables, boolean add) {
 
     public record UserModuleRecord (
             String name,
@@ -67,7 +67,7 @@ public record ModuleDelta(List<UserModuleRecord> records, List<FieldValues> cabl
     }
 
     public boolean isEmpty() {
-        return records.isEmpty() && cables().isEmpty();
+        return modules.isEmpty() && cables().isEmpty();
     }
 
     public static ModuleDelta addNewModule(AreaId area, ModuleType type, int index, String name, int color, Coords coords) {
@@ -93,7 +93,7 @@ public record ModuleDelta(List<UserModuleRecord> records, List<FieldValues> cabl
     }
 
     public ModuleDelta invert() {
-        return new ModuleDelta(records,cables,!add);
+        return new ModuleDelta(modules,cables,!add);
     }
 
     public record ModuleCopyRequest(int index,Coords coords,int newIndex) {}

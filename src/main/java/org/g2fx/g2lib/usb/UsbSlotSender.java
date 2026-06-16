@@ -21,15 +21,16 @@ public class UsbSlotSender {
      * A slot request expects a response.
      */
     public int sendSlotRequest(String msg, int... cdata) throws Exception {
-        return sendSlotRequest(msg, Util.asBytes(cdata));
+        return sendSlotRequest(msg, ByteBuffer.wrap(Util.asBytes(cdata)));
     }
 
-    public int sendSlotRequest(String msg, byte[] bytes) throws Exception {
-        return sender.sendBulk(msg, true, Util.concat(Util.asBytes(
-                Codes.M_CMD,
-                Codes.S_SLOT_REQ + patch.getSlot().ordinal(), // CMD_REQ + CMD_SLOT + slot index
-                patch.getVersion()
-        ), bytes));
+    public int sendSlotRequest(String msg, ByteBuffer buf) throws Exception {
+        ByteBuffer buf2 = ByteBuffer.allocate(buf.limit()+3);
+        buf2.put((byte) Codes.M_CMD);
+        buf2.put((byte) (Codes.S_SLOT_REQ + patch.getSlot().ordinal()));
+        buf2.put((byte) patch.getVersion());
+        buf2.put(buf.rewind());
+        return sender.sendBulk(msg, true, buf2);
     }
 
     /**
@@ -47,8 +48,7 @@ public class UsbSlotSender {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         Sections.writeSection(buf,s);
         buf.limit(buf.position());
-        return sendSlotRequest("sendSectionMessage:" + s.sections(),
-                Util.getBytes(buf.rewind()));
+        return sendSlotRequest("sendSectionMessage:" + s.sections(),buf);
     }
 
     public UsbSender getSender() {

@@ -2,9 +2,11 @@ package org.g2fx.g2lib.state;
 
 import com.google.common.collect.Streams;
 import org.g2fx.g2gui.module.ModuleDelta;
+import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.SettingsModules;
 import org.g2fx.g2lib.model.Visual;
+import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.protocol.Sections;
@@ -16,6 +18,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.model.Connector.PortType.In;
+import static org.g2fx.g2lib.model.Connector.PortType.Out;
 import static org.g2fx.g2lib.protocol.Sections.writeSection;
 import static org.g2fx.g2lib.state.PatchModule.MAX_VARIATIONS;
 
@@ -179,7 +183,7 @@ public class PatchArea {
 
     public CreateResult createModules(ModuleDelta md) throws Exception {
         List<PatchModule> pms = new ArrayList<>();
-        for (ModuleDelta.UserModuleRecord mr : md.records()) {
+        for (ModuleDelta.UserModuleRecord mr : md.modules()) {
             PatchModule pm = addModule(mr.moduleData());
             if (mr.paramValues() != null) { pm.setParamValues(mr.paramValues()); }
             pm.setModuleName(Protocol.ModuleName.FIELDS.init().addAll(
@@ -248,7 +252,7 @@ public class PatchArea {
                                 Protocol.ModuleName.ModuleIndex.value(m.getIndex()),
                                 Protocol.ModuleName.Name.value(m.name().get()))).toList())));
         buf.limit(buf.position());
-        sender.sendSlotRequest("add-modules",Util.getBytes(buf.rewind()));
+        sender.sendSlotRequest("add-modules",buf);
         Patch.sendUnk6Request(sender);
         return new CreateResult(pms,newCables);
     }
@@ -328,4 +332,32 @@ public class PatchArea {
         }
         return new ModuleDelta(umrs,newCables,true);
     }
+
+    public void deleteModules(ModuleDelta md) throws Exception {
+        md.modules().forEach(mr -> modules.remove(mr.getIndex()));
+        md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));
+        ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
+        BitBuffer bb = BitBuffer.fromSlice(buf);
+        for (FieldValues mdc : md.cables()) {
+            Connector.PortType srcConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
+            Protocol.DeleteCable.FIELDS.values(
+                    Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
+                    Protocol.DeleteCable.Reserved.value(0), // Unknown
+                    Protocol.DeleteCable.Location.value(id.ordinal()),
+                    Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
+                    Protocol.DeleteCable.SrcConnType.value(srcConnType.ordinal()),
+                    Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
+                    Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
+                    Protocol.DeleteCable.DestConnType.value(Connector.PortType.In.ordinal()),
+                    Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
+            ).write(bb);
+        }
+        for (ModuleDelta.UserModuleRecord mr : md.modules()) {
+            bb.put(8,Codes.O_DELETE_MODULE);
+            bb.put(8,id.ordinal());
+            bb.put(8,mr.getIndex());
+        }
+        sender.sendSlotRequest("deleteModules",buf.limit(bb.limit()));
+    }
+
 }

@@ -35,7 +35,7 @@ public class Protocol {
 
 
     public enum DeleteCable implements FieldEnum {
-        S_DEL_CABLE(8),
+        DeleteCable_51(8),
         Reserved(7), // Unknown
         Location(1),
         SrcModule(8),

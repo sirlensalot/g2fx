@@ -27,6 +27,8 @@ import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
+import org.g2fx.g2lib.protocol.FieldValues;
+import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.Util;
 
@@ -582,13 +584,17 @@ public class AreaPane {
         for (Cables.Cable c : new ArrayList<>(cables)) {
             if (mp == c.srcConn().parent()|| mp == c.destConn().parent()) {
                 cables.remove(c);
-                areaPane.getChildren().removeAll(c.endJack(),c.srcJack(),c.run().getShadow(),c.run().getCable());
+                removeCableElements(c);
                 Cables.Cable cnew = Cables.mkCable(c);
                 cables.add(cnew);
                 areaPane.getChildren().addAll(cnew.endJack(),cnew.srcJack());
             }
         }
         manageCables(false);
+    }
+
+    private void removeCableElements(Cables.Cable c) {
+        areaPane.getChildren().removeAll(c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
     }
 
 
@@ -755,8 +761,24 @@ public class AreaPane {
     }
 
     private void doDeleteModule(ModuleDelta md) {
-        log.info(() -> "doDeleteModule: " + md);
-
+        for (ModuleDelta.UserModuleRecord mr : md.modules()) {
+            ModulePane mp = modulePanes.remove(mr.getIndex());
+            bridges.getDeviceExecutor().execute(() -> mp.getBridges().dispose());
+            areaPane.getChildren().remove(mp.getPane());
+        }
+        cables.removeIf(cable -> {
+            for (FieldValues c : md.cables()) {
+                    if (cable.srcConn().parent().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
+                            cable.srcConn().index() == Protocol.Cable.SrcConn.intValue(c) &&
+                            cable.destConn().parent().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
+                            cable.destConn().index() == Protocol.Cable.DestConn.intValue(c)) {
+                    removeCableElements(cable);
+                    return true;
+                }
+            }
+            return false;
+        });
+        bridges.getDeviceExecutor().runWithCurrentPerf(p -> p.getSlot(slotPane.getSlot()).getArea(areaId).deleteModules(md));
     }
 
 

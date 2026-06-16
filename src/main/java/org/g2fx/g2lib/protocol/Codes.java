@@ -63,12 +63,14 @@ public class Codes {
     public static final int O_PATCH_NAME = 0x28;
     public static final int O_SELECTED_PARAM = 0x2e;
     public static final int O_SELECT_PARAM = 0x2f;
+    public static final int O_DELETE_MODULE = 0x32;
     public static final int O_VERSION = 0x35;
     public static final int O_MASTER_CLOCK = 0x3b;
     public static final int O_PATCH = 0x3c;
     public static final int O_CREATE = 0x37;
     public static final int O_PARAMS = 0x4c;
     public static final int O_PARAM_NAMES = 0x4f;
+    public static final int O_DELETE_CABLE = 0x51;
     public static final int O_UNKNOWN2 = 0x59;
     public static final int O_GLOBAL_KNOBS = 0x5e;
     public static final int O_CHANGE_VARIATION = I_CHANGE_VARIATION; // 0x6a
