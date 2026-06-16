@@ -605,13 +605,14 @@ public class Patch {
     }
 
     public void sendSlotResourcesRequests() throws Exception {
-        slotSender.sendSlotRequest("patch load VA",
-                O_RESOURCES_USED,
-                AreaId.Voice.ordinal());
+        sendSlotResourcesRequest(slotSender, AreaId.Voice);
+        sendSlotResourcesRequest(slotSender, AreaId.Fx);
+    }
 
-        slotSender.sendSlotRequest("patch load FX",
+    public static void sendSlotResourcesRequest(UsbSlotSender sender, AreaId area) throws Exception {
+        sender.sendSlotRequest("patch load VA",
                 O_RESOURCES_USED,
-                AreaId.Fx.ordinal());
+                area.ordinal());
     }
 
 }

@@ -339,16 +339,16 @@ public class PatchArea {
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         BitBuffer bb = BitBuffer.fromSlice(buf);
         for (FieldValues mdc : md.cables()) {
-            Connector.PortType srcConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
+            Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
             Protocol.DeleteCable.FIELDS.values(
                     Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
                     Protocol.DeleteCable.Reserved.value(0), // Unknown
                     Protocol.DeleteCable.Location.value(id.ordinal()),
                     Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
-                    Protocol.DeleteCable.SrcConnType.value(srcConnType.ordinal()),
+                    Protocol.DeleteCable.SrcConnType.value(Connector.PortType.In.ordinal()),
                     Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
                     Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
-                    Protocol.DeleteCable.DestConnType.value(Connector.PortType.In.ordinal()),
+                    Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
                     Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
             ).write(bb);
         }
@@ -358,6 +358,8 @@ public class PatchArea {
             bb.put(8,mr.getIndex());
         }
         sender.sendSlotRequest("deleteModules",buf.limit(bb.limit()));
+        Patch.sendSlotResourcesRequest(sender,id);
+        Patch.sendUnk6Request(sender);
     }
 
 }

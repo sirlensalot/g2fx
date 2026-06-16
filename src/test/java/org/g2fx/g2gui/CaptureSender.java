@@ -2,6 +2,7 @@ package org.g2fx.g2gui;
 
 import org.g2fx.g2lib.usb.*;
 import org.g2fx.g2lib.util.Util;
+import org.opentest4j.AssertionFailedError;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class CaptureSender implements UsbSender {
 
     private final List<MessageRecorder.RecordedUsbMessage> script;
     private Dispatcher dispatcher;
+    private final List<AssertionFailedError> errors = new ArrayList<>();
     /**
      * whether to match outbounds to script
      */
@@ -44,11 +46,16 @@ public class CaptureSender implements UsbSender {
     @Override
     public int sendBulk(String msg, boolean dispatch, ByteBuffer data) throws Exception {
         if (!strict) { return 0; }
-        MessageRecorder.RecordedUsbMessage m = script.removeFirst();
-        String expected = Util.dumpBufferString(m.msg().buffer());
-        String actual = Util.dumpBufferString(Usb.prepareSendBuffer(data));
-        assertEquals(expected,actual);
-        dispatchInbounds();
+        try {
+            MessageRecorder.RecordedUsbMessage m = script.removeFirst();
+            String expected = Util.dumpBufferString(m.msg().buffer());
+            String actual = Util.dumpBufferString(Usb.prepareSendBuffer(data));
+            assertEquals(expected, actual);
+            dispatchInbounds();
+        } catch (AssertionFailedError e) {
+            System.err.println("sendBulk: trapped assertion error: " + e);
+            errors.add(e);
+        }
         return 0;
     }
 
@@ -73,5 +80,11 @@ public class CaptureSender implements UsbSender {
 
     public List<MessageRecorder.RecordedUsbMessage> getScript() {
         return script;
+    }
+
+    public void throwErrors() {
+        for (AssertionFailedError e : errors) {
+            throw e;
+        }
     }
 }

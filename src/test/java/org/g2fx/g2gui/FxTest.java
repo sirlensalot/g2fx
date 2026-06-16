@@ -216,6 +216,12 @@ public class FxTest {
         assertEquals(c8,libSlotAVoice.getModule(8).getUserModuleData().coords().get());
         //TODO add other test for negative placements
         //assertEquals(List.of(),sender.getScript()); TODO -- select param for module under mouse, send unk6s
+
+        //simulate undo
+        sender.setScript("data/capture/capture-010-undopaste-g2fx-uprate-4mod.pcapng");
+        onFxQueue(app,()->app.getUndos().undo());
+        int unused = app.getDevices().invoke(()-> 1); //drain lib events
+        sender.throwErrors();
     }
 
 }

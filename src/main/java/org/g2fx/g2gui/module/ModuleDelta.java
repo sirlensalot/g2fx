@@ -10,6 +10,7 @@ import org.g2fx.g2lib.state.ParamValues;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.usb.UsbSlotSender;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -93,7 +94,16 @@ public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cabl
     }
 
     public ModuleDelta invert() {
-        return new ModuleDelta(modules,cables,!add);
+        return new ModuleDelta(
+                new ArrayList<>(modules).reversed(),
+                cables.reversed().stream().map(c -> Protocol.Cable.FIELDS.values(
+                        Protocol.Cable.Color.value(Protocol.Cable.Color.intValue(c)),
+                        Protocol.Cable.SrcModule.value(Protocol.Cable.DestModule.intValue(c)),
+                        Protocol.Cable.SrcConn.value(Protocol.Cable.DestConn.intValue(c)),
+                        Protocol.Cable.Direction.value(Protocol.Cable.Direction.booleanIntValue(c)),
+                        Protocol.Cable.DestModule.value(Protocol.Cable.SrcModule.intValue(c)),
+                        Protocol.Cable.DestConn.value(Protocol.Cable.SrcConn.intValue(c))
+                )).toList(),!add);
     }
 
     public record ModuleCopyRequest(int index,Coords coords,int newIndex) {}

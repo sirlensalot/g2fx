@@ -535,4 +535,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
     public FXQueue getFxQueue() {
         return fxQueue;
     }
+
+    public Undos getUndos() {
+        return undos;
+    }
 }

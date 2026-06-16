@@ -21,7 +21,7 @@ public class Protocol {
     }
 
     public enum Cable implements FieldEnum {
-        Color         (3),
+        Color(3),
         SrcModule(8),
         SrcConn(6),
         Direction(1),
