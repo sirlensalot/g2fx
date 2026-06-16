@@ -429,13 +429,13 @@ public class SlotPane {
     }
 
     public ModuleDelta doCopy() {
-        AreaPane area = getAreaWithSelection();
-        return bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
-                p.getSlot(slot).getArea(area.getAreaId()).copyModules(
-                        area.getSelectedModules().stream().map(ModulePane::getIndex).toList()));
+        return getAreaWithSelection().doCopy();
     }
 
 
+    public ModuleDelta doCut() {
+        return getAreaWithSelection().doCut();
+    }
     public void clearPaste() {
         areaPanes.values().forEach(AreaPane::cancelPaste);
     }
@@ -444,4 +444,5 @@ public class SlotPane {
         getAreaPane(AreaId.Fx).initPaste(md,getAreaPane(AreaId.Voice));
         getAreaPane(AreaId.Voice).initPaste(md,getAreaPane(AreaId.Fx));
     }
+
 }

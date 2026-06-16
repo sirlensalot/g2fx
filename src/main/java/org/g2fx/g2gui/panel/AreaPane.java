@@ -742,7 +742,7 @@ public class AreaPane {
      */
     private void doAddModule(ModuleDelta ma) {
         PatchArea.CreateResult cr = bridges.getDeviceExecutor().invokeWithCurrentPerf(d -> {
-            PatchArea.CreateResult ms = d.getSlot(slotPane.getSlot()).getArea(areaId).createModules(ma);
+            PatchArea.CreateResult ms = thisLibArea(d).createModules(ma);
             d.getSlot(slotPane.getSlot()).getVisuals().updateVisualIndex();
             return ms;
         });
@@ -771,7 +771,7 @@ public class AreaPane {
             }
             return false;
         });
-        bridges.getDeviceExecutor().runWithCurrentPerf(p -> p.getSlot(slotPane.getSlot()).getArea(areaId).deleteModules(md));
+        bridges.getDeviceExecutor().runWithCurrentPerf(p -> thisLibArea(p).deleteModules(md));
     }
 
 
@@ -803,5 +803,22 @@ public class AreaPane {
      */
     public int getCableCount() {
         return cables.size();
+    }
+
+    public ModuleDelta doCopy() {
+        List<Integer> modules = getSelectedModules().stream().map(ModulePane::getIndex).toList();
+        return bridges.getDeviceExecutor().invokeWithCurrentPerf(p -> thisLibArea(p).copyModules(modules));
+    }
+
+    private PatchArea thisLibArea(Performance p) {
+        return p.getSlot(slotPane.getSlot()).getArea(areaId);
+    }
+
+    public ModuleDelta doCut() {
+        List<Integer> modules = getSelectedModules().stream().map(ModulePane::getIndex).toList();
+        ModuleDelta md = bridges.getDeviceExecutor().invokeWithCurrentPerf(p -> thisLibArea(p).copyModules(modules));
+        ModuleDelta cut = bridges.getDeviceExecutor().invokeWithCurrentPerf(p -> thisLibArea(p).cutModules(modules));
+        moduleDelta.setValue(cut);
+        return md;
     }
 }

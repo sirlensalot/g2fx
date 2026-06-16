@@ -328,6 +328,21 @@ public class PatchArea {
         }
         return new ModuleDelta(umrs,newCables,true);
     }
+
+    public ModuleDelta cutModules(List<Integer> idxs) {
+        List<ModuleDelta.UserModuleRecord> umrs = idxs.stream().map(i ->
+                new ModuleDelta.UserModuleRecord(getModule(i))).toList();
+        List<FieldValues> cutCables = new ArrayList<>();
+        for (PatchCable cable : cables) {
+            if (idxs.contains(cable.getSrcModule()) || idxs.contains(cable.getDestModule())) {
+                cutCables.add(ModuleDelta.invertCable(cable.getFieldValues()));
+            }
+        }
+        return new ModuleDelta(umrs,cutCables,false);
+    }
+
+
+
     public void deleteModules(ModuleDelta md) throws Exception {
         md.modules().forEach(mr -> modules.remove(mr.getIndex()));
         md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));

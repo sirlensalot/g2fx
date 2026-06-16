@@ -208,15 +208,18 @@ public class Commands {
         return mkMenu("Edit",
                 mkMenuItem("Undo",shortcutKey(KeyCode.Z), _ -> undos.undo()),
                 mkMenuItem("Redo",shortcutKey(KeyCode.Z, SHIFT_DOWN), _ -> undos.redo()),
-                mkMenuItem("Cut",shortcutKey(KeyCode.X),_ -> todo("cut")),
+                mkMenuItem("Cut",shortcutKey(KeyCode.X),_ -> doCut()),
                 mkMenuItem("Copy",shortcutKey(KeyCode.C), _ -> doCopy()),
                 mkMenuItem("Paste",shortcutKey(KeyCode.V), _ -> doPaste())
         );
     }
 
+    private void doCut() {
+        Clipboard.getSystemClipboard().setContent(Map.of(MODULE_PANES_FMT, slots.doCut()));
+    }
+
     private void doCopy() {
-        int modulesCopied = slots.doCopy();
-        Clipboard.getSystemClipboard().setContent(Map.of(MODULE_PANES_FMT, modulesCopied));
+        Clipboard.getSystemClipboard().setContent(Map.of(MODULE_PANES_FMT, slots.doCopy()));
         //could do hasString() test here when wanting to support text and mids is empty
     }
 

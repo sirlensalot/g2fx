@@ -240,4 +240,9 @@ public class Slots {
         if (clipboardModules == null || clipboardModules.isEmpty()) { return; }
         getSelectedSlotPane().doPaste(clipboardModules);
     }
+
+    public int doCut() {
+        clipboardModules = getSelectedSlotPane().doCut();
+        return clipboardModules.modules().size();
+    }
 }
