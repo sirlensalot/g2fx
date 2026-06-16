@@ -215,17 +215,15 @@ public class Commands {
     }
 
     private void doCopy() {
-        Slots.ModuleIds mids = slots.getSelectedSlotPane().doCopy();
-        if (!mids.ixs().isEmpty()) {
-            Clipboard.getSystemClipboard().setContent(Map.of(MODULE_PANES_FMT, mids));
-        }
+        int modulesCopied = slots.doCopy();
+        Clipboard.getSystemClipboard().setContent(Map.of(MODULE_PANES_FMT, modulesCopied));
         //could do hasString() test here when wanting to support text and mids is empty
     }
 
     private void doPaste() {
         Clipboard c = Clipboard.getSystemClipboard();
-        if (c.hasContent(MODULE_PANES_FMT) && (c.getContent(MODULE_PANES_FMT) instanceof Slots.ModuleIds mids)) {
-            slots.doPaste(mids);
+        if (c.hasContent(MODULE_PANES_FMT)) {
+            slots.doPaste();
         }
     }
 

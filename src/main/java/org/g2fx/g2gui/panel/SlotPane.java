@@ -21,6 +21,7 @@ import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.*;
+import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
@@ -32,7 +33,10 @@ import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -424,19 +428,20 @@ public class SlotPane {
         return bridges;
     }
 
-    public Slots.ModuleIds doCopy() {
+    public ModuleDelta doCopy() {
         AreaPane area = getAreaWithSelection();
-        return new Slots.ModuleIds(slot, area.getAreaId(),
-                new TreeSet<>(area.getSelectedModules().stream().map(ModulePane::getIndex).toList()));
+        return bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
+                p.getSlot(slot).getArea(area.getAreaId()).copyModules(
+                        area.getSelectedModules().stream().map(ModulePane::getIndex).toList()));
     }
 
-
-    public void doPaste(Slot slot, AreaId area, List<ModulePane> mps) {
-        getAreaPane(AreaId.Fx).initPaste(slot,area,mps,getAreaPane(AreaId.Voice));
-        getAreaPane(AreaId.Voice).initPaste(slot,area,mps,getAreaPane(AreaId.Fx));
-    }
 
     public void clearPaste() {
         areaPanes.values().forEach(AreaPane::cancelPaste);
+    }
+
+    public void doPaste(ModuleDelta md) {
+        getAreaPane(AreaId.Fx).initPaste(md,getAreaPane(AreaId.Voice));
+        getAreaPane(AreaId.Voice).initPaste(md,getAreaPane(AreaId.Fx));
     }
 }

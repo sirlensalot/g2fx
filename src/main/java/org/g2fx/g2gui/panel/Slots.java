@@ -17,6 +17,7 @@ import org.g2fx.g2gui.Undos;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.RebindableControl;
 import org.g2fx.g2gui.controls.RebindableControls;
+import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.AreaId;
@@ -25,11 +26,9 @@ import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -58,8 +57,7 @@ public class Slots {
 
     private final Bridges<Performance> bridges;
 
-    public record ModuleIds(Slot slot, AreaId area, Set<Integer> ixs) implements Serializable {}
-
+    private ModuleDelta clipboardModules;
 
     public Slots(Undos undos, Bridges<Performance> bridges) throws Exception {
         this.undos = undos;
@@ -228,13 +226,18 @@ public class Slots {
         slot.disposeModuleBridges();
     }
 
-    public void doPaste(ModuleIds mids) {
-        AreaPane srcArea = getSlot(mids.slot).getAreaPane(mids.area);
-        List<ModulePane> mps = mids.ixs.stream().map(srcArea::getModule).toList();
-        getSelectedSlotPane().doPaste(mids.slot,mids.area,mps);
-    }
 
     public void clearPaste() {
         slotPanes.forEach(SlotPane::clearPaste);
+    }
+
+    public int doCopy() {
+        clipboardModules = getSelectedSlotPane().doCopy();
+        return clipboardModules.modules().size();
+    }
+
+    public void doPaste() {
+        if (clipboardModules == null || clipboardModules.isEmpty()) { return; }
+        getSelectedSlotPane().doPaste(clipboardModules);
     }
 }

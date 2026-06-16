@@ -218,9 +218,9 @@ public class AreaPane {
             selectionListener = otherPane.moduleSelection::clearModuleSelection;
         }
 
-        public void selectModules(List<ModuleDelta.ModuleCopyRequest> reqs) {
+        public void selectModules(ModuleDelta md) {
             clearModuleSelection();
-            reqs.forEach(r -> selectModule(modulePanes.get(r.newIndex())));
+            md.modules().forEach(r -> selectModule(modulePanes.get(r.getIndex())));
         }
     }
     private final ModuleSelection moduleSelection;
@@ -290,18 +290,15 @@ public class AreaPane {
     private ToolbarDrag toolbarDrag;
 
     public class ModulePaste {
-        private final Slot slot;
-        private final AreaId area;
-        private final List<ModulePane> pasteModules;
         private final AreaPane otherPane;
+        private final ModuleDelta delta;
         private Point2D pasteOrigin;
-        private record PasteGhost(Rectangle rect, Point2D origin, Point2D local, ModulePane module) {}
+        private record PasteGhost(Rectangle rect, Point2D origin, Point2D local, ModuleDelta.UserModuleRecord module) {}
         private final List<PasteGhost> pasteGhosts = new ArrayList<>();
 
-        public ModulePaste(Slot slot, AreaId area, List<ModulePane> mps, AreaPane otherPane) {
-            this.slot = slot;
-            this.area = area;
-            this.pasteModules = mps;
+
+        public ModulePaste(ModuleDelta md, AreaPane otherPane) {
+            this.delta = md;
             this.otherPane = otherPane;
         }
 
@@ -316,11 +313,11 @@ public class AreaPane {
 
         public void onMouseReleased(MouseEvent e) {
             if (pasteOrigin == null) { return; }
-            List<ModuleDelta.ModuleCopyRequest> reqs = new ArrayList<>();
-            TreeSet<Integer> ixs = new TreeSet<>(modulePanes.keySet());
+            Set<Integer> ixs = new TreeSet<>(modulePanes.keySet());
             int minCol = Integer.MAX_VALUE;
             int minRow = Integer.MAX_VALUE;
             pasteGhosts.sort(Comparator.comparing(g -> new Coords((int) g.origin.getX(), (int) g.origin.getY())));
+            LinkedHashMap<Integer,ModuleDelta.UserModuleRecord> updated = new LinkedHashMap<>();
             for (PasteGhost g : pasteGhosts) {
                 Coords cs = new Coords((int) Math.round(g.rect.getX() / GRID_X),
                         (int) Math.round(g.rect.getY() / GRID_Y));
@@ -328,20 +325,12 @@ public class AreaPane {
                 minRow = Math.min(cs.row(),minRow);
                 int idx = getNewModuleIndex(ixs);
                 ixs.add(idx);
-                reqs.add(new ModuleDelta.ModuleCopyRequest(g.module.getIndex(),cs,idx));
+                updated.put(g.module.getIndex(),g.module.duplicate(idx,cs));
             }
-            for (int i = 0; i < reqs.size(); i++) {
-                ModuleDelta.ModuleCopyRequest r = reqs.get(i);
-                reqs.set(i, new ModuleDelta.ModuleCopyRequest(r.index(), new Coords(
-                        minCol < 0 ? (r.coords().column() - minCol) : r.coords().column(),
-                        minRow < 0 ? (r.coords().row() - minRow) : r.coords().row()),
-                        r.newIndex()));
-            }
-            ModuleDelta delta = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
-                    p.getSlot(slot).getArea(area).copyModules(reqs));
+            ModuleDelta newDelta = delta.update(updated);
             undos.withMulti(() -> {
-                fireModuleDelta(delta);
-                moduleSelection.selectModules(reqs);
+                fireModuleDelta(newDelta);
+                moduleSelection.selectModules(newDelta);
                 resolveModuleCollisions();
             });
             clearDragGhosts();
@@ -364,10 +353,14 @@ public class AreaPane {
             double x2 = Double.NEGATIVE_INFINITY;
             double y2 = Double.NEGATIVE_INFINITY;
             List<Rectangle> ghosts = new ArrayList<>();
-            for (ModulePane m : pasteModules) {
-                Pane p = m.getPane();
-                Rectangle r = withClass(new Rectangle(p.getLayoutX(),p.getLayoutY(),p.getWidth(),p.getHeight()), CSS_SELECTED_RECT);
-                r.setUserData(m);
+            for (ModuleDelta.UserModuleRecord mr : delta.modules()) {
+                Rectangle r = withClass(new Rectangle(
+                        mr.getCoords().column() * GRID_X,
+                        mr.getCoords().row() * GRID_Y,
+                        GRID_X,
+                        mr.getType().height * GRID_Y),
+                        CSS_SELECTED_RECT);
+                r.setUserData(mr);
                 x1 = Math.min(r.getX(),x1);
                 y1 = Math.min(r.getY(),y1);
                 x2 = Math.max(r.getX()+r.getWidth(),x2);
@@ -384,7 +377,7 @@ public class AreaPane {
                 r.setY(localY+orgY);
                 pasteGhosts.add(new PasteGhost(r,
                         new Point2D(r.getX(), r.getY()), new Point2D(localX,localY),
-                        (ModulePane) r.getUserData()));
+                        (ModuleDelta.UserModuleRecord) r.getUserData()));
                 areaPane.getChildren().add(r);
             }
         }
@@ -768,10 +761,10 @@ public class AreaPane {
         }
         cables.removeIf(cable -> {
             for (FieldValues c : md.cables()) {
-                    if (cable.srcConn().parent().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
-                            cable.srcConn().index() == Protocol.Cable.SrcConn.intValue(c) &&
-                            cable.destConn().parent().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
-                            cable.destConn().index() == Protocol.Cable.DestConn.intValue(c)) {
+                    if (cable.srcConn().parent().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
+                            cable.srcConn().index() == Protocol.Cable.DestConn.intValue(c) &&
+                            cable.destConn().parent().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
+                            cable.destConn().index() == Protocol.Cable.SrcConn.intValue(c)) {
                     removeCableElements(cable);
                     return true;
                 }
@@ -782,10 +775,10 @@ public class AreaPane {
     }
 
 
-    public void initPaste(Slot slot, AreaId area, List<ModulePane> mps, AreaPane otherPane) {
-        modulePaste = new ModulePaste(slot,area,mps,otherPane);
-    }
 
+    public void initPaste(ModuleDelta md, AreaPane otherPane) {
+        modulePaste = new ModulePaste(md,otherPane);
+    }
     public void cancelPaste() {
         if (modulePaste != null) {
             modulePaste.cancel();
@@ -803,5 +796,12 @@ public class AreaPane {
      */
     public ModulePaste getModulePaste() {
         return modulePaste;
+    }
+
+    /**
+     * exposed for testing
+     */
+    public int getCableCount() {
+        return cables.size();
     }
 }

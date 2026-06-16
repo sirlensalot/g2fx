@@ -5,7 +5,6 @@ import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Point2D;
 import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.AreaPane;
-import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.state.*;
@@ -15,8 +14,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -186,12 +183,12 @@ public class FxTest {
             onFxQueue(app,() -> uiSlotAVoice.selectModule(pm.getIndex()));
         }
         //copy
-        Slots.ModuleIds mids = callFxQueue(app,() -> app.getSlots().getSlot(Slot.A).doCopy());
-        assertEquals(new Slots.ModuleIds(Slot.A,AreaId.Voice, new TreeSet<>(List.of(1,2,3,4))),mids);
+        assertEquals(4,callFxQueue(app,() -> app.getSlots().doCopy()));
         //start paste
-        onFxQueue(app,()->app.getSlots().doPaste(mids));
+        onFxQueue(app,()->app.getSlots().doPaste());
         //simulate mouse position
         onFxQueue(app,()->uiSlotAVoice.getModulePaste().init(new Point2D(300,290)));
+        assertEquals(3,callFxQueue(app, uiSlotAVoice::getCableCount));
 
         sender.setStrict(true);
         app.getDevices().getCurrentPerf().getSlot(Slot.A).setVersion(4);
@@ -214,6 +211,8 @@ public class FxTest {
         Coords c8 = new Coords(1, 22);
         assertEquals(c8,callFxQueue(app, () -> uiSlotAVoice.getModule(8).coords().getValue()));
         assertEquals(c8,libSlotAVoice.getModule(8).getUserModuleData().coords().get());
+        assertEquals(6,callFxQueue(app, uiSlotAVoice::getCableCount));
+
         //TODO add other test for negative placements
         //assertEquals(List.of(),sender.getScript()); TODO -- select param for module under mouse, send unk6s
 
@@ -222,6 +221,12 @@ public class FxTest {
         onFxQueue(app,()->app.getUndos().undo());
         int unused = app.getDevices().invoke(()-> 1); //drain lib events
         sender.throwErrors();
+        assertNull(callFxQueue(app,()->uiSlotAVoice.getModule(5)));
+        assertNull(callFxQueue(app,()->uiSlotAVoice.getModule(6)));
+        assertNull(callFxQueue(app,()->uiSlotAVoice.getModule(7)));
+        assertNull(callFxQueue(app,()->uiSlotAVoice.getModule(8)));
+        assertEquals(3,callFxQueue(app, uiSlotAVoice::getCableCount));
+
     }
 
 }

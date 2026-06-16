@@ -316,23 +316,18 @@ public class PatchArea {
         );
     }
 
-    public ModuleDelta copyModules(List<ModuleDelta.ModuleCopyRequest> reqs) {
-        List<ModuleDelta.UserModuleRecord> umrs = reqs.stream().map(u ->
-                new ModuleDelta.UserModuleRecord(getModule(u.index())).duplicate(u.newIndex(), u.coords())).toList();
-        Map<Integer, ModuleDelta.ModuleCopyRequest> rmap = new HashMap<>();
-        reqs.forEach(r -> rmap.put(r.index(),r));
+
+    public ModuleDelta copyModules(List<Integer> idxs) {
+        List<ModuleDelta.UserModuleRecord> umrs = idxs.stream().map(i ->
+                new ModuleDelta.UserModuleRecord(getModule(i))).toList();
         List<FieldValues> newCables = new ArrayList<>();
         for (PatchCable cable : cables) {
-            if (rmap.containsKey(cable.getSrcModule()) && rmap.containsKey(cable.getDestModule())) {
-                PatchCable c = new PatchCable(cable.getFieldValues().copy());
-                c.setSrcModule(rmap.get(c.getSrcModule()).newIndex());
-                c.setDestModule(rmap.get(c.getDestModule()).newIndex());
-                newCables.add(c.getFieldValues());
+            if (idxs.contains(cable.getSrcModule()) && idxs.contains(cable.getDestModule())) {
+                newCables.add(cable.getFieldValues().copy());
             }
         }
         return new ModuleDelta(umrs,newCables,true);
     }
-
     public void deleteModules(ModuleDelta md) throws Exception {
         md.modules().forEach(mr -> modules.remove(mr.getIndex()));
         md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));

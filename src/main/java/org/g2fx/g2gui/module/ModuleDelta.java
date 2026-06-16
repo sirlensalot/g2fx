@@ -11,6 +11,7 @@ import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.usb.UsbSlotSender;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -61,6 +62,9 @@ public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cabl
             return Protocol.UserModule.Index.intValue(moduleData);
         }
 
+        public ModuleType getType() {
+            return ModuleType.getById(Protocol.UserModule.Id.intValue(moduleData));
+        }
     }
 
     public ModuleDelta() {
@@ -106,6 +110,15 @@ public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cabl
                 )).toList(),!add);
     }
 
-    public record ModuleCopyRequest(int index,Coords coords,int newIndex) {}
-
+    public ModuleDelta update(LinkedHashMap<Integer, UserModuleRecord> updated) {
+        return new ModuleDelta(new ArrayList<>(updated.values()),cables.stream().map(c ->
+                Protocol.Cable.FIELDS.values(
+                        Protocol.Cable.Color.value(Protocol.Cable.Color.intValue(c)),
+                        Protocol.Cable.SrcModule.value(updated.get(Protocol.Cable.SrcModule.intValue(c)).getIndex()),
+                        Protocol.Cable.SrcConn.value(Protocol.Cable.SrcConn.intValue(c)),
+                        Protocol.Cable.Direction.value(Protocol.Cable.Direction.booleanIntValue(c)),
+                        Protocol.Cable.DestModule.value(updated.get(Protocol.Cable.DestModule.intValue(c)).getIndex()),
+                        Protocol.Cable.DestConn.value(Protocol.Cable.DestConn.intValue(c)))
+        ).toList(),add);
+    }
 }
