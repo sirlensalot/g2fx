@@ -245,4 +245,8 @@ public class Slots {
         clipboardModules = getSelectedSlotPane().doCut();
         return clipboardModules.modules().size();
     }
+
+    public void doDelete() {
+        getSelectedSlotPane().doDelete();
+    }
 }

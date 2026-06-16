@@ -445,4 +445,7 @@ public class SlotPane {
         getAreaPane(AreaId.Voice).initPaste(md,getAreaPane(AreaId.Fx));
     }
 
+    public void doDelete() {
+        getAreaWithSelection().doDelete();
+    }
 }

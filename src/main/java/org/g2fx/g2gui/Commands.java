@@ -210,8 +210,13 @@ public class Commands {
                 mkMenuItem("Redo",shortcutKey(KeyCode.Z, SHIFT_DOWN), _ -> undos.redo()),
                 mkMenuItem("Cut",shortcutKey(KeyCode.X),_ -> doCut()),
                 mkMenuItem("Copy",shortcutKey(KeyCode.C), _ -> doCopy()),
-                mkMenuItem("Paste",shortcutKey(KeyCode.V), _ -> doPaste())
+                mkMenuItem("Paste",shortcutKey(KeyCode.V), _ -> doPaste()),
+                mkMenuItem("Delete",_ -> doDelete())
         );
+    }
+
+    private void doDelete() {
+        slots.doDelete();
     }
 
     private void doCut() {
@@ -298,6 +303,7 @@ public class Commands {
                         e.consume();
                     } else if (e.isShortcutDown()) {
                         slots.getSelectedSlotPane().manageCables(true);
+                        e.consume();
                     }
                     return;
                 case KeyCode.DIGIT1:
@@ -315,6 +321,12 @@ public class Commands {
                     return;
                 case KeyCode.ESCAPE:
                     slots.clearPaste();
+                    e.consume();
+                    return;
+                case KeyCode.BACK_SPACE:
+                    doDelete();
+                    e.consume();
+                    return;
             }
         };
 

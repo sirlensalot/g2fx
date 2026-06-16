@@ -805,20 +805,33 @@ public class AreaPane {
         return cables.size();
     }
 
-    public ModuleDelta doCopy() {
-        List<Integer> modules = getSelectedModules().stream().map(ModulePane::getIndex).toList();
-        return bridges.getDeviceExecutor().invokeWithCurrentPerf(p -> thisLibArea(p).copyModules(modules));
-    }
-
     private PatchArea thisLibArea(Performance p) {
         return p.getSlot(slotPane.getSlot()).getArea(areaId);
     }
 
+    private List<Integer> getSelectedModuleIdxs() {
+        return getSelectedModules().stream().map(ModulePane::getIndex).toList();
+    }
+
+    public ModuleDelta doCopy() {
+        List<Integer> modules = getSelectedModuleIdxs();
+        return bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
+                thisLibArea(p).mkCopyModuleDelta(modules));
+    }
+
     public ModuleDelta doCut() {
-        List<Integer> modules = getSelectedModules().stream().map(ModulePane::getIndex).toList();
-        ModuleDelta md = bridges.getDeviceExecutor().invokeWithCurrentPerf(p -> thisLibArea(p).copyModules(modules));
-        ModuleDelta cut = bridges.getDeviceExecutor().invokeWithCurrentPerf(p -> thisLibArea(p).cutModules(modules));
+        List<Integer> modules = getSelectedModuleIdxs();
+        ModuleDelta md = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
+                thisLibArea(p).mkCopyModuleDelta(modules));
+        ModuleDelta cut = bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
+                thisLibArea(p).mkDeleteModuleDelta(modules));
         moduleDelta.setValue(cut);
         return md;
+    }
+
+    public void doDelete() {
+        List<Integer> modules = getSelectedModuleIdxs();
+        moduleDelta.setValue(bridges.getDeviceExecutor().invokeWithCurrentPerf(p ->
+                thisLibArea(p).mkDeleteModuleDelta(modules)));
     }
 }

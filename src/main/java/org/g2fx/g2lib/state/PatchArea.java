@@ -317,7 +317,7 @@ public class PatchArea {
     }
 
 
-    public ModuleDelta copyModules(List<Integer> idxs) {
+    public ModuleDelta mkCopyModuleDelta(List<Integer> idxs) {
         List<ModuleDelta.UserModuleRecord> umrs = idxs.stream().map(i ->
                 new ModuleDelta.UserModuleRecord(getModule(i))).toList();
         List<FieldValues> newCables = new ArrayList<>();
@@ -329,7 +329,7 @@ public class PatchArea {
         return new ModuleDelta(umrs,newCables,true);
     }
 
-    public ModuleDelta cutModules(List<Integer> idxs) {
+    public ModuleDelta mkDeleteModuleDelta(List<Integer> idxs) {
         List<ModuleDelta.UserModuleRecord> umrs = idxs.stream().map(i ->
                 new ModuleDelta.UserModuleRecord(getModule(i))).toList();
         List<FieldValues> cutCables = new ArrayList<>();
