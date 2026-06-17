@@ -13,3 +13,5 @@ rm $fn.pcap
 tshark -r $fn.pcapng -x
 
 echo "$fn.pcapng"
+
+./usb-filter.sh "$fn.pcapng"

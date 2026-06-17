@@ -57,7 +57,7 @@ tasks.test {
     jvmArgs += [
         '-Dglass.platform=headless',
         '-Djava.awt.headless=true',
-        '--enable-native-access=javafx.graphics,ALL-UNNAMED'
+        '--enable-native-access=ALL-UNNAMED'
     ]
 }
 

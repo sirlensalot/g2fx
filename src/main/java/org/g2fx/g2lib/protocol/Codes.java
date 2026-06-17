@@ -61,8 +61,10 @@ public class Codes {
     public static final int O_PERF_SETTINGS = 0x10;
     public static final int O_LIST_NAMES = 0x14;
     public static final int O_PATCH_NAME = 0x28;
+    public static final int O_SET_UPRATE = 0x2a;
     public static final int O_SELECTED_PARAM = 0x2e;
     public static final int O_SELECT_PARAM = 0x2f;
+    public static final int O_ADD_MODULE = 0x30;
     public static final int O_DELETE_MODULE = 0x32;
     public static final int O_VERSION = 0x35;
     public static final int O_MASTER_CLOCK = 0x3b;
@@ -70,7 +72,10 @@ public class Codes {
     public static final int O_CREATE = 0x37;
     public static final int O_PARAMS = 0x4c;
     public static final int O_PARAM_NAMES = 0x4f;
+    public static final int O_ADD_CABLE = 0x50;
     public static final int O_DELETE_CABLE = 0x51;
+    public static final int O_CABLE_COLOR = 0x54;
+    public static final int O_PLAY_NOTE = 0x56;
     public static final int O_UNKNOWN2 = 0x59;
     public static final int O_GLOBAL_KNOBS = 0x5e;
     public static final int O_CHANGE_VARIATION = I_CHANGE_VARIATION; // 0x6a

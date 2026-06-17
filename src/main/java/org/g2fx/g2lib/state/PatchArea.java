@@ -207,7 +207,7 @@ public class PatchArea {
         for (PatchModule pm : pms) {
             UserModuleData umd = pm.getUserModuleData();
             Protocol.ModuleAdd.FIELDS.init().addAll(
-                    Protocol.ModuleAdd.ModuleAdd_30.value(0x30), //S_MODULE_ADD
+                    Protocol.ModuleAdd.ModuleAdd_30.value(Codes.O_ADD_MODULE), //S_MODULE_ADD
                     Protocol.ModuleAdd.ModuleTypeIx.value(umd.getType().ix),
                     Protocol.ModuleAdd.Location.value(id.ordinal()),
                     Protocol.ModuleAdd.Index.value(umd.getIndex()),
