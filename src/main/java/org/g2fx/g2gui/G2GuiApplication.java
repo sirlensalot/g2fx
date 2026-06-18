@@ -97,8 +97,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
         fxQueue = new FXQueue();
         usbService = new UsbService();
         devices = new Devices(usbService);
-        deviceBridges = new Bridges<>(devices,fxQueue,undos);
-        perfBridges = deviceBridges.spawn();
+        deviceBridges = new Bridges<>(devices.getDeviceExecutor(),fxQueue,undos);
+        perfBridges = new Bridges<>(devices,fxQueue,undos);
         slots = new Slots(undos, perfBridges);
         commands = new Commands(devices, slots, undos);
         devices.addListener(this);

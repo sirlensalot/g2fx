@@ -175,7 +175,7 @@ public class Device implements Dispatcher {
         }
         if (v != patch.getVersion()) {
             return dispatchFailure("dispatchSlotCmd: slot " + slot +
-                    ", received slot version " + v + " but currently " + perf.getVersion());
+                    ", received slot version " + v + " but currently " + patch.getVersion());
         }
         int t = Util.b2i(buf.get());
         return switch (t) {

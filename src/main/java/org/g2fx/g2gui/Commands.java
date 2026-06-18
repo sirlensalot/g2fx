@@ -147,14 +147,14 @@ public class Commands {
     private void savePerf(Stage stage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Performance File");
-        String name = devices.invokeWithCurrentPerf(d -> d.perfName().get());
+        String name = devices.invokeWithCurrent(d -> d.perfName().get());
         fileChooser.setInitialFileName(name+".prf2");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("G2 Perf Files (*.prf2)", "*.prf2")
         );
         File f = fileChooser.showSaveDialog(stage);
         if (f == null) { return; }
-        devices.runWithCurrentPerf(d -> d.writeToFile(f));
+        devices.runWithCurrent(d -> d.writeToFile(f));
     }
 
     private Menu populatePerfMenu() {
@@ -184,7 +184,7 @@ public class Commands {
     private Menu populateToolsMenu(Stage stage) {
 
         MenuItem dumpYaml = mkMenuItem("Dump Yaml", _ -> {
-            String pname = devices.invokeWithCurrentPerf(Performance::getName);
+            String pname = devices.invokeWithCurrent(Performance::getName);
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Dump Yaml File");
             fileChooser.getExtensionFilters().addAll(
@@ -192,7 +192,7 @@ public class Commands {
             fileChooser.setInitialFileName(pname + ".yaml");
             File file = fileChooser.showSaveDialog(stage);
             if (file != null) {
-                devices.runWithCurrentPerf(d ->
+                devices.runWithCurrent(d ->
                         d.dumpYaml(file.getAbsolutePath()));
             }});
 

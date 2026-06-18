@@ -134,6 +134,7 @@ public class Eval {
     public EvalResult handleInput(List<String> ws) {
         if (ws.isEmpty()) return evalContinue();
         String cmd = ws.removeFirst();
+        if (cmd.trim().isEmpty()) return evalContinue();
         if (!commandRegistry.hasCommand(cmd)) {
             getWriter().println("Invalid command: " + cmd);
             return evalContinue();

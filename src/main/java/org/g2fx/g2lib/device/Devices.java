@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * Singleton facade/pub-sub representing G2 device(s) and current Performance.
  */
-public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
+public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Performance> {
 
     private static final Logger log = Util.getLogger(Devices.class);
 
@@ -321,7 +321,6 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         return Path.mkPath(currentDevice,currentPerf);
     }
 
-    @Override
     public <T>T withCurrentPerf(ThrowingFunction<Performance, T> f) throws Exception {
         if (currentPerf == null) { throw new IllegalStateException("Current device/perf not initialized"); }
         return f.invoke(currentPerf);
@@ -358,17 +357,12 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     }
 
     @Override
-    public <V> V invokeWithCurrent(ThrowingFunction<Device, V> f) {
-        return invoke(() -> f.invoke(currentDevice));
-    }
-
-    @Override
-    public <V> V invokeWithCurrentPerf(ThrowingFunction<Performance, V> f) {
+    public <V> V invokeWithCurrent(ThrowingFunction<Performance, V> f) {
         return invoke(() -> withCurrentPerf(f));
     }
 
     @Override
-    public void runWithCurrentPerf(ThrowingConsumer<Performance> f) {
+    public void runWithCurrent(ThrowingConsumer<Performance> f) {
         execute(() -> {
             if (currentPerf == null) {
                 throw new IllegalStateException("Current device/perf not initialized");
@@ -377,8 +371,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
         });
     }
 
-    @Override
-    public void runWithCurrent(ThrowingConsumer<Device> f) {
+    public void runWithCurrentDevice(ThrowingConsumer<Device> f) {
         execute(() -> f.accept(currentDevice));
     }
 
@@ -425,6 +418,23 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor {
     public void setCurrentSender(UsbSender sender) {
         this.currentSender = sender;
         sender.setDispatcher(currentDevice);
+    }
+
+    public LibExecutor<Device> getDeviceExecutor() {
+        return new LibExecutor<>() {
+            @Override public <V> V invoke(Callable<V> c) {
+                return Devices.this.invoke(c);
+            }
+            @Override public <V> V invokeWithCurrent(ThrowingFunction<Device, V> f) {
+                return Devices.this.invoke(() -> f.invoke(currentDevice));
+            }
+            @Override public void runWithCurrent(ThrowingConsumer<Device> f) {
+                Devices.this.execute(() -> f.accept(currentDevice));
+            }
+            @Override public void execute(ThrowingRunnable r) {
+                Devices.this.execute(r);
+            }
+        };
     }
 
 }

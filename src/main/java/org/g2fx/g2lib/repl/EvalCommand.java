@@ -40,7 +40,7 @@ public enum EvalCommand {
             .run(c -> {
                 Entries.EntryType type = Entries.EntryType.LC_NAME_LOOKUP.get(c.nextArg());
                 int bank = c.nextInt() - 1;
-                c.devices.runWithCurrent(d -> d.getEntries().dumpEntries(c.writer,type,bank));
+                c.devices.runWithCurrentDevice(d -> d.getEntries().dumpEntries(c.writer,type,bank));
             })),
 
     fileLoad(cmd("Load perf or patch file",
@@ -77,7 +77,7 @@ public enum EvalCommand {
             .run(c -> {
                 Slot s = Slot.fromAlpha(c.nextArg());
                 if (c.path == null || c.path.perf() == null ) { throw c.bad("No current performance"); }
-                Path p = c.devices.invokeWithCurrentPerf(d -> Path.pathForPatch(d, d.getSlot(s)));
+                Path p = c.devices.invokeWithCurrent(d -> Path.pathForPatch(d, d.getSlot(s)));
                 c.eval.setPath(p);
                 if (c.uiMode) {
                     c.ui.setSlot(p.slot().slot());
@@ -85,20 +85,16 @@ public enum EvalCommand {
             })),
 
     load(cmd("Load entry into device",
-            argDesc("typeOrSlot","'perf' or slot (A,B,C,D)"),
+            argDesc("typeOrSlot","[P]erf or slot (A,B,C,D)"),
             argDesc("bank","bank number (1-indexed)"),
             argDesc("entry","bank entry number (1-indexed)"))
             .run(c -> {
                 String typeOrSlot = c.nextArg();
-                int slotCode;
-                if (typeOrSlot.equals("perf")) {
-                    slotCode = 4;
-                } else {
-                    slotCode = Slot.fromAlpha(typeOrSlot.toUpperCase()).ordinal();
-                }
+                Slot slotCode = getSlotCode(typeOrSlot);
                 int bank = c.nextInt() - 1;
                 int entry = c.nextInt() - 1;
-                c.devices.runWithCurrent(d -> d.getEntries().loadEntry(slotCode, bank, entry));
+                c.devices.runWithCurrentDevice(d -> d.getEntries().loadEntry(
+                        slotCode == null ? 4 : slotCode.ordinal(), bank, entry));
             })),
 
     echo(cmd("echo args").run(c -> {
@@ -116,13 +112,13 @@ public enum EvalCommand {
         if (c.path == null) { c.writer.println("No path"); return; }
         if (c.path.area() == null) { c.writer.println("No area"); return; }
         if (c.path.module() == null) {
-            c.writer.println((String)c.devices.invokeWithCurrentPerf(d ->
+            c.writer.println((String)c.devices.invokeWithCurrent(d ->
                     String.join("\n", c.getCurrentArea(d).getModules().stream().map(m ->
                             String.format("%s:%s (%s)", m.getIndex(), m.name().get(),
                                     m.getUserModuleData().getType().shortName)).toList())));
             return;
         }
-        String o = c.devices.invokeWithCurrentPerf(d -> {
+        String o = c.devices.invokeWithCurrent(d -> {
             StringWriter sw = new StringWriter();
             PrintWriter writer = new PrintWriter(sw);
             writer.println(c.path.slot() + "/v" + c.path.variation() + "/" +
@@ -157,7 +153,7 @@ public enum EvalCommand {
             .run(c -> {
                 if (c.path == null || c.path.area() == null) { throw c.bad("Path null/no area"); }
                 EvalCtx.ArgAndDesc a = c.popArg();
-                Path p = c.devices.invokeWithCurrentPerf(d -> {
+                Path p = c.devices.invokeWithCurrent(d -> {
                     PatchModule m = null;
                     for (PatchModule pm : c.getCurrentArea(d).getModules()) {
                         if (a.arg().equals(pm.name().get())) {
@@ -200,7 +196,7 @@ public enum EvalCommand {
             throw c.bad("Invalid param value %s, should be [%s,%s)",val,mp.min,mp.max);
         }
         final var npp = np;
-        c.devices.runWithCurrentPerf(d -> c.getCurrentModule(d)
+        c.devices.runWithCurrent(d -> c.getCurrentModule(d)
                 .getParamValueProperty(c.path.variation(),npp.index()).set(val));
 
     })),
@@ -211,7 +207,7 @@ public enum EvalCommand {
         var area = "va".equals(c.nextArg()) ? AreaId.Voice : AreaId.Fx;
         var isMem = "mem".equals(c.nextArg());
         double val = c.nextInt();
-        c.devices.runWithCurrentPerf(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a -> {
+        c.devices.runWithCurrent(d -> Arrays.stream(AreaId.USER_AREAS).forEach(a -> {
             PatchLoadData data = c.getCurrentSlot(d).getArea(area).getPatchLoadData();
             if (isMem) data.mem().set(val); else data.cycles().set(val);
         }));
@@ -221,7 +217,7 @@ public enum EvalCommand {
             argDesc("name","led name"))
             .run(c -> {
                 String name = c.nextArg();
-                c.devices.runWithCurrentPerf(d -> {
+                c.devices.runWithCurrent(d -> {
                     PatchModule pm = c.getCurrentModule(d);
                     pm.getLeds().forEach(v -> {
                         if (v.getVisual().names().getFirst().equals(name)) {
@@ -236,7 +232,7 @@ public enum EvalCommand {
             .run(c -> {
                 String name = c.nextArg();
                 int val = c.nextInt();
-                c.devices.runWithCurrentPerf(d -> {
+                c.devices.runWithCurrent(d -> {
                     PatchModule pm = c.getCurrentModule(d);
                     pm.getMetersAndGroups().forEach(v -> {
                         if (v.getVisual().names().getFirst().equals(name)) {
@@ -251,7 +247,7 @@ public enum EvalCommand {
             .argsRequired(0)
             .run(c -> {
                 if (c.args().isEmpty()) {
-                    c.devices.runWithCurrent(d -> {
+                    c.devices.runWithCurrentDevice(d -> {
                         if (d.getUsb() instanceof Usb usb) usb.stopRecording();
                     });
                     return;
@@ -269,7 +265,7 @@ public enum EvalCommand {
                         throw c.bad("Unable to create directory: " + dir);
                     }
                 }
-                c.devices.runWithCurrent(d -> {
+                c.devices.runWithCurrentDevice(d -> {
                     if (d.getUsb() instanceof Usb usb) usb.startRecording(c.args().get(1).arg(), dir);
                 });
             })),
@@ -287,19 +283,37 @@ public enum EvalCommand {
                         try {
                             Thread.sleep(rum.time());
                         } catch (InterruptedException ignored) {}
-                        c.devices.runWithCurrent(d -> {
+                        c.devices.runWithCurrentDevice(d -> {
                             d.dispatch(rum.msg());
                         });
                     });
                 }).start();
             })),
     offline(cmd("Initialize offline device").run(c -> c.devices.execute(c.devices::initOfflineDevice))),
+    version(cmd("Set patch or perf version",
+            argDesc("slotOrPerf","slot (A-D) or [P]erf")
+            ,argDesc("version","version integer")).run(
+            c -> {
+                Slot slot = getSlotCode(c.nextArg());
+                int version = c.nextInt();
+                c.devices.runWithCurrent(p->{
+                    if (slot==null) {
+                        p.setVersion(version);
+                    } else {
+                        p.getSlot(slot).setVersion(version);
+                    }
+                });
+            })),
     comm(cmd("Start/stop device communication stream",
             argDesc("startStop","start or stop"))
             .run(c -> {
                 Eval.Comm comm = Eval.Comm.LOOKUP.get(c.nextArg().toLowerCase());
-                c.devices.runWithCurrent(d -> d.getUsb().sendStartStopComm(comm == Eval.Comm.Start));
+                c.devices.runWithCurrentDevice(d -> d.getUsb().sendStartStopComm(comm == Eval.Comm.Start));
             }));
+
+    private static Slot getSlotCode(String typeOrSlot) {
+        return typeOrSlot.equals("P") ? null : Slot.fromAlpha(typeOrSlot.toUpperCase());
+    }
 
     public static final SafeLookup<String,EvalCommand> BY_NAME =
             SafeLookup.makeEnumNameLookup(values());

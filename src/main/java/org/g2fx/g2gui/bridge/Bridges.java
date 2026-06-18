@@ -17,14 +17,14 @@ public class Bridges<D> implements Bridger<D> {
      * for PERF_002 which is decently large.
      */
     private final List<PropertyBridge<D,?,?>> bridges = new CopyOnWriteArrayList<>();
-    private final LibExecutor libExecutor;
+    private final LibExecutor<D> libExecutor;
     private final Executor fxQueue;
     private final Undos undos;
 
     /**
      * On FX thread, top-level ctor.
      */
-    public Bridges(LibExecutor libExecutor, Executor fxQueue, Undos undos) {
+    public Bridges(LibExecutor<D> libExecutor, Executor fxQueue, Undos undos) {
         this.libExecutor = libExecutor;
         this.fxQueue = fxQueue;
         this.undos = undos;
@@ -33,8 +33,8 @@ public class Bridges<D> implements Bridger<D> {
     /**
      * Lower level ctor, copy services from higher-level bridger.
      */
-    public Bridges(Bridges<?> parent) {
-        this.libExecutor = parent.libExecutor;
+    public Bridges(Bridges<?> parent,LibExecutor<D> libExecutor) {
+        this.libExecutor = libExecutor;
         this.fxQueue = parent.fxQueue;
         this.undos = parent.undos;
     }
@@ -42,8 +42,8 @@ public class Bridges<D> implements Bridger<D> {
     /**
      * Spawn a differently-parameterized bridges instance.
      */
-    public <T> Bridges<T> spawn() {
-        return new Bridges<>(this);
+    public <T> Bridges<T> spawn(Function<D,T> adapter) {
+        return new Bridges<>(this,LibExecutor.adapt(libExecutor,adapter));
     }
 
     @Override
@@ -75,7 +75,7 @@ public class Bridges<D> implements Bridger<D> {
         bridges.forEach(PropertyBridge::dispose);
     }
 
-    public LibExecutor getDeviceExecutor() {
+    public LibExecutor<D> getLibExecutor() {
         return libExecutor;
     }
 
