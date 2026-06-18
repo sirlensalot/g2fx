@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.g2fx.g2lib.DeviceTest.parseCapture;
+import static org.g2fx.g2lib.usb.MessageRecorder.parseCapture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PerformanceTest {

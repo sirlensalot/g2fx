@@ -70,14 +70,6 @@ public class DeviceTest {
         assertEquals(6,ps.voices().get());
     }
 
-    public static List<MessageRecorder.RecordedUsbMessage> parseCapture(String file, Predicate<Byte> epPred)
-            throws Exception {
-        ByteBuffer bb = Util.readFile(file);
-        List<Util.UsbPacket> ps = Util.readPcapNg(bb);
-        List<MessageRecorder.RecordedUsbMessage> ms = MessageRecorder.readCapture(ps, epPred);
-        return ms;
-    }
-
     /**
      * Legacy editor requests AFTER sending in a new blank perf result in inbounds that are here used
      * to regress dispatch and values coming from data objects in Performance,Patch etc.
@@ -89,7 +81,7 @@ public class DeviceTest {
         //dispatch inbound messages
         Device d = initDevice();
         Performance p = initPerf(d);
-        dispatchMsgs(parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND),d);
+        dispatchMsgs(MessageRecorder.parseCapture("data/capture/capture-newperf.pcapng", MessageRecorder.INBOUND),d);
 
         //regress resulting values
         //versions
@@ -203,7 +195,7 @@ public class DeviceTest {
 
             }
         }, LifecycleListener.noopListener());
-        dispatchMsgs(parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND),d);
+        dispatchMsgs(MessageRecorder.parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND),d);
         // match file version and current notes
         Performance p = pref.get();
         p.setVersion(1);
@@ -307,7 +299,7 @@ public class DeviceTest {
 
     public static List<MessageRecorder.RecordedUsbMessage> captureCmd(List<Integer> cmdCodes, String capFile) throws Exception {
         List<MessageRecorder.RecordedUsbMessage> ms =
-                parseCapture(capFile, MessageRecorder.INBOUND)
+                MessageRecorder.parseCapture(capFile, MessageRecorder.INBOUND)
                         .stream().filter(mkCmdFilter(cmdCodes)).toList();
         return ms;
     }

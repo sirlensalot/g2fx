@@ -631,4 +631,8 @@ public class ModulePane implements MoveableModule {
         ObservableValue<String> np = paramNames.get(param);
         return np != null ? np : new SimpleStringProperty(type.getParams().get(param).name());
     }
+
+    public Visuals getVisuals() {
+        return visuals;
+    }
 }

@@ -14,6 +14,8 @@ import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.state.PatchVisual;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
@@ -21,8 +23,11 @@ import static org.g2fx.g2gui.panel.ModulePane.layout;
 public class Visuals {
 
     private final Bridger<PatchModule> bridges;
+    private final Map<Integer,LedControl> leds = new TreeMap<>();
+    private final Map<Integer,Map<Integer,LedControl>> ledGroups = new TreeMap<>();
+    private final Map<Integer,VuMeter> meters = new TreeMap<>();
 
-    public record LedControl(Node control,Property<Boolean> lit) {}
+    public record LedControl(Node control,Property<Boolean> lit,int group,int codeRef) {}
 
     public Visuals(Bridger<PatchModule> bridges) {
         this.bridges = bridges;
@@ -31,25 +36,37 @@ public class Visuals {
     public Node mkLed(UIElements.Led c) {
         if (c.Type() == UIElements.LedType.Green) {
             if (c.LedGroup() == null) { //Green, no group: use GroupId
-                return mkSingleLed(c);
+                return addLed(mkSingleLed(c));
             } else {
-                return mkGroupLed(c);
+                return addLedGroup(mkGroupLed(c));
             }
         } else {
-            return mkSequencerLed(c);
+            return addLedGroup(mkSequencerLed(c));
         }
     }
 
-    private Node mkSequencerLed(UIElements.Led c) {
-        LedControl ctl = mkLed(c,12,5,"led-sequencer"); //ledgroup(Visual.LedGroupType.Radio,
-        bridgeGroupLed(c, ctl);
-        return ctl.control();
+    private Node addLed(LedControl c) {
+        leds.put(c.group(),c);
+        return c.control();
     }
 
-    private Node mkGroupLed(UIElements.Led c) {
+    private Node addLedGroup(LedControl c) {
+        ledGroups.computeIfAbsent(c.group,(_ -> new TreeMap<>()));
+        ledGroups.get(c.group).put(c.codeRef,c);
+        return c.control();
+    }
+
+
+    private LedControl mkSequencerLed(UIElements.Led c) {
+        LedControl ctl = mkLed(c,12,5,"led-sequencer"); //ledgroup(Visual.LedGroupType.Radio,
+        bridgeGroupLed(c, ctl);
+        return ctl;
+    }
+
+    private LedControl mkGroupLed(UIElements.Led c) {
         LedControl ctl = mkGreenLed(c);
         bridgeGroupLed(c, ctl);
-        return ctl.control();
+        return ctl;
     }
 
     private void bridgeGroupLed(UIElements.Led c, LedControl ctl) {
@@ -84,7 +101,7 @@ public class Visuals {
         throw new IllegalStateException("Could not locate led idx " + groupId + ", " + this);
     }
 
-    private Node mkSingleLed(UIElements.Led c) {
+    private LedControl mkSingleLed(UIElements.Led c) {
         LedControl ctl = mkGreenLed(c);
         bridges.bridge(d -> {
                     List<PatchVisual> leds = d.getLeds();
@@ -92,7 +109,7 @@ public class Visuals {
                 },
                 new FxProperty.SimpleFxProperty<>(ctl.lit()),
                 Iso.BOOL_PARAM_ISO);
-        return ctl.control();
+        return ctl;
     }
 
     private static LedControl mkGreenLed(UIElements.Led c) {
@@ -103,11 +120,11 @@ public class Visuals {
         Rectangle r = withClass(new Rectangle(width, height), style,"led-green-off");
         layout(c,r);
         Property<Boolean> lit = new SimpleObjectProperty<>(false);
-        lit.addListener((cc,o,n) -> {
+        lit.addListener((_, _, n) -> {
             r.getStyleClass().remove(n ? "led-green-off" : "led-green-on");
             r.getStyleClass().add(n ? "led-green-on" : "led-green-off");
         });
-        LedControl ctl = new LedControl(r, lit);
+        LedControl ctl = new LedControl(r, lit, c.GroupId(),c.CodeRef());
         return ctl;
     }
 
@@ -117,6 +134,18 @@ public class Visuals {
                     List<PatchVisual> leds = d.getMetersAndGroups();
                     return findVisual(c.GroupId(), leds, Visual.VisualType.Meter);
                 });
+        meters.put(c.GroupId(),v);
         return v.getControl();
+    }
+
+
+    public LedControl getLed(int group) {
+        return leds.get(group);
+    }
+    public VuMeter getMeter(int group) {
+        return meters.get(group);
+    }
+    public LedControl getLedGroup(int group,int codeRef) {
+        return ledGroups.get(group).get(codeRef);
     }
 }

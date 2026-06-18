@@ -199,22 +199,6 @@ public class Usb implements UsbSender {
         return msg;
     }
 
-    /**
-     * a slot command does not expect a response
-     * @param slot 0-3
-     * @param version patch version
-     * @param msg log msg
-     * @param cdata cmd data
-     * @return success code
-     */
-    public int sendSlotCommand(int slot, int version, String msg, int... cdata) throws Exception {
-        return sendBulk(msg, false, Util.concat(Util.asBytes(
-                0x01,
-                0x30 + 0x08 + slot, // CMD_NO_RESP + CMD_SLOT + slot index
-                version
-        ),Util.asBytes(cdata)));
-    }
-
     @Override
     public void shutdown() {
 

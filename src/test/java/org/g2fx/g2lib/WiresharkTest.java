@@ -20,7 +20,7 @@ public class WiresharkTest {
 
     @Test
     void playStartup() throws Exception {
-        List<MessageRecorder.RecordedUsbMessage> ms = DeviceTest.parseCapture("data/capture/poweron2.pcapng",
+        List<MessageRecorder.RecordedUsbMessage> ms = MessageRecorder.parseCapture("data/capture/poweron2.pcapng",
                 MessageRecorder.INBOUND);
         Device d = DeviceTest.initDevice();
         DeviceTest.initPerf(d);

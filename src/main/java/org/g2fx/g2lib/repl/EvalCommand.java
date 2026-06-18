@@ -269,7 +269,7 @@ public enum EvalCommand {
                     if (d.getUsb() instanceof Usb usb) usb.startRecording(c.args().get(1).arg(), dir);
                 });
             })),
-    play(cmd("Play session recording yaml file.",argDesc("file","yaml file"))
+    play(cmd("Play session recording yaml or pcapng file.",argDesc("file","yaml or pcapng file"))
             .run(c -> {
                 List<MessageRecorder.RecordedUsbMessage> msgs;
                 File f = new File(c.nextArg());

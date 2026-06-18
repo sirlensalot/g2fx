@@ -28,6 +28,7 @@ public class MessageRecorder {
         pw.println("msgs:");
     }
 
+
     public File getPath() {
         return path;
     }
@@ -97,6 +98,7 @@ public class MessageRecorder {
     public record Script(Double mult, Integer constant, List<RecordMsg> msgs) {}
 
     public static List<RecordedUsbMessage> readSessionFile(File f) throws Exception {
+        if (f.getName().endsWith(".pcapng")) { return parseCapture(f.getAbsolutePath(),INBOUND); }
         ObjectMapper mapper = Util.mkYamlMapper();
         Script y = mapper.readValue(f, new TypeReference<>() {});
         double mult = y.mult == null ? 1.0 : y.mult;
@@ -107,34 +109,51 @@ public class MessageRecorder {
         }).toList();
     }
 
+
+    public static List<RecordedUsbMessage> parseCapture(String file, Predicate<Byte> epPred)
+            throws Exception {
+        ByteBuffer bb = Util.readFile(file);
+        List<Util.UsbPacket> ps = Util.readPcapNg(bb);
+        List<RecordedUsbMessage> ms = readCapture(ps, epPred);
+        return ms;
+    }
+
+
     public static final Predicate<Byte> INBOUND = (b) -> b == Usb.EP_IN_BULK || b == Usb.EP_IN_INTERRUPT;
     public static final Predicate<Byte> OUTBOUND = (b) -> b == Usb.EP_OUT_BULK;
 
     public static List<RecordedUsbMessage> readCapture(List<Util.UsbPacket> packets, Predicate<Byte> epPred) {
         List<RecordedUsbMessage> l = new ArrayList<>();
         int i = 0;
+        long lastTime = 0;
+        long currentTime = 0;
         for (Util.UsbPacket p : packets) {
             i++;
             byte ep = p.data().get(0x1e);
+            long t = p.elapsedMicros() / 1000;
+            currentTime += t;
+            long elapsed = currentTime-lastTime;
             if (!epPred.test(ep)) { continue; }
             int len = p.data().limit() - 0x20;
             if (len < 3) { continue; }
             ByteBuffer bb = p.data().slice(0x20, len);
-            long t = p.elapsedMicros() / 1000;
             switch (ep) {
                 case Usb.EP_IN_INTERRUPT:
                     UsbMessage m = Usb.parseInterrupt(bb);
                     if (!m.extended()) {
-                        l.add(new RecordedUsbMessage(t,m,true));
+                        currentTime = lastTime;
+                        l.add(new RecordedUsbMessage(elapsed,m,true));
                     }
                     break;
                 case Usb.EP_IN_BULK:
                     UsbMessage mb = Usb.parseBulk(len,bb);
-                    l.add(new RecordedUsbMessage(t,mb,true));
+                    currentTime = lastTime;
+                    l.add(new RecordedUsbMessage(elapsed,mb,true));
                     break;
                 case Usb.EP_OUT_BULK: //TODO this won't work for playback, need to factor a "full decode" or filter
                     UsbMessage mo = Usb.parseBulk(len,bb);
-                    l.add(new RecordedUsbMessage(t,mo,false));
+                    currentTime = lastTime;
+                    l.add(new RecordedUsbMessage(elapsed,mo,false));
                     break;
             }
         }

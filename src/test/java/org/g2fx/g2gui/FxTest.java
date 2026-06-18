@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Point2D;
 import javafx.stage.Stage;
+import org.g2fx.g2gui.controls.Visuals;
 import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2lib.PerformanceTest;
 import org.g2fx.g2lib.device.Device;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,6 +77,31 @@ public class FxTest {
             System.out.printf("Load Perf Time: %dms\n",TimeUnit.MILLISECONDS.convert(elapsed,TimeUnit.NANOSECONDS));
         });
 
+    }
+
+    @Test
+    void testVisuals() throws Exception {
+        CaptureSender sender = new CaptureSender("data/capture/capture-012-leds-perf2.pcapng");
+        G2GuiApplication app = startApp();
+        app.getDevices().setCurrentSender(sender);
+        sender.setStrict(false);
+        app.getDevices().loadFile(PerformanceTest.PERF_002, null);
+        Visuals.LedControl slotALFO = callFxQueue(app,() ->
+                app.getSlots().getSlot(Slot.A).getAreaPane(AreaId.Voice).getModule(9).getVisuals().getLed(0));
+        AtomicInteger slotALFOCalls = new AtomicInteger(0);
+        slotALFO.lit().addListener((_,_,_) -> slotALFOCalls.incrementAndGet());
+        Visuals.LedControl slotCSeq2 = callFxQueue(app,() ->
+                app.getSlots().getSlot(Slot.C).getAreaPane(AreaId.Voice).getModule(6).getVisuals().getLedGroup(0,2));
+        AtomicInteger slotCSeq2Calls = new AtomicInteger(0);
+        slotCSeq2.lit().addListener((_,_,_) -> slotCSeq2Calls.incrementAndGet());
+
+        app.getDevices().getCurrentPerf().getSlot(Slot.A).setVersion(4);
+        app.getDevices().getCurrentPerf().getSlot(Slot.B).setVersion(3);
+        app.getDevices().getCurrentPerf().getSlot(Slot.C).setVersion(3);
+        app.getDevices().getCurrentPerf().getSlot(Slot.D).setVersion(3);
+        sender.dispatchInbounds();
+        assertEquals(22,callFxQueue(app, slotALFOCalls::get));
+        assertEquals(2,callFxQueue(app, slotCSeq2Calls::get));
     }
 
     private static G2GuiApplication startApp() throws Exception {
