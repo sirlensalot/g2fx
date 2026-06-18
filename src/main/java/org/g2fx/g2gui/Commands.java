@@ -255,7 +255,7 @@ public class Commands {
     }
 
 
-    private static Menu mkMenu(String name, MenuItem... items) {
+    public static Menu mkMenu(String name, MenuItem... items) {
         Menu i = new Menu(name);
         i.getItems().addAll(items);
         return i;
@@ -264,12 +264,12 @@ public class Commands {
 
 
 
-    private static MenuItem mkMenuItem(String name, KeyCombination shortcut, EventHandler<ActionEvent> action) {
+    public static MenuItem mkMenuItem(String name, KeyCombination shortcut, EventHandler<ActionEvent> action) {
         MenuItem i = mkMenuItem(name,action);
         i.setAccelerator(shortcut);
         return i;
     }
-    private static MenuItem mkMenuItem(String name, EventHandler<ActionEvent> action) {
+    public static MenuItem mkMenuItem(String name, EventHandler<ActionEvent> action) {
         MenuItem repl = new MenuItem(name);
         repl.setOnAction(action);
         return repl;

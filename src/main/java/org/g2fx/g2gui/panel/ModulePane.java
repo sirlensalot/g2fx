@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
@@ -29,6 +30,7 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.logging.Logger;
@@ -93,6 +95,7 @@ public class ModulePane implements MoveableModule {
     private final String ctx;
     private final Map<Integer, ObservableValue<String>> paramNames = new TreeMap<>();
     private final Connectors connectors;
+    private final BiConsumer<Connectors.Conn, ContextMenuEvent> connCtxMenuHandler;
 
     public ModulePane(UIModule<UIElement> ui,
                       int index,
@@ -101,12 +104,14 @@ public class ModulePane implements MoveableModule {
                       SlotPane slotPane,
                       Connectors conns,
                       AreaId areaId,
-                      Bridges<PatchModule> moduleBridges) {
+                      Bridges<PatchModule> moduleBridges,
+                      BiConsumer<Connectors.Conn,ContextMenuEvent> connCtxMenuHandler) {
         height = ui.Height();
         this.type = type;
         this.index = index;
         this.connectors = conns;
         this.slotPane = slotPane;
+        this.connCtxMenuHandler = connCtxMenuHandler;
         ctx = String.format("%s:%s:%s:%s", slotPane.getSlot(), areaId,type.shortName,index);
         paramListener = new ParamListener(type,ctx);
         log = Util.getLogger(getClass(),ctx);
@@ -203,11 +208,11 @@ public class ModulePane implements MoveableModule {
     }
 
     private Node mkOutput(UIElements.Output c) {
-        return addConn(Connectors.makeOutput(c,this));
+        return addConn(Connectors.makeOutput(c,this, connCtxMenuHandler));
     }
 
     private Node mkInput(UIElements.Input c) {
-        return addConn(Connectors.makeInput(c,this));
+        return addConn(Connectors.makeInput(c,this, connCtxMenuHandler));
     }
 
     private Node addConn(Connectors.Conn conn) {

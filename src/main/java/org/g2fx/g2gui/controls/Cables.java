@@ -15,6 +15,16 @@ import static org.g2fx.g2gui.controls.Connectors.getConnColor;
 
 public interface Cables {
 
+    enum ColorSelection {
+        Audio,
+        Control,
+        Logic_BG,
+        Logic_FG,
+        User_1,
+        User_2;
+        public String displayName() { return name().replace('_',' '); }
+    }
+
     class CableRun {
         private Node cable;
         private Node shadow;
@@ -83,14 +93,23 @@ public interface Cables {
                 new Stop(1.0, Color.BLACK)            // deepest shade, e.g. edge fade
         );
         Circle srcJack = mkJack(gradient, start);
+        srcJack.setOnContextMenuRequested(e -> srcConn.ctxMenuHandler().accept(srcConn,e));
         Circle destJack = mkJack(gradient,end);
-
+        destJack.setOnContextMenuRequested(e -> destConn.ctxMenuHandler().accept(destConn,e));
+        run.getCable().setOnContextMenuRequested(e -> {
+            if (srcJack.getBoundsInParent().contains(e.getX(),e.getY())) {
+                srcConn.ctxMenuHandler().accept(srcConn,e);
+            }
+            if (destJack.getBoundsInParent().contains(e.getX(),e.getY())) {
+                destConn.ctxMenuHandler().accept(destConn,e);
+            }
+        });
         return new Cable(color,srcConn,start,destConn,end,run,srcJack,destJack);
 
 
     }
 
-    public static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
+    static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
 
         ThreadLocalRandom r = ThreadLocalRandom.current();
         int offsetMagnitude = r.nextInt(10,20);
@@ -150,7 +169,7 @@ public interface Cables {
     }
 
 
-    public static Circle mkJack(RadialGradient gradient, Point2D pos) {
+    static Circle mkJack(RadialGradient gradient, Point2D pos) {
         Circle srcJack = new Circle(0,0,RADIUS*.55);
         srcJack.getStyleClass().add("cable-jack");
         srcJack.setFill(gradient);
