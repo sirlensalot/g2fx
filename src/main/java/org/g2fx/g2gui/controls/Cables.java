@@ -2,6 +2,9 @@ package org.g2fx.g2gui.controls;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -13,10 +16,14 @@ import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Logger;
 
+import static org.g2fx.g2gui.Commands.mkMenu;
+import static org.g2fx.g2gui.Commands.mkMenuItem;
 import static org.g2fx.g2gui.controls.Connectors.RADIUS;
 import static org.g2fx.g2gui.controls.Connectors.getConnColor;
 import static org.g2fx.g2lib.util.Util.with;
@@ -69,6 +76,7 @@ public class Cables {
             Node srcJack,
             Node endJack) {}
 
+    private final Logger log = Util.getLogger(getClass());
     private final List<Cable> cables = new ArrayList<>();
     private final Map<Connectors.Conn, Set<Cable>> connToCable = new HashMap<>();
     private final SlotPane slotPane;
@@ -272,5 +280,52 @@ public class Cables {
         Cables.Cable cable = Cables.mkCable(srcConn, destConn);
         add(cable);
         areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
+    }
+
+    public void deleteCables(Set<Cable> cs) {
+
+    }
+
+    public void mkConnCtxMenu(Connectors.Conn conn, ContextMenuEvent cme) {
+        //find cable if any
+        Set<Cables.Cable> cs = cablesForConn(conn);
+
+        ContextMenu cm = new ContextMenu();
+        if (!cs.isEmpty()) {
+            cm.getItems().add(mkMenuItem("Disconnect", _ -> ctxDisconnectConn(conn, cs)));
+            if (cs.size() > 1) cm.getItems().add(mkMenuItem("Break", _ -> ctxBreakConn(conn, cs)));
+            Menu m = mkMenu("Color");
+            Arrays.stream(Cables.ColorSelection.values()).forEach(v ->
+                    m.getItems().add(mkMenuItem(v.displayName(),_-> ctxSetCableColor(cs,v))));
+            cm.getItems().add(m);
+            cm.getItems().add(mkMenuItem("Delete",_-> ctxDeleteCable(cs)));
+        }
+        cm.getItems().add(mkMenuItem("Delete Unused Cables", _ -> ctxDeleteUnusedCables()));
+        cm.show(conn.control(),cme.getScreenX(),cme.getScreenY());
+
+    }
+
+
+    private void ctxDeleteCable(Set<Cables.Cable> cs) {
+        deleteCables(cs);
+    }
+
+    private void ctxSetCableColor(Set<Cables.Cable> cs, Cables.ColorSelection color) {
+        log.warning("ctxSetCableColor TODO");
+
+    }
+
+    private void ctxDisconnectConn(Connectors.Conn conn, Set<Cables.Cable> cs) {
+        log.warning("ctxDisconnectConn TODO");
+
+    }
+
+    private void ctxBreakConn(Connectors.Conn conn, Set<Cables.Cable> cs) {
+        log.warning("ctxBreakConn TODO");
+
+    }
+
+    private void ctxDeleteUnusedCables() {
+        log.warning("ctxDeleteUnusedCables TODO");
     }
 }

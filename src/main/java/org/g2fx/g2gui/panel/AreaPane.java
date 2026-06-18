@@ -6,9 +6,7 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
@@ -39,8 +37,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.g2fx.g2gui.Commands.mkMenu;
-import static org.g2fx.g2gui.Commands.mkMenuItem;
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.FXUtil.withClass1;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_X;
@@ -567,46 +563,9 @@ public class AreaPane {
     }
 
     public void mkConnCtxMenu(Connectors.Conn conn, ContextMenuEvent cme) {
-        //find cable if any
-        Set<Cables.Cable> cs = cables.cablesForConn(conn);
-
-        ContextMenu cm = new ContextMenu();
-        if (!cs.isEmpty()) {
-            cm.getItems().add(mkMenuItem("Disconnect", _ -> ctxDisconnectConn(conn, cs)));
-            if (cs.size() > 1) cm.getItems().add(mkMenuItem("Break", _ -> ctxBreakConn(conn, cs)));
-            Menu m = mkMenu("Color");
-            Arrays.stream(Cables.ColorSelection.values()).forEach(v ->
-                    m.getItems().add(mkMenuItem(v.displayName(),_-> ctxSetCableColor(cs,v))));
-            cm.getItems().add(m);
-            cm.getItems().add(mkMenuItem("Delete",_-> ctxDeleteCable(cs)));
-        }
-        cm.getItems().add(mkMenuItem("Delete Unused Cables", _ -> ctxDeleteUnusedCables()));
-        cm.show(conn.control(),cme.getScreenX(),cme.getScreenY());
+        cables.mkConnCtxMenu(conn,cme);
     }
 
-    private void ctxDeleteCable(Set<Cables.Cable> cs) {
-        log.warning("ctxDeleteCable TODO");
-
-    }
-
-    private void ctxSetCableColor(Set<Cables.Cable> cs, Cables.ColorSelection color) {
-        log.warning("ctxSetCableColor TODO");
-
-    }
-
-    private void ctxDisconnectConn(Connectors.Conn conn, Set<Cables.Cable> cs) {
-        log.warning("ctxDisconnectConn TODO");
-
-    }
-
-    private void ctxBreakConn(Connectors.Conn conn, Set<Cables.Cable> cs) {
-        log.warning("ctxBreakConn TODO");
-
-    }
-
-    private void ctxDeleteUnusedCables() {
-        log.warning("ctxDeleteUnusedCables TODO");
-    }
 
 
     public void manageCables(boolean redraw) {
