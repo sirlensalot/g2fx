@@ -30,8 +30,6 @@ import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
-import org.g2fx.g2lib.protocol.FieldValues;
-import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.Util;
 
@@ -69,7 +67,7 @@ public class AreaPane {
 
     private final Map<Integer,ModulePane> modulePanes = new TreeMap<>();
 
-    private final List<Cables.Cable> cables = new ArrayList<>();
+    private final Cables cables;
 
     private final Connectors conns = new Connectors(this);
 
@@ -316,7 +314,7 @@ public class AreaPane {
             clearDragGhosts();
         }
 
-        public void onMouseReleased(MouseEvent e) {
+        public void onMouseReleased() {
             if (pasteOrigin == null) { return; }
             Set<Integer> ixs = new TreeSet<>(modulePanes.keySet());
             int minCol = Integer.MAX_VALUE;
@@ -422,6 +420,8 @@ public class AreaPane {
         scrollPane = withClass(new ScrollPane(areaPane),"area-scroll");
         scrollPane.setMinHeight(0);
 
+        this.cables = new Cables(slotPane,areaPane);
+
         Rectangle selectedRect = withClass(new Rectangle(),"selected-rect");
         selectedRect.setVisible(false);
         moduleSelection = new ModuleSelection(selectedRect);
@@ -484,7 +484,7 @@ public class AreaPane {
         areaPane.setOnMouseDragged(moduleSelection::onMouseDragged);
         areaPane.setOnMouseReleased(e -> {
             if (modulePaste != null) {
-                modulePaste.onMouseReleased(e);
+                modulePaste.onMouseReleased();
                 return;
             }
             moduleSelection.onMouseReleased(e);
@@ -563,46 +563,43 @@ public class AreaPane {
     }
 
     private void addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
-        Cables.Cable cable = Cables.mkCable(srcConn, destConn);
-        cables.add(cable);
-        areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
+        cables.addCable(srcConn,destConn);
     }
 
     public void mkConnCtxMenu(Connectors.Conn conn, ContextMenuEvent cme) {
         //find cable if any
-        List<Cables.Cable> cs = cables.stream().filter(c ->
-                c.srcConn().equals(conn) || c.destConn().equals(conn)).toList();
+        Set<Cables.Cable> cs = cables.cablesForConn(conn);
 
         ContextMenu cm = new ContextMenu();
         if (!cs.isEmpty()) {
-            cm.getItems().add(mkMenuItem("Disconnect", _ -> ctxDisconnectConn(conn, cables)));
-            if (cs.size() > 1) cm.getItems().add(mkMenuItem("Break", _ -> ctxBreakConn(conn, cables)));
+            cm.getItems().add(mkMenuItem("Disconnect", _ -> ctxDisconnectConn(conn, cs)));
+            if (cs.size() > 1) cm.getItems().add(mkMenuItem("Break", _ -> ctxBreakConn(conn, cs)));
             Menu m = mkMenu("Color");
             Arrays.stream(Cables.ColorSelection.values()).forEach(v ->
                     m.getItems().add(mkMenuItem(v.displayName(),_-> ctxSetCableColor(cs,v))));
             cm.getItems().add(m);
-            cm.getItems().add(mkMenuItem("Delete",_-> ctxDeleteCable(cables)));
+            cm.getItems().add(mkMenuItem("Delete",_-> ctxDeleteCable(cs)));
         }
         cm.getItems().add(mkMenuItem("Delete Unused Cables", _ -> ctxDeleteUnusedCables()));
         cm.show(conn.control(),cme.getScreenX(),cme.getScreenY());
     }
 
-    private void ctxDeleteCable(List<Cables.Cable> cs) {
+    private void ctxDeleteCable(Set<Cables.Cable> cs) {
         log.warning("ctxDeleteCable TODO");
 
     }
 
-    private void ctxSetCableColor(List<Cables.Cable> cs, Cables.ColorSelection color) {
+    private void ctxSetCableColor(Set<Cables.Cable> cs, Cables.ColorSelection color) {
         log.warning("ctxSetCableColor TODO");
 
     }
 
-    private void ctxDisconnectConn(Connectors.Conn conn, List<Cables.Cable> cs) {
+    private void ctxDisconnectConn(Connectors.Conn conn, Set<Cables.Cable> cs) {
         log.warning("ctxDisconnectConn TODO");
 
     }
 
-    private void ctxBreakConn(Connectors.Conn conn, List<Cables.Cable> cs) {
+    private void ctxBreakConn(Connectors.Conn conn, Set<Cables.Cable> cs) {
         log.warning("ctxBreakConn TODO");
 
     }
@@ -613,30 +610,7 @@ public class AreaPane {
 
 
     public void manageCables(boolean redraw) {
-        for (Cables.Cable cable : cables) {
-            areaPane.getChildren().removeAll(cable.run().getCable(), cable.run().getShadow());
-            if (redraw) Cables.redrawRun(cable);
-            if (slotPane.isCableVisible(cable))
-                areaPane.getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
-        }
-    }
-
-
-    private void updateCables(ModulePane mp) {
-        for (Cables.Cable c : new ArrayList<>(cables)) {
-            if (mp == c.srcConn().parent()|| mp == c.destConn().parent()) {
-                cables.remove(c);
-                removeCableElements(c);
-                Cables.Cable cnew = Cables.mkCable(c);
-                cables.add(cnew);
-                areaPane.getChildren().addAll(cnew.endJack(),cnew.srcJack());
-            }
-        }
-        manageCables(false);
-    }
-
-    private void removeCableElements(Cables.Cable c) {
-        areaPane.getChildren().removeAll(c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
+        cables.manageCables(redraw);
     }
 
 
@@ -657,7 +631,7 @@ public class AreaPane {
         moduleSelection.setupModuleMouseHandling(modulePane);
         bridges.getDeviceExecutor().invoke(() -> modulePane.getBridges().initialize(pm))
                 .forEach(Runnable::run);
-        modulePane.coords().addListener((_,_,_) -> updateCables(modulePane));
+        modulePane.coords().addListener((_,_,_) -> cables.updateCables(modulePane));
     }
 
 
@@ -808,18 +782,7 @@ public class AreaPane {
             bridges.getDeviceExecutor().execute(() -> mp.getBridges().dispose());
             areaPane.getChildren().remove(mp.getPane());
         }
-        cables.removeIf(cable -> {
-            for (FieldValues c : md.cables()) {
-                    if (cable.srcConn().parent().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
-                            cable.srcConn().index() == Protocol.Cable.DestConn.intValue(c) &&
-                            cable.destConn().parent().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
-                            cable.destConn().index() == Protocol.Cable.SrcConn.intValue(c)) {
-                    removeCableElements(cable);
-                    return true;
-                }
-            }
-            return false;
-        });
+        cables.doDeleteModule(md);
         bridges.getDeviceExecutor().runWithCurrentPerf(p -> thisLibArea(p).deleteModules(md));
     }
 

@@ -2,20 +2,28 @@ package org.g2fx.g2gui.controls;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.*;
+import org.g2fx.g2gui.module.ModuleDelta;
+import org.g2fx.g2gui.panel.ModulePane;
+import org.g2fx.g2gui.panel.SlotPane;
+import org.g2fx.g2lib.protocol.FieldValues;
+import org.g2fx.g2lib.protocol.Protocol;
 
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.g2fx.g2gui.controls.Connectors.RADIUS;
 import static org.g2fx.g2gui.controls.Connectors.getConnColor;
+import static org.g2fx.g2lib.util.Util.with;
 
-public interface Cables {
+public class Cables {
 
-    enum ColorSelection {
+    public enum ColorSelection {
         Audio,
         Control,
         Logic_BG,
@@ -25,7 +33,7 @@ public interface Cables {
         public String displayName() { return name().replace('_',' '); }
     }
 
-    class CableRun {
+    public static class CableRun {
         private Node cable;
         private Node shadow;
 
@@ -51,7 +59,7 @@ public interface Cables {
             this.cable = run.getCable();
         }
     }
-    record Cable(
+    public record Cable(
             CableColor color,
             Connectors.Conn srcConn,
             Point2D start,
@@ -61,15 +69,26 @@ public interface Cables {
             Node srcJack,
             Node endJack) {}
 
-    static void redrawRun(Cable c) {
+    private final List<Cable> cables = new ArrayList<>();
+    private final Map<Connectors.Conn, Set<Cable>> connToCable = new HashMap<>();
+    private final SlotPane slotPane;
+    private final Pane areaPane;
+
+    public Cables(SlotPane slotPane, Pane areaPane) {
+        this.slotPane = slotPane;
+        this.areaPane = areaPane;
+    }
+
+
+    public static void redrawRun(Cable c) {
         c.run.reset(mkCableRun(c.start,c.end,c.color));
     }
 
-    static Cable mkCable(Cable c) {
+    public static Cable mkCable(Cable c) {
         return mkCable(c.srcConn,c.destConn);
     }
 
-    static Cable mkCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
+    public static Cable mkCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
 
         Point2D start = srcConn.control().localToParent(
                 srcConn.parent().getPane().getLayoutX(),srcConn.parent().getPane().getLayoutY()).add(6,6);
@@ -109,7 +128,7 @@ public interface Cables {
 
     }
 
-    static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
+    public static CableRun mkCableRun(Point2D start, Point2D end, CableColor color) {
 
         ThreadLocalRandom r = ThreadLocalRandom.current();
         int offsetMagnitude = r.nextInt(10,20);
@@ -135,8 +154,8 @@ public interface Cables {
     }
 
 
-    static Path drawCablePath(Point2D start, Point2D end, double offsetMagnitude,
-                              double controlPointRatio, boolean flip) {
+    private static Path drawCablePath(Point2D start, Point2D end, double offsetMagnitude,
+                                      double controlPointRatio, boolean flip) {
         Path path = new Path();
 
         MoveTo moveTo = new MoveTo(start.getX(), start.getY());
@@ -169,7 +188,7 @@ public interface Cables {
     }
 
 
-    static Circle mkJack(RadialGradient gradient, Point2D pos) {
+    private static Circle mkJack(RadialGradient gradient, Point2D pos) {
         Circle srcJack = new Circle(0,0,RADIUS*.55);
         srcJack.getStyleClass().add("cable-jack");
         srcJack.setFill(gradient);
@@ -179,4 +198,79 @@ public interface Cables {
     }
 
 
+    private void add(Cable cable) {
+        cables.add(cable);
+        connToCable.compute(cable.srcConn(),(_, s)->
+                with(s == null ? new HashSet<>() : s, s1->s1.add(cable)));
+        connToCable.compute(cable.destConn(),(_, s)->
+                with(s == null ? new HashSet<>() : s, s1->s1.add(cable)));
+    }
+
+    private void remove(Cable cable) {
+        cables.remove(cable);
+        connToCable.computeIfPresent(cable.srcConn(),(_,s)->
+                with(s,s1->s1.remove(cable)));
+        connToCable.computeIfPresent(cable.destConn(),(_,s)->
+                with(s,s1->s1.remove(cable)));
+    }
+
+    public Set<Cable> cablesForConn(Connectors.Conn conn) {
+        return connToCable.computeIfAbsent(conn,_->new HashSet<>());
+    }
+
+    public void manageCables(boolean redraw) {
+        for (Cables.Cable cable : cables) {
+            areaPane.getChildren().removeAll(cable.run().getCable(), cable.run().getShadow());
+            if (redraw) Cables.redrawRun(cable);
+            if (slotPane.isCableVisible(cable))
+                areaPane.getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
+        }
+    }
+
+    public void updateCables(ModulePane mp) {
+        for (Cables.Cable c : new ArrayList<>(cables)) {
+            if (mp == c.srcConn().parent()|| mp == c.destConn().parent()) {
+                cables.remove(c);
+                removeCableElements(c);
+                Cables.Cable cnew = Cables.mkCable(c);
+                cables.add(cnew);
+                areaPane.getChildren().addAll(cnew.endJack(),cnew.srcJack());
+            }
+        }
+        manageCables(false);
+    }
+
+    public void removeCableElements(Cable c) {
+        areaPane.getChildren().removeAll(c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
+    }
+
+    public void clear() {
+        cables.clear();
+        connToCable.clear();
+    }
+
+    public void doDeleteModule(ModuleDelta md) {
+        cables.removeIf(cable -> {
+            for (FieldValues c : md.cables()) {
+                if (cable.srcConn().parent().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
+                        cable.srcConn().index() == Protocol.Cable.DestConn.intValue(c) &&
+                        cable.destConn().parent().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
+                        cable.destConn().index() == Protocol.Cable.SrcConn.intValue(c)) {
+                    removeCableElements(cable);
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    public int size() {
+        return cables.size();
+    }
+
+    public void addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
+        Cables.Cable cable = Cables.mkCable(srcConn, destConn);
+        add(cable);
+        areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
+    }
 }

@@ -197,7 +197,7 @@ public class FxTest {
         app.getDevices().getCurrentPerf().getSlot(Slot.D).setVersion(2);
 
         //simulate mouse click
-        onFxQueue(app,()->uiSlotAVoice.getModulePaste().onMouseReleased(null));
+        onFxQueue(app,()->uiSlotAVoice.getModulePaste().onMouseReleased());
 
         Coords c5 = new Coords(1, 15);
         assertEquals(c5,callFxQueue(app, () -> uiSlotAVoice.getModule(5).coords().getValue()));

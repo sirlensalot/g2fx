@@ -350,4 +350,6 @@ public class Util {
         buf.limit(buf.position()+2);
         putShort(buf,crc);
     }
+
+    public static <T> T with(T t,Consumer<T> f) { f.accept(t); return t; }
 }
