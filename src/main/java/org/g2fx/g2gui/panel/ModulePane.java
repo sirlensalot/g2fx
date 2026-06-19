@@ -83,7 +83,7 @@ public class ModulePane implements MoveableModule {
 
     private final Property<Integer> color = new SimpleObjectProperty<>();
 
-    private final Property<Integer> uprate = new SimpleObjectProperty<>();
+    private final Property<Boolean> uprate = new SimpleBooleanProperty();
     private final Property<Boolean> leds = new SimpleBooleanProperty();
 
 
@@ -157,7 +157,13 @@ public class ModulePane implements MoveableModule {
 
     }
 
+    public Property<Boolean> uprate() {
+        return uprate;
+    }
 
+    public List<Connectors.Conn> getConns(Connector.PortType type) {
+        return conns.get(type);
+    }
 
     public void setSelected(boolean selected) {
         this.selected = selected;

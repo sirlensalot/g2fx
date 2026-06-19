@@ -17,11 +17,14 @@ import org.g2fx.g2lib.model.Connector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.controls.CableColor.*;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
+import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Dynamic;
+import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Static;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
@@ -39,28 +42,68 @@ public class Connectors {
 
     public record Conn(Connector.PortType portType,
                        UIElements.ConnectorType connType,
+                       UIElements.Bandwidth bandwidth,
                        Node control,
                        int index,
-                       ModulePane parent, BiConsumer<Conn, ContextMenuEvent> ctxMenuHandler) {
+                       ModulePane modulePane,
+                       BiConsumer<Conn, ContextMenuEvent> ctxMenuHandler) {
         @Override
         public String toString() {
-            return parent + ":" + portType + ":" + index + ":" + connType;
+            return modulePane + ":" + portType + ":" + index + ":" + connType;
         }
 
         public boolean validate(Conn c) {
             return portType != c.portType;
         }
+
+        public CableColor getDefaultColor() {
+            return switch (connType) {
+                case UIElements.ConnectorType.Logic -> Yellow;
+                case UIElements.ConnectorType.Control -> Blue;
+                case UIElements.ConnectorType.Audio ->
+                        bandwidth == Static ? Red : Blue;
+            };
+        }
+
+        public CableColor getColor(boolean isModuleUprate) {
+            CableColor def = getDefaultColor();
+            boolean dynamicUprate = isModuleUprate && bandwidth() == Dynamic;
+            return (def == Blue && dynamicUprate) ? Red :
+                    (def == Yellow && dynamicUprate) ? Orange : def;
+        }
+
+        public CableColor getColor() { return getColor(modulePane.uprate().getValue()); }
+        public CableColor getNewColor(Map<Integer,Boolean> newUprates) {
+            return getColor(getNewModuleUprate(newUprates));
+        }
+
+        public boolean defaultUprate() {
+            return connType()== UIElements.ConnectorType.Audio && bandwidth() == Static;
+        }
+
+        public boolean newUprate(Map<Integer,Boolean> newUprates) {
+            return (getNewModuleUprate(newUprates) && bandwidth() == Dynamic) || defaultUprate();
+        }
+
+        private Boolean getNewModuleUprate(Map<Integer, Boolean> newUprates) {
+            return newUprates.getOrDefault(modulePane.getIndex(), modulePane.uprate().getValue());
+        }
+
+        public boolean currentUprate() {
+            return (modulePane.uprate().getValue() && bandwidth() == Dynamic) || defaultUprate();
+        }
     }
 
     public static Conn makeInput(UIElements.Input c, ModulePane modulePane, BiConsumer<Conn,ContextMenuEvent> ctxMenuHandler) {
-        return mkConnector(c, c.Type(), c.CodeRef(), In, modulePane, ctxMenuHandler);
+        return mkConnector(c, c.Type(), c.Bandwidth(), c.CodeRef(), In, modulePane, ctxMenuHandler);
     }
 
     public static Conn makeOutput(UIElements.Output c, ModulePane modulePane, BiConsumer<Conn,ContextMenuEvent> ctxMenuHandler) {
-        return mkConnector(c, c.Type(), c.CodeRef(), Out, modulePane, ctxMenuHandler);
+        return mkConnector(c, c.Type(), c.Bandwidth(), c.CodeRef(), Out, modulePane, ctxMenuHandler);
     }
     private static Conn mkConnector(UIElement c,
                                     UIElements.ConnectorType ctype,
+                                    UIElements.Bandwidth bandwidth,
                                     int ref,
                                     Connector.PortType portType,
                                     ModulePane modulePane,
@@ -80,7 +123,7 @@ public class Connectors {
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
-        Conn conn = new Conn(portType, ctype, pane, ref, modulePane, ctxMenuHandler);
+        Conn conn = new Conn(portType, ctype, bandwidth, pane, ref, modulePane, ctxMenuHandler);
 
         pane.setOnContextMenuRequested(e -> ctxMenuHandler.accept(conn,e));
 

@@ -27,7 +27,7 @@ public class UserModuleData {
     private final LibProperty<Integer> column;
     private final LibProperty<Integer> row;
     private final LibProperty<Integer> color;
-    private final LibProperty<Integer> uprate;
+    private final LibProperty<Boolean> uprate;
     private final LibProperty<Boolean> leds;
 
     private final LibProperty<Coords> coords;
@@ -47,7 +47,7 @@ public class UserModuleData {
         column = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Column);
         row = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Row);
         color = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Color);
-        uprate = LibProperty.intFieldProperty(fvs,Protocol.UserModule.Uprate);
+        uprate = LibProperty.booleanFieldProperty(fvs,Protocol.UserModule.Uprate);
         leds = LibProperty.booleanFieldProperty(fvs,Protocol.UserModule.Leds);
         modes = mapWithIndex(Protocol.UserModule.Modes.subfieldsValue(fvs),(mfs,param) -> {
             LibProperty<Integer> p = LibProperty.intFieldProperty(mfs, Protocol.ModuleModes.Data);
@@ -88,7 +88,7 @@ public class UserModuleData {
     public LibProperty<Integer> column() { return column; }
     public LibProperty<Integer> row() { return row; }
     public LibProperty<Integer> color() { return color; }
-    public LibProperty<Integer> uprate() { return uprate; }
+    public LibProperty<Boolean> uprate() { return uprate; }
     public LibProperty<Boolean> leds() { return leds; }
 
     public LibProperty<Integer> mode(int index) {

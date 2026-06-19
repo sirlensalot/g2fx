@@ -14,6 +14,8 @@ import javafx.scene.shape.*;
 import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
+import org.g2fx.g2gui.ui.UIElements;
+import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.util.Util;
@@ -99,9 +101,9 @@ public class Cables {
     public static Cable mkCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
 
         Point2D start = srcConn.control().localToParent(
-                srcConn.parent().getPane().getLayoutX(),srcConn.parent().getPane().getLayoutY()).add(6,6);
+                srcConn.modulePane().getPane().getLayoutX(),srcConn.modulePane().getPane().getLayoutY()).add(6,6);
         Point2D end = destConn.control().localToParent(
-                destConn.parent().getPane().getLayoutX(),destConn.parent().getPane().getLayoutY()).add(6,6);
+                destConn.modulePane().getPane().getLayoutX(),destConn.modulePane().getPane().getLayoutY()).add(6,6);
 
         CableColor color = getConnColor(srcConn.connType());
 
@@ -237,7 +239,7 @@ public class Cables {
 
     public void updateCables(ModulePane mp) {
         for (Cables.Cable c : new ArrayList<>(cables)) {
-            if (mp == c.srcConn().parent()|| mp == c.destConn().parent()) {
+            if (mp == c.srcConn().modulePane()|| mp == c.destConn().modulePane()) {
                 cables.remove(c);
                 removeCableElements(c);
                 Cables.Cable cnew = Cables.mkCable(c);
@@ -260,9 +262,9 @@ public class Cables {
     public void doDeleteModule(ModuleDelta md) {
         cables.removeIf(cable -> {
             for (FieldValues c : md.cables()) {
-                if (cable.srcConn().parent().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
+                if (cable.srcConn().modulePane().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
                         cable.srcConn().index() == Protocol.Cable.DestConn.intValue(c) &&
-                        cable.destConn().parent().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
+                        cable.destConn().modulePane().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
                         cable.destConn().index() == Protocol.Cable.SrcConn.intValue(c)) {
                     removeCableElements(cable);
                     return true;
@@ -283,7 +285,50 @@ public class Cables {
     }
 
     public void deleteCables(Set<Cable> cs) {
+        for (Cable c : cs) {
+            HashMap<Integer, Boolean> moduleUprateChanges = new HashMap<>();
+            HashMap<Cable, CableColor> cableColorChanges = new HashMap<>();
+            checkUprate(c.destConn, c.destConn.defaultUprate(), moduleUprateChanges, cableColorChanges);
+        }
+    }
 
+    private void checkUprate(Connectors.Conn to,
+                             boolean uprate,
+                             Map<Integer,Boolean> moduleUprateChanges,
+                             Map<Cable,CableColor> cableColorChanges) {
+        // bail if module already good
+        if (to.modulePane().uprate().getValue() == uprate) { return; }
+        // bail if module change already good
+        if (to.newUprate(moduleUprateChanges) == uprate) { return; }
+        if (!uprate) {
+            // walk module upstream cables to check if downrate canceled by uprate
+            for (Connectors.Conn in : to.modulePane().getConns(Connector.PortType.In)) {
+                if (in == to) { continue; }
+                for (Cable cable : connToCable.get(in)) {
+                    if (cable.srcConn.newUprate(moduleUprateChanges)) {
+                        //uprate found, bail
+                        return;
+                    }
+                }
+            }
+        }
+        // add uprate
+        moduleUprateChanges.put(to.modulePane().getIndex(),uprate);
+        // walk module out-cables to compute color changes and downstream uprates
+        for (Connectors.Conn out : to.modulePane().getConns(Connector.PortType.Out)) {
+            for (Cable cable : connToCable.get(out)) {
+                CableColor newColor = out.getNewColor(moduleUprateChanges);
+                if (cable.destConn().bandwidth() == UIElements.Bandwidth.Dynamic &&
+                        cable.destConn().newUprate(moduleUprateChanges) != cable.srcConn().newUprate(moduleUprateChanges)) {
+                    cableColorChanges.put(cable, newColor);
+                    if (cable.destConn.modulePane() != to.modulePane()) {
+                        checkUprate(cable.destConn, uprate, moduleUprateChanges, cableColorChanges);
+                    }
+                } else if (cable.color() != newColor) {
+                    cableColorChanges.put(cable, newColor);
+                }
+            }
+        }
     }
 
     public void mkConnCtxMenu(Connectors.Conn conn, ContextMenuEvent cme) {
