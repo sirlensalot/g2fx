@@ -78,6 +78,15 @@ public class Cables {
             Node srcJack,
             Node endJack) {}
 
+    public record CableDelta<C>(Collection<C> cables,
+                                boolean add,
+                                Map<Integer,Boolean> uprateChanges,
+                                Map<C,CableColor> colorChanges) {
+        public CableDelta(Collection<C> cables, boolean add) {
+            this(cables,add,new HashMap<>(),new HashMap<>());
+        }
+    }
+
     private final Logger log = Util.getLogger(getClass());
     private final List<Cable> cables = new ArrayList<>();
     private final Map<Connectors.Conn, Set<Cable>> connToCable = new HashMap<>();
@@ -278,34 +287,34 @@ public class Cables {
         return cables.size();
     }
 
-    public void addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
-        Cables.Cable cable = Cables.mkCable(srcConn, destConn);
+    public Cable addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
+        Cable cable = Cables.mkCable(srcConn, destConn);
         add(cable);
         areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
+        return cable;
     }
 
+
     public void deleteCables(Set<Cable> cs) {
+        CableDelta<Cable> delta = new CableDelta<>(cs,false);
         for (Cable c : cs) {
-            HashMap<Integer, Boolean> moduleUprateChanges = new HashMap<>();
-            HashMap<Cable, CableColor> cableColorChanges = new HashMap<>();
-            checkUprate(c.destConn, c.destConn.defaultUprate(), moduleUprateChanges, cableColorChanges);
+            checkUprate(c.destConn, c.destConn.defaultUprate(), delta);
         }
     }
 
-    private void checkUprate(Connectors.Conn to,
+    public void checkUprate(Connectors.Conn to,
                              boolean uprate,
-                             Map<Integer,Boolean> moduleUprateChanges,
-                             Map<Cable,CableColor> cableColorChanges) {
+                             CableDelta<Cable> delta) {
         // bail if module already good
         if (to.modulePane().uprate().getValue() == uprate) { return; }
         // bail if module change already good
-        if (to.newUprate(moduleUprateChanges) == uprate) { return; }
+        if (to.newUprate(delta) == uprate) { return; }
         if (!uprate) {
             // walk module upstream cables to check if downrate canceled by uprate
             for (Connectors.Conn in : to.modulePane().getConns(Connector.PortType.In)) {
                 if (in == to) { continue; }
                 for (Cable cable : connToCable.get(in)) {
-                    if (cable.srcConn.newUprate(moduleUprateChanges)) {
+                    if (cable.srcConn.newUprate(delta)) {
                         //uprate found, bail
                         return;
                     }
@@ -313,19 +322,19 @@ public class Cables {
             }
         }
         // add uprate
-        moduleUprateChanges.put(to.modulePane().getIndex(),uprate);
+        delta.uprateChanges.put(to.modulePane().getIndex(),uprate);
         // walk module out-cables to compute color changes and downstream uprates
         for (Connectors.Conn out : to.modulePane().getConns(Connector.PortType.Out)) {
             for (Cable cable : connToCable.get(out)) {
-                CableColor newColor = out.getNewColor(moduleUprateChanges);
+                CableColor newColor = out.getNewColor(delta);
                 if (cable.destConn().bandwidth() == UIElements.Bandwidth.Dynamic &&
-                        cable.destConn().newUprate(moduleUprateChanges) != cable.srcConn().newUprate(moduleUprateChanges)) {
-                    cableColorChanges.put(cable, newColor);
+                        cable.destConn().newUprate(delta) != cable.srcConn().newUprate(delta)) {
+                    delta.colorChanges.put(cable, newColor);
                     if (cable.destConn.modulePane() != to.modulePane()) {
-                        checkUprate(cable.destConn, uprate, moduleUprateChanges, cableColorChanges);
+                        checkUprate(cable.destConn, uprate, delta);
                     }
                 } else if (cable.color() != newColor) {
-                    cableColorChanges.put(cable, newColor);
+                    delta.colorChanges.put(cable, newColor);
                 }
             }
         }

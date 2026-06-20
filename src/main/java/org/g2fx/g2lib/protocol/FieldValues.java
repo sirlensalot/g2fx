@@ -4,6 +4,7 @@ import org.g2fx.g2lib.util.BitBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class FieldValues {
@@ -71,7 +72,8 @@ public class FieldValues {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof FieldValues && ((FieldValues) obj).values.equals(values);
+        return this == obj ||
+                (obj instanceof FieldValues fvs && Objects.equals(values,fvs.values));
     }
 
     @Override

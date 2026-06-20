@@ -17,7 +17,6 @@ import org.g2fx.g2lib.model.Connector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
@@ -73,20 +72,20 @@ public class Connectors {
         }
 
         public CableColor getColor() { return getColor(modulePane.uprate().getValue()); }
-        public CableColor getNewColor(Map<Integer,Boolean> newUprates) {
-            return getColor(getNewModuleUprate(newUprates));
+        public CableColor getNewColor(Cables.CableDelta<?> delta) {
+            return getColor(getNewModuleUprate(delta));
         }
 
         public boolean defaultUprate() {
             return connType()== UIElements.ConnectorType.Audio && bandwidth() == Static;
         }
 
-        public boolean newUprate(Map<Integer,Boolean> newUprates) {
-            return (getNewModuleUprate(newUprates) && bandwidth() == Dynamic) || defaultUprate();
+        public boolean newUprate(Cables.CableDelta<?> delta) {
+            return (getNewModuleUprate(delta) && bandwidth() == Dynamic) || defaultUprate();
         }
 
-        private Boolean getNewModuleUprate(Map<Integer, Boolean> newUprates) {
-            return newUprates.getOrDefault(modulePane.getIndex(), modulePane.uprate().getValue());
+        private Boolean getNewModuleUprate(Cables.CableDelta<?> delta) {
+            return delta.uprateChanges().getOrDefault(modulePane.getIndex(), modulePane.uprate().getValue());
         }
 
         public boolean currentUprate() {
