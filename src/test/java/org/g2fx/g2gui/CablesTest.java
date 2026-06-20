@@ -7,10 +7,12 @@ import javafx.geometry.Point2D;
 import javafx.scene.control.Control;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.Pane;
+import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
+import org.g2fx.g2lib.state.PatchArea;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,13 +61,16 @@ public class CablesTest {
         areaPane = mock(Pane.class);
         when(areaPane.getChildren()).thenReturn(FXCollections.observableArrayList());
         slotPane = mock(SlotPane.class);
-        cables = new Cables(slotPane, areaPane);
+        @SuppressWarnings("unchecked")
+        Bridger<PatchArea> bridges = mock(Bridger.class);
+        cables = new Cables(slotPane, areaPane, bridges);
     }
 
     @Test
     void testUprate1Cable() {
-        ModulePane m0 = mockModule(0,true,mkConn(0,Out,Audio,Static));
-        ModulePane m1 = mockModule(1,false,mkConn(0,In,Control,Dynamic));
+        //add unused conns for NPE safety
+        ModulePane m0 = mockModule(0,true,mkConn(0,In,Control,Static),mkConn(0,Out,Audio,Static));
+        ModulePane m1 = mockModule(1,false,mkConn(0,In,Control,Dynamic),mkConn(0,Out,Control,Static));
         Cable c00_10 = cables.addCable(m0.getConns(Out).getFirst(), m1.getConns(In).getFirst());
         CableDelta<Cable> delta = new CableDelta<>(Set.of(c00_10),true);
         cables.checkUprate(c00_10.destConn(),true,delta);
@@ -93,7 +98,7 @@ public class CablesTest {
         // NB: loop is guarded when m0->m1 check finds m1 already newly-uprated. other invariants not fired
         cables.checkUprate(m1.getConns(In).get(1),true,delta);
         assertEquals(Map.of(0,true,1,true,2,true),delta.uprateChanges());
-        assertEquals(Map.of(c01,Red,c12,Red,c20,Red),delta.colorChanges());
+        assertEquals(Map.of(c01,Red.ordinal(),c12,Red.ordinal(),c20,Red.ordinal()),delta.colorChanges());
     }
 
     record ConnF(Function<ModulePane, Conn> f) {}

@@ -1,6 +1,7 @@
 package org.g2fx.g2lib.state;
 
 import com.google.common.collect.Streams;
+import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.LibProperty;
@@ -27,13 +28,17 @@ public class PatchArea {
 
     public final AreaId id;
     private final UsbSlotSender sender;
+    private final Runnable updateVisuals;
     private final Logger log;
 
     private final Map<Integer,PatchModule> modules = new TreeMap<>();
     private final List<PatchCable> cables = new ArrayList<>();
     private PatchLoadData patchLoadData = new PatchLoadData();
 
-    private final LibProperty<ModuleDelta> dummyModuleAddProp = new LibProperty<>(new ModuleDelta());
+    private final LibProperty<ModuleDelta> dummyModuleAddProp =
+            new LibProperty<>(new ModuleDelta());
+    private final LibProperty<Cables.CableDelta<Cables.Cable>> dummyCableDeltaProp =
+            new LibProperty<>(new Cables.CableDelta<>());
 
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
@@ -41,9 +46,10 @@ public class PatchArea {
     /**
      * User module area constructor.
      */
-    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender) {
+    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender, Runnable updateVisuals) {
         this.id = id;
         this.sender = sender;
+        this.updateVisuals = updateVisuals;
         this.log = Util.getLogger(getClass(),slot,id);
     }
 
@@ -58,11 +64,21 @@ public class PatchArea {
             PatchModule m = new PatchModule(sm,sender,id);
             modules.put(m.getIndex(),m);
         });
+        updateVisuals=()->{};
+    }
+
+    public void updateVisuals() {
+        updateVisuals.run();
     }
 
     public LibProperty<ModuleDelta> getDummyModuleAddProp() {
         return dummyModuleAddProp;
     }
+
+    public LibProperty<Cables.CableDelta<Cables.Cable>> getDummyCableDeltaProp() {
+        return dummyCableDeltaProp;
+    }
+
 
     public void addVisuals(Visual.VisualType type, List<PatchVisual> visuals) {
         for (PatchModule mod : modules.values()) {
@@ -371,5 +387,4 @@ public class PatchArea {
         Patch.sendSlotResourcesRequest(sender,id);
         Patch.sendUnk6Request(sender);
     }
-
 }

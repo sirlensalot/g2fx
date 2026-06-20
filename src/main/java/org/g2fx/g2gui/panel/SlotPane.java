@@ -17,6 +17,7 @@ import javafx.util.StringConverter;
 import org.controlsfx.control.SegmentedButton;
 import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.Undos;
+import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
@@ -33,10 +34,7 @@ import org.g2fx.g2lib.state.PatchSettings;
 import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -424,25 +422,52 @@ public class SlotPane {
         return getAreaPane(getAreaPane(AreaId.Fx).hasModuleSelection() ? AreaId.Fx : AreaId.Voice);
     }
 
-    public Bridges<Patch> getBridges() {
+    public Bridger<Patch> getBridger() {
         return bridges;
+    }
+
+    private AreaPane getFxArea() {
+        return getAreaPane(AreaId.Fx);
+    }
+
+    private AreaPane getVoiceArea() {
+        return getAreaPane(AreaId.Voice);
+    }
+
+    public int activeBridgesCount() {
+        return bridges.activeCount() +
+                getVoiceArea().getBridges().activeCount() +
+                getFxArea().getBridges().activeCount();
+    }
+
+    public Collection<? extends Runnable> initBridges(Patch p) {
+        List<Runnable> rs = new ArrayList<>(bridges.initialize(p));
+        rs.addAll(getVoiceArea().getBridges().initialize(p.getArea(AreaId.Voice)));
+        rs.addAll(getFxArea().getBridges().initialize(p.getArea(AreaId.Fx)));
+        return rs;
+    }
+
+    public void disposeBridges() {
+        bridges.dispose();
+        getVoiceArea().getBridges().dispose();
+        getFxArea().getBridges().dispose();
     }
 
     public ModuleDelta doCopy() {
         return getAreaWithSelection().doCopy();
     }
 
-
     public ModuleDelta doCut() {
         return getAreaWithSelection().doCut();
     }
+
     public void clearPaste() {
         areaPanes.values().forEach(AreaPane::cancelPaste);
     }
 
     public void doPaste(ModuleDelta md) {
-        getAreaPane(AreaId.Fx).initPaste(md,getAreaPane(AreaId.Voice));
-        getAreaPane(AreaId.Voice).initPaste(md,getAreaPane(AreaId.Fx));
+        getFxArea().initPaste(md, getVoiceArea());
+        getVoiceArea().initPaste(md, getFxArea());
     }
 
     public void doDelete() {

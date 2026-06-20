@@ -26,7 +26,6 @@ import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.module.MoveableModule;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
-import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;
@@ -51,8 +50,7 @@ public class AreaPane {
 
     private final Logger log;
     private final AreaId areaId;
-    private final Bridges<Patch> bridges;
-    private final LibExecutor<PatchArea> areaExecutor;
+    private final Bridges<PatchArea> bridges;
     private final Undos undos;
     private final UIModule.UIModules uiModules;
     private final FXUtil.TextFieldFocusListener textFocusListener;
@@ -402,12 +400,11 @@ public class AreaPane {
     }
     private ModulePaste modulePaste;
 
-    public AreaPane(AreaId areaId, Bridges<Patch> bridges, SlotPane slotPane,
+    public AreaPane(AreaId areaId, Bridges<Patch> patchBridges, SlotPane slotPane,
                     FXUtil.TextFieldFocusListener textFocusListener, Undos undos,
                     UIModule.UIModules uiModules) {
         this.areaId = areaId;
-        this.bridges = bridges;
-        areaExecutor = LibExecutor.adapt(bridges.getLibExecutor(), p->p.getArea(areaId));
+        this.bridges = patchBridges.spawn(p->p.getArea(areaId));
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
         this.undos = undos;
@@ -419,7 +416,7 @@ public class AreaPane {
         scrollPane = withClass(new ScrollPane(areaPane),"area-scroll");
         scrollPane.setMinHeight(0);
 
-        this.cables = new Cables(slotPane,areaPane);
+        this.cables = new Cables(slotPane,areaPane,bridges);
 
         Rectangle selectedRect = withClass(new Rectangle(),"selected-rect");
         selectedRect.setVisible(false);
@@ -430,7 +427,7 @@ public class AreaPane {
         setupModuleDrag();
         moduleDelta.addListener((_,_,n) -> handleModuleDelta(n));
         // fx thread
-        bridges.bridge(d -> d.getArea(this.areaId).getDummyModuleAddProp(),
+        bridges.bridge(PatchArea::getDummyModuleAddProp,
                 new FxProperty.SimpleFxProperty<>(moduleDelta, u ->
                         new Undos.Undo<>(u.property(),u.newValue().invert(),u.newValue())),
                 Iso.id());
@@ -445,6 +442,10 @@ public class AreaPane {
 
     public Connectors getConns() {
         return conns;
+    }
+
+    public Bridges<PatchArea> getBridges() {
+        return bridges;
     }
 
     public void newCable(Connectors.Conn start, Connectors.Conn end) {
@@ -588,7 +589,7 @@ public class AreaPane {
         ModulePane modulePane = new ModulePane(ui,index,type,
                 textFocusListener, slotPane,
                 this.getConns(), this.getAreaId(),
-                bridges.spawn(p->p.getArea(areaId).getModule(index)),
+                bridges.spawn(p->p.getModule(index)),
                 this::mkConnCtxMenu);
         modulePanes.put(index,modulePane);
         areaPane.getChildren().add(modulePane.getPane());
@@ -729,8 +730,8 @@ public class AreaPane {
      */
     private void doAddModule(ModuleDelta ma) {
         PatchArea.CreateResult cr = bridges.getLibExecutor().invokeWithCurrent(d -> {
-            PatchArea.CreateResult ms = d.getArea(areaId).createModules(ma);
-            d.getVisuals().updateVisualIndex();
+            PatchArea.CreateResult ms = d.createModules(ma);
+            d.updateVisuals();
             return ms;
         });
         for (PatchModule pm : cr.modules()) {
@@ -747,7 +748,7 @@ public class AreaPane {
             areaPane.getChildren().remove(mp.getPane());
         }
         cables.doDeleteModule(md);
-        areaExecutor.runWithCurrent(p -> p.deleteModules(md));
+        bridges.getLibExecutor().runWithCurrent(p -> p.deleteModules(md));
     }
 
 
@@ -787,19 +788,19 @@ public class AreaPane {
 
     public ModuleDelta doCopy() {
         List<Integer> modules = getSelectedModuleIdxs();
-        return areaExecutor.invokeWithCurrent(p -> p.mkCopyModuleDelta(modules));
+        return bridges.getLibExecutor().invokeWithCurrent(p -> p.mkCopyModuleDelta(modules));
     }
 
     public ModuleDelta doCut() {
         List<Integer> modules = getSelectedModuleIdxs();
-        ModuleDelta md = areaExecutor.invokeWithCurrent(p -> p.mkCopyModuleDelta(modules));
-        ModuleDelta cut = areaExecutor.invokeWithCurrent(p -> p.mkDeleteModuleDelta(modules));
+        ModuleDelta md = bridges.getLibExecutor().invokeWithCurrent(p -> p.mkCopyModuleDelta(modules));
+        ModuleDelta cut = bridges.getLibExecutor().invokeWithCurrent(p -> p.mkDeleteModuleDelta(modules));
         moduleDelta.setValue(cut);
         return md;
     }
 
     public void doDelete() {
         List<Integer> modules = getSelectedModuleIdxs();
-        moduleDelta.setValue(areaExecutor.invokeWithCurrent(p -> p.mkDeleteModuleDelta(modules)));
+        moduleDelta.setValue(bridges.getLibExecutor().invokeWithCurrent(p -> p.mkDeleteModuleDelta(modules)));
     }
 }

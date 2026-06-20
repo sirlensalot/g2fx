@@ -1,5 +1,7 @@
 package org.g2fx.g2gui.controls;
 
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -11,6 +13,10 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.*;
+import org.g2fx.g2gui.Undos;
+import org.g2fx.g2gui.bridge.Bridger;
+import org.g2fx.g2gui.bridge.FxProperty;
+import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
@@ -18,10 +24,12 @@ import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
+import org.g2fx.g2lib.state.PatchArea;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2gui.Commands.mkMenu;
@@ -81,9 +89,18 @@ public class Cables {
     public record CableDelta<C>(Collection<C> cables,
                                 boolean add,
                                 Map<Integer,Boolean> uprateChanges,
-                                Map<C,CableColor> colorChanges) {
+                                Map<C,Integer> colorChanges) {
         public CableDelta(Collection<C> cables, boolean add) {
             this(cables,add,new HashMap<>(),new HashMap<>());
+        }
+        public CableDelta() {
+            this(List.of(),false);
+        }
+
+        public CableDelta<C> invert(Function<C,Integer> colorAccessor) {
+            return new CableDelta<>(cables,!add,
+                    with(new HashMap<>(uprateChanges),m->m.replaceAll((_,v)->!v)),
+                    with(new HashMap<>(colorChanges),m->m.replaceAll((k,_)->colorAccessor.apply(k))));
         }
     }
 
@@ -92,11 +109,18 @@ public class Cables {
     private final Map<Connectors.Conn, Set<Cable>> connToCable = new HashMap<>();
     private final SlotPane slotPane;
     private final Pane areaPane;
+    private final Property<CableDelta<Cable>> cableDelta =
+            new SimpleObjectProperty<>(new CableDelta<>(List.of(),false));
 
-    public Cables(SlotPane slotPane, Pane areaPane) {
+    public Cables(SlotPane slotPane, Pane areaPane, Bridger<PatchArea> bridges) {
         this.slotPane = slotPane;
         this.areaPane = areaPane;
+        bridges.bridge(PatchArea::getDummyCableDeltaProp, new FxProperty.SimpleFxProperty<>(cableDelta, u ->
+                new Undos.Undo<>(u.property(),u.newValue().invert(c->c.color().ordinal()),u.newValue())),
+                        Iso.id());
+        cableDelta.addListener((_,_,d)->{ if (d.add) doAdd(d); else doDelete(d); });
     }
+
 
 
     public static void redrawRun(Cable c) {
@@ -300,6 +324,15 @@ public class Cables {
         for (Cable c : cs) {
             checkUprate(c.destConn, c.destConn.defaultUprate(), delta);
         }
+        cableDelta.setValue(delta);
+    }
+
+
+    private void doDelete(CableDelta<Cable> d) {
+        System.out.println("doDelete: " + d);
+    }
+
+    private void doAdd(CableDelta<Cable> d) {
     }
 
     public void checkUprate(Connectors.Conn to,
@@ -313,7 +346,7 @@ public class Cables {
             // downrate: walk module upstream cables to check if canceled by uprate
             for (Connectors.Conn in : to.modulePane().getConns(Connector.PortType.In)) {
                 if (in == to) { continue; }
-                for (Cable cable : connToCable.get(in)) {
+                for (Cable cable : connToCable.computeIfAbsent(in,_->Set.of())) {
                     if (cable.srcConn.newUprate(delta)) {
                         //uprate found, bail
                         return;
@@ -325,16 +358,16 @@ public class Cables {
         delta.uprateChanges.put(to.modulePane().getIndex(),uprate);
         // walk module out-cables to compute color changes and downstream uprates
         for (Connectors.Conn out : to.modulePane().getConns(Connector.PortType.Out)) {
-            for (Cable cable : connToCable.get(out)) {
+            for (Cable cable : connToCable.computeIfAbsent(out,_->Set.of())) {
                 CableColor newColor = out.getNewColor(delta);
                 if (cable.destConn().bandwidth() == UIElements.Bandwidth.Dynamic &&
                         cable.destConn().newUprate(delta) != cable.srcConn().newUprate(delta)) {
-                    delta.colorChanges.put(cable, newColor);
+                    delta.colorChanges.put(cable, newColor.ordinal());
                     if (cable.destConn.modulePane() != to.modulePane()) {
                         checkUprate(cable.destConn, uprate, delta);
                     }
                 } else if (cable.color() != newColor) {
-                    delta.colorChanges.put(cable, newColor);
+                    delta.colorChanges.put(cable, newColor.ordinal());
                 }
             }
         }

@@ -290,7 +290,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
             morphNames.put(i,tf.textProperty());
             slots.bindSlotControl(FXUtil.mkTextFieldCommitProperty(tf,textFocusListener, 16), s -> {
                 SimpleStringProperty gn = new SimpleStringProperty(morphCtl);
-                s.getBridges().bridge(gn, d -> d.getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
+                s.getBridger().bridge(gn, d -> d.getSettingsArea().getSettingsModule(SettingsModules.Morphs).getMorphLabel(ii));
                 return gn;
             });
 
@@ -339,7 +339,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
     private void bindLoadMeter(LoadMeter m, Function<Patch, LibProperty<Double>> slotPropBuilder) {
         slots.bindSlotControl(m.getValueProperty(), s -> {
             Property<Double> p = new SimpleObjectProperty<>((double) 0);
-            s.getBridges().bridge(p, slotPropBuilder);
+            s.getBridger().bridge(p, slotPropBuilder);
             return p;
         });
     }

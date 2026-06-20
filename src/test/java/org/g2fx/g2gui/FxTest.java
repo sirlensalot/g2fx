@@ -146,19 +146,25 @@ public class FxTest {
         Callable<Integer> computeBridgesCount = () ->
                 app.getPerfBridges().activeCount() +
                         Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
-                                app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
-        assertEquals(0,callFxQueue(app,computeBridgesCount));
+                                app.getSlots().getSlot(sl).activeBridgesCount() + su, Integer::sum);
+        assertEquals(0,getActiveBridgesCount(app));
         Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
         sender.dispatchInbounds();
         assertEquals("minimal02lfo",app.getDevices().getCurrentPerf().perfName().get());
 
         //test bridges initialized
-        assertEquals(1932,callFxQueue(app,computeBridgesCount));
+        assertEquals(1940,getActiveBridgesCount(app));
 
         app.getDevices().getPerfLoadListener().onLifecycleDispose(app.getDevices().getCurrentPerf());
 
-        assertEquals(0,callFxQueue(app,computeBridgesCount));
+        assertEquals(0,getActiveBridgesCount(app));
 
+    }
+
+    public int getActiveBridgesCount(G2GuiApplication app) throws Exception {
+        return callFxQueue(app, () -> app.getPerfBridges().activeCount() +
+                Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
+                        app.getSlots().getSlot(sl).activeBridgesCount() + su, Integer::sum));
     }
 
     @Test
@@ -166,12 +172,6 @@ public class FxTest {
         CaptureSender sender = new CaptureSender("data/capture/capture-007-loadmem-patch-g2fx-uprate-4mod.pcapng");
         G2GuiApplication app = startApp();
 
-        //check bridges not initialized
-        Callable<Integer> computeBridgesCount = () ->
-                app.getPerfBridges().activeCount() +
-                        Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
-                                app.getSlots().getSlot(sl).getBridges().activeCount() + su, Integer::sum);
-        //assertEquals(0,callFxThread(computeBridgesCount));
         Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
         Performance perf = new Performance(sender);
         perf.setVersion(1);
@@ -181,12 +181,11 @@ public class FxTest {
         sender.dispatchInbounds();
         assertEquals("g2fx-uprate-4mod",perf.getSlot(Slot.A).name().get());
 
-        //test bridges initialized
-        assertEquals(92,callFxQueue(app,computeBridgesCount));
+        assertEquals(94,getActiveBridgesCount(app));
 
         app.getDevices().getPatchLoadListener().onLifecycleDispose(perf.getSlot(Slot.A));
 
-        assertEquals(0,callFxQueue(app,computeBridgesCount));
+        assertEquals(0,getActiveBridgesCount(app));
 
     }
 

@@ -204,12 +204,12 @@ public class Slots {
 
     public List<Runnable> initBridges(Performance d) {
         List<Runnable> l = new ArrayList<>();
-        slotPanes.forEach(s -> l.addAll(s.getBridges().initialize(d.getSlot(s.getSlot()))));
+        slotPanes.forEach(s -> l.addAll(s.initBridges(d.getSlot(s.getSlot()))));
         return l;
     }
 
     public void disposeBridges() {
-        slotPanes.forEach(s -> s.getBridges().dispose());
+        slotPanes.forEach(SlotPane::disposeBridges);
     }
 
     public Runnable onPatchInit(Patch patch) {
@@ -217,13 +217,13 @@ public class Slots {
         List<Runnable> fxUpdates = new ArrayList<>();
         fxUpdates.add(slot::clearModules);
         slot.initModules(fxUpdates,patch);
-        fxUpdates.addAll(slot.getBridges().initialize(patch));
+        fxUpdates.addAll(slot.initBridges(patch));
         return () -> fxUpdates.forEach(Runnable::run);
     }
 
     public void onPatchDispose(Patch patch) {
         SlotPane slot = slotPanes.get(patch.getSlot().ordinal());
-        slot.getBridges().dispose();
+        slot.disposeBridges();
         slot.disposeModuleBridges();
     }
 

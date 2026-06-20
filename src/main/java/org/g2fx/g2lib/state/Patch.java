@@ -69,8 +69,8 @@ public class Patch {
         this.slot = slot;
         log = Util.getLogger(getClass(),slot);
         this.slotSender = new UsbSlotSender(sender,this);
-        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender);
-        fxArea = new PatchArea(slot,AreaId.Fx,slotSender);
+        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender,this::updateVisuals);
+        fxArea = new PatchArea(slot,AreaId.Fx,slotSender,this::updateVisuals);
         settingsArea = new PatchArea(slot,slotSender);
         visuals = new PatchVisuals(slot,voiceArea,fxArea);
         patchSettings = new PatchSettings(slot,slotSender);
@@ -146,6 +146,10 @@ public class Patch {
                 Util.expectWarn(buf,0x00,"Message","USB extra 2");
             }
         }
+        updateVisuals();
+    }
+
+    private void updateVisuals() {
         visuals.updateVisualIndex();
     }
 
@@ -220,7 +224,7 @@ public class Patch {
         for (Sections ss : Sections.FILE_SECTIONS) {
             readAheadSection(fileBuffer,ss);
         }
-        visuals.updateVisualIndex();
+        updateVisuals();
     }
 
 
