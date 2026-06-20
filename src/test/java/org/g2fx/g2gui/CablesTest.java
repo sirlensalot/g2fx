@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static org.g2fx.g2gui.controls.CableColor.Red;
 import static org.g2fx.g2gui.controls.Cables.Cable;
 import static org.g2fx.g2gui.controls.Cables.CableDelta;
 import static org.g2fx.g2gui.controls.Connectors.Conn;
@@ -62,13 +63,37 @@ public class CablesTest {
     }
 
     @Test
-    void testUprate() {
+    void testUprate1Cable() {
         ModulePane m0 = mockModule(0,true,mkConn(0,Out,Audio,Static));
         ModulePane m1 = mockModule(1,false,mkConn(0,In,Control,Dynamic));
         Cable c00_10 = cables.addCable(m0.getConns(Out).getFirst(), m1.getConns(In).getFirst());
-        CableDelta<Cables.Cable> delta = new CableDelta<>(Set.of(c00_10), false);
+        CableDelta<Cable> delta = new CableDelta<>(Set.of(c00_10),true);
         cables.checkUprate(c00_10.destConn(),true,delta);
         assertEquals(Map.of(m1.getIndex(), true),delta.uprateChanges());
+    }
+
+    @Test
+    void testUprateLoop() {
+        // M3 >-\  <- new cable, M3 audio static
+        // M0 -> M1 -> M2 -> loop to M0, all control/dynamic
+        ModulePane m0 = mockModule(0,false,mkConn(0,In,Control,Dynamic),
+                mkConn(0,Out,Control,Dynamic));
+        ModulePane m1 = mockModule(1,false,mkConn(0,In,Control,Dynamic),mkConn(1,In,Control,Dynamic),
+                mkConn(0,Out,Control,Dynamic));
+        ModulePane m2 = mockModule(2,false,mkConn(0,In,Control,Dynamic),
+                mkConn(0,Out,Control,Dynamic));
+        ModulePane m3 = mockModule(3,false,
+                mkConn(0,Out,Audio,Static));
+        Cable c01 = cables.addCable(m0.getConns(Out).getFirst(),m1.getConns(In).getFirst());
+        Cable c12 = cables.addCable(m1.getConns(Out).getFirst(),m2.getConns(In).getFirst());
+        Cable c20 = cables.addCable(m2.getConns(Out).getFirst(),m0.getConns(In).getFirst());
+        // adding cable now, TODO conform once cable-adding order settled
+        cables.addCable(m3.getConns(Out).getFirst(),m1.getConns(In).get(1));
+        CableDelta<Cable> delta = new CableDelta<>(Set.of(),true);
+        // NB: loop is guarded when m0->m1 check finds m1 already newly-uprated. other invariants not fired
+        cables.checkUprate(m1.getConns(In).get(1),true,delta);
+        assertEquals(Map.of(0,true,1,true,2,true),delta.uprateChanges());
+        assertEquals(Map.of(c01,Red,c12,Red,c20,Red),delta.colorChanges());
     }
 
     record ConnF(Function<ModulePane, Conn> f) {}

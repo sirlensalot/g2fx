@@ -310,7 +310,7 @@ public class Cables {
         // bail if module change already good
         if (to.newUprate(delta) == uprate) { return; }
         if (!uprate) {
-            // walk module upstream cables to check if downrate canceled by uprate
+            // downrate: walk module upstream cables to check if canceled by uprate
             for (Connectors.Conn in : to.modulePane().getConns(Connector.PortType.In)) {
                 if (in == to) { continue; }
                 for (Cable cable : connToCable.get(in)) {
