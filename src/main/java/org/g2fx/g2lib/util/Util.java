@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.Streams;
+import org.g2fx.g2lib.device.LibExecutor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -352,4 +353,16 @@ public class Util {
     }
 
     public static <T> T with(T t,Consumer<T> f) { f.accept(t); return t; }
+
+    public static <T> void forEach(Collection<T> coll, LibExecutor.ThrowingConsumer<T> f) throws Exception {
+        for (T t : coll) {
+            f.accept(t);
+        }
+    }
+
+    public static <K,V> void forEach(Map<K,V> map, LibExecutor.ThrowingBiConsumer<K,V> f) throws Exception {
+        for (Map.Entry<K, V> e : map.entrySet()) {
+            f.accept(e.getKey(),e.getValue());
+        }
+    }
 }

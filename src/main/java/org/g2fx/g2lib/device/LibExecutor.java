@@ -19,6 +19,11 @@ public interface LibExecutor<P> {
     }
 
     @FunctionalInterface
+    interface ThrowingBiConsumer<T,U> {
+        void accept(T t,U u) throws Exception;
+    }
+
+    @FunctionalInterface
     interface ThrowingFunction<A,R> {
         R invoke(A a) throws Exception;
     }

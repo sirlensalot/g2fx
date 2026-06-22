@@ -9,12 +9,14 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Path;
-import org.g2fx.g2gui.bridge.Bridger;
+import org.g2fx.g2gui.bridge.Bridges;
 import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
 import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
+import org.g2fx.g2lib.device.LibExecutor;
+import org.g2fx.g2lib.model.CableDelta;
 import org.g2fx.g2lib.state.PatchArea;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,7 +32,6 @@ import java.util.function.Function;
 
 import static org.g2fx.g2gui.controls.CableColor.Red;
 import static org.g2fx.g2gui.controls.Cables.Cable;
-import static org.g2fx.g2gui.controls.Cables.CableDelta;
 import static org.g2fx.g2gui.controls.Connectors.Conn;
 import static org.g2fx.g2gui.ui.UIElements.Bandwidth;
 import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Dynamic;
@@ -67,7 +68,10 @@ public class CablesTest {
         when(areaPane.getAreaPane()).thenReturn(pane);
         slotPane = mock(SlotPane.class);
         @SuppressWarnings("unchecked")
-        Bridger<PatchArea> bridges = mock(Bridger.class);
+        Bridges<PatchArea> bridges = mock(Bridges.class);
+        @SuppressWarnings("unchecked")
+        LibExecutor<PatchArea> executor = mock(LibExecutor.class);
+        when(bridges.getLibExecutor()).thenReturn(executor);
         cables = new Cables(slotPane, areaPane, bridges);
     }
 

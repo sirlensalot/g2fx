@@ -2,6 +2,7 @@ package org.g2fx.g2lib;
 
 import org.g2fx.g2gui.CaptureSender;
 import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.model.CableDelta;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.Protocol;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.g2fx.g2lib.usb.MessageRecorder.parseCapture;
@@ -33,6 +35,36 @@ public class PerformanceTest {
         Util.configureLogging();
         //WARNING: Protocol subfield init can fail with tests running in multiple threads!!
         Protocol.ModuleParams.ParamSet.toString(); // force fields init
+    }
+
+
+    public static ByteBuffer dropCrcTrailer(ByteBuffer buf) {
+        return buf.limit(buf.limit() - 2);
+    }
+
+
+    /**
+     * outbound are not intended for app dispatch, call performance/slot read methods to adapt
+     * to get logging. Enable INFO for Patch,Fields,Sections.
+     */
+    public static void readOutboundPerf(ByteBuffer buf) {
+        //System.out.println(Util.dumpBufferString(buf));
+        Performance p = new Performance(new OfflineSender());
+        ByteBuffer b = buf.position(0x18);
+        p.readPerformanceNameAndSettings(b);
+        p.slots().forEach(s -> {
+            s.readFileSections(b);
+            Arrays.stream(AreaId.USER_AREAS).forEach(a ->
+                    s.getArea(a).getModules().forEach(m -> {
+                        if (m.getValues() == null) { return; }
+                        List<Integer> v9s = m.getValues().getVarValues(9);
+                        List<Integer> defs = m.getUserModuleData().getType().getParams().stream().map(NamedParam::def).toList();
+                        if (!v9s.equals(defs)) {
+                            System.out.printf("%s: OUT  V9: %s\n", m.getUserModuleData().getType(), v9s);
+                            System.out.printf("%s: DEFAULT: %s\n", m.getUserModuleData().getType(), defs);
+                        }
+                    }));
+        });
     }
 
 
@@ -204,32 +236,23 @@ public class PerformanceTest {
         p.readPatchFromFile(Slot.A, PATCH_UPRATE_4MOD);
     }
 
-    public static ByteBuffer dropCrcTrailer(ByteBuffer buf) {
-        return buf.limit(buf.limit() - 2);
+    @Test
+    void doCables011() throws Exception {
+        CaptureSender sender = new CaptureSender("data/capture/capture-011-cables1-g2fx-uprate-4mod.pcapng");
+        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener());
+        Performance p = new Performance(sender);
+        d.setPerf(p);
+        sender.setStrict(false);
+        p.readPatchFromFile(Slot.A, PATCH_UPRATE_4MOD);
+        p.getSlot(Slot.A).setVersion(3);
+        sender.setStrict(true);
+        p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
+            List.of(new CableDelta.CableIndex(4,0,2,0)),
+                false,
+                Map.of(2,false),
+                Map.of()
+        ));
+        sender.throwErrors();
     }
 
-
-    /**
-     * outbound are not intended for app dispatch, call performance/slot read methods to adapt
-     * to get logging. Enable INFO for Patch,Fields,Sections.
-     */
-    public static void readOutboundPerf(ByteBuffer buf) {
-        //System.out.println(Util.dumpBufferString(buf));
-        Performance p = new Performance(new OfflineSender());
-        ByteBuffer b = buf.position(0x18);
-        p.readPerformanceNameAndSettings(b);
-        p.slots().forEach(s -> {
-            s.readFileSections(b);
-            Arrays.stream(AreaId.USER_AREAS).forEach(a ->
-                s.getArea(a).getModules().forEach(m -> {
-                    if (m.getValues() == null) { return; }
-                    List<Integer> v9s = m.getValues().getVarValues(9);
-                    List<Integer> defs = m.getUserModuleData().getType().getParams().stream().map(NamedParam::def).toList();
-                    if (!v9s.equals(defs)) {
-                        System.out.printf("%s: OUT  V9: %s\n", m.getUserModuleData().getType(), v9s);
-                        System.out.printf("%s: DEFAULT: %s\n", m.getUserModuleData().getType(), defs);
-                    }
-            }));
-        });
-    }
 }

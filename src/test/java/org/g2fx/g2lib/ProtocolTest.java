@@ -1055,6 +1055,33 @@ class ProtocolTest {
     }
 
     @Test
+    void delCableMessage() throws Exception {
+        ByteBuffer buf = Util.readBufferDump(
+                """
+                0000   00 11 01 28 03 51 03 02 00 04 40 2a 01 02 00 7a   ...(.Q....@*...z
+                0010   c4                                                .
+                """
+        );
+        BitBuffer bb = new BitBuffer(buf.position(5).slice());
+        FieldValues fvs1 = DeleteCable.FIELDS.read(bb);
+        assertFieldEquals(fvs1,0x51,DeleteCable.DeleteCable_51);
+        assertFieldEquals(fvs1,1,DeleteCable.Reserved);
+        assertFieldEquals(fvs1,1,DeleteCable.Location);
+        assertFieldEquals(fvs1,2,DeleteCable.SrcModule);
+        assertFieldEquals(fvs1,0,DeleteCable.SrcConnType);
+        assertFieldEquals(fvs1,0,DeleteCable.SrcConn);
+        assertFieldEquals(fvs1,4,DeleteCable.DestModule);
+        assertFieldEquals(fvs1,1,DeleteCable.DestConnType);
+        assertFieldEquals(fvs1,0,DeleteCable.DestConn);
+
+        buf = bb.slice();
+        assertEquals(Codes.O_SET_UPRATE,buf.get(),"0x51 set uprate");
+        assertEquals(AreaId.Voice.ordinal(),buf.get(),"location");
+        assertEquals(2,buf.get(),"module idx");
+        assertEquals(0,buf.get(),"downrate");
+
+    }
+    @Test
     void delModuleMessage() throws Exception {
         ByteBuffer buf = Util.readBufferDump(
                 """

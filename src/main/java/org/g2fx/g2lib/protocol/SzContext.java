@@ -69,10 +69,11 @@ public class SzContext {
         sb.append(String.format("%x-%x, %.03f bytes\n", start/8,end/8,(end-start)/8.0));
         for (SzRecord r : records) {
             boolean multiple = r.entries.size()>1;
-            if (multiple) { sb.append("[ "); }
+            if (multiple) { sb.append("["); }
             int i = 0;
             for (SzEntry e : r.entries) {
-                sb.append(Integer.toHexString(e.value)).append(" ");
+                sb.append(multiple ? (e.value==0?".":Character.toString(e.value)) : Integer.toHexString(e.value));
+                if (!multiple) { sb.append(" "); }
                 pos += e.length;
                 if (++i >= r.entries.size() && multiple) {
                     sb.append("] ");

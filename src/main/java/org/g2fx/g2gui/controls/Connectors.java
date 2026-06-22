@@ -13,6 +13,7 @@ import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
+import org.g2fx.g2lib.model.CableDelta;
 import org.g2fx.g2lib.model.Connector;
 
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public class Connectors {
         }
 
         public CableColor getColor() { return getColor(modulePane.uprate().getValue()); }
-        public CableColor getNewColor(Cables.CableDelta<?> delta) {
+        public CableColor getNewColor(CableDelta<?> delta) {
             return getColor(getNewModuleUprate(delta));
         }
 
@@ -81,11 +82,11 @@ public class Connectors {
             return connType()== UIElements.ConnectorType.Audio && bandwidth() == Static;
         }
 
-        public boolean newUprate(Cables.CableDelta<?> delta) {
+        public boolean newUprate(CableDelta<?> delta) {
             return (getNewModuleUprate(delta) && bandwidth() == Dynamic) || defaultUprate();
         }
 
-        private boolean getNewModuleUprate(Cables.CableDelta<?> delta) {
+        private boolean getNewModuleUprate(CableDelta<?> delta) {
             return delta.uprateChanges().getOrDefault(modulePane.getIndex(), modulePane.uprate().getValue());
         }
 

@@ -4,10 +4,11 @@ import javafx.scene.paint.Color;
 import org.g2fx.g2lib.util.SafeLookup;
 
 public enum CableColor {
+
     Red(355),
-    Orange(30),
     Blue(210),
     Yellow(60),
+    Orange(30),
     Green(120),
     Purple(270),
     White(0,0,1,0.6);

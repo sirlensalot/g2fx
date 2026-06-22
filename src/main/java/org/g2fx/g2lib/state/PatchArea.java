@@ -3,10 +3,7 @@ package org.g2fx.g2lib.state;
 import com.google.common.collect.Streams;
 import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.module.ModuleDelta;
-import org.g2fx.g2lib.model.Connector;
-import org.g2fx.g2lib.model.LibProperty;
-import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.model.Visual;
+import org.g2fx.g2lib.model.*;
 import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
@@ -19,10 +16,12 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static org.g2fx.g2lib.model.CableDelta.CableIndex;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 import static org.g2fx.g2lib.protocol.Sections.writeSection;
 import static org.g2fx.g2lib.state.PatchModule.MAX_VARIATIONS;
+import static org.g2fx.g2lib.util.Util.forEach;
 
 public class PatchArea {
 
@@ -37,8 +36,8 @@ public class PatchArea {
 
     private final LibProperty<ModuleDelta> dummyModuleAddProp =
             new LibProperty<>(new ModuleDelta());
-    private final LibProperty<Cables.CableDelta<Cables.Cable>> dummyCableDeltaProp =
-            new LibProperty<>(new Cables.CableDelta<>());
+    private final LibProperty<CableDelta<Cables.Cable>> dummyCableDeltaProp =
+            new LibProperty<>(new CableDelta<>());
 
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
@@ -75,7 +74,7 @@ public class PatchArea {
         return dummyModuleAddProp;
     }
 
-    public LibProperty<Cables.CableDelta<Cables.Cable>> getDummyCableDeltaProp() {
+    public LibProperty<CableDelta<Cables.Cable>> getDummyCableDeltaProp() {
         return dummyCableDeltaProp;
     }
 
@@ -364,7 +363,7 @@ public class PatchArea {
         md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));
         ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         BitBuffer bb = BitBuffer.fromSlice(buf);
-        for (FieldValues mdc : md.cables()) {
+        forEach(md.cables(), mdc -> {
             Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
             Protocol.DeleteCable.FIELDS.values(
                     Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
@@ -377,14 +376,65 @@ public class PatchArea {
                     Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
                     Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
             ).write(bb);
-        }
-        for (ModuleDelta.UserModuleRecord mr : md.modules()) {
+        });
+        forEach(md.modules(),mr -> {
             bb.put(8,Codes.O_DELETE_MODULE);
             bb.put(8,id.ordinal());
             bb.put(8,mr.getIndex());
-        }
+        });
         sender.sendSlotRequest("deleteModules",buf.limit(bb.limit()));
         Patch.sendSlotResourcesRequest(sender,id);
         Patch.sendUnk6Request(sender);
+    }
+
+    public void execCableDelta(CableDelta<CableIndex> d) throws Exception {
+        if (d.add()) {
+            execAddCable(d);
+        } else {
+            execDeleteCable(d);
+        }
+    }
+
+    private void execDeleteCable(CableDelta<CableIndex> d) throws Exception {
+        List<PatchCable> remove = new ArrayList<>();
+        cables.forEach(c -> {
+            d.cables().forEach(ci -> {
+                if (ci.match(c)) { remove.add(c); }
+            });
+            d.colorChanges().forEach((ci,cc)->{
+                if (ci.match(c)) { c.setColor(cc); }
+            });
+        });
+        d.uprateChanges().forEach((m,u)->
+                getModule(m).getUserModuleData().uprate().set(u));
+        cables.removeAll(remove);
+        ByteBuffer buf = ByteBuffer.allocate(0xffff);
+        BitBuffer bb = BitBuffer.fromSlice(buf);
+        forEach(remove, c->{
+            Connector.PortType destConnType = c.getDirection() ? Out : In;
+            Protocol.DeleteCable.FIELDS.values(
+                    Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
+                    Protocol.DeleteCable.Reserved.value(1), // for 011 test, shd prob be 0?
+                    Protocol.DeleteCable.Location.value(id.ordinal()),
+                    Protocol.DeleteCable.SrcModule.value(c.getDestModule()),
+                    Protocol.DeleteCable.SrcConnType.value(In.ordinal()),
+                    Protocol.DeleteCable.SrcConn.value(c.getDestConn()),
+                    Protocol.DeleteCable.DestModule.value(c.getSrcModule()),
+                    Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
+                    Protocol.DeleteCable.DestConn.value(c.getSrcConn())
+            ).write(bb);
+        });
+        forEach(d.uprateChanges(),(m,u) -> {
+            bb.put(8,Codes.O_SET_UPRATE);
+            bb.put(8,id.ordinal());
+            bb.put(8,m);
+            bb.put(8,u ? 1 : 0);
+        });
+        buf.limit(bb.limit());
+        sender.sendSlotRequest("delete cable",buf);
+    }
+
+    private void execAddCable(CableDelta<CableIndex> d) {
+
     }
 }
