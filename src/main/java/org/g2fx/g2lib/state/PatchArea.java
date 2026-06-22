@@ -41,15 +41,17 @@ public class PatchArea {
 
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
+    private final PatchLoadResponder patchLoadResponder;
 
     /**
      * User module area constructor.
      */
-    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender, Runnable updateVisuals) {
+    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender, Runnable updateVisuals, PatchLoadResponder patchLoadResponder) {
         this.id = id;
         this.sender = sender;
         this.updateVisuals = updateVisuals;
         this.log = Util.getLogger(getClass(),slot,id);
+        this.patchLoadResponder = patchLoadResponder;
     }
 
     /**
@@ -64,6 +66,7 @@ public class PatchArea {
             modules.put(m.getIndex(),m);
         });
         updateVisuals=()->{};
+        this.patchLoadResponder = new PatchLoadResponder(sender); // unused in settings
     }
 
     public void updateVisuals() {
@@ -268,7 +271,7 @@ public class PatchArea {
                                 Protocol.ModuleName.Name.value(m.name().get()))).toList())));
         buf.limit(buf.position());
         sender.sendSlotRequest("add-modules",buf);
-        Patch.sendUnk6Request(sender);
+        patchLoadResponder.sendResponseIfNeeded();
         return new CreateResult(pms,newCables);
     }
 
@@ -384,7 +387,7 @@ public class PatchArea {
         });
         sender.sendSlotRequest("deleteModules",buf.limit(bb.limit()));
         Patch.sendSlotResourcesRequest(sender,id);
-        Patch.sendUnk6Request(sender);
+        patchLoadResponder.sendResponseIfNeeded(); // this might not be the right place
     }
 
     public void execCableDelta(CableDelta<CableIndex> d) throws Exception {

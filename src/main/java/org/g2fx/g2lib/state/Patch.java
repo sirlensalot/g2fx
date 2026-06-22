@@ -63,14 +63,16 @@ public class Patch {
     private MorphParameters morphParams;
     private LibProperty<Integer> assignedVoices = new LibProperty<>(0);
     private final PatchVisuals visuals;
+    private final PatchLoadResponder loadResponder;
 
     // file-perf
     public Patch(Slot slot, UsbSender sender) {
         this.slot = slot;
         log = Util.getLogger(getClass(),slot);
         this.slotSender = new UsbSlotSender(sender,this);
-        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender,this::updateVisuals);
-        fxArea = new PatchArea(slot,AreaId.Fx,slotSender,this::updateVisuals);
+        loadResponder = new PatchLoadResponder(slotSender);
+        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender,this::updateVisuals,loadResponder);
+        fxArea = new PatchArea(slot,AreaId.Fx,slotSender,this::updateVisuals,loadResponder);
         settingsArea = new PatchArea(slot,slotSender);
         visuals = new PatchVisuals(slot,voiceArea,fxArea);
         patchSettings = new PatchSettings(slot,slotSender);
@@ -445,6 +447,7 @@ public class Patch {
     public boolean readPatchLoadData(ByteBuffer buf) {
         FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.PatchLoadData.Location.intValue(fvs)).setPatchLoadData(fvs);
+        loadResponder.loadMsgReceived();
         return true;
     }
 
@@ -601,12 +604,9 @@ public class Patch {
     }
 
     public void sendUnk6Request() throws Exception {
-        sendUnk6Request(slotSender);
+        loadResponder.sendResponse();
     }
 
-    public static void sendUnk6Request(UsbSlotSender slotSender) throws Exception {
-        slotSender.sendSlotRequest("unknown 6", O_UNKNOWN6);
-    }
 
     public void sendSlotResourcesRequests() throws Exception {
         sendSlotResourcesRequest(slotSender, AreaId.Voice);
@@ -619,4 +619,7 @@ public class Patch {
                 area.ordinal());
     }
 
+    public PatchLoadResponder getLoadResponder() {
+        return loadResponder;
+    }
 }

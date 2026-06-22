@@ -24,6 +24,7 @@ import static org.g2fx.g2lib.device.Device.dispatchSuccess;
 import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
+import static org.g2fx.g2lib.util.Util.forEach;
 import static org.g2fx.g2lib.util.Util.withYamlMap;
 
 public class Performance {
@@ -421,5 +422,9 @@ public class Performance {
         patch.loadFromDevice();
         sendGlobalKnobsRequest();
         usb.sendStartStopComm(true);
+    }
+
+    public void checkToSendLoadResponse() throws Exception {
+        forEach(slots,(_, p)-> p.getLoadResponder().sendResponseIfNeeded());
     }
 }

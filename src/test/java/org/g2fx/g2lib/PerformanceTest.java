@@ -2,6 +2,7 @@ package org.g2fx.g2lib;
 
 import org.g2fx.g2gui.CaptureSender;
 import org.g2fx.g2lib.device.Device;
+import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.CableDelta;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.Codes;
@@ -15,9 +16,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.g2fx.g2lib.usb.MessageRecorder.parseCapture;
@@ -227,19 +230,43 @@ public class PerformanceTest {
     @Test
     void loadPatch008() throws Exception {
         CaptureSender sender = new CaptureSender("data/capture/capture-008-loadfile-patch-g2fx-uprate-4mod.pcapng");
-        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener());
+        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener(), new LoadResponseFixture());
         Performance p = new Performance(sender);
         d.setPerf(p);
         for (Patch slot : p.slots()) {
             slot.setVersion(2);
         }
         p.readPatchFromFile(Slot.A, PATCH_UPRATE_4MOD);
+        sender.throwErrors();
+    }
+
+    public static class LoadResponseFixture implements LibExecutor<Performance> {
+        private final List<LibExecutor.ThrowingConsumer<Performance>> actions = new ArrayList<>();
+        @Override
+        public <V> V invoke(Callable<V> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <V> V invokeWithCurrent(ThrowingFunction<Performance, V> f) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void runWithCurrent(ThrowingConsumer<Performance> f) {
+            actions.add(f);
+        }
+
+        @Override
+        public void execute(ThrowingRunnable r) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Test
     void doCables011() throws Exception {
         CaptureSender sender = new CaptureSender("data/capture/capture-011-cables1-g2fx-uprate-4mod.pcapng");
-        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener());
+        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener(),new LoadResponseFixture());
         Performance p = new Performance(sender);
         d.setPerf(p);
         sender.setStrict(false);

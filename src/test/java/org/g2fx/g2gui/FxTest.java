@@ -148,7 +148,8 @@ public class FxTest {
                         Arrays.stream(Slot.values()).reduce(0, (su, sl) ->
                                 app.getSlots().getSlot(sl).activeBridgesCount() + su, Integer::sum);
         assertEquals(0,getActiveBridgesCount(app));
-        Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
+        Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener(),
+                new PerformanceTest.LoadResponseFixture());
         sender.dispatchInbounds();
         assertEquals("minimal02lfo",app.getDevices().getCurrentPerf().perfName().get());
 
@@ -158,6 +159,7 @@ public class FxTest {
         app.getDevices().getPerfLoadListener().onLifecycleDispose(app.getDevices().getCurrentPerf());
 
         assertEquals(0,getActiveBridgesCount(app));
+        sender.throwErrors();
 
     }
 
@@ -172,7 +174,8 @@ public class FxTest {
         CaptureSender sender = new CaptureSender("data/capture/capture-007-loadmem-patch-g2fx-uprate-4mod.pcapng");
         G2GuiApplication app = startApp();
 
-        Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener());
+        Device d = new Device(sender, app.getDevices().getPerfLoadListener(), app.getDevices().getPatchLoadListener(),
+                new PerformanceTest.LoadResponseFixture());
         Performance perf = new Performance(sender);
         perf.setVersion(1);
         d.setPerf(perf);
@@ -187,6 +190,7 @@ public class FxTest {
 
         assertEquals(0,getActiveBridgesCount(app));
 
+        sender.throwErrors();
     }
 
 
@@ -224,6 +228,7 @@ public class FxTest {
 
         //simulate mouse click
         onFxQueue(app,()->uiSlotAVoice.getModulePaste().onMouseReleased());
+        sender.throwErrors();
 
         Coords c5 = new Coords(1, 15);
         assertEquals(c5,callFxQueue(app, () -> uiSlotAVoice.getModule(5).coords().getValue()));

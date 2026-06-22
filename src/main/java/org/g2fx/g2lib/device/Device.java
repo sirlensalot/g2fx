@@ -27,6 +27,7 @@ public class Device implements Dispatcher {
     private final UsbSender usb;
     private final LifecycleListener<Performance> perfLoadListener;
     private final LifecycleListener<Patch> patchLoadListener;
+    private final LibExecutor<Performance> perfExecutor;
 
     private final Entries entries;
 
@@ -36,10 +37,12 @@ public class Device implements Dispatcher {
 
     public Device(UsbSender usb,
                   LifecycleListener<Performance> perfLoadListener,
-                  LifecycleListener<Patch> patchLoadListener) {
+                  LifecycleListener<Patch> patchLoadListener,
+                  LibExecutor<Performance> perfExecutor) {
         this.usb = usb;
         this.perfLoadListener = perfLoadListener;
         this.patchLoadListener = patchLoadListener;
+        this.perfExecutor = perfExecutor;
         usb.setDispatcher(this);
         entries = new Entries(usb);
     }
@@ -188,7 +191,11 @@ public class Device implements Dispatcher {
             case I_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName_27);
             case I_CURRENT_NOTE -> patch.readSectionSlice(sliceAheadLength(buf), Sections.SCurrentNote_69);
             case I_TEXT_PAD -> patch.readSectionSlice(sliceAheadLength(buf), Sections.STextPad_6f);
-            case I_PATCH_LOAD_DATA -> patch.readPatchLoadData(buf);
+            case I_PATCH_LOAD_DATA -> {
+                boolean result = patch.readPatchLoadData(buf);
+                perfExecutor.runWithCurrent(Performance::checkToSendLoadResponse);
+                yield result;
+            }
             case I_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
             case I_SELECTED_PARAM -> patch.readSelectedParam(buf);
             case I_VOLUME_DATA -> patch.getVisuals().readVolumeData(buf);
