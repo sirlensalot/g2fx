@@ -416,7 +416,7 @@ public class AreaPane {
         scrollPane = withClass(new ScrollPane(areaPane),"area-scroll");
         scrollPane.setMinHeight(0);
 
-        this.cables = new Cables(slotPane,areaPane,bridges);
+        this.cables = new Cables(slotPane,this,bridges);
 
         Rectangle selectedRect = withClass(new Rectangle(),"selected-rect");
         selectedRect.setVisible(false);

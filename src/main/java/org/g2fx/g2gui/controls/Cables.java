@@ -7,7 +7,6 @@ import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
@@ -18,6 +17,7 @@ import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.bridge.FxProperty;
 import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.module.ModuleDelta;
+import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2gui.ui.UIElements;
@@ -84,7 +84,11 @@ public class Cables {
             Point2D end,
             CableRun run,
             Node srcJack,
-            Node endJack) {}
+            Node endJack) {
+        public Cable changeColor(CableColor newColor) {
+            return new Cable(newColor,srcConn,start,destConn,end,run,srcJack,endJack);
+        }
+    }
 
     public record CableDelta<C>(Collection<C> cables,
                                 boolean add,
@@ -108,11 +112,11 @@ public class Cables {
     private final List<Cable> cables = new ArrayList<>();
     private final Map<Connectors.Conn, Set<Cable>> connToCable = new HashMap<>();
     private final SlotPane slotPane;
-    private final Pane areaPane;
+    private final AreaPane areaPane;
     private final Property<CableDelta<Cable>> cableDelta =
             new SimpleObjectProperty<>(new CableDelta<>(List.of(),false));
 
-    public Cables(SlotPane slotPane, Pane areaPane, Bridger<PatchArea> bridges) {
+    public Cables(SlotPane slotPane, AreaPane areaPane, Bridger<PatchArea> bridges) {
         this.slotPane = slotPane;
         this.areaPane = areaPane;
         bridges.bridge(PatchArea::getDummyCableDeltaProp, new FxProperty.SimpleFxProperty<>(cableDelta, u ->
@@ -263,10 +267,10 @@ public class Cables {
 
     public void manageCables(boolean redraw) {
         for (Cables.Cable cable : cables) {
-            areaPane.getChildren().removeAll(cable.run().getCable(), cable.run().getShadow());
+            areaPane.getAreaPane().getChildren().removeAll(cable.run().getCable(), cable.run().getShadow());
             if (redraw) Cables.redrawRun(cable);
             if (slotPane.isCableVisible(cable))
-                areaPane.getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
+                areaPane.getAreaPane().getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
         }
     }
 
@@ -277,14 +281,14 @@ public class Cables {
                 removeCableElements(c);
                 Cables.Cable cnew = Cables.mkCable(c);
                 cables.add(cnew);
-                areaPane.getChildren().addAll(cnew.endJack(),cnew.srcJack());
+                areaPane.getAreaPane().getChildren().addAll(cnew.endJack(),cnew.srcJack());
             }
         }
         manageCables(false);
     }
 
     public void removeCableElements(Cable c) {
-        areaPane.getChildren().removeAll(c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
+        areaPane.getAreaPane().getChildren().removeAll(c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
     }
 
     public void clear() {
@@ -314,7 +318,7 @@ public class Cables {
     public Cable addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
         Cable cable = Cables.mkCable(srcConn, destConn);
         add(cable);
-        areaPane.getChildren().addAll(cable.srcJack(), cable.endJack());
+        areaPane.getAreaPane().getChildren().addAll(cable.srcJack(), cable.endJack());
         return cable;
     }
 
@@ -329,6 +333,16 @@ public class Cables {
 
 
     private void doDelete(CableDelta<Cable> d) {
+        d.cables.forEach(c -> {
+            remove(c);
+            removeCableElements(c);
+        });
+        d.uprateChanges.forEach((i,r)->areaPane.getModule(i).uprate().setValue(r));
+        d.colorChanges.forEach((c,v)-> {
+            if (d.cables.contains(c)) { return; }
+            remove(c);
+            add(c.changeColor(CableColor.LOOKUP.get(v)));
+        });
         System.out.println("doDelete: " + d);
     }
 

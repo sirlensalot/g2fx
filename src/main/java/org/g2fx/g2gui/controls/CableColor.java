@@ -1,6 +1,7 @@
 package org.g2fx.g2gui.controls;
 
 import javafx.scene.paint.Color;
+import org.g2fx.g2lib.util.SafeLookup;
 
 public enum CableColor {
     Red(355),
@@ -25,6 +26,8 @@ public enum CableColor {
         this.fillB = fillB;
         this.edgeB = edgeB;
     }
+
+    public static final SafeLookup<Integer,CableColor> LOOKUP = SafeLookup.makeEnumOrdLookup(values());
 
     public Color getFill() {
         return getColor(fillB);

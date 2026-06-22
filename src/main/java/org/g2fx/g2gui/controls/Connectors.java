@@ -45,7 +45,8 @@ public class Connectors {
                        Node control,
                        int index,
                        ModulePane modulePane,
-                       BiConsumer<Conn, ContextMenuEvent> ctxMenuHandler) {
+                       BiConsumer<Conn, ContextMenuEvent> ctxMenuHandler,
+                       Shape edge, Circle center) {
         @Override
         public String toString() {
             return modulePane + ":" + portType + ":" + index + ":" + connType;
@@ -84,12 +85,20 @@ public class Connectors {
             return (getNewModuleUprate(delta) && bandwidth() == Dynamic) || defaultUprate();
         }
 
-        private Boolean getNewModuleUprate(Cables.CableDelta<?> delta) {
+        private boolean getNewModuleUprate(Cables.CableDelta<?> delta) {
             return delta.uprateChanges().getOrDefault(modulePane.getIndex(), modulePane.uprate().getValue());
         }
 
-        public boolean currentUprate() {
-            return (modulePane.uprate().getValue() && bandwidth() == Dynamic) || defaultUprate();
+        public void setColor(CableColor color) {
+            edge.setStroke(color.getEdge());
+            edge.setFill(color.getFill());
+            center.setStroke(color.getEdge());
+        }
+
+        public void setColorForUprate(boolean uprate) {
+            if (connType == UIElements.ConnectorType.Audio || bandwidth != Dynamic) { return; }
+            setColor(connType == UIElements.ConnectorType.Control ? (uprate ? Red : Blue) :
+                    uprate ? Orange : Yellow);
         }
     }
 
@@ -109,21 +118,17 @@ public class Connectors {
                                     BiConsumer<Conn,ContextMenuEvent> ctxMenuHandler) {
         var color = getConnColor(ctype);
         Shape edge = portType == In ? new Circle(0,0, RADIUS) : new Rectangle(0,0, RADIUS *2, RADIUS *2);
-        double sat = 0.6;
         edge.getStyleClass().add("conn-edge");
-        edge.setStroke(color.getEdge());
-        edge.setFill(color.getFill());
 
         Circle center = new Circle(-1,-1, HOLE_RADIUS);
         center.getStyleClass().add("conn-center");
-        center.setStroke(color.getEdge());
         center.setFill(Color.BLACK);
 
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
-        Conn conn = new Conn(portType, ctype, bandwidth, pane, ref, modulePane, ctxMenuHandler);
-
+        Conn conn = new Conn(portType, ctype, bandwidth, pane, ref, modulePane, ctxMenuHandler, edge, center);
+        conn.setColor(color);
         pane.setOnContextMenuRequested(e -> ctxMenuHandler.accept(conn,e));
 
         return conn;

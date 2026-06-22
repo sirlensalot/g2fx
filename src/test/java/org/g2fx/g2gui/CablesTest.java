@@ -7,9 +7,12 @@ import javafx.geometry.Point2D;
 import javafx.scene.control.Control;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Path;
 import org.g2fx.g2gui.bridge.Bridger;
 import org.g2fx.g2gui.controls.Cables;
 import org.g2fx.g2gui.controls.Connectors;
+import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2lib.state.PatchArea;
@@ -47,7 +50,7 @@ public class CablesTest {
 
     public static final BiConsumer<Connectors.Conn, ContextMenuEvent> CTX_MENU_HDLR = (_, _) -> {
     };
-    private Pane areaPane;
+    private AreaPane areaPane;
     private SlotPane slotPane;
     private Cables cables;
 
@@ -58,8 +61,10 @@ public class CablesTest {
     }
     @BeforeEach
     public void beforeEach() {
-        areaPane = mock(Pane.class);
-        when(areaPane.getChildren()).thenReturn(FXCollections.observableArrayList());
+        areaPane = mock(AreaPane.class);
+        Pane pane = mock(Pane.class);
+        when(pane.getChildren()).thenReturn(FXCollections.observableArrayList());
+        when(areaPane.getAreaPane()).thenReturn(pane);
         slotPane = mock(SlotPane.class);
         @SuppressWarnings("unchecked")
         Bridger<PatchArea> bridges = mock(Bridger.class);
@@ -106,11 +111,14 @@ public class CablesTest {
     private ConnF mkConn(int index, PortType portType, ConnectorType connType, Bandwidth bandwidth) {
         javafx.scene.control.Control c = mock(Control.class);
         when(c.localToParent(anyDouble(),anyDouble())).thenReturn(new Point2D(20,20));
-        return new ConnF(m -> new Conn(portType,connType,bandwidth,c,index,m,CTX_MENU_HDLR));
+        Path edge = mock(Path.class);
+        Circle center = mock(Circle.class);
+        return new ConnF(m -> new Conn(portType,connType,bandwidth,c,index,m,CTX_MENU_HDLR,edge,center));
     }
 
-    private static ModulePane mockModule(int index, boolean uprate, ConnF... cfs) {
+    private ModulePane mockModule(int index, boolean uprate, ConnF... cfs) {
         ModulePane m0 = mock(ModulePane.class,"m" + index);
+        when(areaPane.getModule(index)).thenReturn(m0);
         Pane mp = mock(Pane.class);
         when(m0.getPane()).thenReturn(mp);
         SimpleBooleanProperty m0Uprate = new SimpleBooleanProperty(uprate);

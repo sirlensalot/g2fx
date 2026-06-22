@@ -134,27 +134,31 @@ public class ModulePane implements MoveableModule {
 
 
         bridges.bridge(moduleSelector.name(), PatchModule::name);
-        moduleSelector.name().addListener((c,o,n)-> log.info(() -> "name: " + n));
+        moduleSelector.name().addListener((_,_,n)-> log.info(() -> "name: " + n));
 
         bridges.bridge(color, d -> d.getUserModuleData().color());
 
         bridges.bridge(uprate, d -> d.getUserModuleData().uprate());
-        uprate.addListener((c,o,n) -> log.info(() -> "uprate: " + n));
+        uprate.addListener((_,_,n) -> uprateChange(n));
 
         bridges.bridge(leds, d -> d.getUserModuleData().leds());
-        leds.addListener((c,o,n) -> log.info(() -> "leds: " + n));
+        leds.addListener((_,_,n) -> log.info(() -> "leds: " + n));
 
-        color.addListener((c,o,n) -> pane.setBackground(FXUtil.rgbFill(ParamConstants.MODULE_COLORS[n])));
+        color.addListener((_,_,n) -> pane.setBackground(FXUtil.rgbFill(ParamConstants.MODULE_COLORS[n])));
 
         bridges.bridge(d -> d.getUserModuleData().coords(),
                 new FxProperty.SimpleFxProperty<>(coords), Iso.id());
 
-        coords.addListener((c,o,n) -> {
+        coords.addListener((_,_,n) -> {
             pane.setLayoutX(n.column()* GRID_X);
             pane.setLayoutY(n.row()* GRID_Y);
             log.info(() -> "coords: " + n);
         });
 
+    }
+
+    private void uprateChange(boolean newUprate) {
+         conns.values().forEach(l->l.forEach(c -> c.setColorForUprate(newUprate)));
     }
 
     public Property<Boolean> uprate() {
@@ -641,4 +645,5 @@ public class ModulePane implements MoveableModule {
     public Visuals getVisuals() {
         return visuals;
     }
+
 }

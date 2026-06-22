@@ -10444,7 +10444,7 @@ LevMult:
     YPos: 13
     CodeRef: 0
     InfoFunc: 0
-    Type: "Audio"
+    Type: "Control"
     Bandwidth: "Dynamic"
     Control: "In"
   - Class: "Output"
@@ -10453,7 +10453,7 @@ LevMult:
     YPos: 13
     CodeRef: 0
     InfoFunc: 0
-    Type: "Audio"
+    Type: "Control"
     Bandwidth: "Dynamic"
     Control: "Out"
   - Class: "Symbol"
@@ -10483,7 +10483,7 @@ LevMult:
     YPos: 13
     CodeRef: 1
     InfoFunc: 0
-    Type: "Audio"
+    Type: "Control"
     Bandwidth: "Dynamic"
     Control: "Mod"
 LevScaler:
