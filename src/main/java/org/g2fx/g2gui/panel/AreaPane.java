@@ -26,6 +26,7 @@ import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.module.MoveableModule;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
+import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;
@@ -51,6 +52,7 @@ public class AreaPane {
     private final Logger log;
     private final AreaId areaId;
     private final Bridges<PatchArea> bridges;
+    private final LibExecutor<Performance> perfExecutor;
     private final Undos undos;
     private final UIModule.UIModules uiModules;
     private final FXUtil.TextFieldFocusListener textFocusListener;
@@ -294,6 +296,7 @@ public class AreaPane {
         private Point2D pasteOrigin;
         private record PasteGhost(Rectangle rect, Point2D origin, Point2D local, ModuleDelta.UserModuleRecord module) {}
         private final List<PasteGhost> pasteGhosts = new ArrayList<>();
+        private int centerModule;
 
 
         public ModulePaste(ModuleDelta md, AreaPane otherPane) {
@@ -324,6 +327,9 @@ public class AreaPane {
                 minRow = Math.min(cs.row(),minRow);
                 int idx = getNewModuleIndex(ixs);
                 ixs.add(idx);
+                if (g.module.getIndex()==centerModule) {
+                    centerModule = idx;
+                }
                 updated.put(g.module.getIndex(),g.module.duplicate(idx,cs));
             }
             ModuleDelta newDelta = delta.update(updated);
@@ -332,6 +338,10 @@ public class AreaPane {
                 moduleSelection.selectModules(newDelta);
                 resolveModuleCollisions();
             });
+            perfExecutor.runWithCurrent(p -> p.serviceLoadResponses(false));
+            // select param of module in middle
+            selectParam(centerModule,0);
+            perfExecutor.runWithCurrent(p -> p.serviceLoadResponses(true));
             clearDragGhosts();
             finishPaste();
             otherPane.cancelPaste();
@@ -369,15 +379,22 @@ public class AreaPane {
             //center on mouse position
             double orgX=pasteOrigin.getX()-((x2-x1)/2);
             double orgY=pasteOrigin.getY()-((y2-y1)/2);
+            centerModule = -1;
             for (Rectangle r : ghosts) {
                 double localX = r.getX() - x1;
                 r.setX(localX+orgX);
                 double localY = r.getY() - y1;
                 r.setY(localY+orgY);
+                if (r.contains(pasteOrigin.getX(),pasteOrigin.getY())) {
+                    centerModule = ((ModuleDelta.UserModuleRecord) r.getUserData()).getIndex();
+                }
                 pasteGhosts.add(new PasteGhost(r,
                         new Point2D(r.getX(), r.getY()), new Point2D(localX,localY),
                         (ModuleDelta.UserModuleRecord) r.getUserData()));
                 areaPane.getChildren().add(r);
+            }
+            if (centerModule == -1) {
+                centerModule = ((ModuleDelta.UserModuleRecord) ghosts.getFirst().getUserData()).getIndex();
             }
         }
 
@@ -402,13 +419,14 @@ public class AreaPane {
 
     public AreaPane(AreaId areaId, Bridges<Patch> patchBridges, SlotPane slotPane,
                     FXUtil.TextFieldFocusListener textFocusListener, Undos undos,
-                    UIModule.UIModules uiModules) {
+                    UIModule.UIModules uiModules, LibExecutor<Performance> perfExecutor) {
         this.areaId = areaId;
         this.bridges = patchBridges.spawn(p->p.getArea(areaId));
         this.slotPane = slotPane;
         this.textFocusListener = textFocusListener;
         this.undos = undos;
         this.uiModules = uiModules;
+        this.perfExecutor = perfExecutor;
         this.log = Util.getLogger(getClass(),slotPane.getSlot(),areaId);
 
         areaLabel = withClass(new Label(areaId == AreaId.Voice ? "VA" : "FX"),"area-label");
@@ -435,7 +453,20 @@ public class AreaPane {
         areaPane.getChildren().addListener((ListChangeListener<? super Node>) _ -> resizeAreaPane());
     }
 
+    public void selectParam(int module, int param) {
+        ModulePane mp = getModule(module);
+        if (mp == null) {
+            log.warning("selectParam: unknown module: " + module);
+            return;
+        }
+        if (param > mp.getType().getParams().size() - 1) {
+            log.warning("selectParam: invalid param for module " + module + ": " + param);
+            return;
+        }
+        //TODO GUI func
+        bridges.getLibExecutor().runWithCurrent(p -> p.setSelectedParam(module,param));
 
+    }
     public AreaId getAreaId() {
         return areaId;
     }

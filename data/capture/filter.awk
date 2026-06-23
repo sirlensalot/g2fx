@@ -65,7 +65,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "6a") { c = "O_CHANGE_VARIATION" }
         if ($7 == "68") { c = "O_CURRENT_NOTE" }
         if ($7 == "6e") { c = "O_PATCH_TEXT" }
-        if ($7 == "70") { c = "O_UNKNOWN6" }
+        if ($7 == "70") { c = "O_PATCH_LOAD_RESPONSE" }
         if ($7 == "71") { c = "O_RESOURCES_USED" }
         if ($7 == "7d") { c = "O_START_STOP_COM" }
         if ($7 == "81") { c = "O_UNKNOWN1" }

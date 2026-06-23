@@ -92,7 +92,7 @@ public class Slots {
         List<Tab> slots = new ArrayList<>();
         for (Slot slot : Slot.values()) {
             SlotPane slotPane = new SlotPane(bridges.spawn(p->p.getSlot(slot)),
-                    textFocusListener,slot, slotVarControls,undos,uiModules);
+                    textFocusListener,slot, slotVarControls,undos,uiModules,bridges.getLibExecutor());
             slotPanes.add(slotPane);
             Tab t = withClass(new Tab(slot.name()),"slot-tab","gfont");
             t.setUserData(slot.ordinal());

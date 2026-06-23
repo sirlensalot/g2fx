@@ -365,4 +365,9 @@ public class Util {
             f.accept(e.getKey(),e.getValue());
         }
     }
+
+    public static <T,K,V> Map<K,V> buildMap(Map<K,V> seed,Collection<T> vals,BiConsumer<Map<K,V>,T> builder) {
+        vals.forEach(t -> builder.accept(seed,t));
+        return seed;
+    }
 }

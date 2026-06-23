@@ -63,16 +63,14 @@ public class Patch {
     private MorphParameters morphParams;
     private LibProperty<Integer> assignedVoices = new LibProperty<>(0);
     private final PatchVisuals visuals;
-    private final PatchLoadResponder loadResponder;
 
     // file-perf
     public Patch(Slot slot, UsbSender sender) {
         this.slot = slot;
         log = Util.getLogger(getClass(),slot);
         this.slotSender = new UsbSlotSender(sender,this);
-        loadResponder = new PatchLoadResponder(slotSender);
-        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender,this::updateVisuals,loadResponder);
-        fxArea = new PatchArea(slot,AreaId.Fx,slotSender,this::updateVisuals,loadResponder);
+        voiceArea = new PatchArea(slot,AreaId.Voice,slotSender,this::updateVisuals);
+        fxArea = new PatchArea(slot,AreaId.Fx,slotSender,this::updateVisuals);
         settingsArea = new PatchArea(slot,slotSender);
         visuals = new PatchVisuals(slot,voiceArea,fxArea);
         patchSettings = new PatchSettings(slot,slotSender);
@@ -299,7 +297,7 @@ public class Patch {
     public void sendPatch() throws Exception {
         log.info("sendPerf");
         slotSender.getSender().sendBulk("sendPatch",true, writeMessage());
-        sendUnk6Request();
+        sendPatchLoadResponse();
         sendSelectedParamRequest();
     }
 
@@ -447,7 +445,6 @@ public class Patch {
     public boolean readPatchLoadData(ByteBuffer buf) {
         FieldValues fvs = Protocol.PatchLoadData.FIELDS.read(new BitBuffer(buf.slice()));
         getArea(Protocol.PatchLoadData.Location.intValue(fvs)).setPatchLoadData(fvs);
-        loadResponder.loadMsgReceived();
         return true;
     }
 
@@ -545,68 +542,49 @@ public class Patch {
         sendSlotCurrentNoteRequest();
         sendSlotTextRequest();
         sendSlotResourcesRequests();
-        sendUnk6Request();
+        sendPatchLoadResponse();
         sendSelectedParamRequest();
     }
 
     public void initialize() throws Exception {
-
         sendSlotVersionRequest();
-
         sendSlotPatchRequest();
-
         sendSlotNameRequest();
-
         sendSlotCurrentNoteRequest();
-
         sendSlotTextRequest();
-
         sendSlotResourcesRequests();
-
-        sendUnk6Request();
-
+        sendPatchLoadResponse();
         sendSelectedParamRequest();
-
     }
 
     public void sendSlotVersionRequest() throws Exception {
         slotSender.getSender().sendSystemRequest("slot version " + slot,
-                O_VERSION,
-                slot.ordinal());
+                O_VERSION, slot.ordinal());
     }
 
-
     private void sendSlotTextRequest() throws Exception {
-        slotSender.sendSlotRequest("slot text " + slot,
-                O_PATCH_TEXT);
+        slotSender.sendSlotRequest("slot text " + slot, O_PATCH_TEXT);
     }
 
     private void sendSlotCurrentNoteRequest() throws Exception {
-        slotSender.sendSlotRequest("slot note" + slot,
-                O_CURRENT_NOTE);
+        slotSender.sendSlotRequest("slot note" + slot, O_CURRENT_NOTE);
     }
 
     private void sendSlotNameRequest() throws Exception {
-        slotSender.sendSlotRequest("slot name" + slot,
-                O_PATCH_NAME);
+        slotSender.sendSlotRequest("slot name" + slot, O_PATCH_NAME);
     }
 
     private void sendSlotPatchRequest() throws Exception {
-        slotSender.sendSlotRequest("slot patch" + slot,
-                O_PATCH);
+        slotSender.sendSlotRequest("slot patch" + slot, O_PATCH);
     }
-
-
 
     public void sendSelectedParamRequest() throws Exception {
-        slotSender.sendSlotRequest("selected param",
-                O_SELECTED_PARAM);
+        slotSender.sendSlotRequest("selected param", O_SELECTED_PARAM);
     }
 
-    public void sendUnk6Request() throws Exception {
-        loadResponder.sendResponse();
+    public void sendPatchLoadResponse() throws Exception {
+        slotSender.sendSlotRequest("path load response", O_PATCH_LOAD_RESPONSE);
     }
-
 
     public void sendSlotResourcesRequests() throws Exception {
         sendSlotResourcesRequest(slotSender, AreaId.Voice);
@@ -614,12 +592,7 @@ public class Patch {
     }
 
     public static void sendSlotResourcesRequest(UsbSlotSender sender, AreaId area) throws Exception {
-        sender.sendSlotRequest("patch load VA",
-                O_RESOURCES_USED,
-                area.ordinal());
+        sender.sendSlotRequest("patch load " + area, O_RESOURCES_USED, area.ordinal());
     }
 
-    public PatchLoadResponder getLoadResponder() {
-        return loadResponder;
-    }
 }

@@ -245,7 +245,8 @@ public class FxTest {
         assertEquals(6,callFxQueue(app, uiSlotAVoice::getCableCount));
 
         //TODO add other test for negative placements
-        //assertEquals(List.of(),sender.getScript()); TODO -- select param for module under mouse, send unk6s
+        sender.dispatchInbounds();
+        assertTrue(sender.getScript().isEmpty());
 
         //simulate undo
         sender.setScript("data/capture/capture-010-undopaste-g2fx-uprate-4mod.pcapng");

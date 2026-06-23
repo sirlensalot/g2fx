@@ -14,6 +14,7 @@ import org.g2fx.g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.model.CableDelta.CableIndex;
@@ -41,17 +42,15 @@ public class PatchArea {
 
     public record SelectedParam(int module,int param) { }
     private SelectedParam selectedParam;
-    private final PatchLoadResponder patchLoadResponder;
 
     /**
      * User module area constructor.
      */
-    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender, Runnable updateVisuals, PatchLoadResponder patchLoadResponder) {
+    public PatchArea(Slot slot, AreaId id, UsbSlotSender sender, Runnable updateVisuals) {
         this.id = id;
         this.sender = sender;
         this.updateVisuals = updateVisuals;
         this.log = Util.getLogger(getClass(),slot,id);
-        this.patchLoadResponder = patchLoadResponder;
     }
 
     /**
@@ -66,7 +65,6 @@ public class PatchArea {
             modules.put(m.getIndex(),m);
         });
         updateVisuals=()->{};
-        this.patchLoadResponder = new PatchLoadResponder(sender); // unused in settings
     }
 
     public void updateVisuals() {
@@ -189,6 +187,21 @@ public class PatchArea {
         log.fine("Selected param: " + selectedParam);
     }
 
+    public void setSelectedParam(int module, int param) {
+        this.selectedParam = new SelectedParam(module, param);
+        try {
+            sender.sendSlotCommand("selected param",
+                    Codes.O_SELECT_PARAM,
+                    0,
+                    id.ordinal(),
+                    module,
+                    param);
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"Failed to send select param message",e);
+        }
+    }
+
+
     public SelectedParam getSelectedParam() {
         return selectedParam;
     }
@@ -271,7 +284,6 @@ public class PatchArea {
                                 Protocol.ModuleName.Name.value(m.name().get()))).toList())));
         buf.limit(buf.position());
         sender.sendSlotRequest("add-modules",buf);
-        patchLoadResponder.sendResponseIfNeeded();
         return new CreateResult(pms,newCables);
     }
 
@@ -387,7 +399,6 @@ public class PatchArea {
         });
         sender.sendSlotRequest("deleteModules",buf.limit(bb.limit()));
         Patch.sendSlotResourcesRequest(sender,id);
-        patchLoadResponder.sendResponseIfNeeded(); // this might not be the right place
     }
 
     public void execCableDelta(CableDelta<CableIndex> d) throws Exception {
@@ -440,4 +451,5 @@ public class PatchArea {
     private void execAddCable(CableDelta<CableIndex> d) {
 
     }
+
 }

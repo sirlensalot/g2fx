@@ -24,14 +24,12 @@ import org.g2fx.g2gui.bridge.Iso;
 import org.g2fx.g2gui.controls.*;
 import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.ui.UIModule;
+import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.LibProperty;
 import org.g2fx.g2lib.model.ModParam;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.SettingsModules;
-import org.g2fx.g2lib.state.AreaId;
-import org.g2fx.g2lib.state.Patch;
-import org.g2fx.g2lib.state.PatchSettings;
-import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.*;
@@ -53,6 +51,7 @@ public class SlotPane {
     private final RebindableControls<Slots.SlotAndVar> morphControls;
     private final Undos undos;
     private final UIModule.UIModules uiModules;
+    private final LibExecutor<Performance> perfExecutor;
 
     private SplitPane.Divider divider;
     private SplitPane patchSplit;
@@ -68,7 +67,7 @@ public class SlotPane {
 
     public SlotPane(Bridges<Patch> bridges, TextFieldFocusListener textFocusListener,
                     Slot slot, RebindableControls<Slots.SlotAndVar> morphControls,
-                    Undos undos, UIModule.UIModules uiModules) {
+                    Undos undos, UIModule.UIModules uiModules, LibExecutor<Performance> perfExecutor) {
         this.bridges = bridges;
         this.slot = slot;
         log = Util.getLogger(getClass(),slot);
@@ -76,6 +75,7 @@ public class SlotPane {
         this.morphControls = morphControls;
         this.undos = undos;
         this.uiModules = uiModules;
+        this.perfExecutor = perfExecutor;
     }
 
     public void initModules(List<Runnable> l, Patch p) {
@@ -109,9 +109,9 @@ public class SlotPane {
 
         HBox patchBar = mkPatchBar();
 
-        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener, undos, uiModules);
+        AreaPane voicePane = new AreaPane(AreaId.Voice, bridges, this, textFocusListener, undos, uiModules, perfExecutor);
         areaPanes.put(AreaId.Voice,voicePane);
-        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos, uiModules);
+        AreaPane fxPane = new AreaPane(AreaId.Fx, bridges, this, textFocusListener, undos, uiModules, perfExecutor);
         areaPanes.put(AreaId.Fx,fxPane);
 
         voicePane.setupSelectionListener(fxPane);

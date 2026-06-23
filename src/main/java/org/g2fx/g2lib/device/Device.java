@@ -191,11 +191,7 @@ public class Device implements Dispatcher {
             case I_PATCH_NAME -> patch.readSectionSlice(new BitBuffer(buf.slice()), Sections.SPatchName_27);
             case I_CURRENT_NOTE -> patch.readSectionSlice(sliceAheadLength(buf), Sections.SCurrentNote_69);
             case I_TEXT_PAD -> patch.readSectionSlice(sliceAheadLength(buf), Sections.STextPad_6f);
-            case I_PATCH_LOAD_DATA -> {
-                boolean result = patch.readPatchLoadData(buf);
-                perfExecutor.runWithCurrent(Performance::checkToSendLoadResponse);
-                yield result;
-            }
+            case I_PATCH_LOAD_DATA -> perf.patchLoadReceived(patch,buf);
             case I_OK -> dispatchSuccess(() -> "OK"); //TODO maybe show next byte (unknown 6...)
             case I_SELECTED_PARAM -> patch.readSelectedParam(buf);
             case I_VOLUME_DATA -> patch.getVisuals().readVolumeData(buf);

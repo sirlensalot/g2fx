@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.device.Device.dispatchFailure;
@@ -24,7 +25,6 @@ import static org.g2fx.g2lib.device.Device.dispatchSuccess;
 import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
-import static org.g2fx.g2lib.util.Util.forEach;
 import static org.g2fx.g2lib.util.Util.withYamlMap;
 
 public class Performance {
@@ -48,11 +48,20 @@ public class Performance {
 
     private final UsbSender usb;
 
+    enum LoadResponseState {
+        LoadMsgReceived,
+        ResponseSent
+    }
+
+    private final Map<Slot, LoadResponseState> states;
+
     public Performance(UsbSender usb) {
         this.usb = usb;
         for (Slot s : Slot.values()) {
             slots.put(s,new Patch(s, usb));
         }
+        states = Util.buildMap(new TreeMap<>(), slots.keySet(),
+                (m,s)->m.put(s, LoadResponseState.ResponseSent));
     }
 
     public int getVersion() {
@@ -88,7 +97,7 @@ public class Performance {
         patch.name().set(name.substring(0,name.length()-".pch2".length()));
         slots.put(slot, patch);
         patch.sendPatch();
-        for (Patch p : slots.values()) { if (p!=patch) p.sendUnk6Request(); }
+        for (Patch p : slots.values()) { if (p!=patch) p.sendPatchLoadResponse(); }
         return patch;
     }
 
@@ -154,7 +163,7 @@ public class Performance {
         usb.sendBulk("sendPerf",true,writeMessage()); //I_VERSION in response
         for (Patch s : slots.values()) {
             s.sendSlotResourcesRequests();
-            s.sendUnk6Request();
+            s.sendPatchLoadResponse();
             s.sendSelectedParamRequest();
         }
         sendMasterClockRequest();
@@ -424,7 +433,24 @@ public class Performance {
         usb.sendStartStopComm(true);
     }
 
-    public void checkToSendLoadResponse() throws Exception {
-        forEach(slots,(_, p)-> p.getLoadResponder().sendResponseIfNeeded());
+    public boolean patchLoadReceived(Patch patch, ByteBuffer buf) {
+        boolean result = patch.readPatchLoadData(buf);
+        states.put(patch.getSlot(), LoadResponseState.LoadMsgReceived);
+        return result;
     }
+
+    public void serviceLoadResponses(boolean all) {
+        try {
+            for (Slot slot : Slot.values()) {
+                if (states.get(slot) == LoadResponseState.LoadMsgReceived) {
+                    states.put(slot, LoadResponseState.ResponseSent);
+                    slots.get(slot).sendPatchLoadResponse();
+                    if (!all) { return; }
+                }
+            }
+        } catch (Exception e) {
+            log.log(Level.SEVERE,"serviceLoadResponse send failed",e);
+        }
+    }
+
 }

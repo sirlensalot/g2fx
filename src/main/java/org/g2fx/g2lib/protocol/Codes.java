@@ -81,7 +81,7 @@ public class Codes {
     public static final int O_CHANGE_VARIATION = I_CHANGE_VARIATION; // 0x6a
     public static final int O_CURRENT_NOTE = 0x68;
     public static final int O_PATCH_TEXT = 0x6e;
-    public static final int O_UNKNOWN6 = 0x70;
+    public static final int O_PATCH_LOAD_RESPONSE = 0x70;
     public static final int O_RESOURCES_USED = 0x71;
     public static final int O_START_STOP_COM = 0x7d;
     public static final int O_UNKNOWN1 = 0x81;
