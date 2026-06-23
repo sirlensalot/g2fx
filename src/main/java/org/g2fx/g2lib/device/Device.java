@@ -27,7 +27,6 @@ public class Device implements Dispatcher {
     private final UsbSender usb;
     private final LifecycleListener<Performance> perfLoadListener;
     private final LifecycleListener<Patch> patchLoadListener;
-    private final LibExecutor<Performance> perfExecutor;
 
     private final Entries entries;
 
@@ -37,12 +36,10 @@ public class Device implements Dispatcher {
 
     public Device(UsbSender usb,
                   LifecycleListener<Performance> perfLoadListener,
-                  LifecycleListener<Patch> patchLoadListener,
-                  LibExecutor<Performance> perfExecutor) {
+                  LifecycleListener<Patch> patchLoadListener) {
         this.usb = usb;
         this.perfLoadListener = perfLoadListener;
         this.patchLoadListener = patchLoadListener;
-        this.perfExecutor = perfExecutor;
         usb.setDispatcher(this);
         entries = new Entries(usb);
     }

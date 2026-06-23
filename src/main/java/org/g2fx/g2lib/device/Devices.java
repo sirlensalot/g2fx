@@ -90,7 +90,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Pe
     /**
      * Persistent "fake device" when G2 not connected.
      */
-    private final Device offlineDevice = new Device(currentSender, perfLoadListener, patchLoadListener, this);
+    private final Device offlineDevice = new Device(currentSender, perfLoadListener, patchLoadListener);
 
     private Device currentDevice = offlineDevice;
 
@@ -119,7 +119,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Pe
         // ugly workaround for multi-device non-support
         UsbSender tmpSender = currentSender;
         currentSender = usb;
-        Device d = new Device(delegatingSender, perfLoadListener, patchLoadListener, this);
+        Device d = new Device(delegatingSender, perfLoadListener, patchLoadListener);
         devices.put(ud.address(), d);
 
         if (currentDevice.online()) {

@@ -332,16 +332,13 @@ public class AreaPane {
                 }
                 updated.put(g.module.getIndex(),g.module.duplicate(idx,cs));
             }
-            ModuleDelta newDelta = delta.update(updated);
+            ModuleDelta newDelta = delta.update(updated,centerModule);
             undos.withMulti(() -> {
                 fireModuleDelta(newDelta);
                 moduleSelection.selectModules(newDelta);
                 resolveModuleCollisions();
             });
-            perfExecutor.runWithCurrent(p -> p.serviceLoadResponses(false));
-            // select param of module in middle
-            selectParam(centerModule,0);
-            perfExecutor.runWithCurrent(p -> p.serviceLoadResponses(true));
+
             clearDragGhosts();
             finishPaste();
             otherPane.cancelPaste();
@@ -743,9 +740,15 @@ public class AreaPane {
         if (md.isEmpty()) { return; }
         if (md.add()) {
             doAddModule(md);
+            if (md.newModuleSelect() != null) {
+                // this is goofy/to match regression 009, but ... harmless?
+                perfExecutor.runWithCurrent(p -> p.serviceLoadResponses(false));
+                selectParam(md.newModuleSelect(),0);
+            }
         } else {
             doDeleteModule(md);
         }
+        perfExecutor.runWithCurrent(p -> p.serviceLoadResponses(true));
     }
 
     /**

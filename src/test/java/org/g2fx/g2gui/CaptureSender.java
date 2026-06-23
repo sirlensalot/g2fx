@@ -7,10 +7,10 @@ import org.opentest4j.AssertionFailedError;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.usb.MessageRecorder.parseCapture;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Mock sender + dispatcher driver using capture files. Expects outbounds to match exactly;
@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class CaptureSender implements UsbSender {
 
+    private final Logger log = Util.getLogger(getClass());
     private final List<MessageRecorder.RecordedUsbMessage> script;
     private Dispatcher dispatcher;
     private final List<AssertionFailedError> errors = new ArrayList<>();
@@ -25,6 +26,11 @@ public class CaptureSender implements UsbSender {
      * whether to match outbounds to script
      */
     private boolean strict = true;
+
+    /**
+     * whether to allow outbounds past end of script
+     */
+    private boolean allowExtraSends = false;
 
     public CaptureSender(List<MessageRecorder.RecordedUsbMessage> script) {
         this.script = new ArrayList<>(script);
@@ -38,6 +44,10 @@ public class CaptureSender implements UsbSender {
         this.strict = strict;
     }
 
+    public void setAllowExtraSends(boolean allowExtraSends) {
+        this.allowExtraSends = allowExtraSends;
+    }
+
     public void setScript(String f) throws Exception {
         script.clear();
         script.addAll(parseCapture(f,_->true));
@@ -45,8 +55,13 @@ public class CaptureSender implements UsbSender {
 
     @Override
     public int sendBulk(String msg, boolean dispatch, ByteBuffer data) throws Exception {
+        log.info(() -> String.format("sendBulk: %s dispatch=%s %s\n",msg,dispatch,Util.dumpBufferString(data)));
         if (!strict) { return 0; }
+        if (script.isEmpty()) {
+            if (allowExtraSends) return 0;
+        }
         try {
+            assertFalse(script.isEmpty(),"sendBulk: script empty");
             MessageRecorder.RecordedUsbMessage m = script.removeFirst();
             String expected = Util.dumpBufferString(m.msg().buffer());
             String actual = Util.dumpBufferString(Usb.prepareSendBuffer(data));
@@ -86,5 +101,10 @@ public class CaptureSender implements UsbSender {
         for (AssertionFailedError e : errors) {
             throw e;
         }
+    }
+
+    public void assertScriptDone() {
+        throwErrors();
+        assertEquals(List.of(),script);
     }
 }

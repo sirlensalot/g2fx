@@ -47,11 +47,14 @@ public class MessageRecorder {
     public void record(UsbMessage msg) throws Exception {
         if (!msg.success()) { return; }
         count++;
-        dumpMsgYaml(msg, getElapsed(), pw);
+        dumpMsgYaml(msg, getElapsed(), pw, null);
     }
 
-    public static void dumpMsgYaml(UsbMessage msg, long time, PrintWriter pw) {
+    public static void dumpMsgYaml(UsbMessage msg, long time, PrintWriter pw, Boolean inbound) {
         pw.format("- time: %s\n", time);
+        if (inbound != null) {
+            pw.format("  direction: %s\n",inbound ? "inbound" : "outbound");
+        }
         pw.format("  extended: %s\n", msg.extended());
         pw.format("  crc: \"%04x\"\n", msg.crc());
         pw.print( "  data: >-");
@@ -89,7 +92,7 @@ public class MessageRecorder {
         public String toString() {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
-            dumpMsgYaml(msg,time,pw);
+            dumpMsgYaml(msg,time,pw,inbound);
             pw.flush();
             return sw.toString();
         }

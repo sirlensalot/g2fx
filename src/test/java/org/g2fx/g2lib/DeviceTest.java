@@ -194,7 +194,7 @@ public class DeviceTest {
             public void onLifecycleDispose(Performance performance) throws Exception {
 
             }
-        }, LifecycleListener.noopListener(),new PerformanceTest.LoadResponseFixture());
+        }, LifecycleListener.noopListener());
         dispatchMsgs(MessageRecorder.parseCapture("data/capture/capture-003-loadmem-g2fx-perf1.pcapng", MessageRecorder.INBOUND),d);
         // match file version and current notes
         Performance p = pref.get();
@@ -226,7 +226,7 @@ public class DeviceTest {
 
     public static Device initDevice() {
         UsbSender sender = new OfflineSender();
-        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener(),new PerformanceTest.LoadResponseFixture());
+        Device d = new Device(sender, LifecycleListener.noopListener(), LifecycleListener.noopListener());
         return d;
     }
 
@@ -243,7 +243,7 @@ public class DeviceTest {
                 perfRef.set(performance);
             }
             @Override public void onLifecycleDispose(Performance performance) throws Exception {}
-        }, LifecycleListener.noopListener(),new PerformanceTest.LoadResponseFixture());
+        }, LifecycleListener.noopListener());
         Performance perf = initPerf(d);
         perfRef.set(perf);
 

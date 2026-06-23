@@ -19,7 +19,16 @@ import java.util.List;
  * @param modules added or deleted module records
  * @param add true for add, false for delete.
  */
-public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cables, boolean add) {
+public record ModuleDelta(List<UserModuleRecord> modules,
+                          List<FieldValues> cables,
+                          boolean add,
+                          Integer newModuleSelect) {
+
+    public ModuleDelta(List<UserModuleRecord> modules,
+                              List<FieldValues> cables,
+                              boolean add) {
+        this(modules,cables,add,null);
+    }
 
     public record UserModuleRecord (
             String name,
@@ -114,7 +123,7 @@ public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cabl
         );
     }
 
-    public ModuleDelta update(LinkedHashMap<Integer, UserModuleRecord> updated) {
+    public ModuleDelta update(LinkedHashMap<Integer, UserModuleRecord> updated, Integer newModuleSelect) {
         return new ModuleDelta(new ArrayList<>(updated.values()),cables.stream().map(c ->
                 Protocol.Cable.FIELDS.values(
                         Protocol.Cable.Color.value(Protocol.Cable.Color.intValue(c)),
@@ -123,6 +132,6 @@ public record ModuleDelta(List<UserModuleRecord> modules, List<FieldValues> cabl
                         Protocol.Cable.Direction.value(Protocol.Cable.Direction.booleanIntValue(c)),
                         Protocol.Cable.DestModule.value(updated.get(Protocol.Cable.DestModule.intValue(c)).getIndex()),
                         Protocol.Cable.DestConn.value(Protocol.Cable.DestConn.intValue(c)))
-        ).toList(),add);
+        ).toList(),add,newModuleSelect);
     }
 }

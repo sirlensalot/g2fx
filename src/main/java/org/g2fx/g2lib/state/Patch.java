@@ -583,7 +583,7 @@ public class Patch {
     }
 
     public void sendPatchLoadResponse() throws Exception {
-        slotSender.sendSlotRequest("path load response", O_PATCH_LOAD_RESPONSE);
+        slotSender.sendSlotRequest("patch load response", O_PATCH_LOAD_RESPONSE);
     }
 
     public void sendSlotResourcesRequests() throws Exception {

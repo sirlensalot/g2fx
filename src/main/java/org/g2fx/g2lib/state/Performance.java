@@ -371,18 +371,14 @@ public class Performance {
     public void loadFromDevice() throws Exception {
 
         sendVersionRequest();
-
         sendPerfSettingsRequest();
-
         sendPerfUnk2Request();
-
         for (Patch p : slots.values()) {
             p.loadFromDevice();
         }
-
         sendGlobalKnobsRequest();
-
         usb.sendStartStopComm(true);
+        serviceLoadResponses(true);
 
     }
 
@@ -431,6 +427,7 @@ public class Performance {
         patch.loadFromDevice();
         sendGlobalKnobsRequest();
         usb.sendStartStopComm(true);
+        serviceLoadResponses(true);
     }
 
     public boolean patchLoadReceived(Patch patch, ByteBuffer buf) {
