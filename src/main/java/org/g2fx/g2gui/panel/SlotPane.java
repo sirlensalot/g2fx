@@ -233,10 +233,10 @@ public class SlotPane {
         CheckBox whiteCable = cableCheckbox(White,PatchSettings::white);
         hideCables = withClass(new ToggleButton("H"),"hide-cables","cable-button",FXUtil.G2_TOGGLE);
         hideCables.setFocusTraversable(false);
-        hideCables.selectedProperty().addListener((c,o,l) -> manageCables(false));
+        hideCables.selectedProperty().addListener((c,o,l) -> redrawCables(false));
         Button shakeCables = withClass(new Button("S"),"shake-cables","cable-button");
         shakeCables.setFocusTraversable(false);
-        shakeCables.setOnAction(e -> manageCables(true));
+        shakeCables.setOnAction(_ -> shakeCables());
 
 
         Knob patchVolume = withClass(new Knob("patch-volume", 1.0),"patch-volume");
@@ -365,19 +365,24 @@ public class SlotPane {
         //logColor(color);
         cb.setSelected(true);
         cb.setFocusTraversable(false);
-        bindVarControl(cb.selectedProperty(),v -> {
+        bindVarControl(cb.selectedProperty(),_ -> {
             BooleanProperty p = new SimpleBooleanProperty(cb,color + " cable",true);
             bridges.bridge(p,d->libProp.apply(d.getPatchSettings()));
             return p;
         });
         cableCheckboxes.put(color,cb);
-        cb.selectedProperty().addListener((c, o, n) -> manageCables(false));
+        cb.selectedProperty().addListener((_,_,_) -> redrawCables(false));
         return cb;
     }
 
-    public void manageCables(boolean redraw) {
-        areaPanes.values().forEach(a -> a.manageCables(redraw));
+    private void redrawCables(boolean shake) {
+        areaPanes.values().forEach(a -> a.redrawCables(shake));
     }
+
+    public void shakeCables() {
+        redrawCables(true);
+    }
+
 
     public void maximizeAreaPane(AreaId area) {
         divider.setPosition(area == AreaId.Fx ? 0 : patchSplit.getHeight());

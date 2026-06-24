@@ -302,7 +302,7 @@ public class Commands {
                         slots.getSelectedSlotPane().toggleShowCables();
                         e.consume();
                     } else if (e.isShortcutDown()) {
-                        slots.getSelectedSlotPane().manageCables(true);
+                        slots.getSelectedSlotPane().shakeCables();
                         e.consume();
                     }
                     return;

@@ -26,16 +26,20 @@ import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.protocol.FieldValues;
 import org.g2fx.g2lib.protocol.Protocol;
 import org.g2fx.g2lib.state.PatchArea;
+import org.g2fx.g2lib.state.PatchCable;
 import org.g2fx.g2lib.util.Util;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2gui.Commands.mkMenu;
 import static org.g2fx.g2gui.Commands.mkMenuItem;
 import static org.g2fx.g2gui.controls.Connectors.RADIUS;
 import static org.g2fx.g2gui.controls.Connectors.getConnColor;
+import static org.g2fx.g2lib.model.Connector.PortType.In;
+import static org.g2fx.g2lib.model.Connector.PortType.Out;
 import static org.g2fx.g2lib.util.Util.with;
 
 public class Cables {
@@ -96,8 +100,49 @@ public class Cables {
     }
 
     private final Logger log = Util.getLogger(getClass());
-    private final List<Cable> cables = new ArrayList<>();
-    private final Map<Connectors.Conn, Set<Cable>> connToCable = new HashMap<>();
+
+    private record CableStore(List<Cable> cables,Map<Connectors.Conn, Set<Cable>> connToCable) {
+
+        public CableStore() { this(new ArrayList<>(),new HashMap<>()); }
+
+        public void add(Cable cable) {
+            cables.add(cable);
+            connToCable.compute(cable.srcConn(),(_, s)->
+                    with(s == null ? new HashSet<>() : s, s1->s1.add(cable)));
+            connToCable.compute(cable.destConn(),(_, s)->
+                    with(s == null ? new HashSet<>() : s, s1->s1.add(cable)));
+        }
+
+        public void remove(Cable cable) {
+            cables.remove(cable);
+            connToCable.computeIfPresent(cable.srcConn(),(_,s)->
+                    with(s,s1->s1.remove(cable)));
+            connToCable.computeIfPresent(cable.destConn(),(_,s)->
+                    with(s,s1->s1.remove(cable)));
+        }
+
+        public Set<Cable> cablesForConn(Connectors.Conn conn) {
+            return connToCable.computeIfAbsent(conn,_->new HashSet<>());
+        }
+
+        public void clear() {
+            cables.clear();
+            connToCable.clear();
+        }
+
+        /**
+         * mutation-safe iteration
+         */
+        public void forEach(Consumer<Cable> f) {
+            new ArrayList<>(cables).forEach(f);;
+        }
+
+
+
+
+    }
+    private final CableStore store = new CableStore();
+
     private final SlotPane slotPane;
     private final AreaPane areaPane;
     private final Property<CableDelta<Cable>> cableDelta =
@@ -160,7 +205,6 @@ public class Cables {
             }
         });
         return new Cable(color,srcConn,start,destConn,end,run,srcJack,destJack);
-
 
     }
 
@@ -234,103 +278,96 @@ public class Cables {
     }
 
 
-    private void add(Cable cable) {
-        cables.add(cable);
-        connToCable.compute(cable.srcConn(),(_, s)->
-                with(s == null ? new HashSet<>() : s, s1->s1.add(cable)));
-        connToCable.compute(cable.destConn(),(_, s)->
-                with(s == null ? new HashSet<>() : s, s1->s1.add(cable)));
+    public void renderCables(List<PatchCable> patchCables) {
+        // fx thread with fresh list of "immutable" PatchCable instances
+        for (PatchCable patchCable : patchCables) {
+            var src = resolveModule(patchCable.getSrcModule());
+            var dest = resolveModule(patchCable.getDestModule());
+            Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
+            var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
+            var destConn = dest.resolveConn(In, patchCable.getDestConn());
+            addCable(srcConn, destConn);
+        }
+        redrawCables(false);
     }
 
-    private void remove(Cable cable) {
-        cables.remove(cable);
-        connToCable.computeIfPresent(cable.srcConn(),(_,s)->
-                with(s,s1->s1.remove(cable)));
-        connToCable.computeIfPresent(cable.destConn(),(_,s)->
-                with(s,s1->s1.remove(cable)));
+
+
+    private ModulePane resolveModule(int mIdx) {
+        ModulePane mp = areaPane.getModule(mIdx);
+        if (mp == null) { throw new IllegalStateException("patchCable invalid module index: " + mIdx); }
+        return mp;
     }
 
-    public Set<Cable> cablesForConn(Connectors.Conn conn) {
-        return connToCable.computeIfAbsent(conn,_->new HashSet<>());
-    }
 
-    public void manageCables(boolean redraw) {
-        for (Cables.Cable cable : cables) {
+    public void redrawCables(boolean shake) {
+        store.forEach(cable -> {
             areaPane.getAreaPane().getChildren().removeAll(cable.run().getCable(), cable.run().getShadow());
-            if (redraw) Cables.redrawRun(cable);
+            if (shake) Cables.redrawRun(cable);
             if (slotPane.isCableVisible(cable))
                 areaPane.getAreaPane().getChildren().addAll(cable.run().getShadow(), cable.run().getCable());
-        }
+        });
     }
 
-    public void updateCables(ModulePane mp) {
-        for (Cables.Cable c : new ArrayList<>(cables)) {
+    public void moduleMoved(ModulePane mp) {
+        store.forEach(c -> {
             if (mp == c.srcConn().modulePane()|| mp == c.destConn().modulePane()) {
-                cables.remove(c);
+                store.remove(c);
                 removeCableElements(c);
                 Cables.Cable cnew = Cables.mkCable(c);
-                cables.add(cnew);
+                store.add(cnew);
                 areaPane.getAreaPane().getChildren().addAll(cnew.endJack(),cnew.srcJack());
             }
-        }
-        manageCables(false);
+        });
     }
 
-    public void removeCableElements(Cable c) {
-        areaPane.getAreaPane().getChildren().removeAll(c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
+    private void removeCableElements(Cable c) {
+        areaPane.getAreaPane().getChildren().removeAll(
+                c.endJack(), c.srcJack(), c.run().getShadow(), c.run().getCable());
     }
 
     public void clear() {
-        cables.clear();
-        connToCable.clear();
+        store.clear();
     }
 
     public void doDeleteModule(ModuleDelta md) {
-        cables.removeIf(cable -> {
+        store.forEach(cable -> {
             for (FieldValues c : md.cables()) {
                 if (cable.srcConn().modulePane().getIndex() == Protocol.Cable.DestModule.intValue(c) &&
                         cable.srcConn().index() == Protocol.Cable.DestConn.intValue(c) &&
                         cable.destConn().modulePane().getIndex() == Protocol.Cable.SrcModule.intValue(c) &&
                         cable.destConn().index() == Protocol.Cable.SrcConn.intValue(c)) {
+                    store.remove(cable);
                     removeCableElements(cable);
-                    return true;
                 }
             }
-            return false;
         });
     }
 
     public int size() {
-        return cables.size();
+        return store.cables.size();
     }
 
+    /**
+     * exposed for test
+     */
     public Cable addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
         Cable cable = Cables.mkCable(srcConn, destConn);
-        add(cable);
+        store.add(cable);
         areaPane.getAreaPane().getChildren().addAll(cable.srcJack(), cable.endJack());
         return cable;
     }
 
-
-    public void deleteCables(Set<Cable> cs) {
-        CableDelta<Cable> delta = new CableDelta<>(cs,false);
-        for (Cable c : cs) {
-            checkUprate(c.destConn, c.destConn.defaultUprate(), delta);
-        }
-        cableDelta.setValue(delta);
-    }
-
-
     private void doDelete(CableDelta<Cable> d) {
         d.cables().forEach(c -> {
-            remove(c);
+            store.remove(c);
             removeCableElements(c);
         });
         d.uprateChanges().forEach((i,r)->areaPane.getModule(i).uprate().setValue(r));
         d.colorChanges().forEach((c,v)-> {
             if (d.cables().contains(c)) { return; }
-            remove(c);
-            add(c.changeColor(CableColor.LOOKUP.get(v)));
+            store.remove(c);
+            store.add(c.changeColor(CableColor.LOOKUP.get(v)));
         });
         bridges.getLibExecutor().runWithCurrent(a -> a.execCableDelta(d.convert(Cable::toCableRecord)));
     }
@@ -339,6 +376,9 @@ public class Cables {
         log.warning("TODO: doAdd " + d);
     }
 
+    /**
+     * exposed for test
+     */
     public void checkUprate(Connectors.Conn to,
                              boolean uprate,
                              CableDelta<Cable> delta) {
@@ -350,7 +390,7 @@ public class Cables {
             // downrate: walk module upstream cables to check if canceled by uprate
             for (Connectors.Conn in : to.modulePane().getConns(Connector.PortType.In)) {
                 if (in == to) { continue; }
-                for (Cable cable : connToCable.computeIfAbsent(in,_->Set.of())) {
+                for (Cable cable : store.cablesForConn(in)) {
                     if (cable.srcConn.newUprate(delta)) {
                         //uprate found, bail
                         return;
@@ -362,7 +402,7 @@ public class Cables {
         delta.uprateChanges().put(to.modulePane().getIndex(),uprate);
         // walk module out-cables to compute color changes and downstream uprates
         for (Connectors.Conn out : to.modulePane().getConns(Connector.PortType.Out)) {
-            for (Cable cable : connToCable.computeIfAbsent(out,_->Set.of())) {
+            for (Cable cable : store.cablesForConn(out)) {
                 CableColor newColor = out.getNewColor(delta);
                 if (cable.destConn().bandwidth() == UIElements.Bandwidth.Dynamic &&
                         cable.destConn().newUprate(delta) != cable.srcConn().newUprate(delta)) {
@@ -379,7 +419,7 @@ public class Cables {
 
     public void mkConnCtxMenu(Connectors.Conn conn, ContextMenuEvent cme) {
         //find cable if any
-        Set<Cables.Cable> cs = new HashSet<>(cablesForConn(conn));
+        Set<Cables.Cable> cs = new HashSet<>(store.cablesForConn(conn));
 
         ContextMenu cm = new ContextMenu();
         if (!cs.isEmpty()) {
@@ -419,4 +459,23 @@ public class Cables {
     private void ctxDeleteUnusedCables() {
         log.warning("ctxDeleteUnusedCables TODO");
     }
+
+    private void deleteCables(Set<Cable> cs) {
+        CableDelta<Cable> delta = new CableDelta<>(cs,false);
+        for (Cable c : cs) {
+            checkUprate(c.destConn, c.destConn.defaultUprate(), delta);
+        }
+        cableDelta.setValue(delta);
+    }
+
+    /**
+     * UI cable add
+     */
+    public void newCable(Connectors.Conn start, Connectors.Conn end) {
+        addCable(start,end);
+        redrawCables(false);
+        //TODO add to backend as redoable action
+    }
+
+
 }

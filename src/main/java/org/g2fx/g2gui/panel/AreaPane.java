@@ -27,7 +27,6 @@ import org.g2fx.g2gui.module.MoveableModule;
 import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIModule;
 import org.g2fx.g2lib.device.LibExecutor;
-import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.state.*;
 import org.g2fx.g2lib.util.Util;
@@ -42,8 +41,6 @@ import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.FXUtil.withClass1;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_X;
 import static org.g2fx.g2gui.panel.ModulePane.GRID_Y;
-import static org.g2fx.g2lib.model.Connector.PortType.In;
-import static org.g2fx.g2lib.model.Connector.PortType.Out;
 
 public class AreaPane {
 
@@ -477,9 +474,7 @@ public class AreaPane {
     }
 
     public void newCable(Connectors.Conn start, Connectors.Conn end) {
-        addCable(start,end);
-        manageCables(false);
-        //TODO add to backend as redoable action
+        cables.newCable(start,end);
     }
 
 
@@ -574,25 +569,10 @@ public class AreaPane {
             UserModuleData md = m.getUserModuleData();
             l.add(() -> renderModule(md.getIndex(), md.getType(), m, uiModules.get(md.getType())));
         }
-        l.add(() -> renderCables(new ArrayList<>(area.getCables()))); //assuming fvs are one-off, should be thread-safe
+        l.add(() -> cables.renderCables(new ArrayList<>(area.getCables()))); //assuming fvs are one-off, should be thread-safe
     }
 
-    private void renderCables(List<PatchCable> patchCables) {
-        // fx thread with fresh list of "immutable" PatchCable instances
-        for (PatchCable patchCable : patchCables) {
-            var src = resolveModule(patchCable.getSrcModule());
-            var dest = resolveModule(patchCable.getDestModule());
-            Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
-            var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
-            var destConn = dest.resolveConn(In, patchCable.getDestConn());
-            addCable(srcConn, destConn);
-        }
-        manageCables(false);
-    }
 
-    private void addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
-        cables.addCable(srcConn,destConn);
-    }
 
     public void mkConnCtxMenu(Connectors.Conn conn, ContextMenuEvent cme) {
         cables.mkConnCtxMenu(conn,cme);
@@ -600,16 +580,10 @@ public class AreaPane {
 
 
 
-    public void manageCables(boolean redraw) {
-        cables.manageCables(redraw);
+    public void redrawCables(boolean shake) {
+        cables.redrawCables(shake);
     }
 
-
-    private ModulePane resolveModule(int mIdx) {
-        ModulePane mp = modulePanes.get(mIdx);
-        if (mp == null) { throw new IllegalStateException("patchCable invalid module index: " + mIdx); }
-        return mp;
-    }
 
 
     private void renderModule(int index, ModuleType type, PatchModule pm, UIModule<UIElement> ui) {
@@ -624,7 +598,7 @@ public class AreaPane {
         moduleSelection.setupModuleMouseHandling(modulePane);
         bridges.getLibExecutor().invoke(() -> modulePane.getBridges().initialize(pm))
                 .forEach(Runnable::run);
-        modulePane.coords().addListener((_,_,_) -> cables.updateCables(modulePane));
+        modulePane.coords().addListener((_,_,_) -> cables.moduleMoved(modulePane));
     }
 
 
@@ -772,7 +746,7 @@ public class AreaPane {
             ModuleType type = pm.getUserModuleData().getType();
             renderModule(pm.getIndex(), type,pm,uiModules.get(type));
         }
-        renderCables(cr.cables());
+        cables.renderCables(cr.cables());
     }
 
     private void doDeleteModule(ModuleDelta md) {

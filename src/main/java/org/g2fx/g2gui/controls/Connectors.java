@@ -82,6 +82,10 @@ public class Connectors {
             return connType()== UIElements.ConnectorType.Audio && bandwidth() == Static;
         }
 
+        public boolean getCurrentUprate() {
+            return (modulePane.uprate().getValue() && bandwidth()==Dynamic) || defaultUprate();
+        }
+
         public boolean newUprate(CableDelta<?> delta) {
             return (getNewModuleUprate(delta) && bandwidth() == Dynamic) || defaultUprate();
         }

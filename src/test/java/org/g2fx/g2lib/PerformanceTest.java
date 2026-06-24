@@ -246,6 +246,9 @@ public class PerformanceTest {
         sender.setStrict(false);
         p.readPatchFromFile(Slot.A, PATCH_UPRATE_4MOD);
         p.getSlot(Slot.A).setVersion(3);
+        p.getSlot(Slot.B).setVersion(2);
+        p.getSlot(Slot.C).setVersion(2);
+        p.getSlot(Slot.D).setVersion(2);
         sender.setStrict(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
             List.of(new CableDelta.CableIndex(4,0,2,0)),
@@ -253,6 +256,14 @@ public class PerformanceTest {
                 Map.of(2,false),
                 Map.of()
         ));
+        p.serviceLoadResponses(true);
+        p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
+                List.of(new CableDelta.CableIndex(1,0,2,1)),
+                false,
+                Map.of(),
+                Map.of()
+        ));
+        p.serviceLoadResponses(true);
         //TODO finish script
         sender.throwErrors();
     }
