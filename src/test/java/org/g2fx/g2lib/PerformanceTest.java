@@ -264,6 +264,12 @@ public class PerformanceTest {
                 Map.of()
         ));
         p.serviceLoadResponses(true);
+        p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
+                List.of(new CableDelta.CableIndex(1,0,2,1)),
+                true,
+                Map.of(),
+                Map.of()
+        ));
         //TODO finish script
         sender.throwErrors();
     }

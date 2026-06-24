@@ -376,28 +376,28 @@ public class PatchArea {
     public void deleteModules(ModuleDelta md) throws Exception {
         md.modules().forEach(mr -> modules.remove(mr.getIndex()));
         md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));
-        ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
-        BitBuffer bb = BitBuffer.fromSlice(buf);
-        forEach(md.cables(), mdc -> {
-            Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
-            Protocol.DeleteCable.FIELDS.values(
-                    Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
-                    Protocol.DeleteCable.Reserved.value(0), // Unknown
-                    Protocol.DeleteCable.Location.value(id.ordinal()),
-                    Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
-                    Protocol.DeleteCable.SrcConnType.value(Connector.PortType.In.ordinal()),
-                    Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
-                    Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
-                    Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
-                    Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
-            ).write(bb);
+        ByteBuffer buf = BitBuffer.writeBitBuffer(bb -> {
+            forEach(md.cables(), mdc -> {
+                Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
+                Protocol.DeleteCable.FIELDS.values(
+                        Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
+                        Protocol.DeleteCable.Reserved.value(0), // Unknown
+                        Protocol.DeleteCable.Location.value(id.ordinal()),
+                        Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
+                        Protocol.DeleteCable.SrcConnType.value(Connector.PortType.In.ordinal()),
+                        Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
+                        Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
+                        Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
+                        Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
+                ).write(bb);
+            });
+            forEach(md.modules(),mr -> {
+                bb.put(8,Codes.O_DELETE_MODULE);
+                bb.put(8,id.ordinal());
+                bb.put(8,mr.getIndex());
+            });
         });
-        forEach(md.modules(),mr -> {
-            bb.put(8,Codes.O_DELETE_MODULE);
-            bb.put(8,id.ordinal());
-            bb.put(8,mr.getIndex());
-        });
-        sender.sendSlotRequest("deleteModules",buf.limit(bb.limit()));
+        sender.sendSlotRequest("deleteModules",buf);
         Patch.sendSlotResourcesRequest(sender,id);
     }
 
@@ -419,37 +419,52 @@ public class PatchArea {
                 if (ci.match(c)) { c.setColor(cc); }
             });
         });
-        d.uprateChanges().forEach((m,u)->
-                getModule(m).getUserModuleData().uprate().set(u));
+        updateModuleUprates(d);
         cables.removeAll(remove);
-        ByteBuffer buf = ByteBuffer.allocate(0xffff);
-        BitBuffer bb = BitBuffer.fromSlice(buf);
-        forEach(remove, c->{
-            Connector.PortType destConnType = c.getDirection() ? Out : In;
-            Protocol.DeleteCable.FIELDS.values(
-                    Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
-                    Protocol.DeleteCable.Reserved.value(1), // for 011 test, shd prob be 0?
-                    Protocol.DeleteCable.Location.value(id.ordinal()),
-                    Protocol.DeleteCable.SrcModule.value(c.getDestModule()),
-                    Protocol.DeleteCable.SrcConnType.value(In.ordinal()),
-                    Protocol.DeleteCable.SrcConn.value(c.getDestConn()),
-                    Protocol.DeleteCable.DestModule.value(c.getSrcModule()),
-                    Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
-                    Protocol.DeleteCable.DestConn.value(c.getSrcConn())
-            ).write(bb);
+        ByteBuffer buf = BitBuffer.writeBitBuffer(bb -> {
+            forEach(remove, c->{
+                Connector.PortType destConnType = c.getDirection() ? Out : In;
+                Protocol.DeleteCable.FIELDS.values(
+                        Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
+                        Protocol.DeleteCable.Reserved.value(1), // for 011 test, shd prob be 0?
+                        Protocol.DeleteCable.Location.value(id.ordinal()),
+                        Protocol.DeleteCable.SrcModule.value(c.getDestModule()),
+                        Protocol.DeleteCable.SrcConnType.value(In.ordinal()),
+                        Protocol.DeleteCable.SrcConn.value(c.getDestConn()),
+                        Protocol.DeleteCable.DestModule.value(c.getSrcModule()),
+                        Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
+                        Protocol.DeleteCable.DestConn.value(c.getSrcConn())
+                ).write(bb);
+            });
+            writeUprates(d, bb);
         });
-        forEach(d.uprateChanges(),(m,u) -> {
+        sender.sendSlotRequest("delete cable",buf);
+    }
+
+    private void writeUprates(CableDelta<CableIndex> d, BitBuffer bb) throws Exception {
+        forEach(d.uprateChanges(),(m, u) -> {
             bb.put(8,Codes.O_SET_UPRATE);
             bb.put(8,id.ordinal());
             bb.put(8,m);
             bb.put(8,u ? 1 : 0);
         });
-        buf.limit(bb.limit());
-        sender.sendSlotRequest("delete cable",buf);
     }
 
-    private void execAddCable(CableDelta<CableIndex> d) {
+    private void updateModuleUprates(CableDelta<CableIndex> d) {
+        d.uprateChanges().forEach((m, u)->
+                getModule(m).getUserModuleData().uprate().set(u));
+    }
 
+    private void execAddCable(CableDelta<CableIndex> d) throws Exception {
+        cables.forEach(c -> d.colorChanges().forEach((ci,cc)-> {
+            if (ci.match(c)) c.setColor(cc);
+        }));
+        updateModuleUprates(d);
+        // add cabls TODO
+        ByteBuffer buf = BitBuffer.writeBitBuffer(bb -> {
+            //add cable TODO
+            writeUprates(d,bb);
+        });
     }
 
 }

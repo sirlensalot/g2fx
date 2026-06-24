@@ -1,6 +1,7 @@
 package org.g2fx.g2gui.ui;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.g2fx.g2gui.controls.CableColor;
 
 import java.util.List;
 
@@ -42,7 +43,16 @@ public class UIElements {
     }
 
     public enum ConnectorType {
-        Audio, Control, Logic
+        Audio(CableColor.Red),
+        Control(CableColor.Blue),
+        Logic(CableColor.Yellow);
+        private final CableColor color;
+        ConnectorType(CableColor color) {
+            this.color = color;
+        }
+        public CableColor getColor() {
+            return color;
+        }
     }
 
     public enum LedType {

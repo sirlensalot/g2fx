@@ -1,6 +1,7 @@
 package org.g2fx.g2gui.bridge;
 
 import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -31,6 +32,11 @@ public abstract class FxProperty<T> {
             super(p,changing,undoMutator);
             this.p = p;
         }
+
+        public static <T> SimpleFxProperty<T> suppressUndos(Property<T> p) {
+            return new SimpleFxProperty<>(p,ReadOnlyBooleanProperty.readOnlyBooleanProperty(new SimpleBooleanProperty(true)));
+        }
+
         @Override public void setValue(T value) { p.setValue(value); }
     }
 

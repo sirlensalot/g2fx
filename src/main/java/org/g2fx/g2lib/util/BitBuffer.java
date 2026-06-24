@@ -1,5 +1,6 @@
 package org.g2fx.g2lib.util;
 
+import org.g2fx.g2lib.device.LibExecutor;
 import org.usb4java.BufferUtils;
 
 import java.nio.ByteBuffer;
@@ -34,7 +35,6 @@ public class BitBuffer {
      */
     public static BitBuffer fromSlice(ByteBuffer buf) {
         int capacity = buf.capacity();
-        int limit = buf.limit();
         int pos = buf.position();
         ByteBuffer slice = buf.slice(0,capacity);
         slice.position(pos);
@@ -42,6 +42,18 @@ public class BitBuffer {
         BitBuffer bb = new BitBuffer(slice);
         bb.bindex = bb.blength;
         return bb;
+    }
+
+    /**
+     * Allocate a fresh ByteBuffer and write to it with BitBuffer, returning buffer
+     * trimmed to the data written.
+     */
+    public static ByteBuffer writeBitBuffer(LibExecutor.ThrowingConsumer<BitBuffer> f) throws Exception {
+        ByteBuffer buf = ByteBuffer.allocate(0xffff);
+        BitBuffer bb = fromSlice(buf);
+        f.accept(bb);
+        buf.limit(bb.limit());
+        return buf;
     }
 
     public int limit() { return buffer.limit(); }

@@ -138,7 +138,8 @@ public class ModulePane implements MoveableModule {
 
         bridges.bridge(color, d -> d.getUserModuleData().color());
 
-        bridges.bridge(uprate, d -> d.getUserModuleData().uprate());
+        //uprate updates lib but undos are managed by Cable add/remove
+        bridges.bridge(d -> d.getUserModuleData().uprate(), FxProperty.SimpleFxProperty.suppressUndos(uprate), Iso.id());
         uprate.addListener((_,_,n) -> uprateChange(n));
 
         bridges.bridge(leds, d -> d.getUserModuleData().leds());

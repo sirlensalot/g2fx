@@ -57,23 +57,15 @@ public class Connectors {
             return portType != c.portType;
         }
 
-        public CableColor getDefaultColor() {
-            return switch (connType) {
-                case UIElements.ConnectorType.Logic -> Yellow;
-                case UIElements.ConnectorType.Control -> Blue;
-                case UIElements.ConnectorType.Audio ->
-                        bandwidth == Static ? Red : Blue;
-            };
-        }
-
         public CableColor getColor(boolean isModuleUprate) {
-            CableColor def = getDefaultColor();
+            CableColor c = connType.getColor();
             boolean dynamicUprate = isModuleUprate && bandwidth() == Dynamic;
-            return (def == Blue && dynamicUprate) ? Red :
-                    (def == Yellow && dynamicUprate) ? Orange : def;
+            return (c == Blue && dynamicUprate) ? Red :
+                    (c == Yellow && dynamicUprate) ? Orange : c;
         }
 
         public CableColor getColor() { return getColor(modulePane.uprate().getValue()); }
+
         public CableColor getNewColor(CableDelta<?> delta) {
             return getColor(getNewModuleUprate(delta));
         }
@@ -121,7 +113,7 @@ public class Connectors {
                                     Connector.PortType portType,
                                     ModulePane modulePane,
                                     BiConsumer<Conn,ContextMenuEvent> ctxMenuHandler) {
-        var color = getConnColor(ctype);
+        var color = ctype.getColor();
         Shape edge = portType == In ? new Circle(0,0, RADIUS) : new Rectangle(0,0, RADIUS *2, RADIUS *2);
         edge.getStyleClass().add("conn-edge");
 
@@ -137,14 +129,6 @@ public class Connectors {
         pane.setOnContextMenuRequested(e -> ctxMenuHandler.accept(conn,e));
 
         return conn;
-    }
-
-    public static CableColor getConnColor(UIElements.ConnectorType ctype) {
-        return switch (ctype) {
-            case Audio -> Red;
-            case Control -> Blue;
-            case Logic -> Yellow;
-        };
     }
 
     private final List<Conn> conns = new ArrayList<>();
@@ -166,7 +150,7 @@ public class Connectors {
         conn.control().setOnMouseDragged(e -> {
             if (dragOrigin == null) { return; }
             clearCableRun();
-            cr = Cables.mkCableRun(dragOrigin, areaPane.getAreaPane().sceneToLocal(e.getSceneX(),e.getSceneY()), getConnColor(conn.connType));
+            cr = Cables.mkCableRun(dragOrigin, areaPane.getAreaPane().sceneToLocal(e.getSceneX(),e.getSceneY()), conn.getColor());
             areaPane.getAreaPane().getChildren().addAll(cr.getShadow(),cr.getCable());
         });
         conn.control().setOnMouseReleased(e -> {

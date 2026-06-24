@@ -37,7 +37,6 @@ import java.util.logging.Logger;
 import static org.g2fx.g2gui.Commands.mkMenu;
 import static org.g2fx.g2gui.Commands.mkMenuItem;
 import static org.g2fx.g2gui.controls.Connectors.RADIUS;
-import static org.g2fx.g2gui.controls.Connectors.getConnColor;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
 import static org.g2fx.g2lib.util.Util.with;
@@ -161,22 +160,22 @@ public class Cables {
 
 
 
-    public static void redrawRun(Cable c) {
+    private static void redrawRun(Cable c) {
         c.run.reset(mkCableRun(c.start,c.end,c.color));
     }
 
-    public static Cable mkCable(Cable c) {
+    private static Cable mkCable(Cable c) {
         return mkCable(c.srcConn,c.destConn);
     }
 
-    public static Cable mkCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
+    private static Cable mkCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
 
         Point2D start = srcConn.control().localToParent(
                 srcConn.modulePane().getPane().getLayoutX(),srcConn.modulePane().getPane().getLayoutY()).add(6,6);
         Point2D end = destConn.control().localToParent(
                 destConn.modulePane().getPane().getLayoutX(),destConn.modulePane().getPane().getLayoutY()).add(6,6);
 
-        CableColor color = getConnColor(srcConn.connType());
+        CableColor color = srcConn.getColor();
 
         var run = mkCableRun(start, end, color);
 
@@ -353,9 +352,13 @@ public class Cables {
      */
     public Cable addCable(Connectors.Conn srcConn, Connectors.Conn destConn) {
         Cable cable = Cables.mkCable(srcConn, destConn);
+        addCable(cable);
+        return cable;
+    }
+
+    private void addCable(Cable cable) {
         store.add(cable);
         areaPane.getAreaPane().getChildren().addAll(cable.srcJack(), cable.endJack());
-        return cable;
     }
 
     private void doDelete(CableDelta<Cable> d) {
@@ -363,8 +366,12 @@ public class Cables {
             store.remove(c);
             removeCableElements(c);
         });
-        d.uprateChanges().forEach((i,r)->areaPane.getModule(i).uprate().setValue(r));
-        d.colorChanges().forEach((c,v)-> {
+        doDelta(d);
+    }
+
+    private void doDelta(CableDelta<Cable> d) {
+        d.uprateChanges().forEach((i, r)->areaPane.getModule(i).uprate().setValue(r));
+        d.colorChanges().forEach((c, v)-> {
             if (d.cables().contains(c)) { return; }
             store.remove(c);
             store.add(c.changeColor(CableColor.LOOKUP.get(v)));
@@ -373,7 +380,9 @@ public class Cables {
     }
 
     private void doAdd(CableDelta<Cable> d) {
-        log.warning("TODO: doAdd " + d);
+        d.cables().forEach(this::addCable);
+        redrawCables(false);
+        doDelta(d);
     }
 
     /**
@@ -472,9 +481,10 @@ public class Cables {
      * UI cable add
      */
     public void newCable(Connectors.Conn start, Connectors.Conn end) {
-        addCable(start,end);
-        redrawCables(false);
-        //TODO add to backend as redoable action
+        Cable c = mkCable(start,end);
+        CableDelta<Cable> delta = new CableDelta<>(Set.of(c),true);
+        checkUprate(c.destConn,c.srcConn.getCurrentUprate(),delta);
+        cableDelta.setValue(delta);
     }
 
 
