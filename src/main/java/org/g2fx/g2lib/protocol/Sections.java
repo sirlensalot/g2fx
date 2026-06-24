@@ -122,20 +122,17 @@ public enum Sections {
     public static void writeSection(ByteBuffer buf, Sections s, FieldValues fvs) throws Exception {
 
         buf.put((byte) s.type);
-
-        BitBuffer bb = new BitBuffer(0xffff); //TODO need dynamic allocation or reuse
+        int lpos = buf.position();
+        buf.putShort((short) 0);
+        int start = buf.position();
+        BitBuffer bb = new BitBuffer(buf);
 
         s.writeLocation(bb);
 
         fvs.write(bb);
 
-        ByteBuffer bbuf = bb.toBuffer();
-        Util.putShort(buf,bbuf.limit());
-
-        bbuf.rewind();
-        while(bbuf.hasRemaining()) {
-            buf.put(bbuf.get());
-        }
+        buf.position(bb.getBytePosition());
+        buf.putShort(lpos, (short) (bb.getBytePosition()-start));
 
     }
 

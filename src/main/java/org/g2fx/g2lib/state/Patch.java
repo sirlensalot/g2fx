@@ -345,7 +345,7 @@ public class Patch {
 
 
     public ByteBuffer writeFile() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocateDirect(2048);
+        ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
         buf.put(HEADER.rewind());
         int start = buf.position();
         if (version == -1) {
