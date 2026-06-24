@@ -144,13 +144,13 @@ public class Performance {
         buf.put(HEADER.rewind());
         int start = buf.position();
         buf.put(Util.asBytes(0x17,version));
-        BitBuffer bb = BitBuffer.fromSlice(buf);
+        BitBuffer bb = new BitBuffer(buf);
         writeSection(bb,Sections.SPerformanceSettings_11,perfSettings.getFieldValues());
         for (Patch patch : slots.values()) {
             patch.writeMessage(bb, PatchModule.FILE_VARIATIONS);
         }
         writeSection(bb,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
-        buf.position(bb.getBytePosition());
+        buf = bb.getBuffer();
         Util.writeCrc(buf,start);
         return buf;
     }
@@ -177,7 +177,7 @@ public class Performance {
                 0x00, // ??
                 0x00  // ??
         ));
-        BitBuffer bb = BitBuffer.fromSlice(buf);
+        BitBuffer bb = new BitBuffer(buf);
         FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(perfName.get()));
         name.write(bb);
         bb.put(8,0x1a);
@@ -188,8 +188,7 @@ public class Performance {
             patch.writeMessage(bb, PatchModule.MAX_VARIATIONS);
         }
         writeSection(bb, Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
-        buf.limit(bb.getBytePosition());
-        return buf;
+        return bb.toBuffer();
     }
 
     private static void writeSection(BitBuffer bb, Sections s, FieldValues fvs) throws Exception {

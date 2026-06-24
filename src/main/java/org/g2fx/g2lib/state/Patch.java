@@ -312,12 +312,11 @@ public class Patch {
                 0x00, // ??
                 0x00  // ??
         ));
-        BitBuffer bb = BitBuffer.fromSlice(buf);
+        BitBuffer bb = new BitBuffer(buf);
         FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(name().get()));
         name.write(bb);
         writeMessage(bb,PatchModule.MAX_VARIATIONS);
-        buf.limit(bb.getBytePosition());
-        return buf;
+        return bb.toBuffer();
     }
 
     private FieldValues getSectionValues(Sections s, int variationCount) {

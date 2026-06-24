@@ -10,29 +10,16 @@ public class BitBuffer {
     private int bpos;
 
     public BitBuffer(ByteBuffer buffer) {
-        this(buffer,buffer.position());
-    }
-
-    private BitBuffer(ByteBuffer buffer, int position) {
         this.buffer = buffer;
-        bpos = position*8;
+        bpos = buffer.position() * 8;
     }
 
     public BitBuffer(int capacity) {
         this(BufferUtils.allocateByteBuffer(capacity));
     }
 
-    /**
-     * Make a new BitBuffer from a buffer that already has content,
-     * to write from current position.
-     */
-    public static BitBuffer fromSlice(ByteBuffer buf) {
-        int capacity = buf.capacity();
-        int pos = buf.position();
-        ByteBuffer slice = buf.slice(0,capacity);
-        slice.position(pos);
-        BitBuffer bb = new BitBuffer(slice,pos);
-        return bb;
+    public BitBuffer() {
+        this(0xffff);
     }
 
     /**
@@ -40,11 +27,9 @@ public class BitBuffer {
      * trimmed to the data written.
      */
     public static ByteBuffer writeBitBuffer(Util.ThrowingConsumer<BitBuffer> f) throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(0xffff);
-        BitBuffer bb = fromSlice(buf);
+        BitBuffer bb = new BitBuffer();
         f.accept(bb);
-        buf.limit(bb.getBytePosition());
-        return buf;
+        return bb.toBuffer();
     }
 
     public int getBytePosition() {
@@ -147,14 +132,26 @@ public class BitBuffer {
 
     }
 
-    //WRITE
+    /**
+     * Get byffer, trimmed to write position.
+     */
     public ByteBuffer toBuffer() {
-        return buffer.duplicate().limit(getBytePosition()).rewind();
+        return buffer.duplicate().limit(getBytePosition());
     }
 
+    /**
+     * Get buffer positioned at read/write head.
+     */
+    public ByteBuffer getBuffer() {
+        return buffer.duplicate().position(getBytePosition());
+    }
+
+    /**
+     * Get buffer sliced/positioned at byte position.
+     */
     //READ
     public ByteBuffer slice() {
-        int pos = bpos /8;
+        int pos = getBytePosition();
         return buffer.slice(pos,buffer.limit()-pos);
     }
 

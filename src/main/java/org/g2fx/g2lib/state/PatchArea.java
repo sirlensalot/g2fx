@@ -233,8 +233,7 @@ public class PatchArea {
         }
 
         //assemble message
-        ByteBuffer buf = ByteBuffer.allocateDirect(0xffff);
-        BitBuffer bb = BitBuffer.fromSlice(buf);
+        BitBuffer bb = new BitBuffer();
         for (PatchModule pm : pms) {
             UserModuleData umd = pm.getUserModuleData();
             Protocol.ModuleAdd.FIELDS.init().addAll(
@@ -252,7 +251,7 @@ public class PatchArea {
                     Protocol.ModuleAdd.Name.value(pm.name().get())
             ).write(bb);
         }
-        buf.position(bb.getBytePosition());
+        ByteBuffer buf = bb.getBuffer();
         writeSection(buf,id == AreaId.Fx ? Sections.SCableList0_52 : Sections.SCableList1_52,
                 Protocol.CableList.FIELDS.init().addAll(
                         Protocol.CableList.Reserved.value(0),
