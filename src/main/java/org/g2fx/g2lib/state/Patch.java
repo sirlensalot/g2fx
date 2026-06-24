@@ -280,13 +280,13 @@ public class Patch {
     public void writeMessage(BitBuffer bb, int variationCount) throws Exception {
         for (Sections s : Sections.FILE_SECTIONS) {
             bb.put(8,s.type);
-            int lpos = bb.limit();
+            int lpos = bb.getBytePosition();
             bb.put(16,0);
-            int ss = bb.limit();
+            int ss = bb.getBytePosition();
             s.writeLocation(bb);
             FieldValues fvs = getSectionValues(s,variationCount);
             fvs.write(bb);
-            int len = bb.limit() - ss;
+            int len = bb.getBytePosition() - ss;
             bb.writeLength(lpos, len);
             log.info(() -> String.format("writeMessage: %s, length %x",s,len));
             bb.padToByte();
@@ -316,7 +316,7 @@ public class Patch {
         FieldValues name = Protocol.EntryName.FIELDS.values(Protocol.EntryName.Name.value(name().get()));
         name.write(bb);
         writeMessage(bb,PatchModule.MAX_VARIATIONS);
-        buf.limit(bb.limit());
+        buf.limit(bb.getBytePosition());
         return buf;
     }
 
@@ -392,7 +392,7 @@ public class Patch {
      */
     private boolean readSection(BitBuffer bb, Sections s) {
         FieldValues fvs;
-        int startIx = bb.getBitIndex();
+        int startIx = bb.getBitPosition();
         try {
             fvs = s.fields.read(bb);
         } catch (RuntimeException e) {

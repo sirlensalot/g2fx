@@ -7,25 +7,19 @@ import java.nio.ByteOrder;
 
 public class BitBuffer {
     private final ByteBuffer buffer;
-    private int bindex = 0;
-    private int blength;
+    private int bpos;
 
-    /**
-     * Make a new BitBuffer for reading from provided buffer.
-     */
     public BitBuffer(ByteBuffer buffer) {
-        this.buffer = buffer;
-        this.blength = buffer.limit() * 8;
+        this(buffer,buffer.position());
     }
 
-    /**
-     * Make a new BitBuffer/ByteBuffer for writing.
-     * @param capacity byte buffer capacity.
-     */
+    private BitBuffer(ByteBuffer buffer, int position) {
+        this.buffer = buffer;
+        bpos = position*8;
+    }
+
     public BitBuffer(int capacity) {
-        this.buffer = BufferUtils.allocateByteBuffer(capacity);
-        buffer.limit(0);
-        blength = 0;
+        this(BufferUtils.allocateByteBuffer(capacity));
     }
 
     /**
@@ -37,9 +31,7 @@ public class BitBuffer {
         int pos = buf.position();
         ByteBuffer slice = buf.slice(0,capacity);
         slice.position(pos);
-        slice.limit(pos);
-        BitBuffer bb = new BitBuffer(slice);
-        bb.bindex = bb.blength;
+        BitBuffer bb = new BitBuffer(slice,pos);
         return bb;
     }
 
@@ -51,64 +43,61 @@ public class BitBuffer {
         ByteBuffer buf = ByteBuffer.allocate(0xffff);
         BitBuffer bb = fromSlice(buf);
         f.accept(bb);
-        buf.limit(bb.limit());
+        buf.limit(bb.getBytePosition());
         return buf;
     }
 
-    public int limit() { return buffer.limit(); }
-
-    public int getBitLength() { return blength; }
-    public int getBitIndex() { return bindex; }
-
-    public BitBuffer setBitIndex(int index) {
-        if (index >= blength) { throw new IllegalArgumentException("setBitIndex: invalid index: " + index + ", length " + blength); }
-        bindex = index;
-        return this;
+    public int getBytePosition() {
+        return Math.ceilDiv(bpos, 8);
     }
-    public int getBitsRemaining() { return blength - bindex; }
+
+    public int getBitPosition() { return bpos; }
+
+    //READ
+    public int getBitsRemaining() { return getBitLimit() - bpos; }
+
+    public int getBitLimit() { return buffer.limit() * 8; }
 
     public int get() {
         return get(8);
     }
 
     public int peek(int len) {
-        int bi = bindex;
-        int bl = blength;
+        int bi = bpos;
         int r = get(len);
-        bindex = bi;
-        blength = bl;
+        bpos = bi;
         return r;
     }
 
 
     public int get(int len) {
-        if (bindex + len > blength) {
+        if (bpos + len > getBitLimit()) {
             throw new IllegalArgumentException
-                    (String.format("underflow: %d %d %d", len, bindex, blength));
+                    (String.format("underflow: %d %d %d", len, bpos, getBitLimit()));
         }
-        int pos = bindex / 8;
-        int b0 = Util.b2i(buffer.get(pos)); // 00110101
-        int off = bindex % 8;               // 3
-        bindex += len;
+        int pos = bpos / 8;
+        int b0 = Util.b2i(buffer.get(pos));
+        int off = bpos % 8;
+        bpos += len;
 
-        int omask = 0xff >> off;             // 11111111 -> 00011111
-        int r = b0 & omask;              //  00010101
-        int rem0 = 8 - off;         // 5
-        if (len <= rem0) { // len=4
-            return r >> (rem0 - len);  // 00001010
+        int omask = 0xff >> off;
+        int r = b0 & omask;
+        int rem0 = 8 - off;
+        if (len <= rem0) {
+            return r >> (rem0 - len);
         }
-        len -= rem0;    //len=7 => 2, len=15 => 10
+        len -= rem0;
         while (len > 0) {
-            int b1 = Util.b2i(buffer.get(++pos)); // 10011010, 11110000
-            if (len <= 8) { // len=2
-                int rem1 = 8 - len; // 6
-                int b1s = b1 >> rem1; // 00000010, 00000011
-                int rs = r << len; //   01010100,  00 01010110 01101000
-                return rs | b1s;     // 01010110,  00 01010110 01101011
+            int b1 = Util.b2i(buffer.get(++pos));
+            if (len <= 8) {
+                int rem1 = 8 - len;
+                int b1s = b1 >> rem1;
+                int rs = r << len;
+                return rs | b1s;
             }
-            len -= 8; // len=10 => 2
-            int rs = r << 8; // 00010101 00000000
-            r = rs | b1;   // 00010101 10011010
+            len -= 8;
+            int rs = r << 8;
+            r = rs | b1;
         }
         throw new RuntimeException("Loop failure");
     }
@@ -118,61 +107,54 @@ public class BitBuffer {
         if (val >= Math.pow(2, len)) {
             throw new IllegalArgumentException("invalid val for len: " + val + ", " + len);
         }
-        int pos = bindex / 8;
-        int off = bindex % 8; // 3
-        bindex += len;
-        blength += len;
+        int pos = bpos / 8;
+        int off = bpos % 8;
+        bpos += len;
         int b0;
         if (off > 0) {
-            b0 = Util.b2i(buffer.get(pos)); // 10100000
+            b0 = Util.b2i(buffer.get(pos));
         } else {
             b0 = 0;
-            buffer.limit(buffer.limit() + 1);
-            buffer.put((byte) b0);
+            buffer.put(pos,(byte) b0);
         }
-        int end = off + len; // off=3,len=4,val=00001010 => 7; off=0 => 4
+        int end = off + len;
         if (end <= 8) {
-            int rem = 8 - end; // 1; 4
-            int vs = val << rem;  //00010100; 10100000
-            int r = b0 | vs; // 10110100; 10100000
+            int rem = 8 - end;
+            int vs = val << rem;
+            int r = b0 | vs;
             buffer.put(pos,(byte) r);
             return;
         }
-        // off=3,len=7,end=10,val=01101101, r=10111011, v0=00011011
-        // off=3,len=11,end=14,val=00000110 01101101, r=10111001, v0=00011001
-        // off=3,len=15,end=18,val=01011010 11010110, r=10110110, v0=00010110
-        int rem = end - 8; //2; 6; 10
-        int v0 = val >> rem; // 00011011; 00011001; 00010110
-        int r = b0 | v0; // 10111011; 10111001; 10110110
+
+
+
+        int rem = end - 8;
+        int v0 = val >> rem;
+        int r = b0 | v0;
         buffer.put(pos,(byte) r);
         while (rem > 0) {
-            if (rem <= 8) { // len=7,rem=2;len=11,rem=6;len=15,rem=2
-                int v1 = (val << (8-rem)) & 0xff; // 01000000; 01000000; 10000000
-                buffer.limit(buffer.limit()+1);
-                buffer.put((byte) v1);
+            if (rem <= 8) {
+                int v1 = (val << (8-rem)) & 0xff;
+                buffer.put(++pos,(byte) v1);
                 return;
             }
-            // len=15,rem=10,val=01011010 11010110,r=10110101,r=10 110101
-            rem = rem - 8; // 2
-            int r1 = (val >> rem) & 0xff; //10110101
-            buffer.limit(buffer.limit()+1);
-            buffer.put((byte) r1);
+
+            rem = rem - 8;
+            int r1 = (val >> rem) & 0xff;
+            buffer.put(++pos,(byte) r1);
         }
 
 
     }
 
-    public BitBuffer rewind() {
-        return setBitIndex(0);
-    }
-
-
+    //WRITE
     public ByteBuffer toBuffer() {
-        return buffer.duplicate().rewind();
+        return buffer.duplicate().limit(getBytePosition()).rewind();
     }
 
+    //READ
     public ByteBuffer slice() {
-        int pos = bindex/8;
+        int pos = bpos /8;
         return buffer.slice(pos,buffer.limit()-pos);
     }
 
@@ -180,22 +162,18 @@ public class BitBuffer {
      * Adapt {@link Util#sliceAhead(ByteBuffer, int)} sliceAhead} with
      * BitBuffer made from slice.
      */
+    //READ
     public static BitBuffer sliceAhead(ByteBuffer buffer, int length) {
         ByteBuffer slice = Util.sliceAhead(buffer, length);
         BitBuffer bb = new BitBuffer(slice);
         return bb;
     }
 
-    public void trimToByte() {
-        buffer.limit(buffer.limit()-1);
-        bindex = blength = buffer.limit()*8; //TODO this was divide before, but regression did not check.
-    }
-
     /**
-     * for writing, buffer limit is always >= blimit*8.
+     * Move write head to byte boundary.
      */
     public void padToByte() {
-        bindex = blength = buffer.limit()*8;
+        bpos = getBytePosition()*8;
     }
 
     /**
@@ -211,6 +189,7 @@ public class BitBuffer {
     /**
      * {@link #sliceAhead(ByteBuffer, int)} by G2 length short at position.
      */
+    //READ
     public static BitBuffer sliceAheadLength(ByteBuffer buf) {
         return sliceAhead(buf,Util.getShort(buf));
     }

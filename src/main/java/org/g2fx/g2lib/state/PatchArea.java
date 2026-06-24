@@ -252,7 +252,7 @@ public class PatchArea {
                     Protocol.ModuleAdd.Name.value(pm.name().get())
             ).write(bb);
         }
-        buf.position(bb.limit());
+        buf.position(bb.getBytePosition());
         writeSection(buf,id == AreaId.Fx ? Sections.SCableList0_52 : Sections.SCableList1_52,
                 Protocol.CableList.FIELDS.init().addAll(
                         Protocol.CableList.Reserved.value(0),

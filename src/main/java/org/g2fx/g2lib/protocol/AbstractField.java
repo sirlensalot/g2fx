@@ -33,8 +33,8 @@ public abstract class AbstractField implements Field {
 
     @Override
     public void write(FieldValue fv, BitBuffer bb, SzContext ctx) throws Exception {
-        ctx.startField(fv.field(),bb.getBitIndex());
+        ctx.startField(fv.field(),bb.getBitPosition());
         fv.write(bb, ctx);
-        ctx.endField(fv.field(),bb.getBitIndex());
+        ctx.endField(fv.field(),bb.getBitPosition());
     }
 }

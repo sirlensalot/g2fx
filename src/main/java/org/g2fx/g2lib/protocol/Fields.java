@@ -40,11 +40,11 @@ public class Fields {
     }
 
     public FieldValues read(BitBuffer bb, SzContext context) {
-        int fvsStart = bb.getBitIndex();
+        int fvsStart = bb.getBitPosition();
         FieldValues l = init();
         context.push(l);
         fields.forEach(f -> {
-            int fStart = bb.getBitIndex();
+            int fStart = bb.getBitPosition();
             context.startField(f,fStart);
             try {
                 f.read(bb, context);
@@ -53,7 +53,7 @@ public class Fields {
                         "readFailed, field=" + f + ", context=" + context
                         ,e);
             }
-            context.endField(f,bb.getBitIndex());
+            context.endField(f,bb.getBitPosition());
         });
         return context.pop();
     }

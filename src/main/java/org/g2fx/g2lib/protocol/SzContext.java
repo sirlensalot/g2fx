@@ -47,7 +47,7 @@ public class SzContext {
     }
 
     public void addEntry(int value, BitBuffer bb) {
-        records.getLast().addEntry(value,bb.getBitIndex());
+        records.getLast().addEntry(value,bb.getBitPosition());
     }
 
     public void addValue(FieldValue fv) {

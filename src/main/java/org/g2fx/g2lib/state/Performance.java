@@ -150,7 +150,7 @@ public class Performance {
             patch.writeMessage(bb, PatchModule.FILE_VARIATIONS);
         }
         writeSection(bb,Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
-        buf.position(bb.limit());
+        buf.position(bb.getBytePosition());
         Util.writeCrc(buf,start);
         return buf;
     }
@@ -188,17 +188,17 @@ public class Performance {
             patch.writeMessage(bb, PatchModule.MAX_VARIATIONS);
         }
         writeSection(bb, Sections.SGlobalKnobAssignments_5f,globalKnobAssignments.getFieldValues());
-        buf.limit(bb.limit());
+        buf.limit(bb.getBytePosition());
         return buf;
     }
 
     private static void writeSection(BitBuffer bb, Sections s, FieldValues fvs) throws Exception {
         bb.put(8, s.type);
-        int lpos = (short) bb.limit();
+        int lpos = (short) bb.getBytePosition();
         bb.put(16,0); //length holder
-        int ss = bb.limit();
+        int ss = bb.getBytePosition();
         fvs.write(bb);
-        bb.writeLength(lpos, bb.limit()-ss);
+        bb.writeLength(lpos, bb.getBytePosition()-ss);
     }
 
     /**
@@ -208,7 +208,7 @@ public class Performance {
         BitBuffer bb = new BitBuffer(buf.slice());
         int pos = buf.position();
         perfName.set(Protocol.EntryName.Name.stringValue(Protocol.EntryName.FIELDS.read(bb)));
-        pos += bb.getBitIndex()/8;
+        pos += bb.getBitPosition()/8;
         ByteBuffer buf2 = bb.slice();
         readPerformanceSettings(buf2);
         pos += buf2.position();

@@ -974,7 +974,7 @@ class ProtocolTest {
         BitBuffer bb = new BitBuffer(0xfff);
         fvs.write(bb);
         //TODO the following test is garbage, needs to test explicit position as there was a bug. maybe was OK b/c bitbuffers were not reused.
-        assertEquals(0,bb.getBitIndex() % 8); // presumably with other payloads this could be > 4 which is "OK" in data seen thus far.
+        assertEquals(0,bb.getBitPosition() % 8); // presumably with other payloads this could be > 4 which is "OK" in data seen thus far.
     }
 
 

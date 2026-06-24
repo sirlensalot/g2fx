@@ -223,10 +223,10 @@ public class Protocol {
             @Override
             public void write(BitBuffer bb, List<FieldValue> values, SzContext ctx) throws Exception {
                 super.write(bb, values, ctx);
-                int over = bb.getBitIndex() % 8;
+                int over = bb.getBitPosition() % 8;
                 //trim up to 4 bits (see VarMorphParams.Reserved3)
                 if (over > 0 && over < 5) {
-                    bb.trimToByte();
+                    bb.padToByte();
                 }
             }
         };
