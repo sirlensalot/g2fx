@@ -12,10 +12,10 @@ import javafx.stage.Stage;
 import org.g2fx.g2gui.panel.Slots;
 import org.g2fx.g2gui.window.*;
 import org.g2fx.g2lib.device.Devices;
-import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.state.AreaId;
 import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.state.Slot;
+import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.util.*;
@@ -127,7 +127,7 @@ public class Commands {
         }
     }
 
-    private EventHandler<ActionEvent> execute(LibExecutor.ThrowingRunnable r) {
+    private EventHandler<ActionEvent> execute(Util.ThrowingRunnable r) {
         return _ -> devices.execute(r);
     }
 

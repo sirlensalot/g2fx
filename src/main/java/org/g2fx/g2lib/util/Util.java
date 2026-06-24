@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.Streams;
-import org.g2fx.g2lib.device.LibExecutor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,11 +23,28 @@ import java.util.regex.Pattern;
 
 public class Util {
 
-    private static final Logger log = getLogger(Util.class);
+    @FunctionalInterface
+    public
+    interface ThrowingRunnable {
+        void run() throws Exception;
+    }
 
-    public static ObjectMapper mkYamlMapper() {
-        return new ObjectMapper(
-                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+    @FunctionalInterface
+    public
+    interface ThrowingConsumer<T> {
+        void accept(T t) throws Exception;
+    }
+
+    @FunctionalInterface
+    public
+    interface ThrowingBiConsumer<T,U> {
+        void accept(T t,U u) throws Exception;
+    }
+
+    @FunctionalInterface
+    public
+    interface ThrowingFunction<A,R> {
+        R invoke(A a) throws Exception;
     }
 
     @FunctionalInterface
@@ -39,6 +55,18 @@ public class Util {
     @FunctionalInterface
     public interface TriConsumer<A, B, C> {
         void accept(A a, B b, C c);
+    }
+
+    public record UsbPacket(long elapsedMicros, ByteBuffer data) {
+        @Override
+        public String toString() {
+            return elapsedMicros + ": " + dumpBufferString(data);
+        }
+    }
+
+    public static ObjectMapper mkYamlMapper() {
+        return new ObjectMapper(
+                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
     }
 
     public static void configureLogging() {
@@ -56,10 +84,6 @@ public class Util {
                 Arrays.stream(names).map(Object::toString).toList()));
     }
 
-
-    public static void dumpBuffer(ByteBuffer buffer) {
-        log.info(dumpBufferString(buffer));
-    }
 
     public static String dumpBufferString(ByteBuffer buffer1) {
         ByteBuffer buffer = buffer1.slice(0,buffer1.limit());
@@ -151,14 +175,6 @@ public class Util {
         return r;
     }
 
-    public static String asBinary(int i) {
-        StringBuilder b = new StringBuilder(Integer.toBinaryString(i));
-        while (b.length() < 8) {
-            b.insert(0, '0');
-        }
-        return b.toString();
-    }
-
     public static ByteBuffer readFile(String path) throws Exception {
         ByteBuffer buf;
         try (FileInputStream fis = new FileInputStream(path)) {
@@ -168,50 +184,6 @@ public class Util {
         return buf;
     }
 
-
-    public static ByteBuffer shiftLeft(ByteBuffer buffer, int shiftBitCount) {
-        byte[] data = getBytes(buffer);
-        shiftLeft(data, shiftBitCount);
-        return ByteBuffer.wrap(data);
-    }
-
-    public static byte[] getBytes(ByteBuffer buffer) {
-        byte[] data = new byte[buffer.remaining()];
-        buffer.get(data);
-        return data;
-    }
-
-    public static void shiftLeft(byte[] byteArray, int shiftBitCount) {
-        final int shiftMod = shiftBitCount % 8;
-        final byte carryMask = (byte) ((1 << shiftMod) - 1);
-        final int offsetBytes = (shiftBitCount / 8);
-
-        int sourceIndex;
-        for (int i = 0; i < byteArray.length; i++) {
-            sourceIndex = i + offsetBytes;
-            if (sourceIndex >= byteArray.length) {
-                byteArray[i] = 0;
-            } else {
-                byte src = byteArray[sourceIndex];
-                byte dst = (byte) (src << shiftMod);
-                if (sourceIndex + 1 < byteArray.length) {
-                    dst |= (byteArray[sourceIndex + 1] & 0xFF) >>> (8 - shiftMod) & carryMask;
-                }
-                byteArray[i] = dst;
-            }
-        }
-    }
-
-
-    public static void dumpAllShifts(ByteBuffer buf) {
-        buf.rewind();
-        Util.dumpBuffer(buf);
-        for (int i = 1; i < 7; i++) {
-            buf.rewind();
-            Util.dumpBuffer(shiftLeft(buf,i));
-        }
-        buf.rewind();
-    }
 
     /**
      * Make a slice of BUFFER at position of LENGTH, advance BUFFER position
@@ -236,25 +208,12 @@ public class Util {
     }
 
 
-    public static byte expectWarn(ByteBuffer buf, int expected, String filePath, String msg) {
+    public static byte expectWarn(Logger log, ByteBuffer buf, int expected, String filePath, String msg) {
         byte b = buf.get();
         if (b != expected) {
             log.warning(String.format("%s: expected %x, found %x at %s:%d",msg,expected,b,filePath,buf.position()-1));
         }
         return b;
-    }
-
-    public static Map<String,Object> withYamlMap(
-            Consumer<Map<String,Object>> f) {
-        LinkedHashMap<String, Object> m = new LinkedHashMap<>();
-        f.accept(m);
-        return m;
-    }
-    public static List<Object> withYamlList(
-            Consumer<List<Object>> f) {
-        List<Object> m = new ArrayList<>();
-        f.accept(m);
-        return m;
     }
 
     public static int mapRange(int value, int fromMin, int fromMax, int toMin, int toMax) {
@@ -267,8 +226,6 @@ public class Util {
         // Scale value from old range to new range
         return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
     }
-
-    public static <T> T notNull(T t) { assert t != null; return t; }
 
     public static <T> void forEachIndexed(Collection<T> coll, BiConsumer<T,Integer> f) {
         List<Integer> ignored = mapWithIndex(coll,(v,ix) -> { f.accept(v,ix); return 1; });
@@ -296,19 +253,12 @@ public class Util {
         return Integer.parseUnsignedInt(s, 16);
     }
 
-    public record UsbPacket(long elapsedMicros, ByteBuffer data) {
-
-        @Override
-        public String toString() {
-            return elapsedMicros + ": " + dumpBufferString(data);
-        }
-    }
 
     /**
      * pcapng file packet reader.
      * only tested with macos XHC20 (linktype 266), timestamps are epoch micros.
      */
-    public static List<UsbPacket> readPcapNg(ByteBuffer bb) throws Exception {
+    public static List<UsbPacket> readPcapNg(ByteBuffer bb) {
         int boMagic = bb.getInt(8);
         bb.order(boMagic == 0x4d3c2b1a ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
         int shbLen = bb.getInt(4);
@@ -333,7 +283,7 @@ public class Util {
             long elapsed = ts - now;
             now = ts;
             int capLen = bb.getInt();
-            int orgLen = bb.getInt();
+            bb.getInt(); //orgLen
             ByteBuffer pbb = bb.slice(bb.position(), capLen);
             bbs.add(new UsbPacket(elapsed,pbb));
             bb.position(pos + epbLen);
@@ -354,13 +304,13 @@ public class Util {
 
     public static <T> T with(T t,Consumer<T> f) { f.accept(t); return t; }
 
-    public static <T> void forEach(Collection<T> coll, LibExecutor.ThrowingConsumer<T> f) throws Exception {
+    public static <T> void forEach(Collection<T> coll, ThrowingConsumer<T> f) throws Exception {
         for (T t : coll) {
             f.accept(t);
         }
     }
 
-    public static <K,V> void forEach(Map<K,V> map, LibExecutor.ThrowingBiConsumer<K,V> f) throws Exception {
+    public static <K,V> void forEach(Map<K,V> map, ThrowingBiConsumer<K,V> f) throws Exception {
         for (Map.Entry<K, V> e : map.entrySet()) {
             f.accept(e.getKey(),e.getValue());
         }

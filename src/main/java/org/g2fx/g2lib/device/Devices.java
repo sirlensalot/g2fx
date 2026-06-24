@@ -321,7 +321,7 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Pe
         return Path.mkPath(currentDevice,currentPerf);
     }
 
-    public <T>T withCurrentPerf(ThrowingFunction<Performance, T> f) throws Exception {
+    public <T>T withCurrentPerf(Util.ThrowingFunction<Performance, T> f) throws Exception {
         if (currentPerf == null) { throw new IllegalStateException("Current device/perf not initialized"); }
         return f.invoke(currentPerf);
     }
@@ -357,12 +357,12 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Pe
     }
 
     @Override
-    public <V> V invokeWithCurrent(ThrowingFunction<Performance, V> f) {
+    public <V> V invokeWithCurrent(Util.ThrowingFunction<Performance, V> f) {
         return invoke(() -> withCurrentPerf(f));
     }
 
     @Override
-    public void runWithCurrent(ThrowingConsumer<Performance> f) {
+    public void runWithCurrent(Util.ThrowingConsumer<Performance> f) {
         execute(() -> {
             if (currentPerf == null) {
                 throw new IllegalStateException("Current device/perf not initialized");
@@ -371,13 +371,13 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Pe
         });
     }
 
-    public void runWithCurrentDevice(ThrowingConsumer<Device> f) {
+    public void runWithCurrentDevice(Util.ThrowingConsumer<Device> f) {
         execute(() -> f.accept(currentDevice));
     }
 
 
     @Override
-    public void execute(ThrowingRunnable r) {
+    public void execute(Util.ThrowingRunnable r) {
         executorService.execute(() -> {
             try {
                 r.run();
@@ -425,13 +425,13 @@ public class Devices implements UsbService.UsbConnectionListener, LibExecutor<Pe
             @Override public <V> V invoke(Callable<V> c) {
                 return Devices.this.invoke(c);
             }
-            @Override public <V> V invokeWithCurrent(ThrowingFunction<Device, V> f) {
+            @Override public <V> V invokeWithCurrent(Util.ThrowingFunction<Device, V> f) {
                 return Devices.this.invoke(() -> f.invoke(currentDevice));
             }
-            @Override public void runWithCurrent(ThrowingConsumer<Device> f) {
+            @Override public void runWithCurrent(Util.ThrowingConsumer<Device> f) {
                 Devices.this.execute(() -> f.accept(currentDevice));
             }
-            @Override public void execute(ThrowingRunnable r) {
+            @Override public void execute(Util.ThrowingRunnable r) {
                 Devices.this.execute(r);
             }
         };

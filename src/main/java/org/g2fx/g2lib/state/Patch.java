@@ -11,11 +11,11 @@ import org.g2fx.g2lib.util.BitBuffer;
 import org.g2fx.g2lib.util.CRC16;
 import org.g2fx.g2lib.util.Util;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.device.Device.dispatchSuccess;
@@ -142,8 +142,8 @@ public class Patch {
                     log.info(()->"readPatchDescription: just 0x21 message read");
                     return;
                 }
-                Util.expectWarn(buf,0x2d,"Message","USB extra 1");
-                Util.expectWarn(buf,0x00,"Message","USB extra 2");
+                Util.expectWarn(log, buf,0x2d,"Message","USB extra 1");
+                Util.expectWarn(log, buf,0x00,"Message","USB extra 2");
             }
         }
         updateVisuals();
@@ -183,7 +183,7 @@ public class Patch {
 
     // test
     public void readMessageHeader(ByteBuffer buf) {
-        Util.expectWarn(buf,0x01,"Message","Cmd");
+        Util.expectWarn(log, buf,0x01,"Message","Cmd");
         int slot = buf.get();
         if (!this.slot.testSlotId(slot)) {
             throw new IllegalArgumentException(String.format("Slot mismatch: %s, %d",this.slot,slot));
@@ -205,8 +205,8 @@ public class Patch {
         ByteBuffer slice = fileBuffer.slice();
         int crc = CRC16.crc16(slice,0,slice.limit()-2);
 
-        Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
         Patch patch = new Patch(slot, sender);
+        Util.expectWarn(patch.log, fileBuffer,0x17,filePath,"header terminator");
         patch.setVersion(fileBuffer.get());
 
         patch.readFileSections(fileBuffer);
@@ -396,10 +396,7 @@ public class Patch {
         try {
             fvs = s.fields.read(bb);
         } catch (RuntimeException e) {
-            File file = new File(String.format("data/error_%s.msg", s.name()));
-            log.severe(String.format("Error reading section %s, dumping buffer to %s", s,file));
-            ByteBuffer data = bb.setBitIndex(startIx).shiftedSlice();
-            try { Util.writeBuffer(data,file); } catch (Exception ignored) {}
+            log.log(Level.SEVERE,String.format("Error reading section %s",s),e);
             throw e;
         }
         updateSection(s, new Sections.Section(s, fvs));
@@ -437,7 +434,7 @@ public class Patch {
     public void readPatchLoadDataMsg(UsbMessage msg) {
         ByteBuffer buf = msg.getBufferx();
         readMessageHeader(buf);
-        Util.expectWarn(buf,Sections.SPatchLoadData_72.type,"msg","PatchLoad");
+        Util.expectWarn(log, buf,Sections.SPatchLoadData_72.type,"msg","PatchLoad");
         readPatchLoadData(buf);
     }
 

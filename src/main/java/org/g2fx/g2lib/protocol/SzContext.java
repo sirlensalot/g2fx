@@ -29,6 +29,17 @@ public class SzContext {
             eStart = pos;
             entries.add(new SzEntry(length,value));
         }
+
+        @Override
+        public String toString() {
+            return "SzRecord{" +
+                    "f=" + f +
+                    ", fStart=" + fStart +
+                    ", fEnd=" + fEnd +
+                    ", eStart=" + eStart +
+                    ", entries=" + entries +
+                    '}';
+        }
     }
 
     public void startField(Field f, int fStart) {
@@ -58,6 +69,14 @@ public class SzContext {
 
     public FieldValues pop() {
         return context.removeFirst();
+    }
+
+    @Override
+    public String toString() {
+        return "SzContext{" +
+                "context=" + context +
+                ", records=" + records +
+                '}' + ": " + dumpEntries();
     }
 
     public String dumpEntries() {

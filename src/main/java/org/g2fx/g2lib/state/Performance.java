@@ -13,10 +13,8 @@ import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +23,6 @@ import static org.g2fx.g2lib.device.Device.dispatchSuccess;
 import static org.g2fx.g2lib.protocol.Codes.*;
 import static org.g2fx.g2lib.state.Patch.fileHeader;
 import static org.g2fx.g2lib.state.Patch.verifyFileHeader;
-import static org.g2fx.g2lib.util.Util.withYamlMap;
 
 public class Performance {
 
@@ -71,7 +68,7 @@ public class Performance {
     public static Performance readFromFile(String filePath,UsbSender sender) throws Exception {
         ByteBuffer fileBuffer = verifyFileHeader(filePath, HEADER);
 
-        Util.expectWarn(fileBuffer,0x17,filePath,"header terminator");
+        Util.expectWarn(log, fileBuffer,0x17,filePath,"header terminator");
         Performance perf = new Performance(sender);
         perf.setVersion(fileBuffer.get());
         perf.readPerformanceSettings(fileBuffer);
@@ -303,43 +300,43 @@ public class Performance {
     }
 
     public void dumpYaml(String fileName) throws Exception {
-
-        var top = withYamlMap(m -> {
-            m.put("slots",slots.values().stream().map(s -> withYamlMap(sm -> {
-                sm.put("modules", withYamlMap(am -> {
-                     Arrays.stream(AreaId.USER_AREAS).sequential().forEach(a -> {
-                         am.put(a.toString(),s.getArea(a).getModules().stream().map(pm -> {
-                             return withYamlMap(mm -> {
-                                 mm.put("index",pm.getIndex());
-                                 mm.put("name",pm.name().get());
-                                 ModuleType type = pm.getUserModuleData().getType();
-                                 mm.put("type", type.name().substring(2));
-                                 if (!type.modes.isEmpty()) {
-                                     mm.put("modes", withYamlMap(modem ->
-                                             Streams.forEachPair(type.modes.stream(), pm.getUserModuleData().getModes().stream(), (tm, lp) -> {
-                                                 modem.put(tm.name(), lp.get());
-                                             })));
-                                 }
-                                 if (!type.getParams().isEmpty()) {
-                                     mm.put("params", withYamlMap(pmms -> {
-                                         int i = 1;
-                                         for (List<Integer> vs : pm.getAllVarValues()) {
-                                             pmms.put(Long.toString(i++), withYamlMap(paramm ->
-                                                     Streams.forEachPair(type.getParams().stream(), vs.stream(), (tp, v) ->
-                                                             paramm.put(tp.name(), v))));
-                                         }
-                                     }));
-                                 }
-                             });
-                         }).toList());
-                     });
-                }));
-            })).toList());
-        });
+        var top = withYamlMap(m ->
+            m.put("slots",slots.values().stream().map(s ->
+                withYamlMap(sm -> sm.put("modules", withYamlMap(am ->
+                    Arrays.stream(AreaId.USER_AREAS).sequential().forEach(a ->
+                        am.put(a.toString(),s.getArea(a).getModules().stream().map(pm -> withYamlMap(mm -> {
+                            mm.put("index",pm.getIndex());
+                            mm.put("name",pm.name().get());
+                            ModuleType type = pm.getUserModuleData().getType();
+                            mm.put("type", type.name().substring(2));
+                            if (!type.modes.isEmpty()) {
+                                mm.put("modes", withYamlMap(modem ->
+                                        Streams.forEachPair(type.modes.stream(), pm.getUserModuleData().getModes().stream(), (tm, lp) ->
+                                                modem.put(tm.name(), lp.get()))));
+                            }
+                            if (!type.getParams().isEmpty()) {
+                                mm.put("params", withYamlMap(pmms -> {
+                                    int i = 1;
+                                    for (List<Integer> vs : pm.getAllVarValues()) {
+                                        pmms.put(Long.toString(i++), withYamlMap(paramm ->
+                                                Streams.forEachPair(type.getParams().stream(), vs.stream(), (tp, v) ->
+                                                        paramm.put(tp.name(), v))));
+                                    }
+                                }));
+                            }
+            })).toList())))))).toList())
+        );
         ObjectMapper mapper = Util.mkYamlMapper();
         mapper.writeValue(
                 new File(fileName),
                 top);
+    }
+
+    public static Map<String,Object> withYamlMap(
+            Consumer<Map<String,Object>> f) {
+        LinkedHashMap<String, Object> m = new LinkedHashMap<>();
+        f.accept(m);
+        return m;
     }
 
     public void initialize() throws Exception {
