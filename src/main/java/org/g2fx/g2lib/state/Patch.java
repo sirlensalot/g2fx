@@ -583,12 +583,8 @@ public class Patch {
     }
 
     public void sendSlotResourcesRequests() throws Exception {
-        sendSlotResourcesRequest(slotSender, AreaId.Voice);
-        sendSlotResourcesRequest(slotSender, AreaId.Fx);
-    }
-
-    public static void sendSlotResourcesRequest(UsbSlotSender sender, AreaId area) throws Exception {
-        sender.sendSlotRequest("patch load " + area, O_RESOURCES_USED, area.ordinal());
+        voiceArea.sendAreaResourcesRequest();
+        fxArea.sendAreaResourcesRequest();
     }
 
 }

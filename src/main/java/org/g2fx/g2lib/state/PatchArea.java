@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import static org.g2fx.g2lib.model.CableDelta.CableIndex;
 import static org.g2fx.g2lib.model.Connector.PortType.In;
 import static org.g2fx.g2lib.model.Connector.PortType.Out;
+import static org.g2fx.g2lib.protocol.Codes.O_RESOURCES_USED;
 import static org.g2fx.g2lib.protocol.Sections.writeSection;
 import static org.g2fx.g2lib.state.PatchModule.MAX_VARIATIONS;
 import static org.g2fx.g2lib.util.Util.forEach;
@@ -375,29 +376,32 @@ public class PatchArea {
     public void deleteModules(ModuleDelta md) throws Exception {
         md.modules().forEach(mr -> modules.remove(mr.getIndex()));
         md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));
-        ByteBuffer buf = BitBuffer.writeBitBuffer(bb -> {
-            forEach(md.cables(), mdc -> {
-                Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
-                Protocol.DeleteCable.FIELDS.values(
-                        Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
-                        Protocol.DeleteCable.Reserved.value(0), // Unknown
-                        Protocol.DeleteCable.Location.value(id.ordinal()),
-                        Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
-                        Protocol.DeleteCable.SrcConnType.value(Connector.PortType.In.ordinal()),
-                        Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
-                        Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
-                        Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
-                        Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
-                ).write(bb);
-            });
-            forEach(md.modules(),mr -> {
-                bb.put(8,Codes.O_DELETE_MODULE);
-                bb.put(8,id.ordinal());
-                bb.put(8,mr.getIndex());
-            });
+        BitBuffer bb = new BitBuffer();
+        forEach(md.cables(), mdc -> {
+            Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
+            Protocol.DeleteCable.FIELDS.values(
+                    Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
+                    Protocol.DeleteCable.Reserved.value(0), // Unknown
+                    Protocol.DeleteCable.Location.value(id.ordinal()),
+                    Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
+                    Protocol.DeleteCable.SrcConnType.value(Connector.PortType.In.ordinal()),
+                    Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
+                    Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
+                    Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
+                    Protocol.DeleteCable.DestConn.value(Protocol.Cable.DestConn.intValue(mdc))
+            ).write(bb);
         });
-        sender.sendSlotRequest("deleteModules",buf);
-        Patch.sendSlotResourcesRequest(sender,id);
+        forEach(md.modules(),mr -> {
+            bb.put(8,Codes.O_DELETE_MODULE);
+            bb.put(8,id.ordinal());
+            bb.put(8,mr.getIndex());
+        });
+        sender.sendSlotRequest("deleteModules",bb.toBuffer());
+        sendAreaResourcesRequest();
+    }
+
+    public void sendAreaResourcesRequest() throws Exception {
+        sender.sendSlotRequest("patch load " + id, O_RESOURCES_USED, id.ordinal());
     }
 
     public void execCableDelta(CableDelta<CableIndex> d) throws Exception {
@@ -420,24 +424,23 @@ public class PatchArea {
         });
         updateModuleUprates(d);
         cables.removeAll(remove);
-        ByteBuffer buf = BitBuffer.writeBitBuffer(bb -> {
-            forEach(remove, c->{
-                Connector.PortType destConnType = c.getDirection() ? Out : In;
-                Protocol.DeleteCable.FIELDS.values(
-                        Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
-                        Protocol.DeleteCable.Reserved.value(1), // for 011 test, shd prob be 0?
-                        Protocol.DeleteCable.Location.value(id.ordinal()),
-                        Protocol.DeleteCable.SrcModule.value(c.getDestModule()),
-                        Protocol.DeleteCable.SrcConnType.value(In.ordinal()),
-                        Protocol.DeleteCable.SrcConn.value(c.getDestConn()),
-                        Protocol.DeleteCable.DestModule.value(c.getSrcModule()),
-                        Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
-                        Protocol.DeleteCable.DestConn.value(c.getSrcConn())
-                ).write(bb);
-            });
-            writeUprates(d, bb);
+        BitBuffer bb = new BitBuffer();
+        forEach(remove, c->{
+            Connector.PortType destConnType = c.getDirection() ? Out : In;
+            Protocol.DeleteCable.FIELDS.values(
+                    Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
+                    Protocol.DeleteCable.Reserved.value(1), // for 011 test, shd prob be 0?
+                    Protocol.DeleteCable.Location.value(id.ordinal()),
+                    Protocol.DeleteCable.SrcModule.value(c.getDestModule()),
+                    Protocol.DeleteCable.SrcConnType.value(In.ordinal()),
+                    Protocol.DeleteCable.SrcConn.value(c.getDestConn()),
+                    Protocol.DeleteCable.DestModule.value(c.getSrcModule()),
+                    Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
+                    Protocol.DeleteCable.DestConn.value(c.getSrcConn())
+            ).write(bb);
         });
-        sender.sendSlotRequest("delete cable",buf);
+        writeUprates(d, bb);
+        sender.sendSlotRequest("delete cable",bb.toBuffer());
     }
 
     private void writeUprates(CableDelta<CableIndex> d, BitBuffer bb) throws Exception {
@@ -458,12 +461,31 @@ public class PatchArea {
         cables.forEach(c -> d.colorChanges().forEach((ci,cc)-> {
             if (ci.match(c)) c.setColor(cc);
         }));
+        cables.addAll(d.cables().stream().map(ci -> new PatchCable(Protocol.Cable.FIELDS.values(
+                Protocol.Cable.Color.value(ci.color()),
+                Protocol.Cable.SrcModule.value(ci.srcModule()),
+                Protocol.Cable.SrcConn.value(ci.srcIndex()),
+                Protocol.Cable.Direction.value(Out.ordinal()),
+                Protocol.Cable.DestModule.value(ci.destModule()),
+                Protocol.Cable.DestConn.value(ci.destIndex())
+        ))).toList());
         updateModuleUprates(d);
-        // add cabls TODO
-        ByteBuffer buf = BitBuffer.writeBitBuffer(bb -> {
+        BitBuffer bb = new BitBuffer();
+        forEach(d.cables(),c-> Protocol.AddCable.FIELDS.values(
+                Protocol.AddCable.AddCable_50.value(0x50),
+                Protocol.AddCable.Reserved.value(1),
+                Protocol.AddCable.Location.value(id.ordinal()),
+                Protocol.AddCable.Color.value(c.color()),
+                Protocol.AddCable.SrcModule.value(c.srcModule()),
+                Protocol.AddCable.SrcConnType.value(c.srcConnKind()),
+                Protocol.AddCable.SrcConn.value(c.srcIndex()),
+                Protocol.AddCable.DestModule.value(c.destModule()),
+                Protocol.AddCable.DestConnType.value(c.destConnKind()),
+                Protocol.AddCable.DestConn.value(c.destIndex())
+                ).write(bb));
             //add cable TODO
-            writeUprates(d,bb);
-        });
+        writeUprates(d,bb);
+        sender.sendSlotRequest("add cable",bb.toBuffer());
     }
 
 }

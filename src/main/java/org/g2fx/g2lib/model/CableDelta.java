@@ -28,7 +28,7 @@ public record CableDelta<C>(Collection<C> cables,
                 with(new HashMap<>(colorChanges), m -> m.replaceAll((k, _) -> colorAccessor.apply(k))));
     }
 
-    public record CableIndex(int srcModule, int srcIndex, int destModule, int destIndex) {
+    public record CableIndex(int srcModule, int srcIndex, int srcConnKind, int destModule, int destIndex, int destConnKind, int color) {
         public boolean match(PatchCable c) {
             return c.getSrcConn() == srcIndex &&
                     c.getSrcModule() == srcModule &&

@@ -251,27 +251,36 @@ public class PerformanceTest {
         p.getSlot(Slot.D).setVersion(2);
         sender.setStrict(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-            List.of(new CableDelta.CableIndex(4,0,2,0)),
+            List.of(new CableDelta.CableIndex(4,0,-1,2,0,-1,-1)),
                 false,
                 Map.of(2,false),
                 Map.of()
         ));
         p.serviceLoadResponses(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-                List.of(new CableDelta.CableIndex(1,0,2,1)),
+                List.of(new CableDelta.CableIndex(1,0,-1,2,1,-1,-1)),
                 false,
                 Map.of(),
                 Map.of()
         ));
+        p.getSlot(Slot.A).getArea(AreaId.Voice).sendAreaResourcesRequest(); //TODO why do only some of these send resource reqs?
         p.serviceLoadResponses(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-                List.of(new CableDelta.CableIndex(1,0,2,1)),
+                List.of(new CableDelta.CableIndex(1,0,1,2,1,0,1)), //TODO check against gui code
                 true,
                 Map.of(),
                 Map.of()
         ));
-        //TODO finish script
-        sender.throwErrors();
+        p.getSlot(Slot.A).getArea(AreaId.Voice).sendAreaResourcesRequest(); //TODO why do only some of these send resource reqs?
+        p.serviceLoadResponses(true);
+        p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
+                List.of(new CableDelta.CableIndex(4,0,1,2,0,0,0)), //TODO check against gui code
+                true,
+                Map.of(2,true),
+                Map.of()
+        ));
+        p.serviceLoadResponses(true);
+        sender.assertScriptDone();
     }
 
 }

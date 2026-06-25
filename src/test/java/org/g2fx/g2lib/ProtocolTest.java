@@ -1139,5 +1139,20 @@ class ProtocolTest {
 
 
     }
+    
+    @Test
+    void addCableMsg() {
+        ByteBuffer buf = Util.readBufferDump(
+                "0000  00 0d 01 28 03 50 19 01 40 02 01 97 fb            ...(.P..@....");
+        BitBuffer bb = new BitBuffer(buf.position(5).slice());
+        FieldValues fvs = AddCable.FIELDS.read(bb);
+        //TODO validate values
+        buf = Util.readBufferDump(
+                "0000  00 11 01 28 03 50 18 04 40 02 00 2a 01 02 01 93   ...(.P..@..*....");
+        bb = new BitBuffer(buf.position(5).slice());
+        fvs = AddCable.FIELDS.read(bb);
+        System.out.println(fvs);
+        //TODO validate values
+    }
 
 }

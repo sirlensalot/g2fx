@@ -22,16 +22,6 @@ public class BitBuffer {
         this(0xffff);
     }
 
-    /**
-     * Allocate a fresh ByteBuffer and write to it with BitBuffer, returning buffer
-     * trimmed to the data written.
-     */
-    public static ByteBuffer writeBitBuffer(Util.ThrowingConsumer<BitBuffer> f) throws Exception {
-        BitBuffer bb = new BitBuffer();
-        f.accept(bb);
-        return bb.toBuffer();
-    }
-
     public int getBytePosition() {
         return Math.ceilDiv(bpos, 8);
     }

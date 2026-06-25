@@ -92,9 +92,11 @@ public class Cables {
             return new Cable(newColor,srcConn,start,destConn,end,run,srcJack,endJack);
         }
 
-        public CableDelta.CableIndex toCableRecord() {
-            return new CableDelta.CableIndex(srcConn.modulePane().getIndex(),srcConn.index(),
-                    destConn.modulePane().getIndex(), destConn().index());
+        public CableDelta.CableIndex toCableIndex() {
+            return new CableDelta.CableIndex(
+                    srcConn.modulePane().getIndex(),srcConn.index(),srcConn.portType().ordinal(),
+                    destConn.modulePane().getIndex(), destConn().index(), destConn.portType().ordinal(),
+                    color.ordinal());
         }
     }
 
@@ -376,7 +378,7 @@ public class Cables {
             store.remove(c);
             store.add(c.changeColor(CableColor.LOOKUP.get(v)));
         });
-        bridges.getLibExecutor().runWithCurrent(a -> a.execCableDelta(d.convert(Cable::toCableRecord)));
+        bridges.getLibExecutor().runWithCurrent(a -> a.execCableDelta(d.convert(Cable::toCableIndex)));
     }
 
     private void doAdd(CableDelta<Cable> d) {
