@@ -7,6 +7,7 @@ public class Codes {
     public static final int I_ASSIGNED_VOICES = 0x05;
     public static final int I_CHANGE_SLOT = 0x09;
     public static final int I_ENTRY_LIST = 0x13;
+    public static final int I_ENTRY_UPLOAD_DATA = 0x19;
     public static final int I_RESERVED_1E = 0x1e;
     public static final int I_VERSION_LOAD_PERF = 0x1f;
     public static final int I_PATCH_DESCRIPTION = 0x21;
@@ -60,6 +61,7 @@ public class Codes {
     public static final int O_STORE_ENTRY = 0x0b;
     public static final int O_PERF_SETTINGS = 0x10;
     public static final int O_LIST_NAMES = 0x14;
+    public static final int O_ENTRY_UPLOAD_DATA = 0x17;
     public static final int O_PATCH_NAME = 0x28;
     public static final int O_SET_UPRATE = 0x2a;
     public static final int O_SELECTED_PARAM = 0x2e;

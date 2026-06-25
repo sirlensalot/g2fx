@@ -45,6 +45,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
         if ($7 == "0b") { c = "O_STORE_ENTRY" }
         if ($7 == "10") { c = "O_PERF_SETTINGS" }
         if ($7 == "14") { c = "O_LIST_NAMES" }
+        if ($7 == "17") { c = "O_ENTRY_UPLOAD_DATA" }
         if ($7 == "28") { c = "O_PATCH_NAME" }
         if ($7 == "2a") { c = "O_SET_UPRATE" }
         if ($7 == "2e") { c = "O_SELECTED_PARAM" }
@@ -110,6 +111,7 @@ ty != "03" && ty != "81" && ty != "82" { next }
     if (cmd == "05") { cmd = "I_ASSIGNED_VOICES" }
     if (cmd == "09") { cmd = "I_CHANGE_SLOT" }
     if (cmd == "13") { cmd = "I_ENTRY_LIST" }
+    if (cmd == "19") { cmd = "I_ENTRY_UPLOAD_DATA" }
     if (cmd == "1e") { cmd = "I_RESERVED_1E" }
     if (cmd == "1f") { cmd = "I_VERSION_LOAD_PERF" }
     if (cmd == "21") { cmd = "I_PATCH_DESCRIPTION" }
