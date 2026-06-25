@@ -14,6 +14,7 @@ import org.g2fx.g2lib.util.Util;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -458,17 +459,28 @@ public class PatchArea {
     }
 
     private void execAddCable(CableDelta<CableIndex> d) throws Exception {
-        cables.forEach(c -> d.colorChanges().forEach((ci,cc)-> {
-            if (ci.match(c)) c.setColor(cc);
-        }));
-        cables.addAll(d.cables().stream().map(ci -> new PatchCable(Protocol.Cable.FIELDS.values(
-                Protocol.Cable.Color.value(ci.color()),
-                Protocol.Cable.SrcModule.value(ci.srcModule()),
-                Protocol.Cable.SrcConn.value(ci.srcIndex()),
-                Protocol.Cable.Direction.value(Out.ordinal()),
-                Protocol.Cable.DestModule.value(ci.destModule()),
-                Protocol.Cable.DestConn.value(ci.destIndex())
-        ))).toList());
+        Set<Integer> modulesWithoutCables = new HashSet<>(modules.keySet());
+        cables.forEach(c -> {
+            modulesWithoutCables.remove(c.getSrcModule());
+            modulesWithoutCables.remove(c.getDestModule());
+            d.colorChanges().forEach((ci,cc)-> {
+                if (ci.match(c)) c.setColor(cc);
+            });
+        });
+        AtomicReference<Boolean> requestLoad = new AtomicReference<>(false);
+        cables.addAll(d.cables().stream().map(ci -> {
+            requestLoad.set(requestLoad.get() ||
+                    modulesWithoutCables.contains(ci.srcModule()) ||
+                    modulesWithoutCables.contains(ci.destModule()));
+            return new PatchCable(Protocol.Cable.FIELDS.values(
+                    Protocol.Cable.Color.value(ci.color()),
+                    Protocol.Cable.SrcModule.value(ci.srcModule()),
+                    Protocol.Cable.SrcConn.value(ci.srcIndex()),
+                    Protocol.Cable.Direction.value(Out.ordinal()),
+                    Protocol.Cable.DestModule.value(ci.destModule()),
+                    Protocol.Cable.DestConn.value(ci.destIndex())
+            ));
+        }).toList());
         updateModuleUprates(d);
         BitBuffer bb = new BitBuffer();
         forEach(d.cables(),c-> Protocol.AddCable.FIELDS.values(
@@ -486,6 +498,9 @@ public class PatchArea {
             //add cable TODO
         writeUprates(d,bb);
         sender.sendSlotRequest("add cable",bb.toBuffer());
+        if (requestLoad.get()) {
+            sendAreaResourcesRequest();
+        }
     }
 
 }

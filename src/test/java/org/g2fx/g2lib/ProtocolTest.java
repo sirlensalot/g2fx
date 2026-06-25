@@ -1074,13 +1074,17 @@ class ProtocolTest {
         assertFieldEquals(fvs1,1,DeleteCable.DestConnType);
         assertFieldEquals(fvs1,0,DeleteCable.DestConn);
 
-        buf = bb.slice();
-        assertEquals(Codes.O_SET_UPRATE,buf.get(),"0x51 set uprate");
-        assertEquals(AreaId.Voice.ordinal(),buf.get(),"location");
-        assertEquals(2,buf.get(),"module idx");
-        assertEquals(0,buf.get(),"downrate");
+        validateUprateMsg(bb.slice(), AreaId.Voice, 2, 0);
 
     }
+
+    private static void validateUprateMsg(ByteBuffer buf, AreaId area, int module, int uprate) {
+        assertEquals(Codes.O_SET_UPRATE, buf.get(),"0x51 set uprate");
+        assertEquals(area.ordinal(), buf.get(),"location");
+        assertEquals(module, buf.get(),"module idx");
+        assertEquals(uprate, buf.get(),"uprate");
+    }
+
     @Test
     void delModuleMessage() throws Exception {
         ByteBuffer buf = Util.readBufferDump(
@@ -1120,39 +1124,51 @@ class ProtocolTest {
         assertFieldEquals(fvs3,0,DeleteCable.DestConn);
 
         buf = bb.slice();
-        // just documenting message here:
-        assertEquals(0x32,buf.get(),"del module code");
-        assertEquals(1,buf.get(),"del loc");
-        assertEquals(8,buf.get(),"del module idx");
-
-        assertEquals(0x32,buf.get(),"del module code");
-        assertEquals(1,buf.get(),"del loc");
-        assertEquals(7,buf.get(),"del module idx");
-
-        assertEquals(0x32,buf.get(),"del module code");
-        assertEquals(1,buf.get(),"del loc");
-        assertEquals(6,buf.get(),"del module idx");
-
-        assertEquals(0x32,buf.get(),"del module code");
-        assertEquals(1,buf.get(),"del loc");
-        assertEquals(5,buf.get(),"del module idx");
+        validateModuleDeleteMsg(buf, AreaId.Voice, 8);
+        validateModuleDeleteMsg(buf, AreaId.Voice, 7);
+        validateModuleDeleteMsg(buf, AreaId.Voice, 6);
+        validateModuleDeleteMsg(buf, AreaId.Voice, 5);
 
 
     }
-    
+
+    private static void validateModuleDeleteMsg(ByteBuffer buf, AreaId area, int module) {
+        assertEquals(0x32, buf.get(),"del module code");
+        assertEquals(area.ordinal(), buf.get(),"del loc");
+        assertEquals(module, buf.get(),"del module idx");
+    }
+
     @Test
     void addCableMsg() {
         ByteBuffer buf = Util.readBufferDump(
                 "0000  00 0d 01 28 03 50 19 01 40 02 01 97 fb            ...(.P..@....");
         BitBuffer bb = new BitBuffer(buf.position(5).slice());
         FieldValues fvs = AddCable.FIELDS.read(bb);
-        //TODO validate values
+        assertFieldEquals(fvs,0x50,AddCable.AddCable_50);
+        assertFieldEquals(fvs,1,AddCable.Reserved);
+        assertFieldEquals(fvs,1,AddCable.Location);
+        assertFieldEquals(fvs,1,AddCable.Color);
+        assertFieldEquals(fvs,1,AddCable.SrcModule);
+        assertFieldEquals(fvs,1,AddCable.SrcConnType);
+        assertFieldEquals(fvs,0,AddCable.SrcConn);
+        assertFieldEquals(fvs,2,AddCable.DestModule);
+        assertFieldEquals(fvs,0,AddCable.DestConnType);
+        assertFieldEquals(fvs,1,AddCable.DestConn);
         buf = Util.readBufferDump(
                 "0000  00 11 01 28 03 50 18 04 40 02 00 2a 01 02 01 93   ...(.P..@..*....");
         bb = new BitBuffer(buf.position(5).slice());
         fvs = AddCable.FIELDS.read(bb);
-        System.out.println(fvs);
-        //TODO validate values
+        assertFieldEquals(fvs,0x50,AddCable.AddCable_50);
+        assertFieldEquals(fvs,1,AddCable.Reserved);
+        assertFieldEquals(fvs,1,AddCable.Location);
+        assertFieldEquals(fvs,0,AddCable.Color);
+        assertFieldEquals(fvs,4,AddCable.SrcModule);
+        assertFieldEquals(fvs,1,AddCable.SrcConnType);
+        assertFieldEquals(fvs,0,AddCable.SrcConn);
+        assertFieldEquals(fvs,2,AddCable.DestModule);
+        assertFieldEquals(fvs,0,AddCable.DestConnType);
+        assertFieldEquals(fvs,0,AddCable.DestConn);
+        validateUprateMsg(bb.getBuffer(),AreaId.Voice,2,1);
     }
 
 }
