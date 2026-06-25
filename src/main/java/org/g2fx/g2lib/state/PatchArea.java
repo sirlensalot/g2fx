@@ -19,8 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.g2fx.g2lib.model.CableDelta.CableIndex;
-import static org.g2fx.g2lib.model.Connector.PortType.In;
-import static org.g2fx.g2lib.model.Connector.PortType.Out;
+import static org.g2fx.g2lib.model.Connector.ConnDir.In;
+import static org.g2fx.g2lib.model.Connector.ConnDir.Out;
 import static org.g2fx.g2lib.protocol.Codes.O_RESOURCES_USED;
 import static org.g2fx.g2lib.protocol.Sections.writeSection;
 import static org.g2fx.g2lib.state.PatchModule.MAX_VARIATIONS;
@@ -379,13 +379,13 @@ public class PatchArea {
         md.cables().forEach(mdc -> cables.removeIf(c -> mdc.equals(c.getFieldValues())));
         BitBuffer bb = new BitBuffer();
         forEach(md.cables(), mdc -> {
-            Connector.PortType destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
+            Connector.ConnDir destConnType = Protocol.Cable.Direction.booleanIntValue(mdc) ? Out : In;
             Protocol.DeleteCable.FIELDS.values(
                     Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
                     Protocol.DeleteCable.Reserved.value(0), // Unknown
                     Protocol.DeleteCable.Location.value(id.ordinal()),
                     Protocol.DeleteCable.SrcModule.value(Protocol.Cable.SrcModule.intValue(mdc)),
-                    Protocol.DeleteCable.SrcConnType.value(Connector.PortType.In.ordinal()),
+                    Protocol.DeleteCable.SrcConnType.value(Connector.ConnDir.In.ordinal()),
                     Protocol.DeleteCable.SrcConn.value(Protocol.Cable.SrcConn.intValue(mdc)),
                     Protocol.DeleteCable.DestModule.value(Protocol.Cable.DestModule.intValue(mdc)),
                     Protocol.DeleteCable.DestConnType.value(destConnType.ordinal()),
@@ -427,7 +427,7 @@ public class PatchArea {
         cables.removeAll(remove);
         BitBuffer bb = new BitBuffer();
         forEach(remove, c->{
-            Connector.PortType destConnType = c.getDirection() ? Out : In;
+            Connector.ConnDir destConnType = c.getDirection() ? Out : In;
             Protocol.DeleteCable.FIELDS.values(
                     Protocol.DeleteCable.DeleteCable_51.value(Codes.O_DELETE_CABLE),
                     Protocol.DeleteCable.Reserved.value(1), // for 011 test, shd prob be 0?

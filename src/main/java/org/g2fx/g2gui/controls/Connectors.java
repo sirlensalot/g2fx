@@ -23,10 +23,10 @@ import java.util.function.BiConsumer;
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.controls.CableColor.*;
 import static org.g2fx.g2gui.panel.ModulePane.layout;
-import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Dynamic;
-import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Static;
-import static org.g2fx.g2lib.model.Connector.PortType.In;
-import static org.g2fx.g2lib.model.Connector.PortType.Out;
+import static org.g2fx.g2lib.model.Connector.Bandwidth.Dynamic;
+import static org.g2fx.g2lib.model.Connector.Bandwidth.Static;
+import static org.g2fx.g2lib.model.Connector.ConnDir.In;
+import static org.g2fx.g2lib.model.Connector.ConnDir.Out;
 
 /**
  * Houses code for drawing Conn connectors, and is AreaPane delegate for
@@ -40,9 +40,9 @@ public class Connectors {
     private Cables.CableRun cr;
 
 
-    public record Conn(Connector.PortType portType,
-                       UIElements.ConnectorType connType,
-                       UIElements.Bandwidth bandwidth,
+    public record Conn(Connector.ConnDir connDir,
+                       Connector.ConnType connType,
+                       Connector.Bandwidth bandwidth,
                        Node control,
                        int index,
                        ModulePane modulePane,
@@ -50,15 +50,15 @@ public class Connectors {
                        Shape edge, Circle center) {
         @Override
         public String toString() {
-            return modulePane + ":" + portType + ":" + index + ":" + connType;
+            return modulePane + ":" + connDir + ":" + index + ":" + connType;
         }
 
         public boolean validate(Conn c) {
-            return portType != c.portType;
+            return connDir != c.connDir;
         }
 
         public CableColor getColor(boolean isModuleUprate) {
-            CableColor c = connType.getColor();
+            CableColor c = getConnTypeColor(connType);
             boolean dynamicUprate = isModuleUprate && bandwidth() == Dynamic;
             return (c == Blue && dynamicUprate) ? Red :
                     (c == Yellow && dynamicUprate) ? Orange : c;
@@ -71,7 +71,7 @@ public class Connectors {
         }
 
         public boolean defaultUprate() {
-            return connType()== UIElements.ConnectorType.Audio && bandwidth() == Static;
+            return connType()== Connector.ConnType.Audio && bandwidth() == Static;
         }
 
         public boolean getCurrentUprate() {
@@ -93,8 +93,8 @@ public class Connectors {
         }
 
         public void setColorForUprate(boolean uprate) {
-            if (connType == UIElements.ConnectorType.Audio || bandwidth != Dynamic) { return; }
-            setColor(connType == UIElements.ConnectorType.Control ? (uprate ? Red : Blue) :
+            if (connType == Connector.ConnType.Audio || bandwidth != Dynamic) { return; }
+            setColor(connType == Connector.ConnType.Control ? (uprate ? Red : Blue) :
                     uprate ? Orange : Yellow);
         }
     }
@@ -107,14 +107,14 @@ public class Connectors {
         return mkConnector(c, c.Type(), c.Bandwidth(), c.CodeRef(), Out, modulePane, ctxMenuHandler);
     }
     private static Conn mkConnector(UIElement c,
-                                    UIElements.ConnectorType ctype,
-                                    UIElements.Bandwidth bandwidth,
+                                    Connector.ConnType ctype,
+                                    Connector.Bandwidth bandwidth,
                                     int ref,
-                                    Connector.PortType portType,
+                                    Connector.ConnDir connDir,
                                     ModulePane modulePane,
                                     BiConsumer<Conn,ContextMenuEvent> ctxMenuHandler) {
-        var color = ctype.getColor();
-        Shape edge = portType == In ? new Circle(0,0, RADIUS) : new Rectangle(0,0, RADIUS *2, RADIUS *2);
+        var color = getConnTypeColor(ctype);
+        Shape edge = connDir == In ? new Circle(0,0, RADIUS) : new Rectangle(0,0, RADIUS *2, RADIUS *2);
         edge.getStyleClass().add("conn-edge");
 
         Circle center = new Circle(-1,-1, HOLE_RADIUS);
@@ -124,11 +124,19 @@ public class Connectors {
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
-        Conn conn = new Conn(portType, ctype, bandwidth, pane, ref, modulePane, ctxMenuHandler, edge, center);
+        Conn conn = new Conn(connDir, ctype, bandwidth, pane, ref, modulePane, ctxMenuHandler, edge, center);
         conn.setColor(color);
         pane.setOnContextMenuRequested(e -> ctxMenuHandler.accept(conn,e));
 
         return conn;
+    }
+
+    public static CableColor getConnTypeColor(Connector.ConnType type) {
+        return switch (type) {
+            case Audio -> CableColor.Red;
+            case Control -> CableColor.Blue;
+            case Logic ->CableColor.Yellow;
+        };
     }
 
     private final List<Conn> conns = new ArrayList<>();

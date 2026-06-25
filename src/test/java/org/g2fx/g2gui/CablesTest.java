@@ -33,15 +33,13 @@ import java.util.function.Function;
 import static org.g2fx.g2gui.controls.CableColor.Red;
 import static org.g2fx.g2gui.controls.Cables.Cable;
 import static org.g2fx.g2gui.controls.Connectors.Conn;
-import static org.g2fx.g2gui.ui.UIElements.Bandwidth;
-import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Dynamic;
-import static org.g2fx.g2gui.ui.UIElements.Bandwidth.Static;
-import static org.g2fx.g2gui.ui.UIElements.ConnectorType;
-import static org.g2fx.g2gui.ui.UIElements.ConnectorType.Audio;
-import static org.g2fx.g2gui.ui.UIElements.ConnectorType.Control;
-import static org.g2fx.g2lib.model.Connector.PortType;
-import static org.g2fx.g2lib.model.Connector.PortType.In;
-import static org.g2fx.g2lib.model.Connector.PortType.Out;
+import static org.g2fx.g2lib.model.Connector.*;
+import static org.g2fx.g2lib.model.Connector.Bandwidth.Dynamic;
+import static org.g2fx.g2lib.model.Connector.Bandwidth.Static;
+import static org.g2fx.g2lib.model.Connector.ConnDir.In;
+import static org.g2fx.g2lib.model.Connector.ConnDir.Out;
+import static org.g2fx.g2lib.model.Connector.ConnType.Audio;
+import static org.g2fx.g2lib.model.Connector.ConnType.Control;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.mock;
@@ -112,12 +110,12 @@ public class CablesTest {
 
     record ConnF(Function<ModulePane, Conn> f) {}
 
-    private ConnF mkConn(int index, PortType portType, ConnectorType connType, Bandwidth bandwidth) {
+    private ConnF mkConn(int index, ConnDir connDir, ConnType connType, Bandwidth bandwidth) {
         javafx.scene.control.Control c = mock(Control.class);
         when(c.localToParent(anyDouble(),anyDouble())).thenReturn(new Point2D(20,20));
         Path edge = mock(Path.class);
         Circle center = mock(Circle.class);
-        return new ConnF(m -> new Conn(portType,connType,bandwidth,c,index,m,CTX_MENU_HDLR,edge,center));
+        return new ConnF(m -> new Conn(connDir,connType,bandwidth,c,index,m,CTX_MENU_HDLR,edge,center));
     }
 
     private ModulePane mockModule(int index, boolean uprate, ConnF... cfs) {
@@ -129,8 +127,8 @@ public class CablesTest {
         when(m0.uprate()).thenReturn(m0Uprate);
         when(m0.getIndex()).thenReturn(index);
         List<Conn> conns = Arrays.stream(cfs).sequential().map(cf -> cf.f.apply(m0)).toList();
-        List<Conn> ins = conns.stream().filter(c -> c.portType() == In).toList();
-        List<Conn> outs = conns.stream().filter(c -> c.portType() == Out).toList();
+        List<Conn> ins = conns.stream().filter(c -> c.connDir() == In).toList();
+        List<Conn> outs = conns.stream().filter(c -> c.connDir() == Out).toList();
         when(m0.getConns(In)).thenReturn(ins);
         when(m0.getConns(Out)).thenReturn(outs);
         return m0;

@@ -1,7 +1,7 @@
 package org.g2fx.g2gui.ui;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.g2fx.g2gui.controls.CableColor;
+import org.g2fx.g2lib.model.Connector;
 
 import java.util.List;
 
@@ -36,23 +36,6 @@ public class UIElements {
 
     public enum SymbolType {
         Amplifier,Box,Trig1,Trig2;
-    }
-
-    public enum Bandwidth {
-        Dynamic, Static;
-    }
-
-    public enum ConnectorType {
-        Audio(CableColor.Red),
-        Control(CableColor.Blue),
-        Logic(CableColor.Yellow);
-        private final CableColor color;
-        ConnectorType(CableColor color) {
-            this.color = color;
-        }
-        public CableColor getColor() {
-            return color;
-        }
     }
 
     public enum LedType {
@@ -190,12 +173,12 @@ public class UIElements {
     }
 
     public record Input (
-        Bandwidth Bandwidth
+        Connector.Bandwidth Bandwidth
       , Integer CodeRef
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , ConnectorType Type
+      , Connector.ConnType Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement {
@@ -264,12 +247,12 @@ public class UIElements {
     }
 
     public record Output (
-        Bandwidth Bandwidth
+        Connector.Bandwidth Bandwidth
       , Integer CodeRef
       , String Control
       , Integer ID
       , Integer InfoFunc
-      , ConnectorType Type
+      , Connector.ConnType Type
       , Integer XPos
       , Integer YPos
     ) implements UIElement {

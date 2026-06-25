@@ -87,9 +87,9 @@ public class ModulePane implements MoveableModule {
     private final Property<Boolean> leds = new SimpleBooleanProperty();
 
 
-    private final Map<Connector.PortType,List<Connectors.Conn>> conns = Map.of(
-            Connector.PortType.In,new ArrayList<>(),
-            Connector.PortType.Out,new ArrayList<>());
+    private final Map<Connector.ConnDir,List<Connectors.Conn>> conns = Map.of(
+            Connector.ConnDir.In,new ArrayList<>(),
+            Connector.ConnDir.Out,new ArrayList<>());
 
     private Graphs graphs;
     private final String ctx;
@@ -166,7 +166,7 @@ public class ModulePane implements MoveableModule {
         return uprate;
     }
 
-    public List<Connectors.Conn> getConns(Connector.PortType type) {
+    public List<Connectors.Conn> getConns(Connector.ConnDir type) {
         return conns.get(type);
     }
 
@@ -227,12 +227,12 @@ public class ModulePane implements MoveableModule {
     }
 
     private Node addConn(Connectors.Conn conn) {
-        conns.get(conn.portType()).add(conn);
+        conns.get(conn.connDir()).add(conn);
         connectors.addConn(conn);
         return conn.control();
     }
 
-    public Connectors.Conn resolveConn(Connector.PortType type, int idx) {
+    public Connectors.Conn resolveConn(Connector.ConnDir type, int idx) {
         var l = conns.get(type);
         if (idx >= l.size()) { throw new IllegalArgumentException("Invalid " + type + " conn index: " + idx + ": " + conns + ", " + this); }
         return l.get(idx);

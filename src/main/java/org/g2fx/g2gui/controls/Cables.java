@@ -20,7 +20,6 @@ import org.g2fx.g2gui.module.ModuleDelta;
 import org.g2fx.g2gui.panel.AreaPane;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
-import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.CableDelta;
 import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.protocol.FieldValues;
@@ -37,8 +36,8 @@ import java.util.logging.Logger;
 import static org.g2fx.g2gui.Commands.mkMenu;
 import static org.g2fx.g2gui.Commands.mkMenuItem;
 import static org.g2fx.g2gui.controls.Connectors.RADIUS;
-import static org.g2fx.g2lib.model.Connector.PortType.In;
-import static org.g2fx.g2lib.model.Connector.PortType.Out;
+import static org.g2fx.g2lib.model.Connector.ConnDir.In;
+import static org.g2fx.g2lib.model.Connector.ConnDir.Out;
 import static org.g2fx.g2lib.util.Util.with;
 
 public class Cables {
@@ -94,8 +93,8 @@ public class Cables {
 
         public CableDelta.CableIndex toCableIndex() {
             return new CableDelta.CableIndex(
-                    srcConn.modulePane().getIndex(),srcConn.index(),srcConn.portType().ordinal(),
-                    destConn.modulePane().getIndex(), destConn().index(), destConn.portType().ordinal(),
+                    srcConn.modulePane().getIndex(),srcConn.index(),srcConn.connDir().ordinal(),
+                    destConn.modulePane().getIndex(), destConn().index(), destConn.connDir().ordinal(),
                     color.ordinal());
         }
     }
@@ -284,7 +283,7 @@ public class Cables {
         for (PatchCable patchCable : patchCables) {
             var src = resolveModule(patchCable.getSrcModule());
             var dest = resolveModule(patchCable.getDestModule());
-            Connector.PortType fromConnType = patchCable.getDirection() ? Out : In;
+            Connector.ConnDir fromConnType = patchCable.getDirection() ? Out : In;
             var srcConn = src.resolveConn(fromConnType == In ? In : Out, patchCable.getSrcConn());
             var destConn = dest.resolveConn(In, patchCable.getDestConn());
             addCable(srcConn, destConn);
@@ -399,7 +398,7 @@ public class Cables {
         if (to.newUprate(delta) == uprate) { return; }
         if (!uprate) {
             // downrate: walk module upstream cables to check if canceled by uprate
-            for (Connectors.Conn in : to.modulePane().getConns(Connector.PortType.In)) {
+            for (Connectors.Conn in : to.modulePane().getConns(Connector.ConnDir.In)) {
                 if (in == to) { continue; }
                 for (Cable cable : store.cablesForConn(in)) {
                     if (cable.srcConn.newUprate(delta)) {
@@ -412,10 +411,10 @@ public class Cables {
         // add uprate
         delta.uprateChanges().put(to.modulePane().getIndex(),uprate);
         // walk module out-cables to compute color changes and downstream uprates
-        for (Connectors.Conn out : to.modulePane().getConns(Connector.PortType.Out)) {
+        for (Connectors.Conn out : to.modulePane().getConns(Connector.ConnDir.Out)) {
             for (Cable cable : store.cablesForConn(out)) {
                 CableColor newColor = out.getNewColor(delta);
-                if (cable.destConn().bandwidth() == UIElements.Bandwidth.Dynamic &&
+                if (cable.destConn().bandwidth() == Connector.Bandwidth.Dynamic &&
                         cable.destConn().newUprate(delta) != cable.srcConn().newUprate(delta)) {
                     delta.colorChanges().put(cable, newColor.ordinal());
                     if (cable.destConn.modulePane() != to.modulePane()) {
