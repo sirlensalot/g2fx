@@ -93,8 +93,8 @@ public class Cables {
 
         public CableDelta.CableIndex toCableIndex() {
             return new CableDelta.CableIndex(
-                    srcConn.modulePane().getIndex(),srcConn.index(),srcConn.connDir().ordinal(),
-                    destConn.modulePane().getIndex(), destConn().index(), destConn.connDir().ordinal(),
+                    srcConn.modulePane().getIndex(),srcConn.connector(),
+                    destConn.modulePane().getIndex(), destConn.connector(),
                     color.ordinal());
         }
     }
@@ -414,7 +414,7 @@ public class Cables {
         for (Connectors.Conn out : to.modulePane().getConns(Connector.ConnDir.Out)) {
             for (Cable cable : store.cablesForConn(out)) {
                 CableColor newColor = out.getNewColor(delta);
-                if (cable.destConn().bandwidth() == Connector.Bandwidth.Dynamic &&
+                if (cable.destConn().connector().bandwidth() == Connector.Bandwidth.Dynamic &&
                         cable.destConn().newUprate(delta) != cable.srcConn().newUprate(delta)) {
                     delta.colorChanges().put(cable, newColor.ordinal());
                     if (cable.destConn.modulePane() != to.modulePane()) {

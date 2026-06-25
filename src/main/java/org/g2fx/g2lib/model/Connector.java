@@ -1,12 +1,16 @@
 package org.g2fx.g2lib.model;
 
-public record Connector(String name, ConnDir dir, ConnType type, Bandwidth bandwidth) {
+public record Connector(String name, ConnDir dir, ConnType type, Bandwidth bandwidth, int index) {
 
     public static Connector out(String name, ConnTypeBandwidth color) {
-        return new Connector(name, ConnDir.Out,color.type,color.bandwidth);
+        return new Connector(name, ConnDir.Out,color.type,color.bandwidth,-1);
     }
     public static Connector in(String name, ConnTypeBandwidth color) {
-        return new Connector(name, ConnDir.In,color.type,color.bandwidth);
+        return new Connector(name, ConnDir.In,color.type,color.bandwidth,-1);
+    }
+
+    public Connector indexed(int index) {
+        return new Connector(name,dir,type,bandwidth,index);
     }
 
     public enum ConnType {

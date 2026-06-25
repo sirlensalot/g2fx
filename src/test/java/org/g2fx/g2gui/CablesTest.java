@@ -17,6 +17,7 @@ import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.panel.SlotPane;
 import org.g2fx.g2lib.device.LibExecutor;
 import org.g2fx.g2lib.model.CableDelta;
+import org.g2fx.g2lib.model.Connector;
 import org.g2fx.g2lib.state.PatchArea;
 import org.g2fx.g2lib.util.Util;
 import org.junit.jupiter.api.BeforeAll;
@@ -115,7 +116,7 @@ public class CablesTest {
         when(c.localToParent(anyDouble(),anyDouble())).thenReturn(new Point2D(20,20));
         Path edge = mock(Path.class);
         Circle center = mock(Circle.class);
-        return new ConnF(m -> new Conn(connDir,connType,bandwidth,c,index,m,CTX_MENU_HDLR,edge,center));
+        return new ConnF(m -> new Conn(new Connector("",connDir,connType,bandwidth,index),c,m,CTX_MENU_HDLR,edge,center));
     }
 
     private ModulePane mockModule(int index, boolean uprate, ConnF... cfs) {
@@ -127,8 +128,8 @@ public class CablesTest {
         when(m0.uprate()).thenReturn(m0Uprate);
         when(m0.getIndex()).thenReturn(index);
         List<Conn> conns = Arrays.stream(cfs).sequential().map(cf -> cf.f.apply(m0)).toList();
-        List<Conn> ins = conns.stream().filter(c -> c.connDir() == In).toList();
-        List<Conn> outs = conns.stream().filter(c -> c.connDir() == Out).toList();
+        List<Conn> ins = conns.stream().filter(c -> c.connector().dir() == In).toList();
+        List<Conn> outs = conns.stream().filter(c -> c.connector().dir() == Out).toList();
         when(m0.getConns(In)).thenReturn(ins);
         when(m0.getConns(Out)).thenReturn(outs);
         return m0;

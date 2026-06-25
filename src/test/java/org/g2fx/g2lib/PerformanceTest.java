@@ -3,6 +3,7 @@ package org.g2fx.g2lib;
 import org.g2fx.g2gui.CaptureSender;
 import org.g2fx.g2lib.device.Device;
 import org.g2fx.g2lib.model.CableDelta;
+import org.g2fx.g2lib.model.ModuleType;
 import org.g2fx.g2lib.model.NamedParam;
 import org.g2fx.g2lib.protocol.Codes;
 import org.g2fx.g2lib.protocol.Protocol;
@@ -251,36 +252,38 @@ public class PerformanceTest {
         p.getSlot(Slot.D).setVersion(2);
         sender.setStrict(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-            List.of(new CableDelta.CableIndex(4,0,-1,2,0,-1,-1)),
+            List.of(new CableDelta.CableIndex(4,ModuleType.M_OscA.outPorts.get(0),
+                    2,ModuleType.M_LevMult.inPorts.get(0),-1)),
                 false,
                 Map.of(2,false),
                 Map.of()
         ));
         p.serviceLoadResponses(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-                List.of(new CableDelta.CableIndex(1,0,-1,2,1,-1,-1)),
+                List.of(new CableDelta.CableIndex(1,ModuleType.M_LevMult.outPorts.get(0),
+                        2,ModuleType.M_LevMult.inPorts.get(1),-1)),
                 false,
                 Map.of(),
                 Map.of()
         ));
-        p.getSlot(Slot.A).getArea(AreaId.Voice).sendAreaResourcesRequest(); //TODO why do only some of these send resource reqs?
         p.serviceLoadResponses(true);
         p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-                List.of(new CableDelta.CableIndex(1,0,1,2,1,0,1)), //TODO check against gui code
+                List.of(new CableDelta.CableIndex(1,ModuleType.M_LevMult.outPorts.get(0),
+                        2,ModuleType.M_LevMult.inPorts.get(1),1)), //TODO check against gui code
                 true,
                 Map.of(),
                 Map.of()
         ));
-        //p.getSlot(Slot.A).getArea(AreaId.Voice).sendAreaResourcesRequest(); //TODO why do only some of these send resource reqs?
-//        p.serviceLoadResponses(true);
-//        p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
-//                List.of(new CableDelta.CableIndex(4,0,1,2,0,0,0)), //TODO check against gui code
-//                true,
-//                Map.of(2,true),
-//                Map.of()
-//        ));
-//        p.serviceLoadResponses(true);
-//        sender.assertScriptDone();
+        p.serviceLoadResponses(true);
+        p.getSlot(Slot.A).getArea(AreaId.Voice).execCableDelta(new CableDelta<>(
+                List.of(new CableDelta.CableIndex(4,ModuleType.M_OscA.outPorts.get(0),
+                        2,ModuleType.M_LevMult.inPorts.get(0),0)), //TODO check against gui code
+                true,
+                Map.of(2,true),
+                Map.of()
+        ));
+        p.serviceLoadResponses(true);
+        sender.assertScriptDone();
     }
 
 }

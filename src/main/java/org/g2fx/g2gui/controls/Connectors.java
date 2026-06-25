@@ -15,10 +15,12 @@ import org.g2fx.g2gui.ui.UIElement;
 import org.g2fx.g2gui.ui.UIElements;
 import org.g2fx.g2lib.model.CableDelta;
 import org.g2fx.g2lib.model.Connector;
+import org.g2fx.g2lib.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.logging.Logger;
 
 import static org.g2fx.g2gui.FXUtil.withClass;
 import static org.g2fx.g2gui.controls.CableColor.*;
@@ -34,32 +36,33 @@ import static org.g2fx.g2lib.model.Connector.ConnDir.Out;
  */
 public class Connectors {
 
+    public static final Logger log = Util.getLogger(Connectors.class);
+
     public static double RADIUS = 5.5;
     public static double HOLE_RADIUS = RADIUS * .5;
     private Point2D dragOrigin;
     private Cables.CableRun cr;
 
 
-    public record Conn(Connector.ConnDir connDir,
-                       Connector.ConnType connType,
-                       Connector.Bandwidth bandwidth,
+    public record Conn(Connector connector,
                        Node control,
-                       int index,
                        ModulePane modulePane,
                        BiConsumer<Conn, ContextMenuEvent> ctxMenuHandler,
                        Shape edge, Circle center) {
+
+        public int index() { return connector().index(); }
         @Override
         public String toString() {
-            return modulePane + ":" + connDir + ":" + index + ":" + connType;
+            return modulePane + ":" + connector;
         }
 
-        public boolean validate(Conn c) {
-            return connDir != c.connDir;
+        public boolean validateDir(Conn c) {
+            return connector.dir() != c.connector.dir();
         }
 
         public CableColor getColor(boolean isModuleUprate) {
-            CableColor c = getConnTypeColor(connType);
-            boolean dynamicUprate = isModuleUprate && bandwidth() == Dynamic;
+            CableColor c = getConnTypeColor(connector.type());
+            boolean dynamicUprate = isModuleUprate && connector.bandwidth() == Dynamic;
             return (c == Blue && dynamicUprate) ? Red :
                     (c == Yellow && dynamicUprate) ? Orange : c;
         }
@@ -71,15 +74,15 @@ public class Connectors {
         }
 
         public boolean defaultUprate() {
-            return connType()== Connector.ConnType.Audio && bandwidth() == Static;
+            return connector.type()== Connector.ConnType.Audio && connector.bandwidth() == Static;
         }
 
         public boolean getCurrentUprate() {
-            return (modulePane.uprate().getValue() && bandwidth()==Dynamic) || defaultUprate();
+            return (modulePane.uprate().getValue() && connector.bandwidth()==Dynamic) || defaultUprate();
         }
 
         public boolean newUprate(CableDelta<?> delta) {
-            return (getNewModuleUprate(delta) && bandwidth() == Dynamic) || defaultUprate();
+            return (getNewModuleUprate(delta) && connector.bandwidth() == Dynamic) || defaultUprate();
         }
 
         private boolean getNewModuleUprate(CableDelta<?> delta) {
@@ -93,8 +96,8 @@ public class Connectors {
         }
 
         public void setColorForUprate(boolean uprate) {
-            if (connType == Connector.ConnType.Audio || bandwidth != Dynamic) { return; }
-            setColor(connType == Connector.ConnType.Control ? (uprate ? Red : Blue) :
+            if (connector.type() == Connector.ConnType.Audio || connector.bandwidth() != Dynamic) { return; }
+            setColor(connector.type() == Connector.ConnType.Control ? (uprate ? Red : Blue) :
                     uprate ? Orange : Yellow);
         }
     }
@@ -124,7 +127,19 @@ public class Connectors {
         StackPane pane = withClass(new StackPane(edge,center),"conn-pane");
         pane.setAlignment(Pos.CENTER);
         layout(c,pane);
-        Conn conn = new Conn(connDir, ctype, bandwidth, pane, ref, modulePane, ctxMenuHandler, edge, center);
+        Connector connector = (connDir == In ? modulePane.getType().inPorts : modulePane.getType().outPorts).get(ref);
+        if (connector.bandwidth() != bandwidth) {
+            log.warning(String.format(
+                    "Bandwidth data mismatch %s! using lib metadata: %s",
+                    bandwidth,connector));
+            if (connector.type() != ctype) {
+                log.warning(String.format("Type data mismatch %s! using lib metadata: %s", ctype, connector));
+            }
+        } else if (connector.type() != ctype) {
+            //we call "redblue" Control+Dynamic so it defaults to blue, BVerhue called it Audio+Dynamic. No big deal.
+            log.info(String.format("Type data mismatch %s, using lib metadata: %s", ctype, connector));
+        }
+        Conn conn = new Conn(connector, pane, modulePane, ctxMenuHandler, edge, center);
         conn.setColor(color);
         pane.setOnContextMenuRequested(e -> ctxMenuHandler.accept(conn,e));
 
@@ -165,7 +180,7 @@ public class Connectors {
             clearCableRun();
             for (Conn c : conns) {
                 if (c.control().localToScene(c.control().getBoundsInLocal()).contains(e.getSceneX(),e.getSceneY()) &&
-                        conn.validate(c)) {
+                        conn.validateDir(c)) {
                     areaPane.newCable(conn,c);
                 }
             }

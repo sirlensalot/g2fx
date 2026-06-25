@@ -227,7 +227,7 @@ public class ModulePane implements MoveableModule {
     }
 
     private Node addConn(Connectors.Conn conn) {
-        conns.get(conn.connDir()).add(conn);
+        conns.get(conn.connector().dir()).add(conn);
         connectors.addConn(conn);
         return conn.control();
     }

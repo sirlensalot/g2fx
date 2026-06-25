@@ -28,11 +28,11 @@ public record CableDelta<C>(Collection<C> cables,
                 with(new HashMap<>(colorChanges), m -> m.replaceAll((k, _) -> colorAccessor.apply(k))));
     }
 
-    public record CableIndex(int srcModule, int srcIndex, int srcConnKind, int destModule, int destIndex, int destConnKind, int color) {
+    public record CableIndex(int srcModule, Connector srcConn, int destModule, Connector destConn, int color) {
         public boolean match(PatchCable c) {
-            return c.getSrcConn() == srcIndex &&
+            return c.getSrcConn() == srcConn.index() &&
                     c.getSrcModule() == srcModule &&
-                    c.getDestConn() == destIndex &&
+                    c.getDestConn() == destConn.index() &&
                     c.getDestModule() == destModule;
         }
     }

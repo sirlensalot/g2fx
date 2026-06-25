@@ -414,18 +414,40 @@ public class PatchArea {
     }
 
     private void execDeleteCable(CableDelta<CableIndex> d) throws Exception {
+        // collect removes
         List<PatchCable> remove = new ArrayList<>();
+        // hypothesis that dynamic modules going unconnected drives load request seen in regression 11
+        Map<Integer,Long> moduleCableCount = new HashMap<>();
+        // walk cables to search for removes and color changes. deletes are small so quadratic ok ...
         cables.forEach(c -> {
-            d.cables().forEach(ci -> {
-                if (ci.match(c)) { remove.add(c); }
-            });
+            // compute cable-conn count by module
+            moduleCableCount.compute(c.getSrcModule(),(_,cc) -> cc == null ? 1 : cc+1);
+            moduleCableCount.compute(c.getDestModule(),(_,cc) -> cc == null ? 1 : cc+1);
+            // match with remove cables
+            d.cables().forEach(ci -> { if (ci.match(c)) {
+                remove.add(c);
+                //decrement if dynamic
+                if (ci.srcConn().bandwidth()== Connector.Bandwidth.Dynamic) {
+                    moduleCableCount.computeIfPresent(c.getSrcModule(), (_, cc) -> --cc);
+                }
+                if (ci.destConn().bandwidth()== Connector.Bandwidth.Dynamic) {
+                    moduleCableCount.computeIfPresent(c.getDestModule(), (_, cc) -> --cc);
+                }
+            }});
+
             d.colorChanges().forEach((ci,cc)->{
                 if (ci.match(c)) { c.setColor(cc); }
             });
         });
+        // module counts decremented to 0 triggers request load
+        AtomicReference<Boolean> requestLoad = new AtomicReference<>(false);
+        moduleCableCount.values().forEach(cc -> {if (cc==0) requestLoad.set(true);});
+
         updateModuleUprates(d);
+
         cables.removeAll(remove);
         BitBuffer bb = new BitBuffer();
+        // write deletes
         forEach(remove, c->{
             Connector.ConnDir destConnType = c.getDirection() ? Out : In;
             Protocol.DeleteCable.FIELDS.values(
@@ -442,6 +464,9 @@ public class PatchArea {
         });
         writeUprates(d, bb);
         sender.sendSlotRequest("delete cable",bb.toBuffer());
+        if (requestLoad.get()) {
+            sendAreaResourcesRequest();
+        }
     }
 
     private void writeUprates(CableDelta<CableIndex> d, BitBuffer bb) throws Exception {
@@ -459,7 +484,9 @@ public class PatchArea {
     }
 
     private void execAddCable(CableDelta<CableIndex> d) throws Exception {
+        // hypothesis is that dynamic module becoming connected triggers load request per regression 11
         Set<Integer> modulesWithoutCables = new HashSet<>(modules.keySet());
+        // do color changes
         cables.forEach(c -> {
             modulesWithoutCables.remove(c.getSrcModule());
             modulesWithoutCables.remove(c.getDestModule());
@@ -467,18 +494,21 @@ public class PatchArea {
                 if (ci.match(c)) c.setColor(cc);
             });
         });
+
         AtomicReference<Boolean> requestLoad = new AtomicReference<>(false);
         cables.addAll(d.cables().stream().map(ci -> {
+            // look for cable-less module add with dynamic connector
             requestLoad.set(requestLoad.get() ||
-                    modulesWithoutCables.contains(ci.srcModule()) ||
-                    modulesWithoutCables.contains(ci.destModule()));
+                    (modulesWithoutCables.contains(ci.srcModule()) && ci.srcConn().bandwidth()== Connector.Bandwidth.Dynamic) ||
+                    (modulesWithoutCables.contains(ci.destModule()) && ci.destConn().bandwidth()== Connector.Bandwidth.Dynamic));
+            // build add cable
             return new PatchCable(Protocol.Cable.FIELDS.values(
                     Protocol.Cable.Color.value(ci.color()),
                     Protocol.Cable.SrcModule.value(ci.srcModule()),
-                    Protocol.Cable.SrcConn.value(ci.srcIndex()),
+                    Protocol.Cable.SrcConn.value(ci.srcConn().index()),
                     Protocol.Cable.Direction.value(Out.ordinal()),
                     Protocol.Cable.DestModule.value(ci.destModule()),
-                    Protocol.Cable.DestConn.value(ci.destIndex())
+                    Protocol.Cable.DestConn.value(ci.destConn().index())
             ));
         }).toList());
         updateModuleUprates(d);
@@ -489,13 +519,12 @@ public class PatchArea {
                 Protocol.AddCable.Location.value(id.ordinal()),
                 Protocol.AddCable.Color.value(c.color()),
                 Protocol.AddCable.SrcModule.value(c.srcModule()),
-                Protocol.AddCable.SrcConnType.value(c.srcConnKind()),
-                Protocol.AddCable.SrcConn.value(c.srcIndex()),
+                Protocol.AddCable.SrcConnType.value(c.srcConn().dir().ordinal()),
+                Protocol.AddCable.SrcConn.value(c.srcConn().index()),
                 Protocol.AddCable.DestModule.value(c.destModule()),
-                Protocol.AddCable.DestConnType.value(c.destConnKind()),
-                Protocol.AddCable.DestConn.value(c.destIndex())
+                Protocol.AddCable.DestConnType.value(c.destConn().dir().ordinal()),
+                Protocol.AddCable.DestConn.value(c.destConn().index())
                 ).write(bb));
-            //add cable TODO
         writeUprates(d,bb);
         sender.sendSlotRequest("add cable",bb.toBuffer());
         if (requestLoad.get()) {

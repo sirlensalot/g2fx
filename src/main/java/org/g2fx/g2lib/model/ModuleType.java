@@ -11,6 +11,7 @@ import static org.g2fx.g2lib.model.Connector.in;
 import static org.g2fx.g2lib.model.Connector.out;
 import static org.g2fx.g2lib.model.Visual.VisualType;
 import static org.g2fx.g2lib.model.Visual.VisualType.*;
+import static org.g2fx.g2lib.util.Util.mapWithIndex;
 
 public enum ModuleType {
     M_Keyboard
@@ -2486,8 +2487,8 @@ public enum ModuleType {
         this.longName = longName;
         this.modPageIx = modPageIx;
         this.isLed = isLed;
-        this.inPorts = inPorts;
-        this.outPorts = outPorts;
+        this.inPorts = mapWithIndex(inPorts, Connector::indexed).stream().toList();
+        this.outPorts = mapWithIndex(outPorts, Connector::indexed).stream().toList();
         this.params = params;
         this.modes = modes;
         this.shortName = mkShortName(name());
