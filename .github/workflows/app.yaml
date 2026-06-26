@@ -1,0 +1,48 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            platform: mac
+            arch: aarch64
+            javafx_suffix: mac-aarch64
+#          - os: windows-latest
+#            platform: win
+#            arch: x64
+#            javafx_suffix: windows-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 24
+          cache: gradle
+
+      - name: Make gradlew executable
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
+
+      - name: Build macos dist
+        if: runner.os == 'macOS'
+        run: ./package.sh
+
+      - name: Upload macos artifact
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: G2FX-macos-aarch64
+          path: build/app-image/G2FX-macos-aarch64.zip
