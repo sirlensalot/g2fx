@@ -34,14 +34,19 @@ cp build/install/g2fx/lib/libusb4java-1.3.0-darwin-aarch64.jar $libdir
 
 rm -rf build/app-image
 
-version=`./gradlew printVersion -q`
-build="$GITHUB_RUN_NUMBER"
+APP_VERSION=$(./gradlew -q printVersion)
+BUILD_NUMBER=${BUILD_NUMBER:-${GITHUB_RUN_NUMBER:-0}}
+BUILD_NUMBER=$(printf '%04d' "$BUILD_NUMBER")
+ARTIFACT_NAME="G2FX-${APP_VERSION}_${BUILD_NUMBER}-macos-aarch64"
+ENV_FILE=${GITHUB_ENV:-build/github.env}
+echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> "$ENV_FILE"
+
 if [ -z "$build" ]; then build="0000"; fi
 
 jpackage --type app-image \
          --input build/jre/lib \
          --name G2FX \
-         --main-jar g2fx-$version.jar \
+         --main-jar g2fx-$APP_VERSION.jar \
          --main-class org.g2fx.g2gui.G2GuiApplication \
          --runtime-image build/jre \
          --dest build/app-image \
@@ -49,7 +54,7 @@ jpackage --type app-image \
          --verbose
 
 cd build/app-image
-zf="G2FX-macos-aarch64-$version-$build.zip"
+zf="$ARTIFACT_NAME.zip"
 zip -q -r $zf G2FX.app
 
 echo $zf

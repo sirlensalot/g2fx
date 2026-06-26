@@ -44,5 +44,5 @@ jobs:
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: G2FX-macos-aarch64
+          name: ${{ env.ARTIFACT_NAME }}
           path: build/app-image/G2FX*.zip
