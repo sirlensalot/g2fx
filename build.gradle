@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'org.g2fx'
-version = '1.0-SNAPSHOT'
+version = '0.0.1'
 
 repositories {
     mavenCentral()
@@ -80,5 +80,11 @@ configurations.matching { it.name.contains('downloadSources') }.configureEach {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
         attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, OperatingSystemFamily.MACOS))
         attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, 'aarch64'))
+    }
+}
+
+tasks.register('printVersion') {
+    doLast {
+        println project.version
     }
 }
