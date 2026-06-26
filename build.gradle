@@ -88,3 +88,22 @@ tasks.register('printVersion') {
         println project.version
     }
 }
+
+def generatedResourcesDir = layout.buildDirectory.dir("generated-resources")
+
+tasks.register('writeVersionProperties', WriteProperties) {
+    outputFile = generatedResourcesDir.get().file("g2fx.version.properties").asFile
+    encoding = 'UTF-8'
+    property('g2fx.version', project.version)
+    property('g2fx.build', String.format('%04d', (System.getenv('GITHUB_RUN_NUMBER') ?: '0').toInteger()))
+}
+
+sourceSets {
+    main {
+        resources.srcDir(generatedResourcesDir)
+    }
+}
+
+tasks.named('processResources') {
+    dependsOn(tasks.named('writeVersionProperties'))
+}

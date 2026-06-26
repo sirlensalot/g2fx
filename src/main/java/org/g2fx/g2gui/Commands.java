@@ -3,9 +3,11 @@ package org.g2fx.g2gui;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -18,10 +20,13 @@ import org.g2fx.g2lib.state.Slot;
 import org.g2fx.g2lib.util.Util;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import static javafx.scene.input.KeyCombination.SHIFT_DOWN;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
+import static org.g2fx.g2gui.FXUtil.getImageViewResource;
 
 public class Commands {
 
@@ -63,8 +68,29 @@ public class Commands {
 
             Menu toolsMenu = populateToolsMenu(stage);
 
-            menuBar.getMenus().addAll(fileMenu,editMenu,patchMenu,perfMenu,toolsMenu);
+            Menu helpMenu = populateHelpMenu();
 
+            menuBar.getMenus().addAll(fileMenu,editMenu,patchMenu,perfMenu,toolsMenu,helpMenu);
+
+        }
+
+        private Menu populateHelpMenu() {
+            return mkMenu("Help",mkMenuItem("About G2FX",_ -> {
+                                Properties props = new Properties();
+                                try (InputStream in = getClass().getResourceAsStream("/g2fx.version.properties")) {
+                                    if (in != null) {
+                                        props.load(in);
+                                    }
+                                } catch (IOException ignored) {
+                                }
+                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                alert.setTitle("About G2FX");
+                                alert.setHeaderText("G2FX Nord Modular G2 Editor");
+                                alert.setContentText(String.format("Version %s build %s",props.get("g2fx.version"),props.get("g2fx.build")));
+                                ImageView icon = getImageViewResource("icon_128.png");
+                                alert.setGraphic(icon);
+                                alert.showAndWait();
+                }));
         }
 
         private Menu populateFileMenu(Stage stage) {

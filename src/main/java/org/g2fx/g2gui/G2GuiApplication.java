@@ -229,6 +229,8 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
     }
 
+
+
     public static Scene addGlobalStylesheet(Scene scene) {
         scene.getStylesheets().add(FXUtil.getResource("g2fx.css").toExternalForm());
         return scene;
