@@ -36,6 +36,7 @@ if ($env:GITHUB_ENV) {
 
 jpackage --type app-image `
   --input build/jre/lib `
+  --win-console `
   --name G2FX `
   --main-jar "g2fx-$APP_VERSION.jar" `
   --main-class org.g2fx.g2gui.G2GuiApplication `
