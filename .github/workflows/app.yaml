@@ -15,10 +15,10 @@ jobs:
             platform: mac
             arch: aarch64
             javafx_suffix: mac-aarch64
-#          - os: windows-latest
-#            platform: win
-#            arch: x64
-#            javafx_suffix: windows-x64
+          - os: windows-latest
+            platform: win
+            arch: x64
+            javafx_suffix: windows-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -40,8 +40,11 @@ jobs:
         if: runner.os == 'macOS'
         run: ./package.sh
 
-      - name: Upload macos artifact
-        if: runner.os == 'macOS'
+      - name: Build win dist
+        if: runner.os == 'Windows'
+        run: ./package.ps1
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
