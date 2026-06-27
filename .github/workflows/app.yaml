@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload artifact windows
         uses: actions/upload-artifact@v4
-        if: runner.os != 'Windows'
+        if: runner.os == 'Windows'
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: build/app-image/G2FX/
