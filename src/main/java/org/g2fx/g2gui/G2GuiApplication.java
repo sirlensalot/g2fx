@@ -43,7 +43,6 @@ import org.g2fx.g2lib.state.Performance;
 import org.g2fx.g2lib.usb.UsbService;
 import org.g2fx.g2lib.util.Util;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -436,8 +435,7 @@ public class G2GuiApplication extends Application implements DeviceListener {
 
         Map<ModuleType.ModPage,List<ModuleButtonInfo>> modsByType = new TreeMap<>();
         ModuleType.BY_PAGE.forEach((mp,l) -> modsByType.put(mp,l.stream().map(mt -> {
-            ImageView iv = getImageViewResource("module-icons" +
-                    File.separator + String.format("%03d.png", mt.ix));
+            ImageView iv = getImageViewResource("module-icons/" + String.format("%03d.png", mt.ix));
             Button tb = withClass(new Button("",iv),"module-select-button");
             tb.setOnDragDetected(e -> {
                 slots.startToolbarModuleDrag(mt);

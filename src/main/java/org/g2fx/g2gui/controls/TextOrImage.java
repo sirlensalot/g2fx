@@ -4,7 +4,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.g2fx.g2gui.FXUtil;
 
-import java.io.File;
 import java.util.List;
 
 public sealed interface TextOrImage permits TextOrImage.IsText, TextOrImage.IsImage {
@@ -46,7 +45,7 @@ public sealed interface TextOrImage permits TextOrImage.IsText, TextOrImage.IsIm
         return ss.stream().map(s -> (TextOrImage) new IsText(s)).toList();
     }
     static List<TextOrImage> mkImages(List<String> files) {
-        return files.stream().map(s -> (TextOrImage) new IsImage("img" + File.separator + s)).toList();
+        return files.stream().map(s -> (TextOrImage) new IsImage("img/" + s)).toList();
     }
 
 }

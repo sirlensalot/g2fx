@@ -28,7 +28,6 @@ import org.g2fx.g2lib.state.Coords;
 import org.g2fx.g2lib.state.PatchModule;
 import org.g2fx.g2lib.util.Util;
 
-import java.io.File;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -353,7 +352,7 @@ public class ModulePane implements MoveableModule {
     }
 
     private static String img(String img) {
-        return "img" + File.separator + img;
+        return "img/" + img;
     }
 
 

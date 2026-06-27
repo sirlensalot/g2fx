@@ -20,8 +20,6 @@ import org.g2fx.g2gui.FXUtil;
 import org.g2fx.g2gui.panel.ModulePane;
 import org.g2fx.g2gui.ui.UIElements;
 
-import java.io.File;
-
 import static org.g2fx.g2gui.FXUtil.withClass;
 
 public class ModeSelector {
@@ -45,7 +43,7 @@ public class ModeSelector {
 
         // ListView for dropdown items
         ObservableList<Image> items = FXCollections.observableArrayList(c.Images().stream().map(f ->
-                FXUtil.getImageResource("img" + File.separator + f)).toList());
+                FXUtil.getImageResource("img/" + f)).toList());
         ListView<Image> listView = withClass(new ListView<>(items),"module-mode-list");
         selectedProperty = new SimpleObjectProperty<>(listView, ip.toString(),ip.param().param().def);
         listView.setFixedCellSize(c.Height());
