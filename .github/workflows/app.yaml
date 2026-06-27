@@ -44,13 +44,16 @@ jobs:
         if: runner.os == 'Windows'
         run: ./package.ps1
 
-      - name: Stage artifact
-        run: |
-          mkdir -p "artifact/${{ env.ARTIFACT_NAME }}"
-          cp -R build/app-image/* "artifact/${{ env.ARTIFACT_NAME }}/"
-
-      - name: Upload artifact
+      - name: Upload artifact windows
         uses: actions/upload-artifact@v4
+        if: runner.os != 'Windows'
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: artifact/
+          path: build/app-image/G2FX/
+
+      - name: Upload artifact mac
+        uses: actions/upload-artifact@v4
+        if: runner.os == 'macOS'
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: build/app-image/
