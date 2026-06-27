@@ -53,8 +53,8 @@ jpackage --type app-image \
          --icon data/icon/G2FX.icns \
          --verbose
 
-cd build/app-image
-zf="$ARTIFACT_NAME.zip"
-zip -q -r $zf G2FX.app
+#cd build/app-image
+#zf="$ARTIFACT_NAME.zip"
+#zip -q -r $zf G2FX.app
 
-echo $zf
+#echo $zf

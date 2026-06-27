@@ -45,7 +45,7 @@ jpackage --type app-image `
   --icon data/icon/G2FX.ico `
   --verbose
 
-Set-Location build/app-image
-$zip = "$ARTIFACT_NAME.zip"
-Compress-Archive -Path G2FX\* -DestinationPath $zip -Force
-Write-Output $zip
+#Set-Location build/app-image
+#$zip = "$ARTIFACT_NAME.zip"
+#Compress-Archive -Path G2FX\* -DestinationPath $zip -Force
+#Write-Output $zip
