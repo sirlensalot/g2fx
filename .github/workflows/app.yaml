@@ -44,8 +44,13 @@ jobs:
         if: runner.os == 'Windows'
         run: ./package.ps1
 
+        - name: Stage artifact
+          run: |
+            mkdir -p "artifact/${{ env.ARTIFACT_NAME }}"
+            cp -R build/app-image/* "artifact/${{ env.ARTIFACT_NAME }}/"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: build/app-image/
+          path: artifact/
